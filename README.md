@@ -6,10 +6,11 @@ Rails 8 app that markets and manages our MQL5 EAs, starting with the Sniper Adva
 - Ruby 3.4.5 / Rails 8.0.4, Postgres, importmap + propshaft.
 - Tailwind (tailwindcss-rails) with Node CLI (`@tailwindcss/cli`) for builds; assets under `app/assets/templates/{neon,mosaic}`.
 - Gems: devise, pay (Stripe), refer, maxminddb, rspec-rails, factory_bot_rails.
+- Domain models: ExpertAdvisor records (ea_robot/ea_tool) with documents JSON and allowed subscription tiers; UserExpertAdvisors join grants per user (soft-deletable on downgrade).
 
 ## Setup
 1) Ensure asdf installs: `ruby 3.4.5`, `nodejs 24.6.0`.  
-2) Copy env template: `cp .envrc.example .envrc && direnv allow` (or export vars manually).  
+2) Copy env template: `cp .envrc.example .envrc && direnv allow` (or export vars manually). Ensure `RAILS_MASTER_KEY` matches `config/master.key` or unset it so Rails reads that file.  
 3) Install deps:
 ```
 bundle install
@@ -18,6 +19,8 @@ npm install
 4) Create DB once ready:
 ```
 bin/rails db:create db:migrate
+# optional sample data
+bin/rails db:seed
 ```
 5) Run dev server + Tailwind watcher:
 ```
@@ -28,7 +31,9 @@ bin/dev
 ## Environment
 - Postgres: `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME`, `DB_NAME_TEST`.
 - App/host: `APP_HOST`, `APP_HOST_PROTOCOL`, `RAILS_MASTER_KEY` (for credentials).
-- Stripe (Pay): `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`.
+- Stripe (Pay): `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, and price IDs per plan:
+  - Monthly: `STRIPE_PRICE_BASIC_MONTHLY`, `STRIPE_PRICE_HFT_MONTHLY`, `STRIPE_PRICE_PRO_MONTHLY`
+  - Annual (60% discount vs monthly): `STRIPE_PRICE_BASIC_ANNUAL`, `STRIPE_PRICE_HFT_ANNUAL`, `STRIPE_PRICE_PRO_ANNUAL`
 - Referrals: `REFER_DEFAULT_DISCOUNT_PERCENT` (for downstream logic), query param `ref` handled by the refer gem.
 - MaxMind GeoIP: place the DB at `maxmind/GeoLite2-City.mmdb` (or set `MAXMIND_DB_PATH`); `MAXMIND_LICENSE_KEY` for fetching the DB externally.
 - Support email: `SUPPORT_EMAIL` (used by Devise/Pay mailers).

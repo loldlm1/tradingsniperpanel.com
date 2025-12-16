@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   has_referrals
   pay_customer default_payment_processor: :stripe, stripe_attributes: :stripe_customer_attributes
+  has_many :user_expert_advisors, dependent: :destroy
+  has_many :expert_advisors, through: :user_expert_advisors
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
