@@ -46,9 +46,12 @@ bin/dev
 ## Testing
 ```
 bundle exec rspec
+# with coverage gating (SimpleCov, 80% min):
+COVERAGE=true bundle exec rspec
 ```
 
 ## Code standards
 - Prefer POROs/service objects for business logic, I18n for copy (EN/ES), and view partials/components for repeated UI.
+- Locale detection lives in `LocaleResolver` (param > session > user > GeoIP > Accept-Language > default); keep it lean and testable.
 - Keep Stripe/Pay actions idempotent; webhook endpoints (from Pay) live under `/pay`.
 - Respect referral cookies (`ref`) before sign-up; locale detection falls back to user session override.

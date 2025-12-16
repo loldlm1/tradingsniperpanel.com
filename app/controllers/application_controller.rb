@@ -9,57 +9,23 @@ class ApplicationController < ActionController::Base
   private
 
   def set_locale
-    I18n.locale = (
-      locale_from_params ||
-      session[:locale] ||
-      current_user&.preferred_locale_code&.to_s ||
-      geoip_locale ||
-      accept_language_locale ||
-      I18n.default_locale
+    resolver = LocaleResolver.new(
+      request:,
+      params:,
+      session:,
+      user: current_user
     )
 
+    I18n.locale = resolver.resolved_locale
     session[:locale] = I18n.locale
-    persist_user_locale
+    persist_user_locale(resolver)
   end
 
-  def locale_from_params
-    return unless params[:locale].present?
+  def persist_user_locale(resolver)
+    return unless resolver.persist_user_locale?
 
-    locale = params[:locale].to_s
-    locale if I18n.available_locales.map(&:to_s).include?(locale)
-  end
-
-  def accept_language_locale
-    header = request.env["HTTP_ACCEPT_LANGUAGE"]
-    return if header.blank?
-
-    header.split(",").map { |lang| lang.split(";").first.to_s.downcase }.find do |lang|
-      I18n.available_locales.map(&:to_s).include?(lang)
-    end
-  end
-
-  def geoip_locale
-    return if request.remote_ip.blank? || request.remote_ip.start_with?("127.", "10.", "192.168.", "172.16.", "::1")
-
-    path = ENV.fetch("MAXMIND_DB_PATH", Rails.root.join("maxmind/GeoLite2-City.mmdb").to_s)
-    return unless File.exist?(path)
-
-    @maxmind_db ||= MaxMindDB.new(path)
-    result = @maxmind_db.lookup(request.remote_ip)
-    country = result&.country&.iso_code
-
-    return "es" if %w[ES MX AR CO PE CL VE EC GT DO HN SV NI CR UY PA PR BO CU PY].include?(country)
-
-    nil
-  rescue StandardError => e
-    Rails.logger.debug { "GeoIP lookup failed: #{e.message}" }
-    nil
-  end
-
-  def persist_user_locale
-    return unless current_user&.preferred_locale != I18n.locale.to_s
-
-    current_user.update_column(:preferred_locale, I18n.locale.to_s)
+    updated = current_user.update(preferred_locale: I18n.locale.to_s)
+    Rails.logger.warn("Failed to persist locale for user #{current_user.id}") unless updated
   end
 
   def default_url_options
