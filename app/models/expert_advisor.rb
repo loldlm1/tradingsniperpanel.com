@@ -1,5 +1,5 @@
 class ExpertAdvisor < ApplicationRecord
-  enum ea_type: { ea_robot: 0, ea_tool: 1 }
+  enum :ea_type, { ea_robot: 0, ea_tool: 1 }
 
   has_many :user_expert_advisors, dependent: :destroy
 
