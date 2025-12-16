@@ -25,7 +25,7 @@ RSpec.describe "Localization", type: :request do
     end
 
     it "falls back to default when locale param is invalid" do
-      get root_path(locale: :fr)
+      get root_path, params: { locale: :fr }
 
       expect(response).to be_successful
       expect(I18n.locale).to eq(I18n.default_locale)
@@ -56,7 +56,7 @@ RSpec.describe "Localization", type: :request do
 
   describe "headers and defaults" do
     it "uses Accept-Language when no param, session, or user locale present" do
-      get root_path, headers: { "ACCEPT_LANGUAGE" => "es-ES,es;q=0.9,en;q=0.8" }
+      get root_path, headers: { "HTTP_ACCEPT_LANGUAGE" => "es-ES,es;q=0.9,en;q=0.8" }
 
       expect(I18n.locale).to eq(:es)
       expect(session[:locale]).to eq(:es)

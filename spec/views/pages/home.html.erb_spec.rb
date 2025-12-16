@@ -14,6 +14,8 @@ RSpec.describe "pages/home", type: :view do
     before do
       allow(view).to receive(:user_signed_in?).and_return(false)
       allow(view).to receive(:current_user).and_return(nil)
+      allow(view).to receive(:default_url_options).and_return({ locale: I18n.locale })
+      allow(controller).to receive(:default_url_options).and_return({ locale: I18n.locale })
     end
 
     it "renders translated hero copy and sign up links" do
@@ -29,6 +31,8 @@ RSpec.describe "pages/home", type: :view do
     before do
       allow(view).to receive(:user_signed_in?).and_return(true)
       allow(view).to receive(:current_user).and_return(user)
+      allow(view).to receive(:default_url_options).and_return({ locale: I18n.locale })
+      allow(controller).to receive(:default_url_options).and_return({ locale: I18n.locale })
     end
 
     it "points CTAs to the dashboard" do

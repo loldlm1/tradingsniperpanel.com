@@ -11,6 +11,10 @@ RSpec.describe "layouts/application", type: :view do
   before do
     allow(view).to receive(:user_signed_in?).and_return(false)
     allow(view).to receive(:current_user).and_return(nil)
+    allow(view).to receive(:default_url_options).and_return({ locale: I18n.locale })
+    allow(controller).to receive(:default_url_options).and_return({ locale: I18n.locale })
+    view.request.path_parameters[:controller] = "pages"
+    view.request.path_parameters[:action] = "home"
   end
 
   it "renders the lang attribute and locale switcher links" do

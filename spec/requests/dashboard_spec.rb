@@ -4,6 +4,12 @@ require "securerandom"
 RSpec.describe "Dashboard", type: :request do
   let(:user) { create(:user, preferred_locale: "es") }
 
+  before do
+    unless Pay::Subscription.method_defined?(:paused?)
+      Pay::Subscription.define_method(:paused?) { false }
+    end
+  end
+
   def create_subscription_for(user, status: "active")
     customer = user.pay_customers.create!(
       processor: "stripe",
@@ -11,7 +17,7 @@ RSpec.describe "Dashboard", type: :request do
       default: true
     )
 
-    customer.subscriptions.create!(
+    subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
       processor_plan: "price_123",
@@ -20,6 +26,9 @@ RSpec.describe "Dashboard", type: :request do
       current_period_start: Time.current,
       current_period_end: 1.month.from_now
     )
+
+    subscription.define_singleton_method(:paused?) { false }
+    subscription
   end
 
   it "renders the dashboard with active subscription status" do

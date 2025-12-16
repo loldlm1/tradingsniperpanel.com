@@ -7,7 +7,7 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <%= stylesheet_link_tag "templates/mosaic/style", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "mosaic/style", "data-turbo-track": "reload" %>
     <%= yield :head %>
   </head>
   <body class="<%= content_for?(:body_class) ? yield(:body_class) : "font-inter antialiased bg-slate-100 text-slate-900 dark:bg-slate-900 dark:text-slate-100" %>">
@@ -45,7 +45,7 @@
     </div>
 
     <%= javascript_importmap_tags %>
-    <%= javascript_include_tag "templates/mosaic/js/vendors/alpinejs.min", "data-turbo-track": "reload", defer: true %>
-    <%= javascript_include_tag "templates/mosaic/js/main", "data-turbo-track": "reload", defer: true %>
+    <%= javascript_include_tag "mosaic/js/vendors/alpinejs.min", "data-turbo-track": "reload", defer: true %>
+    <%= javascript_include_tag "mosaic/js/main", "data-turbo-track": "reload", defer: true %>
   </body>
 </html>

@@ -29,7 +29,7 @@ RSpec.describe ExpertAdvisor, type: :model do
     it "returns documents hash when present" do
       advisor = build(:expert_advisor, documents: { guide: "http://example.com" })
 
-      expect(advisor.active_documents).to eq({ guide: "http://example.com" })
+      expect(advisor.active_documents).to eq({ "guide" => "http://example.com" })
     end
   end
 end

@@ -73,9 +73,9 @@ RSpec.describe LocaleResolver do
       allow(File).to receive(:exist?).and_call_original
       allow(File).to receive(:exist?).with(db_path).and_return(true)
 
-      country = instance_double("Country", iso_code: "ES")
-      result = instance_double("GeoResult", country:)
-      maxmind = instance_double(MaxMindDB, lookup: result)
+      country = double("Country", iso_code: "ES")
+      result = double("GeoResult", country:)
+      maxmind = double("MaxMindDB", lookup: result)
       allow(MaxMindDB).to receive(:new).with(db_path).and_return(maxmind)
 
       original = ENV["MAXMIND_DB_PATH"]
@@ -102,6 +102,9 @@ RSpec.describe LocaleResolver do
       original = ENV["MAXMIND_DB_PATH"]
       ENV["MAXMIND_DB_PATH"] = db_path
 
+      messages = []
+      allow(logger).to receive(:debug) { |&blk| messages << blk.call if blk }
+
       resolver = described_class.new(
         params:,
         session:,
@@ -111,7 +114,7 @@ RSpec.describe LocaleResolver do
       )
 
       expect(resolver.resolved_locale).to eq(I18n.default_locale.to_s)
-      expect(logger).to have_received(:debug).with(/GeoIP lookup failed/)
+      expect(messages.join).to include("GeoIP lookup failed")
     ensure
       ENV["MAXMIND_DB_PATH"] = original
     end
