@@ -1,0 +1,33 @@
+<% content_for :title, "#{t('pricing.title')} | #{t('app.name')}" %>
+
+<section class="relative max-w-6xl mx-auto px-4 sm:px-6 pt-32 pb-12 md:pt-36 md:pb-16">
+  <div class="max-w-3xl">
+    <div class="text-sm text-blue-300 uppercase mb-3"><%= t("pricing.title") %></div>
+    <h1 class="h1 font-uncut-sans mb-4"><%= t("app.name") %></h1>
+    <p class="text-lg text-gray-400 mb-8"><%= t("pricing.subtitle") %></p>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div class="bg-gray-800/60 border border-gray-800 rounded-2xl p-6">
+      <h2 class="text-xl font-semibold text-gray-100 mb-4"><%= t("pricing.title") %></h2>
+      <ul class="space-y-3 text-gray-300 mb-6">
+        <% t("pricing.bullets").each do |bullet| %>
+          <li class="flex items-start gap-2">
+            <span class="text-blue-400 mt-1">•</span>
+            <span><%= bullet %></span>
+          </li>
+        <% end %>
+      </ul>
+      <%= link_to (user_signed_in? ? dashboard_path : new_user_registration_path), class: "btn text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg" do %>
+        <%= t("pricing.cta") %>
+        <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+      <% end %>
+      <p class="text-sm text-gray-400 mt-4"><%= t("pricing.price_callout") %></p>
+    </div>
+    <div class="bg-gray-800/40 border border-gray-800 rounded-2xl p-6">
+      <h2 class="text-xl font-semibold text-gray-100 mb-4"><%= t("referral.title") %></h2>
+      <p class="text-gray-300 mb-6"><%= t("referral.body") %></p>
+      <%= link_to t("nav.sign_up"), new_user_registration_path, class: "btn-sm text-gray-300 bg-gray-800 hover:bg-gray-700 shadow-lg" unless user_signed_in? %>
+    </div>
+  </div>
+</section>

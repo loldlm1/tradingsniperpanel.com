@@ -1,0 +1,98 @@
+en:
+  app:
+    name: "Trading Sniper Panel"
+    short_name: "Sniper Panel"
+    tagline: "Precision execution for MQL5 traders."
+    docs_path: "/docs/sniper_advanced_panel"
+  nav:
+    home: "Home"
+    pricing: "Pricing"
+    docs: "Docs"
+    dashboard: "Dashboard"
+    sign_in: "Sign in"
+    sign_out: "Sign out"
+    sign_up: "Create account"
+  hero:
+    badge: "MQL5 Expert Advisors"
+    title: "Sniper Advanced Panel for decisive entries"
+    subtitle: "Risk-first controls, grid depth on demand, and crosshair-precise scope for your MetaTrader charts."
+    primary_cta: "Create account"
+    secondary_cta: "Read the manuals"
+  features:
+    title: "Built for disciplined traders"
+    items:
+      risk:
+        title: "Risk box that respects broker limits"
+        body: "Switch Lot/%/$ modes with real-time clamping, validation tooltips, and smooth updates."
+      scope:
+        title: "Sniper Scope workflow"
+        body: "Crosshair TP/SL placement, Enter/Esc confirmations, and cycle navigation across tickets."
+      grid:
+        title: "Adaptive projections"
+        body: "Toggle split trades, grid depth 1-3 layers, and TP ladders without leaving the keyboard."
+      theme:
+        title: "Persistent themes & hotkeys"
+        body: "Dark/light toggle, responsive labels, per-chart configs, and editable hotkeys/colors."
+  workflow:
+    title: "Stay in control from projection to exit"
+    steps:
+      projection:
+        title: "Projection"
+        body: "Launch BUY/SELL projections with TP multipliers and grid layers."
+      signal:
+        title: "Signal management"
+        body: "Cycle through signals or tickets for partial/full closes and break-even moves."
+      scope:
+        title: "Scope retargeting"
+        body: "Lock TP/SL with the crosshair before sending precise adjustments."
+  docs:
+    title: "Docs & downloads"
+    manuals:
+      en: "Sniper Advanced Panel Manual (EN)"
+      es: "Manual del Panel Sniper (ES)"
+      pdf_es: "PDF en Español"
+      presentation_es: "Presentación (ES)"
+    note: "Manuals stay in sync with the EA; dashboards link to new builds as we ship them."
+    highlights_title: "Highlights"
+    highlights:
+      - "Risk box with Lot/%/$ modes, broker-aware validation, and quick clamping."
+      - "Cycle navigator for partial/full closes, break-even moves, and scope targets."
+      - "Sniper Scope crosshair flow to retarget TP/SL with Enter/Esc confirmations."
+      - "Persistent themes, responsive labels, and editable hotkeys/colors per chart."
+  pricing:
+    title: "Flat subscription"
+    subtitle: "Stripe card payments only. One plan, full access."
+    bullets:
+      - "All Sniper Advanced Panel features and future EA drops"
+      - "Manage subscription, invoices, and payment methods from the dashboard"
+      - "Referral discounts applied automatically at checkout"
+    cta: "Go to dashboard"
+    price_callout: "Simple monthly subscription — set it and trade."
+  referral:
+    title: "Referral-aware"
+    body: "Share your referral link; friends get discounted checkout and you keep attribution for future rewards."
+  dashboard:
+    hero_title: "Your Sniper Advanced Panel cockpit"
+    hero_subtitle: "Manage downloads, licenses, referrals, and billing from one place."
+    plan_card:
+      title: "Subscription"
+      status_active: "Active"
+      status_inactive: "Not subscribed"
+      manage: "Manage billing"
+      subscribe: "Subscribe now"
+    download_card:
+      title: "Downloads"
+      label: "Current release"
+      manual_en: "Manual (EN)"
+      manual_es: "Manual (ES)"
+    referral_card:
+      title: "Referral code"
+      copy: "Share to grant a discount. We'll apply it in Stripe checkout."
+  devise:
+    sign_in_title: "Sign in"
+    sign_up_title: "Create your account"
+    forgot_password: "Forgot password?"
+    no_account: "Don't have an account?"
+    have_account: "Already registered?"
+  footer:
+    tagline: "Built for disciplined MQL5 traders."

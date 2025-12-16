@@ -1,0 +1,98 @@
+es:
+  app:
+    name: "Trading Sniper Panel"
+    short_name: "Sniper Panel"
+    tagline: "Ejecución precisa para traders de MQL5."
+    docs_path: "/docs/sniper_advanced_panel"
+  nav:
+    home: "Inicio"
+    pricing: "Precios"
+    docs: "Docs"
+    dashboard: "Panel"
+    sign_in: "Ingresar"
+    sign_out: "Salir"
+    sign_up: "Crear cuenta"
+  hero:
+    badge: "EAs de MQL5"
+    title: "Sniper Advanced Panel para entradas decisivas"
+    subtitle: "Controles de riesgo, grids bajo demanda y scope milimétrico para tus gráficos de MetaTrader."
+    primary_cta: "Crear cuenta"
+    secondary_cta: "Leer los manuales"
+  features:
+    title: "Pensado para traders disciplinados"
+    items:
+      risk:
+        title: "Caja de riesgo que respeta los límites del broker"
+        body: "Cambia entre Lot/%/$ con validaciones en vivo, tooltips de ajuste y respuesta fluida."
+      scope:
+        title: "Flujo Sniper Scope"
+        body: "Apunta TP/SL con el crosshair, confirma con Enter/Esc y recorre tickets con el cycle navigator."
+      grid:
+        title: "Proyecciones adaptables"
+        body: "Activa split trades, profundidad de grid 1-3 capas y escaleras de TP sin soltar el teclado."
+      theme:
+        title: "Temas y hotkeys persistentes"
+        body: "Toggle dark/light, etiquetas responsivas, configs por gráfico y atajos/colores editables."
+  workflow:
+    title: "Control total desde la proyección hasta el cierre"
+    steps:
+      projection:
+        title: "Proyección"
+        body: "Lanza BUY/SELL con multiplicadores de TP y capas de grid."
+      signal:
+        title: "Gestión de señales"
+        body: "Recorre señales o tickets para cierres parciales/totales y movimientos a break-even."
+      scope:
+        title: "Reapuntar con Scope"
+        body: "Bloquea TP/SL con el crosshair antes de enviar ajustes precisos."
+  docs:
+    title: "Docs y descargas"
+    manuals:
+      en: "Manual Sniper Advanced Panel (EN)"
+      es: "Manual del Panel Sniper (ES)"
+      pdf_es: "PDF en Español"
+      presentation_es: "Presentación (ES)"
+    note: "Los manuales se mantienen en sync con el EA; el dashboard enlaza los builds nuevos."
+    highlights_title: "Puntos clave"
+    highlights:
+      - "Caja de riesgo con modos Lot/%/$, validación por broker y ajustes rápidos."
+      - "Cycle navigator para cierres parciales/totales, break-even y objetivos de scope."
+      - "Flujo Sniper Scope con crosshair para retargetear TP/SL y confirmar con Enter/Esc."
+      - "Temas persistentes, etiquetas responsivas y hotkeys/colores editables por gráfico."
+  pricing:
+    title: "Suscripción plana"
+    subtitle: "Pagos con tarjeta vía Stripe. Un plan, acceso completo."
+    bullets:
+      - "Todas las funciones del Sniper Advanced Panel y futuros EAs"
+      - "Gestiona suscripción, facturas y métodos de pago desde el panel"
+      - "Descuentos de referidos aplicados automáticamente en checkout"
+    cta: "Ir al panel"
+    price_callout: "Suscripción mensual simple — configura y opera."
+  referral:
+    title: "Listo para referidos"
+    body: "Comparte tu link: tus referidos obtienen descuento y mantenemos la atribución para futuras recompensas."
+  dashboard:
+    hero_title: "Tu cockpit del Sniper Advanced Panel"
+    hero_subtitle: "Administra descargas, licencias, referidos y billing en un solo lugar."
+    plan_card:
+      title: "Suscripción"
+      status_active: "Activa"
+      status_inactive: "Sin suscripción"
+      manage: "Gestionar billing"
+      subscribe: "Suscribirse"
+    download_card:
+      title: "Descargas"
+      label: "Build actual"
+      manual_en: "Manual (EN)"
+      manual_es: "Manual (ES)"
+    referral_card:
+      title: "Código de referido"
+      copy: "Compártelo para otorgar descuento. Lo aplicamos en el checkout de Stripe."
+  devise:
+    sign_in_title: "Ingresar"
+    sign_up_title: "Crear cuenta"
+    forgot_password: "¿Olvidaste tu clave?"
+    no_account: "¿Aún no tienes cuenta?"
+    have_account: "¿Ya tienes cuenta?"
+  footer:
+    tagline: "Construido para traders disciplinados de MQL5."

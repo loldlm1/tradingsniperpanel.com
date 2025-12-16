@@ -1,0 +1,29 @@
+<% content_for :title, "#{t('docs.title')} | #{t('app.name')}" %>
+
+<section class="relative max-w-6xl mx-auto px-4 sm:px-6 pt-32 pb-12 md:pt-36 md:pb-16">
+  <div class="max-w-3xl">
+    <div class="text-sm text-blue-300 uppercase mb-3"><%= t("docs.title") %></div>
+    <h1 class="h1 font-uncut-sans mb-4"><%= t("app.name") %> docs</h1>
+    <p class="text-lg text-gray-400 mb-8"><%= t("docs.note") %></p>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div class="bg-gray-800/50 border border-gray-800 rounded-2xl p-6">
+      <h2 class="text-lg font-semibold text-gray-100 mb-4"><%= t("nav.docs") %></h2>
+      <ul class="space-y-3 text-gray-200 text-sm">
+        <li><%= link_to t("docs.manuals.en"), "/docs/sniper_advanced_panel/Manual_EN.md", class: "hover:text-blue-400 underline decoration-blue-400/70" %></li>
+        <li><%= link_to t("docs.manuals.es"), "/docs/sniper_advanced_panel/Manual_ES.md", class: "hover:text-blue-400 underline decoration-blue-400/70" %></li>
+        <li><%= link_to t("docs.manuals.pdf_es"), "/docs/sniper_advanced_panel/sniper_advanced_panel_es.pdf", class: "hover:text-blue-400 underline decoration-blue-400/70" %></li>
+        <li><%= link_to t("docs.manuals.presentation_es"), "/docs/sniper_advanced_panel/sniper_advanced_panel_presentation_es.pdf", class: "hover:text-blue-400 underline decoration-blue-400/70" %></li>
+      </ul>
+    </div>
+    <div class="bg-gray-800/50 border border-gray-800 rounded-2xl p-6">
+      <h2 class="text-lg font-semibold text-gray-100 mb-4"><%= t("docs.highlights_title") %></h2>
+      <ul class="space-y-3 text-gray-300 text-sm">
+        <% t("docs.highlights").each do |highlight| %>
+          <li><%= highlight %></li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</section>

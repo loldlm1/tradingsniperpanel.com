@@ -1,0 +1,41 @@
+# Dependency directories
+/.bundle
+/node_modules
+/vendor/bundle
+
+# Logs and temp files
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+!/tmp/pids/.keep
+!/tmp/sockets/.keep
+!/tmp/storage/.keep
+
+# Storage
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+
+# Assets
+/public/assets
+/public/packs
+/public/packs-test
+/app/assets/builds/*
+!/app/assets/builds/.keep
+
+# Credentials and env
+/.env*
+/.envrc
+/config/master.key
+
+# Tests and coverage
+/coverage
+/spec/examples.txt
+
+# System
+*.swp
+.DS_Store
+
+# GeoIP databases
+/maxmind/*.mmdb

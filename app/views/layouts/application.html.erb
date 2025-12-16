@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+  <head>
+    <meta charset="utf-8">
+    <title><%= content_for(:title) || t("app.name") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag "templates/neon/css/vendors/aos", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "templates/neon/style", "data-turbo-track": "reload" %>
+    <%= yield :head %>
+  </head>
+
+  <body class="<%= content_for?(:body_class) ? yield(:body_class) : "font-inter antialiased bg-gray-900 text-gray-100 tracking-tight" %>">
+    <div class="flex flex-col min-h-screen overflow-hidden">
+      <header class="absolute w-full z-30">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+          <div class="flex items-center justify-between h-16 md:h-20">
+            <div class="shrink-0 mr-4">
+              <%= link_to root_path, class: "block flex items-center gap-2", "aria-label": t("app.name") do %>
+                <img class="h-8 w-auto" src="/docs/sniper_advanced_panel/Dark_SAP_logo.png" alt="<%= t("app.name") %>">
+                <span class="font-semibold text-gray-100"><%= t("app.short_name") %></span>
+              <% end %>
+            </div>
+
+            <nav class="flex grow">
+              <ul class="flex grow justify-end flex-wrap items-center text-sm">
+                <li>
+                  <%= link_to t("nav.home"), root_path, class: "font-medium text-gray-400 hover:text-blue-400 px-3 lg:px-5 py-2 transition duration-150 ease-in-out" %>
+                </li>
+                <li>
+                  <%= link_to t("nav.pricing"), pricing_path, class: "font-medium text-gray-400 hover:text-blue-400 px-3 lg:px-5 py-2 transition duration-150 ease-in-out" %>
+                </li>
+                <li>
+                  <%= link_to t("nav.docs"), docs_path, class: "font-medium text-gray-400 hover:text-blue-400 px-3 lg:px-5 py-2 transition duration-150 ease-in-out" %>
+                </li>
+                <% if user_signed_in? %>
+                  <li>
+                    <%= link_to t("nav.dashboard"), dashboard_path, class: "font-medium text-gray-400 hover:text-blue-400 px-3 lg:px-5 py-2 transition duration-150 ease-in-out" %>
+                  </li>
+                  <li class="ml-3">
+                    <%= link_to t("nav.sign_out"), destroy_user_session_path, data: { turbo_method: :delete }, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" %>
+                  </li>
+                <% else %>
+                  <li>
+                    <%= link_to t("nav.sign_in"), new_user_session_path, class: "font-medium text-gray-400 hover:text-blue-500 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out" %>
+                  </li>
+                  <li class="ml-3">
+                    <%= link_to t("nav.sign_up"), new_user_registration_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" %>
+                  </li>
+                <% end %>
+                <li class="ml-3">
+                  <div class="flex items-center gap-1 bg-gray-800/80 rounded-full px-2 py-1">
+                    <%= link_to "EN", url_for(locale: :en), class: locale_link_class(:en) %>
+                    <%= link_to "ES", url_for(locale: :es), class: locale_link_class(:es) %>
+                  </div>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      <main class="grow">
+        <%= yield %>
+      </main>
+
+      <footer class="bg-gray-900 border-t border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+          <div class="flex items-center gap-2 text-sm text-gray-400">
+            <img class="h-6 w-auto" src="/docs/sniper_advanced_panel/White_SAP_logo.png" alt="<%= t("app.name") %>">
+            <span><%= t("footer.tagline") %></span>
+          </div>
+          <div class="flex items-center gap-4 text-sm text-gray-500">
+            <%= link_to t("nav.docs"), docs_path, class: "hover:text-gray-200" %>
+            <%= link_to t("nav.pricing"), pricing_path, class: "hover:text-gray-200" %>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <%= javascript_importmap_tags %>
+    <%= javascript_include_tag "templates/neon/js/vendors/alpinejs.min", "data-turbo-track": "reload", defer: true %>
+    <%= javascript_include_tag "templates/neon/js/vendors/aos", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "templates/neon/js/main", "data-turbo-track": "reload" %>
+  </body>
+</html>

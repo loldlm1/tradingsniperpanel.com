@@ -1,0 +1,20 @@
+<% content_for :title, "#{t('devise.forgot_password')} | #{t('app.name')}" %>
+
+<section class="relative max-w-lg mx-auto px-4 sm:px-6 pt-32 pb-12 md:pt-36 md:pb-16">
+  <div class="bg-gray-800/60 border border-gray-800 rounded-2xl p-8 shadow-xl">
+    <h1 class="text-2xl font-semibold text-gray-100 mb-6"><%= t("devise.forgot_password") %></h1>
+
+    <%= form_with model: resource, scope: resource_name, url: password_path(resource_name), method: :post, class: "space-y-6" do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
+      <div>
+        <%= f.label :email, class: "block text-sm font-medium text-gray-300 mb-2" %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input w-full text-gray-100 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+      </div>
+      <%= f.submit t("devise.forgot_password"), class: "btn text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg" %>
+    <% end %>
+
+    <div class="mt-6 text-sm text-gray-400">
+      <%= link_to t("nav.sign_in"), new_session_path(resource_name), class: "text-blue-400 hover:text-blue-300" %>
+    </div>
+  </div>
+</section>
