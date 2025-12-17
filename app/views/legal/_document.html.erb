@@ -8,16 +8,17 @@
 
   <div class="max-w-3xl mt-10 space-y-10">
     <% sections.each do |section| %>
+      <% section = section.respond_to?(:with_indifferent_access) ? section.with_indifferent_access : section %>
       <div>
-        <h2 class="text-xl font-semibold text-gray-100 mb-3"><%= section["title"] %></h2>
+        <h2 class="text-xl font-semibold text-gray-100 mb-3"><%= section[:title] %></h2>
 
-        <% Array(section["paragraphs"]).each do |paragraph| %>
+        <% Array(section[:paragraphs]).each do |paragraph| %>
           <p class="text-gray-400 mb-4"><%= paragraph %></p>
         <% end %>
 
-        <% if section["bullets"].present? %>
+        <% if section[:bullets].present? %>
           <ul class="space-y-3 text-gray-300">
-            <% section["bullets"].each do |bullet| %>
+            <% section[:bullets].each do |bullet| %>
               <li class="flex items-start gap-2">
                 <span class="text-blue-400 mt-1">•</span>
                 <span><%= bullet %></span>
@@ -29,4 +30,3 @@
     <% end %>
   </div>
 </section>
-

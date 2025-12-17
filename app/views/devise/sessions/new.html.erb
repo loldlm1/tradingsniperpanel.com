@@ -1,78 +1,92 @@
 <% content_for :title, "#{t('devise.sign_in_title')} | #{t('app.name')}" %>
-<% content_for :body_class, "font-inter antialiased bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400" %>
 <% content_for :full_bleed, true %>
-<% content_for :head do %>
-  <%= stylesheet_link_tag "mosaic/css/vendors/flatpickr.min", "data-turbo-track": "reload" %>
-  <%= stylesheet_link_tag "mosaic/style", "data-turbo-track": "reload" %>
-  <script>
-    if (localStorage.getItem('dark-mode') === 'false' || !('dark-mode' in localStorage)) {
-      document.querySelector('html').classList.remove('dark');
-      document.querySelector('html').style.colorScheme = 'light';
-    } else {
-      document.querySelector('html').classList.add('dark');
-      document.querySelector('html').style.colorScheme = 'dark';
-    }
-  </script>
-<% end %>
-<% content_for :scripts do %>
-  <%= javascript_include_tag "mosaic/js/vendors/alpinejs.min", "data-turbo-track": "reload", defer: true %>
-  <%= javascript_include_tag "mosaic/js/main", "data-turbo-track": "reload" %>
-<% end %>
 
-<main class="bg-white dark:bg-gray-900" x-data="{ sidebarOpen: false, sidebarExpanded: localStorage.getItem('sidebar-expanded') == 'true' }" x-init="$watch('sidebarExpanded', value => localStorage.setItem('sidebar-expanded', value))">
-  <div class="relative flex">
-    <div class="w-full md:w-1/2">
-      <div class="min-h-[100dvh] h-full flex flex-col after:flex-1">
-        <div class="flex-1">
-          <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-            <%= link_to root_path, class: "block", "aria-label": t("app.name") do %>
-              <svg class="fill-violet-500" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
-                <path d="M31.956 14.8C31.372 6.92 25.08.628 17.2.044V5.76a9.04 9.04 0 0 0 9.04 9.04h5.716ZM14.8 26.24v5.716C6.92 31.372.63 25.08.044 17.2H5.76a9.04 9.04 0 0 1 9.04 9.04Zm11.44-9.04h5.716c-.584 7.88-6.876 14.172-14.756 14.756V26.24a9.04 9.04 0 0 1 9.04-9.04ZM.044 14.8C.63 6.92 6.92.628 14.8.044V5.76a9.04 9.04 0 0 1-9.04 9.04H.044Z" />
-              </svg>
-            <% end %>
-          </div>
-        </div>
-
-        <div class="max-w-sm mx-auto w-full px-4 py-8">
-          <h1 class="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-6"><%= t("devise.sign_in_title") %></h1>
-
-          <%= form_with model: resource, scope: resource_name, url: session_path(resource_name), class: "space-y-4" do |f| %>
-            <div>
-              <%= f.label :email, class: "block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200" %>
-              <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input w-full" %>
-            </div>
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <%= f.label :password, class: "block text-sm font-medium text-gray-700 dark:text-gray-200" %>
-                <%= link_to t("devise.forgot_password"), new_password_path(resource_name), class: "text-sm underline hover:no-underline" %>
-              </div>
-              <%= f.password_field :password, autocomplete: "current-password", class: "form-input w-full" %>
-            </div>
-            <% if devise_mapping.rememberable? %>
-              <div class="flex items-center gap-2">
-                <%= f.check_box :remember_me, class: "form-checkbox" %>
-                <%= f.label :remember_me, class: "text-sm" %>
-              </div>
-            <% end %>
-            <div class="flex items-center justify-between mt-6">
-              <div class="mr-1">
-                <%= link_to t("devise.forgot_password"), new_password_path(resource_name), class: "text-sm underline hover:no-underline" %>
-              </div>
-              <%= f.submit t("devise.sign_in_title"), class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white ml-3" %>
-            </div>
+<div class="flex flex-col min-h-screen overflow-hidden">
+  <header class="absolute w-full z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16 md:h-20">
+        <div class="shrink-0 mr-4">
+          <%= link_to root_path, class: "block", "aria-label": t("app.name") do %>
+            <svg class="w-8 h-8" viewBox="0 0 32 32" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <defs>
+                <radialGradient cx="50%" cy="89.845%" fx="50%" fy="89.845%" r="108.567%" gradientTransform="matrix(-.00915 -.82755 .99996 -.00757 -.394 1.319)" id="logo1-b">
+                  <stop stop-color="#3B82F6" stop-opacity=".64" offset="0%" />
+                  <stop stop-color="#F472B6" stop-opacity=".876" offset="100%" />
+                </radialGradient>
+                <radialGradient cx="50%" cy="89.845%" fx="50%" fy="89.845%" r="108.567%" gradientTransform="matrix(-.00915 -.82755 .99996 -.00757 -.394 1.319)" id="logo1-d">
+                  <stop stop-color="#3B82F6" stop-opacity=".64" offset="0%" />
+                  <stop stop-color="#D375C2" stop-opacity=".833" offset="50.358%" />
+                  <stop stop-color="#FBCFE8" stop-opacity=".876" offset="100%" />
+                </radialGradient>
+                <path d="M12 32c8-6.915 12-12.582 12-17 0-6.627-5.373-12-12-12S0 8.373 0 15c0 4.418 4 10.085 12 17Z" id="logo1-a" />
+                <path d="M20 29c8-6.915 12-12.582 12-17 0-6.627-5.373-12-12-12S8 5.373 8 12c0 4.418 4 10.085 12 17Z" id="logo1-c" />
+              </defs>
+              <g fill="none" fill-rule="evenodd">
+                <use fill="url(#logo1-b)" opacity=".64" transform="matrix(1 0 0 -1 0 35)" xlink:href="#logo1-a" />
+                <use fill="url(#logo1-d)" opacity=".961" xlink:href="#logo1-c" />
+              </g>
+            </svg>
           <% end %>
+        </div>
+      </div>
+    </div>
+  </header>
 
-          <div class="pt-5 mt-6 border-t border-gray-100 dark:border-gray-700/60">
-            <div class="text-sm">
-              <%= t("devise.no_account") %>
-              <%= link_to t("nav.sign_up"), new_registration_path(resource_name), class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
-            </div>
-            <div class="mt-5">
-              <div class="bg-yellow-500/20 text-yellow-700 px-3 py-2 rounded-lg">
-                <svg class="inline w-3 h-3 shrink-0 fill-current" viewBox="0 0 12 12">
-                  <path d="M10.28 1.28L3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
-                </svg>
-                <span class="text-sm"><%= t("devise.sign_in_notice", default: "To support you during the launch, pro features are available while we roll out billing.") %></span>
+  <main class="relative grow flex">
+    <div class="w-full bg-gray-900">
+      <div class="h-full flex flex-col justify-center before:min-h-[4rem] md:before:min-h-[5rem] before:flex-1 after:flex-1">
+        <div class="px-4 sm:px-6">
+          <div class="w-full max-w-sm mx-auto">
+            <div class="py-16 md:py-20">
+              <div class="mb-8">
+                <h1 class="h2 font-uncut-sans"><%= t("devise.sign_in_heading") %></h1>
+              </div>
+
+              <%= form_with model: resource, scope: resource_name, url: session_path(resource_name) do |f| %>
+                <%= render "devise/shared/error_messages", resource: resource %>
+
+                <div class="space-y-4">
+                  <div>
+                    <%= f.label :email, class: "block text-sm text-gray-400 font-medium mb-1" %>
+                    <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input py-2 w-full", required: true %>
+                  </div>
+                  <div>
+                    <div class="flex justify-between">
+                      <%= f.label :password, class: "block text-sm text-gray-400 font-medium mb-1" %>
+                      <%= link_to t("devise.sign_in_troubles"), new_password_path(resource_name), class: "text-sm font-medium text-blue-500 hover:text-blue-400 ml-2" %>
+                    </div>
+                    <%= f.password_field :password, autocomplete: "current-password", class: "form-input py-2 w-full", required: true %>
+                  </div>
+                </div>
+
+                <div class="mt-6">
+                  <button class="btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" type="submit">
+                    <%= t("devise.sign_in_title") %>
+                    <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+                  </button>
+                </div>
+              <% end %>
+
+              <div class="flex items-center my-6">
+                <div class="border-t border-gray-800 grow mr-3" aria-hidden="true"></div>
+                <div class="text-sm text-gray-400 italic"><%= t("devise.or", default: "Or") %></div>
+                <div class="border-t border-gray-800 grow ml-3" aria-hidden="true"></div>
+              </div>
+
+              <button class="btn-sm text-white bg-linear-to-t from-pink-500 to-pink-400 hover:to-pink-500 w-full relative flex after:flex-1" type="button">
+                <div class="flex-1 flex items-center">
+                  <svg class="w-4 h-4 fill-current text-pink-200 shrink-0" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15.679 6.545H8.043v3.273h4.328c-.692 2.182-2.401 2.91-4.363 2.91a4.727 4.727 0 1 1 3.035-8.347l2.378-2.265A8 8 0 1 0 8.008 16c4.41 0 8.4-2.909 7.67-9.455Z" />
+                  </svg>
+                </div>
+                <span class="flex-auto text-pink-50 pl-3"><%= t("devise.continue_with_google", default: "Continue With Google") %></span>
+              </button>
+
+              <div class="mt-6">
+                <div class="text-sm text-gray-400">
+                  <%= t("devise.no_account") %>
+                  <%= link_to t("nav.sign_up"), new_user_registration_path, class: "font-medium text-blue-500 hover:text-blue-400" %>
+                </div>
               </div>
             </div>
           </div>
@@ -80,8 +94,13 @@
       </div>
     </div>
 
-    <div class="hidden md:block absolute top-0 bottom-0 right-0 md:w-1/2" aria-hidden="true">
-      <%= image_tag "mosaic/images/auth-image.jpg", class: "object-cover object-center w-full h-full", width: 760, height: 1024, alt: "Authentication image" %>
+    <div class="hidden lg:block shrink-0 w-1/3 overflow-hidden before:bg-gray-800 before:absolute before:inset-0 before:-z-10">
+      <div class="absolute left-1/2 -translate-x-1/2 pointer-events-none -z-10" aria-hidden="true">
+        <%= image_tag "neon/images/hero-illustration.svg", class: "max-w-none", width: 2143, height: 737, alt: "Hero Illustration" %>
+      </div>
+      <div class="absolute left-1/2 -translate-x-1/2 pointer-events-none -z-10" aria-hidden="true">
+        <%= image_tag "neon/images/auth-illustration.svg", class: "max-w-none", width: 1440, height: 880, alt: "Auth Illustration" %>
+      </div>
     </div>
-  </div>
-</main>
+  </main>
+</div>
