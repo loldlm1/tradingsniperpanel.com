@@ -24,7 +24,7 @@ class LocaleResolver
   end
 
   def persist_user_locale?
-    user.present? && user.preferred_locale.to_s != resolved_locale.to_s
+    user_responds_to_locale? && user.preferred_locale.to_s != resolved_locale.to_s
   end
 
   private
@@ -44,10 +44,14 @@ class LocaleResolver
   end
 
   def user_locale
-    return unless user&.preferred_locale.present?
+    return unless user_responds_to_locale? && user.preferred_locale.present?
 
     value = user.preferred_locale.to_s
     value if available_locale?(value)
+  end
+
+  def user_responds_to_locale?
+    user.present? && user.respond_to?(:preferred_locale)
   end
 
   def accept_language_locale

@@ -1,0 +1,8 @@
+<% content_for :title, "#{t('legal.terms.title')} | #{t('app.name')}" %>
+
+<%= render "document",
+  title: t("legal.terms.title"),
+  subtitle: t("legal.terms.subtitle"),
+  updated_at: t("legal.updated_at"),
+  sections: Array(t("legal.terms.sections", default: [])) %>
+

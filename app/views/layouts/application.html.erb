@@ -60,75 +60,49 @@
               <div class="sm:col-span-12 lg:col-span-4 lg:max-w-xs">
                 <div class="mb-2">
                   <%= link_to root_path, class: "inline-flex", "aria-label": t("app.name") do %>
-                    <svg class="w-8 h-8" viewBox="0 0 32 32" xmlns:xlink="http://www.w3.org/1999/xlink">
-                      <defs>
-                        <radialGradient cx="50%" cy="89.845%" fx="50%" fy="89.845%" r="108.567%" gradientTransform="matrix(-.00915 -.82755 .99996 -.00757 -.394 1.319)" id="logo2-b">
-                          <stop stop-color="#3B82F6" stop-opacity=".64" offset="0%" />
-                          <stop stop-color="#F472B6" stop-opacity=".876" offset="100%" />
-                        </radialGradient>
-                        <radialGradient cx="50%" cy="89.845%" fx="50%" fy="89.845%" r="108.567%" gradientTransform="matrix(-.00915 -.82755 .99996 -.00757 -.394 1.319)" id="logo2-d">
-                          <stop stop-color="#3B82F6" stop-opacity=".64" offset="0%" />
-                          <stop stop-color="#D375C2" stop-opacity=".833" offset="50.358%" />
-                          <stop stop-color="#FBCFE8" stop-opacity=".876" offset="100%" />
-                        </radialGradient>
-                        <path d="M12 32c8-6.915 12-12.582 12-17 0-6.627-5.373-12-12-12S0 8.373 0 15c0 4.418 4 10.085 12 17Z" id="logo2-a" />
-                        <path d="M20 29c8-6.915 12-12.582 12-17 0-6.627-5.373-12-12-12S8 5.373 8 12c0 4.418 4 10.085 12 17Z" id="logo2-c" />
-                      </defs>
-                      <g fill="none" fill-rule="evenodd">
-                        <use fill="url(#logo2-b)" opacity=".64" transform="matrix(1 0 0 -1 0 35)" xlink:href="#logo2-a" />
-                        <use fill="url(#logo2-d)" opacity=".961" xlink:href="#logo2-c" />
-                      </g>
-                    </svg>
+                    <img class="h-8 w-auto" src="/docs/sniper_advanced_panel/Dark_SAP_logo.png" alt="<%= t('app.name') %>">
                   <% end %>
                 </div>
                 <div class="text-sm text-gray-600">
-                  <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= t("footer.terms", default: "Terms") %></a>
+                  <%= link_to t("footer.terms"), terms_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %>
                   ·
-                  <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= t("footer.privacy", default: "Privacy Policy") %></a>
+                  <%= link_to t("footer.privacy"), privacy_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %>
                 </div>
               </div>
 
               <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
-                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.products.title", default: "Products") %></h6>
+                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.product.title") %></h6>
                 <ul class="text-sm space-y-2">
-                  <% Array(t("footer.products.items", default: ["Neon Manage", "Neon Analyse", "Neon Launch", "Experimentation"])).each do |item| %>
-                    <li>
-                      <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= item %></a>
-                    </li>
-                  <% end %>
+                  <li><%= link_to t("footer.product.links.manuals"), docs_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
+                  <li><%= link_to t("footer.product.links.pricing"), pricing_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
+                  <li><%= link_to t("footer.product.links.expert_advisors"), new_user_registration_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
                 </ul>
               </div>
 
               <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
-                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.resources.title", default: "Resources") %></h6>
+                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.resources.title") %></h6>
                 <ul class="text-sm space-y-2">
-                  <% Array(t("footer.resources.items", default: ["Blog", "Cheat Sheet", "Channel Partners", "Affiliate Program"])).each do |item| %>
-                    <li>
-                      <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= item %></a>
-                    </li>
-                  <% end %>
+                  <li><%= link_to t("footer.resources.links.getting_started"), new_user_registration_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
+                  <li><%= link_to t("footer.resources.links.tutorials"), docs_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
+                  <li><%= link_to t("footer.resources.links.support"), (user_signed_in? ? dashboard_support_path : new_user_registration_path), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
                 </ul>
               </div>
 
               <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
-                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.compare.title", default: "Compare") %></h6>
+                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.dashboard.title") %></h6>
                 <ul class="text-sm space-y-2">
-                  <% Array(t("footer.compare.items", default: ["Session Recording", "Feature Flags", "Heatmaps", "Correlation Analysis"])).each do |item| %>
-                    <li>
-                      <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= item %></a>
-                    </li>
-                  <% end %>
+                  <li><%= link_to t("footer.dashboard.links.dashboard"), (user_signed_in? ? dashboard_path : new_user_session_path), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
+                  <li><%= link_to t("footer.dashboard.links.pricing"), (user_signed_in? ? dashboard_pricing_path : new_user_session_path), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
+                  <li><%= link_to t("footer.dashboard.links.billing"), (user_signed_in? ? dashboard_billing_path : new_user_session_path), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
+                  <li><%= link_to t("footer.dashboard.links.support"), (user_signed_in? ? dashboard_support_path : new_user_session_path), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
                 </ul>
               </div>
 
               <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
-                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.company.title", default: "Company") %></h6>
+                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.legal.title") %></h6>
                 <ul class="text-sm space-y-2">
-                  <% Array(t("footer.company.items", default: ["About Us", "Our Story", "Work With Us"])).each do |item| %>
-                    <li>
-                      <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= item %></a>
-                    </li>
-                  <% end %>
+                  <li><%= link_to t("footer.legal.links.terms"), terms_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
+                  <li><%= link_to t("footer.legal.links.privacy"), privacy_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
                 </ul>
               </div>
             </div>
