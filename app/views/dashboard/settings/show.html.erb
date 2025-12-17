@@ -1,0 +1,120 @@
+<% content_for :title, "#{t('app.short_name')} - #{t('dashboard.settings.page_title')}" %>
+
+<!-- Page header -->
+<div class="mb-8">
+  <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.settings.page_title") %></h1>
+</div>
+
+<div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl mb-8">
+  <div class="flex flex-col md:flex-row md:-mr-px">
+    <!-- Sidebar -->
+    <div class="flex flex-nowrap overflow-x-scroll no-scrollbar md:block md:overflow-auto px-3 py-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700/60 min-w-60 md:space-y-3">
+      <div>
+        <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase mb-3"><%= t("dashboard.settings.sidebar.title") %></div>
+        <ul class="flex flex-nowrap md:block mr-3 md:mr-0">
+          <li class="mr-0.5 md:mr-0 md:mb-0.5">
+            <%= link_to dashboard_settings_path, class: "flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap bg-linear-to-r from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]" do %>
+              <svg class="shrink-0 fill-current text-violet-400 mr-2" width="16" height="16" viewBox="0 0 16 16">
+                <path d="M8 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm-5.143 7.91a1 1 0 1 1-1.714-1.033A7.996 7.996 0 0 1 8 10a7.996 7.996 0 0 1 6.857 3.877 1 1 0 1 1-1.714 1.032A5.996 5.996 0 0 0 8 12a5.996 5.996 0 0 0-5.143 2.91Z" />
+              </svg>
+              <span class="text-sm font-medium text-violet-500 dark:text-violet-400"><%= t("dashboard.nav.my_account") %></span>
+            <% end %>
+          </li>
+          <li class="mr-0.5 md:mr-0 md:mb-0.5">
+            <%= link_to dashboard_pricing_path, class: "flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap" do %>
+              <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500 mr-2" width="16" height="16" viewBox="0 0 16 16">
+                <path d="M5 9a1 1 0 1 1 0-2h6a1 1 0 0 1 0 2H5ZM1 4a1 1 0 1 1 0-2h14a1 1 0 0 1 0 2H1Zm0 10a1 1 0 0 1 0-2h14a1 1 0 0 1 0 2H1Z" />
+              </svg>
+              <span class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200"><%= t("dashboard.nav.plans") %></span>
+            <% end %>
+          </li>
+          <li class="mr-0.5 md:mr-0 md:mb-0.5">
+            <%= link_to dashboard_billing_path, class: "flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap" do %>
+              <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500 mr-2" width="16" height="16" viewBox="0 0 16 16">
+                <path d="M0 4a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4Zm2 0v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Zm9 1a1 1 0 0 1 0 2H5a1 1 0 1 1 0-2h6Zm0 4a1 1 0 0 1 0 2H5a1 1 0 1 1 0-2h6Z" />
+              </svg>
+              <span class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200"><%= t("dashboard.nav.billing_invoices") %></span>
+            <% end %>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Panel -->
+    <div class="grow">
+      <%= form_with model: @user, url: dashboard_settings_path, method: :patch do |f| %>
+        <!-- Panel body -->
+        <div class="p-6 space-y-6">
+          <h2 class="text-2xl text-gray-800 dark:text-gray-100 font-bold mb-5"><%= t("dashboard.nav.my_account") %></h2>
+
+          <% if @user.errors.any? %>
+            <div class="rounded-lg border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 px-4 py-3">
+              <div class="text-sm font-semibold text-rose-700 dark:text-rose-300"><%= t("dashboard.settings.errors_title") %></div>
+              <ul class="list-disc pl-5 mt-2 text-sm text-rose-700 dark:text-rose-300 space-y-1">
+                <% @user.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <!-- Profile -->
+          <section>
+            <h3 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-1"><%= t("dashboard.settings.profile.title") %></h3>
+            <div class="text-sm"><%= t("dashboard.settings.profile.description") %></div>
+            <div class="sm:flex sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-5">
+              <div class="sm:w-1/2">
+                <%= f.label :name, t("dashboard.settings.profile.name_label"), class: "block text-sm font-medium mb-1" %>
+                <%= f.text_field :name, class: "form-input w-full", autocomplete: "name" %>
+              </div>
+            </div>
+          </section>
+
+          <!-- Email (read-only) -->
+          <section>
+            <h3 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-1"><%= t("dashboard.settings.email.title") %></h3>
+            <div class="text-sm"><%= t("dashboard.settings.email.description") %></div>
+            <div class="flex flex-wrap mt-5">
+              <div class="mr-2">
+                <label class="sr-only" for="user-email"><%= t("dashboard.settings.email.label") %></label>
+                <input id="user-email" class="form-input" type="email" value="<%= @user.email %>" readonly />
+              </div>
+            </div>
+          </section>
+
+          <!-- Password -->
+          <section>
+            <h3 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-1"><%= t("dashboard.settings.password.title") %></h3>
+            <div class="text-sm"><%= t("dashboard.settings.password.description") %></div>
+            <div class="mt-5 grid gap-4 sm:grid-cols-3">
+              <div>
+                <%= f.label :current_password, t("dashboard.settings.password.current_password_label"), class: "block text-sm font-medium mb-1" %>
+                <%= f.password_field :current_password, class: "form-input w-full", autocomplete: "current-password" %>
+              </div>
+              <div>
+                <%= f.label :password, t("dashboard.settings.password.new_password_label"), class: "block text-sm font-medium mb-1" %>
+                <%= f.password_field :password, class: "form-input w-full", autocomplete: "new-password" %>
+              </div>
+              <div>
+                <%= f.label :password_confirmation, t("dashboard.settings.password.confirm_password_label"), class: "block text-sm font-medium mb-1" %>
+                <%= f.password_field :password_confirmation, class: "form-input w-full", autocomplete: "new-password" %>
+              </div>
+            </div>
+            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.settings.password.current_password_hint") %></p>
+          </section>
+        </div>
+
+        <!-- Panel footer -->
+        <footer>
+          <div class="flex flex-col px-6 py-5 border-t border-gray-200 dark:border-gray-700/60">
+            <div class="flex self-end">
+              <%= link_to t("dashboard.settings.cancel"), dashboard_path, class: "btn dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300" %>
+              <%= f.submit t("dashboard.settings.save_changes"), class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white ml-3" %>
+            </div>
+          </div>
+        </footer>
+      <% end %>
+    </div>
+  </div>
+</div>
+

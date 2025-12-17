@@ -2,6 +2,14 @@ class Users::RegistrationsController < Devise::RegistrationsController
   before_action :redirect_if_authenticated, only: [:new]
   before_action :set_locale_on_params, only: [:create]
 
+  def edit
+    redirect_to dashboard_settings_path
+  end
+
+  def update
+    redirect_to dashboard_settings_path
+  end
+
   def create
     super do |resource|
       if resource.persisted?

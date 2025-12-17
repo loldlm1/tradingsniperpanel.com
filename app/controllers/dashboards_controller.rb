@@ -9,14 +9,17 @@ class DashboardsController < ApplicationController
 
   def analytics; end
 
-  def pricing; end
+  def pricing
+    @pricing_catalog = Billing::PricingCatalog.new.call
+    @plan_context = Billing::DashboardPlan.new(subscription: @subscription).call
+  end
 
   def billing; end
 
   def support; end
 
   def checkout
-    price_id = permitted_price_id(params[:price_key])
+    price_id = Billing::ConfiguredPrices.price_id_for(params[:price_key])
     unless price_id
       redirect_to dashboard_pricing_path, alert: t("dashboard.billing.invalid_price", default: "Invalid price selection") and return
     end
@@ -57,20 +60,5 @@ class DashboardsController < ApplicationController
 
   def ensure_payment_processor
     current_user.set_payment_processor(:stripe) unless current_user.payment_processor
-  end
-
-  def permitted_price_id(key_param)
-    return if key_param.blank?
-
-    prices = {
-      "basic_monthly" => ENV["STRIPE_PRICE_BASIC_MONTHLY"],
-      "basic_annual" => ENV["STRIPE_PRICE_BASIC_ANNUAL"],
-      "hft_monthly" => ENV["STRIPE_PRICE_HFT_MONTHLY"],
-      "hft_annual" => ENV["STRIPE_PRICE_HFT_ANNUAL"],
-      "pro_monthly" => ENV["STRIPE_PRICE_PRO_MONTHLY"],
-      "pro_annual" => ENV["STRIPE_PRICE_PRO_ANNUAL"]
-    }.compact
-
-    prices[key_param]
   end
 end

@@ -73,17 +73,88 @@ es:
     title: "Listo para referidos"
     body: "Comparte tu link: tus referidos obtienen descuento y mantenemos la atribución para futuras recompensas."
   dashboard:
+    header:
+      open_sidebar: "Abrir sidebar"
+      language: "Idioma"
+      toggle_theme: "Cambiar tema claro/oscuro"
+      user_avatar_alt: "Usuario"
+    sidebar:
+      pages: "Páginas"
+      close_sidebar: "Cerrar sidebar"
     hero_title: "Tu cockpit del Sniper Advanced Panel"
     hero_subtitle: "Administra descargas, licencias, referidos y billing en un solo lugar."
     nav:
       main: "Principal"
       analytics: "Analítica"
       expert_advisors: "Expert Advisors"
+      expert_advisors_all: "Todos los Expert Advisors"
       pricing: "Precios"
+      plans: "Planes"
       billing: "Billing"
+      billing_invoices: "Facturación y facturas"
       support: "Soporte"
       profile: "Perfil"
       docs: "Docs"
+      settings: "Ajustes"
+      my_account: "Mi cuenta"
+    settings:
+      page_title: "Ajustes de la cuenta"
+      updated: "Cuenta actualizada."
+      sidebar:
+        title: "Ajustes del negocio"
+      errors_title: "Revisa los errores a continuación."
+      cancel: "Cancelar"
+      save_changes: "Guardar cambios"
+      profile:
+        title: "Perfil"
+        description: "Actualiza tu nombre para mostrarlo en el panel."
+        name_label: "Nombre"
+      email:
+        title: "Correo"
+        description: "El correo es de solo lectura por ahora."
+        label: "Correo"
+      password:
+        title: "Contraseña"
+        description: "Usa los campos para cambiar tu contraseña."
+        current_password_label: "Contraseña actual"
+        new_password_label: "Nueva contraseña"
+        confirm_password_label: "Confirmar nueva contraseña"
+        current_password_hint: "Se requiere la contraseña actual para cambiar tu contraseña."
+    pricing:
+      subtitle: "Revisa tu plan actual y haz upgrade cuando estés listo."
+      toggle:
+        monthly: "Mensual"
+        annually: "Anual"
+        pay_annually: "Pagar anualmente"
+      tiers:
+        basic:
+          name: "Básico"
+          description: "Ideal para comenzar con el toolkit principal."
+        hft:
+          name: "HFT"
+          description: "Creado para flujos más rápidos y herramientas avanzadas."
+        pro:
+          name: "Pro"
+          description: "Acceso completo para usuarios avanzados y equipos."
+      cta:
+        current: "Plan actual"
+        upgrade: "Actualizar"
+        subscribe: "Suscribirse"
+        unavailable: "No disponible"
+      whats_included: "Incluye"
+      help:
+        title: "¿Necesitas ayuda para elegir un plan?"
+        cta: "Contactar soporte"
+    expert_advisors:
+      index:
+        title: "Expert Advisors"
+        subtitle: "Tus Expert Advisors activos y docs."
+        table:
+          title: "Todos los Expert Advisors"
+          columns:
+            name: "Nombre"
+            type: "Tipo"
+            docs: "Docs"
     plan_card:
       title: "Suscripción"
       status_active: "Activa"

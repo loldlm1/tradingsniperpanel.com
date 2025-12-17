@@ -73,17 +73,88 @@ en:
     title: "Referral-aware"
     body: "Share your referral link; friends get discounted checkout and you keep attribution for future rewards."
   dashboard:
+    header:
+      open_sidebar: "Open sidebar"
+      language: "Language"
+      toggle_theme: "Switch to light / dark version"
+      user_avatar_alt: "User"
+    sidebar:
+      pages: "Pages"
+      close_sidebar: "Close sidebar"
     hero_title: "Your Sniper Advanced Panel cockpit"
     hero_subtitle: "Manage downloads, licenses, referrals, and billing from one place."
     nav:
       main: "Main"
       analytics: "Analytics"
       expert_advisors: "Expert Advisors"
+      expert_advisors_all: "All Expert Advisors"
       pricing: "Pricing"
+      plans: "Plans"
       billing: "Billing"
+      billing_invoices: "Billing & Invoices"
       support: "Support"
       profile: "Profile"
       docs: "Docs"
+      settings: "Settings"
+      my_account: "My Account"
+    settings:
+      page_title: "Account Settings"
+      updated: "Account updated."
+      sidebar:
+        title: "Business settings"
+      errors_title: "Please review the errors below."
+      cancel: "Cancel"
+      save_changes: "Save Changes"
+      profile:
+        title: "Profile"
+        description: "Update your name for display in the dashboard."
+        name_label: "Name"
+      email:
+        title: "Email"
+        description: "Email is read-only for now."
+        label: "Email"
+      password:
+        title: "Password"
+        description: "Use the fields below to change your password."
+        current_password_label: "Current password"
+        new_password_label: "New password"
+        confirm_password_label: "Confirm new password"
+        current_password_hint: "Current password is required to change your password."
+    pricing:
+      subtitle: "Review your current plan and upgrade when you’re ready."
+      toggle:
+        monthly: "Monthly"
+        annually: "Annually"
+        pay_annually: "Pay annually"
+      tiers:
+        basic:
+          name: "Basic"
+          description: "Ideal for getting started with the core toolkit."
+        hft:
+          name: "HFT"
+          description: "Built for faster workflows and advanced tools."
+        pro:
+          name: "Pro"
+          description: "Full access for power users and teams."
+      cta:
+        current: "Current Plan"
+        upgrade: "Upgrade"
+        subscribe: "Subscribe"
+        unavailable: "Unavailable"
+      whats_included: "What's included"
+      help:
+        title: "Need help choosing a plan?"
+        cta: "Contact Support"
+    expert_advisors:
+      index:
+        title: "Expert Advisors"
+        subtitle: "Your active Expert Advisors and docs."
+        table:
+          title: "All Expert Advisors"
+          columns:
+            name: "Name"
+            type: "Type"
+            docs: "Docs"
     plan_card:
       title: "Subscription"
       status_active: "Active"

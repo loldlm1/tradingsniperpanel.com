@@ -2,8 +2,10 @@ class ExpertAdvisorsController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
   before_action :set_user_expert_advisors
-  before_action :set_expert_advisor
-  before_action :set_markdown
+  before_action :set_expert_advisor, only: [:docs]
+  before_action :set_markdown, only: [:docs]
+
+  def index; end
 
   def docs; end
 
