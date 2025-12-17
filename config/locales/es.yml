@@ -167,3 +167,52 @@ es:
         - "About Us"
         - "Our Story"
         - "Work With Us"
+  landing:
+    neon:
+      features2:
+        title: "Usa datos sensibles sin sacrificar privacidad"
+        subtitle: "Lanza más rápido con guardrails, analítica y flujos seguros por defecto."
+        content_title: "Entornos de desarrollo estandarizados"
+        content_body: "Todo lo necesario para configurar, validar y desplegar con consistencia entre gráficos y cuentas."
+        bullets:
+          - "Revisiones de rendimiento"
+          - "Objetivos y metas"
+          - "Check-ins con el manager"
+      pricing:
+        title: "Encuentra el plan ideal para ti"
+        subtitle: "Elige facturación mensual o anual. Anual muestra el precio mensual efectivo."
+        toggle:
+          monthly: "Mensual"
+          annual: "Anual"
+          billed_annually: "Facturado anualmente"
+          save_up_to: "Ahorra %{percent}%"
+        plans:
+          cta: "Empezar"
+          most_popular: "Más popular"
+          basic:
+            name: "Basic"
+            description: "Para traders disciplinados que buscan acceso base y updates constantes."
+            features_title: "Incluye:"
+            features:
+              - "Acceso a Expert Advisors del tier Basic"
+              - "Manuales y documentación en la app"
+              - "Portal de facturación y facturas"
+              - "Soporte por email"
+          hft:
+            name: "HFT"
+            description: "Para usuarios avanzados con estrategias más rápidas y flujos exigentes."
+            features_title: "Todo en Basic, más:"
+            features:
+              - "Acceso a Expert Advisors del tier HFT"
+              - "Updates prioritarios"
+              - "Soporte más rápido"
+              - "Acceso a descuento anual"
+          pro:
+            name: "Pro"
+            description: "Para power users que quieren todo lo que lanzamos, primero."
+            features_title: "Todo en HFT, más:"
+            features:
+              - "Acceso a todos los Expert Advisors"
+              - "Fixes prioritarios"
+              - "Acceso anticipado a features"
+              - "Onboarding 1:1 (limitado)"
