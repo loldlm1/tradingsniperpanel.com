@@ -6,13 +6,12 @@ RSpec.describe "User registration", type: :request do
       user: {
         email: "signup@example.com",
         password: "password123",
-        password_confirmation: "password123",
-        preferred_locale: "es"
+        password_confirmation: "password123"
       }
     }
 
     user = User.find_by(email: "signup@example.com")
-    expect(response).to redirect_to(root_path(locale: :es))
+    expect(response).to redirect_to(dashboard_path(locale: :es))
     expect(user).to be_present
     expect(user.preferred_locale).to eq("es")
   end

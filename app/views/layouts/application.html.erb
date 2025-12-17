@@ -19,76 +19,127 @@
   </head>
 
   <body class="<%= content_for?(:body_class) ? yield(:body_class) : "font-inter antialiased bg-gray-900 text-gray-100 tracking-tight" %>">
-    <div class="flex flex-col min-h-screen overflow-hidden">
-      <header class="absolute w-full z-30">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6">
-          <div class="flex items-center justify-between h-16 md:h-20">
-            <div class="shrink-0 mr-4">
-              <%= link_to root_path, class: "block flex items-center gap-2", "aria-label": t("app.name") do %>
-                <img class="h-8 w-auto" src="/docs/sniper_advanced_panel/Dark_SAP_logo.png" alt="<%= t("app.name") %>">
-                <span class="font-semibold text-gray-100"><%= t("app.short_name") %></span>
-              <% end %>
-            </div>
+    <% if content_for?(:full_bleed) %>
+      <%= yield %>
+    <% else %>
+      <div class="flex flex-col min-h-screen overflow-hidden">
+        <header class="absolute w-full z-30">
+          <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="flex items-center justify-between h-16 md:h-20">
+              <div class="shrink-0 mr-4">
+                <%= link_to root_path, class: "block", "aria-label": t("app.name") do %>
+                  <img class="h-8 w-auto" src="/docs/sniper_advanced_panel/Dark_SAP_logo.png" alt="<%= t("app.name") %>">
+                <% end %>
+              </div>
 
-            <nav class="flex grow">
-              <ul class="flex grow justify-end flex-wrap items-center text-sm">
-                <li>
-                  <%= link_to t("nav.home"), root_path, class: "font-medium text-gray-400 hover:text-blue-400 px-3 lg:px-5 py-2 transition duration-150 ease-in-out" %>
-                </li>
-                <li>
-                  <%= link_to t("nav.pricing"), pricing_path, class: "font-medium text-gray-400 hover:text-blue-400 px-3 lg:px-5 py-2 transition duration-150 ease-in-out" %>
-                </li>
-                <li>
-                  <%= link_to t("nav.docs"), docs_path, class: "font-medium text-gray-400 hover:text-blue-400 px-3 lg:px-5 py-2 transition duration-150 ease-in-out" %>
-                </li>
-                <% if user_signed_in? %>
-                  <li>
-                    <%= link_to t("nav.dashboard"), dashboard_path, class: "font-medium text-gray-400 hover:text-blue-400 px-3 lg:px-5 py-2 transition duration-150 ease-in-out" %>
-                  </li>
-                  <li class="ml-3">
-                    <%= link_to t("nav.sign_out"), destroy_user_session_path, data: { turbo_method: :delete }, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" %>
-                  </li>
-                <% else %>
+              <nav class="flex grow">
+                <ul class="flex grow justify-end flex-wrap items-center">
                   <li>
                     <%= link_to t("nav.sign_in"), new_user_session_path, class: "font-medium text-gray-400 hover:text-blue-500 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out" %>
                   </li>
                   <li class="ml-3">
-                    <%= link_to t("nav.sign_up"), new_user_registration_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" %>
+                    <%= link_to new_user_registration_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" do %>
+                      <%= t("nav.sign_up") %>
+                      <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+                    <% end %>
                   </li>
-                <% end %>
-                <li class="ml-3">
-                  <div class="flex items-center gap-1 bg-gray-800/80 rounded-full px-2 py-1">
-                    <%= link_to "EN", url_for(locale: :en), class: locale_link_class(:en) %>
-                    <%= link_to "ES", url_for(locale: :es), class: locale_link_class(:es) %>
-                  </div>
-                </li>
-              </ul>
-            </nav>
+                </ul>
+              </nav>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main class="grow">
-        <%= yield %>
-      </main>
+        <main class="grow">
+          <%= yield %>
+        </main>
 
-      <footer class="bg-gray-900 border-t border-gray-800">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-          <div class="flex items-center gap-2 text-sm text-gray-400">
-            <img class="h-6 w-auto" src="/docs/sniper_advanced_panel/White_SAP_logo.png" alt="<%= t("app.name") %>">
-            <span><%= t("footer.tagline") %></span>
+        <footer>
+          <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="grid sm:grid-cols-12 gap-8 py-8 md:py-12">
+              <div class="sm:col-span-12 lg:col-span-4 lg:max-w-xs">
+                <div class="mb-2">
+                  <%= link_to root_path, class: "inline-flex", "aria-label": t("app.name") do %>
+                    <svg class="w-8 h-8" viewBox="0 0 32 32" xmlns:xlink="http://www.w3.org/1999/xlink">
+                      <defs>
+                        <radialGradient cx="50%" cy="89.845%" fx="50%" fy="89.845%" r="108.567%" gradientTransform="matrix(-.00915 -.82755 .99996 -.00757 -.394 1.319)" id="logo2-b">
+                          <stop stop-color="#3B82F6" stop-opacity=".64" offset="0%" />
+                          <stop stop-color="#F472B6" stop-opacity=".876" offset="100%" />
+                        </radialGradient>
+                        <radialGradient cx="50%" cy="89.845%" fx="50%" fy="89.845%" r="108.567%" gradientTransform="matrix(-.00915 -.82755 .99996 -.00757 -.394 1.319)" id="logo2-d">
+                          <stop stop-color="#3B82F6" stop-opacity=".64" offset="0%" />
+                          <stop stop-color="#D375C2" stop-opacity=".833" offset="50.358%" />
+                          <stop stop-color="#FBCFE8" stop-opacity=".876" offset="100%" />
+                        </radialGradient>
+                        <path d="M12 32c8-6.915 12-12.582 12-17 0-6.627-5.373-12-12-12S0 8.373 0 15c0 4.418 4 10.085 12 17Z" id="logo2-a" />
+                        <path d="M20 29c8-6.915 12-12.582 12-17 0-6.627-5.373-12-12-12S8 5.373 8 12c0 4.418 4 10.085 12 17Z" id="logo2-c" />
+                      </defs>
+                      <g fill="none" fill-rule="evenodd">
+                        <use fill="url(#logo2-b)" opacity=".64" transform="matrix(1 0 0 -1 0 35)" xlink:href="#logo2-a" />
+                        <use fill="url(#logo2-d)" opacity=".961" xlink:href="#logo2-c" />
+                      </g>
+                    </svg>
+                  <% end %>
+                </div>
+                <div class="text-sm text-gray-600">
+                  <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= t("footer.terms", default: "Terms") %></a>
+                  ·
+                  <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= t("footer.privacy", default: "Privacy Policy") %></a>
+                </div>
+              </div>
+
+              <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
+                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.products.title", default: "Products") %></h6>
+                <ul class="text-sm space-y-2">
+                  <% Array(t("footer.products.items", default: ["Neon Manage", "Neon Analyse", "Neon Launch", "Experimentation"])).each do |item| %>
+                    <li>
+                      <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= item %></a>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
+
+              <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
+                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.resources.title", default: "Resources") %></h6>
+                <ul class="text-sm space-y-2">
+                  <% Array(t("footer.resources.items", default: ["Blog", "Cheat Sheet", "Channel Partners", "Affiliate Program"])).each do |item| %>
+                    <li>
+                      <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= item %></a>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
+
+              <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
+                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.compare.title", default: "Compare") %></h6>
+                <ul class="text-sm space-y-2">
+                  <% Array(t("footer.compare.items", default: ["Session Recording", "Feature Flags", "Heatmaps", "Correlation Analysis"])).each do |item| %>
+                    <li>
+                      <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= item %></a>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
+
+              <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
+                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.company.title", default: "Company") %></h6>
+                <ul class="text-sm space-y-2">
+                  <% Array(t("footer.company.items", default: ["About Us", "Our Story", "Work With Us"])).each do |item| %>
+                    <li>
+                      <a class="text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" href="#0"><%= item %></a>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
           </div>
-          <div class="flex items-center gap-4 text-sm text-gray-500">
-            <%= link_to t("nav.docs"), docs_path, class: "hover:text-gray-200" %>
-            <%= link_to t("nav.pricing"), pricing_path, class: "hover:text-gray-200" %>
-          </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
+    <% end %>
 
     <%= javascript_importmap_tags %>
     <%= javascript_include_tag "neon/js/vendors/alpinejs.min", "data-turbo-track": "reload", defer: true %>
     <%= javascript_include_tag "neon/js/vendors/aos", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "neon/js/main", "data-turbo-track": "reload" %>
+    <%= yield :scripts if content_for?(:scripts) %>
   </body>
 </html>

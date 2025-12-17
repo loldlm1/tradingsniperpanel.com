@@ -1,0 +1,58 @@
+<% content_for :title, "#{t('dashboard.nav.analytics', default: 'Analytics')} | #{t('app.short_name')}" %>
+
+<div class="mb-8">
+  <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.nav.analytics", default: "Analytics") %></h1>
+  <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.analytics_overview", default: "Sample analytics widgets from Mosaic with placeholder data.") %></p>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-2">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics_revenue", default: "Revenue") %></div>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics_revenue_copy", default: "Monthly performance (sample).") %></p>
+      </div>
+    </div>
+    <canvas id="dashboard-card-02" width="640" height="320"></canvas>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics_geo", default: "Top Countries") %></div>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics_geo_copy", default: "Geographic distribution (sample).") %></p>
+      </div>
+    </div>
+    <div class="relative">
+      <canvas id="dashboard-card-03" width="640" height="320"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="grid gap-6 mt-6 lg:grid-cols-3">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics_channels", default: "Channels") %></div>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics_channels_copy", default: "Channel attribution (sample).") %></p>
+      </div>
+    </div>
+    <div class="relative">
+      <canvas id="dashboard-card-04" width="900" height="320"></canvas>
+      <div id="dashboard-card-04-legend" class="mt-4 grid grid-cols-2 gap-2 text-xs text-gray-500 dark:text-gray-400"></div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics_value", default: "Real Time Value") %></div>
+    </div>
+    <div class="relative">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-3xl font-semibold text-gray-800 dark:text-gray-100" id="dashboard-card-05-value">$24.780</div>
+        <div class="text-sm text-emerald-500" id="dashboard-card-05-deviation">+49%</div>
+      </div>
+      <canvas id="dashboard-card-05" width="320" height="200"></canvas>
+    </div>
+  </div>
+</div>

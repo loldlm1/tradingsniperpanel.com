@@ -1,0 +1,32 @@
+<% content_for :title, "#{@expert_advisor.name} Docs | #{t('app.short_name')}" %>
+
+<div class="mb-8">
+  <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= @expert_advisor.name %></h1>
+  <p class="text-gray-600 dark:text-gray-300"><%= @expert_advisor.description %></p>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
+    <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-4"><%= t("nav.docs") %></div>
+    <% docs = @expert_advisor.active_documents || {} %>
+    <ul class="space-y-3 text-sm">
+      <% docs.each do |key, url| %>
+        <li class="flex items-center justify-between">
+          <div class="text-gray-700 dark:text-gray-200 capitalize"><%= key.to_s.tr("_", " ") %></div>
+          <%= link_to t("dashboard.view_doc", default: "View"), url, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3"><%= t("dashboard.nav.expert_advisors", default: "Expert Advisors") %></div>
+    <ul class="space-y-2 text-sm">
+      <% (@user_expert_advisors || []).each do |uea| %>
+        <li>
+          <%= link_to uea.expert_advisor.name, dashboard_expert_advisor_docs_path(uea.expert_advisor, locale: I18n.locale), class: "text-gray-700 dark:text-gray-200 hover:text-violet-600 dark:hover:text-violet-300" %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>

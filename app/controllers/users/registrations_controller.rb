@@ -1,4 +1,7 @@
 class Users::RegistrationsController < Devise::RegistrationsController
+  before_action :redirect_if_authenticated, only: [:new]
+  before_action :set_locale_on_params, only: [:create]
+
   def create
     super do |resource|
       if resource.persisted?
@@ -16,5 +19,9 @@ class Users::RegistrationsController < Devise::RegistrationsController
 
   def account_update_params
     params.require(:user).permit(:email, :password, :password_confirmation, :current_password, :name, :preferred_locale)
+  end
+
+  def set_locale_on_params
+    params[:user][:preferred_locale] = I18n.locale.to_s if params[:user]
   end
 end
