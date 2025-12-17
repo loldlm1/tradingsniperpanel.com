@@ -6,7 +6,22 @@ class ApplicationController < ActionController::Base
   before_action :set_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
 
+  def after_sign_in_path_for(_resource)
+    dashboard_path
+  end
+
   private
+
+  def redirect_signed_in_users
+    return unless user_signed_in?
+
+    target = action_name == "pricing" ? dashboard_pricing_path : dashboard_path
+    redirect_to target
+  end
+
+  def redirect_if_authenticated
+    redirect_to dashboard_path if user_signed_in?
+  end
 
   def set_locale
     resolver = LocaleResolver.new(

@@ -1,0 +1,42 @@
+<% content_for :title, "#{t('dashboard.nav.support', default: 'Support')} | #{t('app.short_name')}" %>
+
+<div class="mb-8">
+  <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.nav.support", default: "Support") %></h1>
+  <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.support_overview", default: "Get help fast. We’ll add live metrics soon; for now use these quick links.") %></p>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2"><%= t("dashboard.nav.docs", default: "Docs") %></div>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3"><%= t("dashboard.support_docs_copy", default: "Read the manuals and change logs for each EA.") %></p>
+        <%= link_to t("nav.docs"), docs_path, class: "btn-sm bg-violet-600 hover:bg-violet-700 text-white" %>
+      </div>
+      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2"><%= t("dashboard.nav.billing", default: "Billing") %></div>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3"><%= t("dashboard.support_billing_copy", default: "Manage subscription, invoices, and payment methods.") %></p>
+        <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "btn-sm bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
+      </div>
+      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2"><%= t("dashboard.contact_support", default: "Contact support") %></div>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3"><%= t("dashboard.support_contact_copy", default: "Email support with your referral code for faster help.") %></p>
+        <%= mail_to ENV.fetch("SUPPORT_EMAIL", "support@example.com"), ENV.fetch("SUPPORT_EMAIL", "support@example.com"), class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+      </div>
+      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2"><%= t("dashboard.nav.pricing", default: "Pricing") %></div>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3"><%= t("dashboard.support_pricing_copy", default: "Review plan options or upgrade when you’re ready.") %></p>
+        <%= link_to t("dashboard.nav.pricing", default: "Pricing"), dashboard_pricing_path, class: "btn-sm bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-4"><%= t("dashboard.support_status", default: "Status") %></div>
+    <p class="text-sm text-gray-600 dark:text-gray-300 mb-2"><%= t("dashboard.support_status_copy", default: "All systems operational. Live incidents will appear here.") %></p>
+    <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-sm">
+      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+      <span><%= t("dashboard.support_operational", default: "Operational") %></span>
+    </div>
+  </div>
+</div>

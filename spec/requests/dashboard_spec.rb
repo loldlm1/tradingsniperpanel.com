@@ -33,7 +33,7 @@ RSpec.describe "Dashboard", type: :request do
 
   it "renders the dashboard with active subscription status" do
     create_subscription_for(user, status: "active")
-    sign_in user
+    sign_in user, scope: :user
 
     get dashboard_path(locale: :es)
 
@@ -42,7 +42,7 @@ RSpec.describe "Dashboard", type: :request do
   end
 
   it "shows inactive status when there is no active subscription" do
-    sign_in user
+    sign_in user, scope: :user
 
     get dashboard_path
 
@@ -51,7 +51,7 @@ RSpec.describe "Dashboard", type: :request do
   end
 
   it "renders the referral share URL with the locale" do
-    sign_in user
+    sign_in user, scope: :user
 
     get dashboard_path(locale: :es)
 

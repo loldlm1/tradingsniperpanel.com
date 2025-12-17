@@ -1,66 +1,140 @@
 <% content_for :title, "#{t('app.short_name')} Dashboard" %>
+<% pay_customer = Pay::Customer.table_exists? ? current_user.pay_customers.first : nil %>
+<% subscription = pay_customer&.subscriptions&.active&.first %>
+<% referral_code = current_user.referral_codes.first&.code %>
 
-<div class="mb-8">
-  <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2"><%= t("dashboard.hero_title") %></h1>
-  <p class="text-slate-600 dark:text-slate-300"><%= t("dashboard.hero_subtitle") %></p>
+<div class="sm:flex sm:justify-between sm:items-center mb-8">
+  <div class="mb-4 sm:mb-0">
+    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.hero_title") %></h1>
+    <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.hero_subtitle") %></p>
+  </div>
+  <div class="flex items-center gap-3">
+    <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+    <%= link_to t("dashboard.nav.pricing", default: "Pricing"), dashboard_pricing_path, class: "btn-sm bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
+  </div>
 </div>
 
-<div class="grid gap-6 md:grid-cols-3">
-  <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 md:col-span-2">
-    <% pay_customer = Pay::Customer.table_exists? ? current_user.pay_customers.first : nil %>
-    <% subscription = pay_customer&.subscriptions&.active&.first %>
-    <div class="flex items-start justify-between mb-4">
-      <div>
-        <div class="text-sm text-slate-500 dark:text-slate-400 uppercase"><%= t("dashboard.plan_card.title") %></div>
-        <div class="text-xl font-semibold text-slate-900 dark:text-white"><%= subscription&.name || "Sniper Advanced Panel" %></div>
-      </div>
+<div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="flex items-start justify-between">
+      <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.plan_card.title") %></div>
       <span class="px-3 py-1 rounded-full text-xs font-semibold <%= subscription&.active? ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100' %>">
         <%= subscription&.active? ? t("dashboard.plan_card.status_active") : t("dashboard.plan_card.status_inactive") %>
       </span>
     </div>
-    <p class="text-sm text-slate-600 dark:text-slate-300 mb-6">
-      Stripe Price: <%= ENV.fetch("STRIPE_PRICE_ID", "price_xxx") %>
-    </p>
-    <div class="flex flex-wrap gap-3">
-      <%= link_to t("dashboard.plan_card.manage"), pricing_path, class: "btn-sm text-white bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 shadow-sm" %>
-      <% unless subscription&.active? %>
-        <%= link_to t("dashboard.plan_card.subscribe"), pricing_path, class: "btn-sm text-slate-800 dark:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600" %>
+    <div class="mt-3 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= subscription&.name || "Sniper Advanced Panel" %></div>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Stripe Price: <%= ENV.fetch("STRIPE_PRICE_ID", "price_xxx") %></p>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="flex items-start justify-between">
+      <div>
+        <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.download_card.title") %></div>
+        <div class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.download_card.label") %></div>
+      </div>
+    </div>
+    <ul class="mt-3 space-y-2 text-sm">
+      <% docs = [
+        { label: t("dashboard.download_card.manual_en"), url: "/docs/sniper_advanced_panel/Manual_EN.md" },
+        { label: t("dashboard.download_card.manual_es"), url: "/docs/sniper_advanced_panel/Manual_ES.md" },
+        { label: "PDF (ES)", url: "/docs/sniper_advanced_panel/sniper_advanced_panel_es.pdf" }
+      ] %>
+      <% docs.each do |doc| %>
+        <li><%= link_to doc[:label], doc[:url], class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %></li>
       <% end %>
+    </ul>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.referral_card.title") %></div>
+    <div class="mt-3 text-xl font-semibold text-gray-800 dark:text-gray-100"><%= referral_code.presence || "—" %></div>
+    <% if referral_code.present? %>
+      <% share_url = root_url(locale: I18n.locale, ref: referral_code) %>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.referral_card.copy") %></p>
+      <div class="mt-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-800 dark:text-gray-100 truncate"><%= share_url %></div>
+    <% else %>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.referral_card.copy") %></p>
+    <% end %>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.download_card.title") %></div>
+    <div class="mt-3 text-3xl font-semibold text-gray-800 dark:text-gray-100"><%= @user_expert_advisors&.size || 0 %></div>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.nav.expert_advisors", default: "Expert Advisors") %></p>
+  </div>
+</div>
+
+<div class="grid gap-6 mt-6 lg:grid-cols-3">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.nav.analytics", default: "Analytics") %></div>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics_overview", default: "Traffic and subscription activity (sample data).") %></p>
+      </div>
+    </div>
+    <div class="relative">
+      <canvas id="dashboard-card-01" width="800" height="320"></canvas>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-    <div class="text-sm text-slate-500 dark:text-slate-400 uppercase mb-2"><%= t("dashboard.download_card.title") %></div>
-    <div class="text-lg font-semibold text-slate-900 dark:text-white mb-3"><%= t("dashboard.download_card.label") %></div>
-    <ul class="space-y-2 text-sm">
-      <li><%= link_to t("dashboard.download_card.manual_en"), "/docs/sniper_advanced_panel/Manual_EN.md", class: "text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100" %></li>
-      <li><%= link_to t("dashboard.download_card.manual_es"), "/docs/sniper_advanced_panel/Manual_ES.md", class: "text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100" %></li>
-      <li><%= link_to "PDF (ES)", "/docs/sniper_advanced_panel/sniper_advanced_panel_es.pdf", class: "text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100" %></li>
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.nav.support", default: "Support") %></div>
+    </div>
+    <ul class="space-y-3 text-sm">
+      <li class="flex items-center justify-between">
+        <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.docs", default: "Docs") %></span>
+        <%= link_to t("nav.docs"), docs_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+      </li>
+      <li class="flex items-center justify-between">
+        <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.billing", default: "Billing") %></span>
+        <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+      </li>
+      <li class="flex items-center justify-between">
+        <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.support", default: "Support") %></span>
+        <%= link_to t("dashboard.contact_support", default: "Contact"), dashboard_support_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+      </li>
     </ul>
   </div>
 </div>
 
-<div class="grid gap-6 md:grid-cols-3 mt-6">
-  <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 md:col-span-2">
-    <% referral_code = current_user.referral_codes.first&.code %>
-    <div class="flex items-start justify-between mb-4">
+<div class="grid gap-6 mt-6 lg:grid-cols-3">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
+    <div class="flex items-center justify-between mb-4">
       <div>
-        <div class="text-sm text-slate-500 dark:text-slate-400 uppercase"><%= t("dashboard.referral_card.title") %></div>
-        <div class="text-lg font-semibold text-slate-900 dark:text-white"><%= referral_code.presence || "—" %></div>
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.nav.expert_advisors", default: "Expert Advisors") %></div>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.ea_docs_overview", default: "Docs per EA are linked below.") %></p>
       </div>
     </div>
-    <% if referral_code.present? %>
-      <% share_url = root_url(locale: I18n.locale, ref: referral_code) %>
-      <div class="text-sm text-slate-600 dark:text-slate-300 mb-3"><%= t("dashboard.referral_card.copy") %></div>
-      <div class="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm text-slate-800 dark:text-slate-100 truncate"><%= share_url %></div>
-    <% else %>
-      <div class="text-sm text-slate-600 dark:text-slate-300"><%= t("dashboard.referral_card.copy") %></div>
-    <% end %>
+    <div class="overflow-x-auto">
+      <table class="table-auto w-full text-sm">
+        <thead class="text-gray-500 dark:text-gray-400 text-left">
+          <tr>
+            <th class="pb-3">Name</th>
+            <th class="pb-3">Type</th>
+            <th class="pb-3"><%= t("nav.docs") %></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          <% (@user_expert_advisors || []).each do |uea| %>
+            <tr class="text-gray-800 dark:text-gray-100">
+              <td class="py-3 font-semibold"><%= uea.expert_advisor.name %></td>
+              <td class="py-3 capitalize"><%= uea.expert_advisor.ea_type %></td>
+              <td class="py-3">
+                <%= link_to t("nav.docs"), dashboard_expert_advisor_docs_path(uea.expert_advisor, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
-    <div class="text-sm text-slate-500 dark:text-slate-400 uppercase mb-2"><%= t("nav.docs") %></div>
-    <div class="text-slate-900 dark:text-white font-semibold mb-3"><%= t("app.name") %></div>
-    <p class="text-sm text-slate-600 dark:text-slate-300 mb-3"><%= t("docs.note") %></p>
-    <%= link_to t("nav.docs"), docs_path, class: "btn-sm text-white bg-blue-600 hover:bg-blue-700 shadow-sm" %>
+
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.nav.pricing", default: "Pricing") %></div>
+    </div>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4"><%= t("pricing.subtitle") %></p>
+    <%= link_to t("dashboard.nav.pricing", default: "Pricing"), dashboard_pricing_path, class: "btn-sm bg-violet-600 hover:bg-violet-700 text-white w-full text-center" %>
   </div>
 </div>

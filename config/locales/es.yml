@@ -12,6 +12,7 @@ es:
     sign_in: "Ingresar"
     sign_out: "Salir"
     sign_up: "Crear cuenta"
+    docs_link: "Docs"
   hero:
     badge: "EAs de MQL5"
     title: "Sniper Advanced Panel para entradas decisivas"
@@ -74,6 +75,15 @@ es:
   dashboard:
     hero_title: "Tu cockpit del Sniper Advanced Panel"
     hero_subtitle: "Administra descargas, licencias, referidos y billing en un solo lugar."
+    nav:
+      main: "Principal"
+      analytics: "Analítica"
+      expert_advisors: "Expert Advisors"
+      pricing: "Precios"
+      billing: "Billing"
+      support: "Soporte"
+      profile: "Perfil"
+      docs: "Docs"
     plan_card:
       title: "Suscripción"
       status_active: "Activa"
@@ -88,11 +98,68 @@ es:
     referral_card:
       title: "Código de referido"
       copy: "Compártelo para otorgar descuento. Lo aplicamos en el checkout de Stripe."
+    analytics_overview: "Actividad de tráfico y suscripciones (datos de ejemplo)."
+    analytics_revenue: "Ingresos"
+    analytics_revenue_copy: "Desempeño mensual (ejemplo)."
+    analytics_geo: "Países principales"
+    analytics_geo_copy: "Distribución geográfica (ejemplo)."
+    analytics_channels: "Canales"
+    analytics_channels_copy: "Atribución por canal (ejemplo)."
+    analytics_value: "Valor en tiempo real"
+    billing_overview: "Administra suscripción y facturas."
+    billing_manage_copy: "Actualiza método de pago, facturas o cancela tu plan."
+    billing_subscribe_copy: "Actualiza o reactiva tu suscripción con el checkout."
+    billing_support_copy: "¿Necesitas ayuda con billing? Escríbenos."
+    support_overview: "Obtén ayuda rápido. Añadiremos métricas pronto."
+    support_docs_copy: "Lee los manuales y changelog de cada EA."
+    support_billing_copy: "Gestiona suscripción, facturas y métodos de pago."
+    support_contact_copy: "Envía un correo con tu código de referido para soporte más rápido."
+    support_pricing_copy: "Revisa planes u obtén upgrade cuando estés listo."
+    support_status: "Estado"
+    support_status_copy: "Todos los sistemas operativos. Los incidentes aparecerán aquí."
+    support_operational: "Operativo"
+    contact_support: "Contactar soporte"
+    ea_docs_overview: "Docs por EA enlazados abajo."
+    view_doc: "Ver"
   devise:
     sign_in_title: "Ingresar"
     sign_up_title: "Crear cuenta"
     forgot_password: "¿Olvidaste tu clave?"
     no_account: "¿Aún no tienes cuenta?"
     have_account: "¿Ya tienes cuenta?"
+    or: "O"
+    continue_with_google: "Continuar con Google"
+    consent_copy: "Al completar este formulario, autorizo el uso de mis datos personales."
+    reset_instructions: "Ingresa tu correo. Si existe una cuenta, recibirás un email con el enlace de reseteo."
+    sign_in_notice: "Mientras lanzamos billing, las funciones pro están disponibles temporalmente."
   footer:
     tagline: "Construido para traders disciplinados de MQL5."
+    terms: "Términos"
+    privacy: "Privacidad"
+    products:
+      title: "Productos"
+      items:
+        - "Neon Manage"
+        - "Neon Analyse"
+        - "Neon Launch"
+        - "Experimentation"
+    resources:
+      title: "Recursos"
+      items:
+        - "Blog"
+        - "Cheat Sheet"
+        - "Channel Partners"
+        - "Affiliate Program"
+    compare:
+      title: "Comparar"
+      items:
+        - "Session Recording"
+        - "Feature Flags"
+        - "Heatmaps"
+        - "Correlation Analysis"
+    company:
+      title: "Compañía"
+      items:
+        - "About Us"
+        - "Our Story"
+        - "Work With Us"

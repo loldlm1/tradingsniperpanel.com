@@ -12,6 +12,7 @@ en:
     sign_in: "Sign in"
     sign_out: "Sign out"
     sign_up: "Create account"
+    docs_link: "Docs"
   hero:
     badge: "MQL5 Expert Advisors"
     title: "Sniper Advanced Panel for decisive entries"
@@ -74,6 +75,15 @@ en:
   dashboard:
     hero_title: "Your Sniper Advanced Panel cockpit"
     hero_subtitle: "Manage downloads, licenses, referrals, and billing from one place."
+    nav:
+      main: "Main"
+      analytics: "Analytics"
+      expert_advisors: "Expert Advisors"
+      pricing: "Pricing"
+      billing: "Billing"
+      support: "Support"
+      profile: "Profile"
+      docs: "Docs"
     plan_card:
       title: "Subscription"
       status_active: "Active"
@@ -88,11 +98,68 @@ en:
     referral_card:
       title: "Referral code"
       copy: "Share to grant a discount. We'll apply it in Stripe checkout."
+    analytics_overview: "Traffic and subscription activity (sample data)."
+    analytics_revenue: "Revenue"
+    analytics_revenue_copy: "Monthly performance (sample)."
+    analytics_geo: "Top Countries"
+    analytics_geo_copy: "Geographic distribution (sample)."
+    analytics_channels: "Channels"
+    analytics_channels_copy: "Channel attribution (sample)."
+    analytics_value: "Real Time Value"
+    billing_overview: "Manage subscription and invoices."
+    billing_manage_copy: "Update payment method, view invoices, or cancel your plan."
+    billing_subscribe_copy: "Upgrade or restart your subscription with the checkout flow."
+    billing_support_copy: "Need help with billing? Reach out and we’ll follow up."
+    support_overview: "Get help fast. We’ll add live metrics soon."
+    support_docs_copy: "Read the manuals and change logs for each EA."
+    support_billing_copy: "Manage subscription, invoices, and payment methods."
+    support_contact_copy: "Email support with your referral code for faster help."
+    support_pricing_copy: "Review plan options or upgrade when you’re ready."
+    support_status: "Status"
+    support_status_copy: "All systems operational. Live incidents will appear here."
+    support_operational: "Operational"
+    contact_support: "Contact support"
+    ea_docs_overview: "Docs per EA are linked below."
+    view_doc: "View"
   devise:
     sign_in_title: "Sign in"
     sign_up_title: "Create your account"
     forgot_password: "Forgot password?"
     no_account: "Don't have an account?"
     have_account: "Already registered?"
+    or: "Or"
+    continue_with_google: "Continue With Google"
+    consent_copy: "By filling out this form, I consent to the collection and use of my personal data."
+    reset_instructions: "Enter your email address. If an account exists, you’ll receive an email with a password reset link soon."
+    sign_in_notice: "To support you during the launch, pro features are available while we roll out billing."
   footer:
     tagline: "Built for disciplined MQL5 traders."
+    terms: "Terms"
+    privacy: "Privacy Policy"
+    products:
+      title: "Products"
+      items:
+        - "Neon Manage"
+        - "Neon Analyse"
+        - "Neon Launch"
+        - "Experimentation"
+    resources:
+      title: "Resources"
+      items:
+        - "Blog"
+        - "Cheat Sheet"
+        - "Channel Partners"
+        - "Affiliate Program"
+    compare:
+      title: "Compare"
+      items:
+        - "Session Recording"
+        - "Feature Flags"
+        - "Heatmaps"
+        - "Correlation Analysis"
+    company:
+      title: "Company"
+      items:
+        - "About Us"
+        - "Our Story"
+        - "Work With Us"
