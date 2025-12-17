@@ -127,6 +127,8 @@ es:
     view_doc: "Ver"
   devise:
     sign_in_title: "Ingresar"
+    sign_in_heading: "¡Bienvenido de nuevo!"
+    sign_in_troubles: "¿Problemas?"
     sign_up_title: "Crear cuenta"
     forgot_password: "¿Olvidaste tu clave?"
     no_account: "¿Aún no tienes cuenta?"

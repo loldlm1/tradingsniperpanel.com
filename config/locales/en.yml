@@ -127,6 +127,8 @@ en:
     view_doc: "View"
   devise:
     sign_in_title: "Sign in"
+    sign_in_heading: "Welcome Back!"
+    sign_in_troubles: "Troubles?"
     sign_up_title: "Create your account"
     forgot_password: "Forgot password?"
     no_account: "Don't have an account?"

@@ -22,6 +22,9 @@ RSpec.describe "pages/home", type: :view do
       render
 
       expect(rendered).to include(I18n.t("hero.title"))
+      expect(rendered).to include(I18n.t("landing.neon.testimonials.title"))
+      first_testimonial = Array(I18n.t("landing.neon.testimonials.items", default: [])).first&.with_indifferent_access
+      expect(rendered).to include(first_testimonial[:quote]) if first_testimonial.present?
       expect(rendered).to include(new_user_registration_path(locale: I18n.locale))
       expect(rendered).to include(I18n.t("hero.primary_cta"))
     end
