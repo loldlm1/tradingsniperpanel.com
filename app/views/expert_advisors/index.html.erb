@@ -1,0 +1,50 @@
+<% content_for :title, "#{t('app.short_name')} - #{t('dashboard.expert_advisors.index.title')}" %>
+
+<div class="sm:flex sm:justify-between sm:items-center mb-8">
+  <div class="mb-4 sm:mb-0">
+    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.expert_advisors.index.title") %></h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.index.subtitle") %></p>
+  </div>
+</div>
+
+<div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+  <header class="px-5 py-4">
+    <h2 class="font-semibold text-gray-800 dark:text-gray-100">
+      <%= t("dashboard.expert_advisors.index.table.title") %>
+      <span class="text-gray-400 dark:text-gray-500 font-medium"><%= @user_expert_advisors.size %></span>
+    </h2>
+  </header>
+
+  <div class="overflow-x-auto">
+    <table class="table-auto w-full dark:text-gray-300">
+      <thead class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20 border-t border-b border-gray-100 dark:border-gray-700/60">
+        <tr>
+          <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+            <div class="font-semibold text-left"><%= t("dashboard.expert_advisors.index.table.columns.name") %></div>
+          </th>
+          <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+            <div class="font-semibold text-left"><%= t("dashboard.expert_advisors.index.table.columns.type") %></div>
+          </th>
+          <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+            <div class="font-semibold text-left"><%= t("dashboard.expert_advisors.index.table.columns.docs") %></div>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="text-sm divide-y divide-gray-100 dark:divide-gray-700/60">
+        <% @user_expert_advisors.each do |uea| %>
+          <tr>
+            <td class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+              <div class="font-medium text-gray-800 dark:text-gray-100"><%= uea.expert_advisor.name %></div>
+            </td>
+            <td class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+              <div class="text-gray-800 dark:text-gray-100 capitalize"><%= uea.expert_advisor.ea_type %></div>
+            </td>
+            <td class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+              <%= link_to t("nav.docs"), dashboard_expert_advisor_docs_path(uea.expert_advisor, locale: I18n.locale), class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

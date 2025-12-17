@@ -51,7 +51,7 @@
         >
           <div class="flex justify-between mb-10 pr-3 sm:px-2">
             <button class="lg:hidden text-gray-500 hover:text-gray-400" @click.stop="sidebarOpen = !sidebarOpen" aria-controls="sidebar" :aria-expanded="sidebarOpen">
-              <span class="sr-only">Close sidebar</span>
+              <span class="sr-only"><%= t("dashboard.sidebar.close_sidebar") %></span>
               <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M10.7 18.7l1.4-1.4L7.8 13H20v-2H7.8l4.3-4.3-1.4-1.4L4 12z" />
               </svg>
@@ -63,18 +63,30 @@
             <% end %>
           </div>
 
+          <% dashboard_main_active = current_page?(dashboard_path) %>
+          <% dashboard_analytics_active = current_page?(dashboard_analytics_path) %>
+          <% dashboard_group_active = dashboard_main_active || dashboard_analytics_active %>
+
+          <% expert_advisors_group_active = controller_path == "expert_advisors" %>
+
+          <% settings_account_active = current_page?(dashboard_settings_path) %>
+          <% settings_plans_active = current_page?(dashboard_pricing_path) %>
+          <% settings_billing_active = current_page?(dashboard_billing_path) %>
+          <% settings_support_active = current_page?(dashboard_support_path) %>
+          <% settings_group_active = settings_account_active || settings_plans_active || settings_billing_active || settings_support_active %>
+
           <div class="space-y-8">
             <div>
               <h3 class="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
                 <span class="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">•••</span>
-                <span class="lg:hidden lg:sidebar-expanded:block 2xl:block"><%= t("nav.dashboard") %></span>
+                <span class="lg:hidden lg:sidebar-expanded:block 2xl:block"><%= t("dashboard.sidebar.pages") %></span>
               </h3>
               <ul class="mt-3">
-                <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-linear-to-r from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]" x-data="{ open: true }">
-                  <a class="block text-gray-800 dark:text-gray-100 truncate transition" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
+                <li class="<%= mosaic_sidebar_li_classes(active: dashboard_group_active) %>" x-data="{ open: <%= dashboard_group_active ? 'true' : 'false' %> }">
+                  <a class="<%= mosaic_sidebar_group_link_classes(active: dashboard_group_active) %>" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center">
-                        <svg class="shrink-0 fill-current text-violet-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                        <svg class="<%= mosaic_sidebar_icon_classes(active: dashboard_group_active) %>" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
                           <path d="M5.936.278A7.983 7.983 0 0 1 8 0a8 8 0 1 1-8 8c0-.722.104-1.413.278-2.064a1 1 0 1 1 1.932.516A5.99 5.99 0 0 0 2 8a6 6 0 1 0 6-6c-.53 0-1.045.076-1.548.21A1 1 0 1 1 5.936.278Z" />
                           <path d="M6.068 7.482A2.003 2.003 0 0 0 8 10a2 2 0 1 0-.518-3.932L3.707 2.293a1 1 0 0 0-1.414 1.414l3.775 3.775Z" />
                         </svg>
@@ -90,20 +102,24 @@
                   <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
                     <ul class="pl-8 mt-1" :class="open ? 'block!' : 'hidden'">
                       <li class="mb-1 last:mb-0">
-                        <%= link_to t("dashboard.nav.main", default: "Main"), dashboard_path, class: "block text-violet-500 transition truncate" %>
+                        <%= link_to dashboard_path, class: mosaic_sidebar_child_link_classes(active: dashboard_main_active) do %>
+                          <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.main", default: "Main") %></span>
+                        <% end %>
                       </li>
                       <li class="mb-1 last:mb-0">
-                        <%= link_to t("dashboard.nav.analytics", default: "Analytics"), dashboard_analytics_path, class: "block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate" %>
+                        <%= link_to dashboard_analytics_path, class: mosaic_sidebar_child_link_classes(active: dashboard_analytics_active) do %>
+                          <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.analytics", default: "Analytics") %></span>
+                        <% end %>
                       </li>
                     </ul>
                   </div>
                 </li>
 
-                <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0" x-data="{ open: false }">
-                  <a class="block text-gray-800 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white truncate transition" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
+                <li class="<%= mosaic_sidebar_li_classes(active: expert_advisors_group_active) %>" x-data="{ open: <%= expert_advisors_group_active ? 'true' : 'false' %> }">
+                  <a class="<%= mosaic_sidebar_group_link_classes(active: expert_advisors_group_active) %>" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center">
-                        <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                        <svg class="<%= mosaic_sidebar_icon_classes(active: expert_advisors_group_active) %>" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
                           <path d="M9 6.855A3.502 3.502 0 0 0 8 0a3.5 3.5 0 0 0-1 6.855v1.656L5.534 9.65a3.5 3.5 0 1 0 1.229 1.578L8 10.267l1.238.962a3.5 3.5 0 1 0 1.229-1.578L9 8.511V6.855ZM6.5 3.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm4.803 8.095c.005-.005.01-.01.013-.016l.012-.016a1.5 1.5 0 1 1-.025.032ZM3.5 11c.474 0 .897.22 1.171.563l.013.016.013.017A1.5 1.5 0 1 1 3.5 11Z" />
                         </svg>
                         <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200"><%= t("dashboard.nav.expert_advisors", default: "Expert Advisors") %></span>
@@ -117,47 +133,61 @@
                   </a>
                   <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
                     <ul class="pl-8 mt-1 hidden" :class="open ? 'block!' : 'hidden'">
+                      <li class="mb-1 last:mb-0">
+                        <%= link_to dashboard_expert_advisors_path, class: mosaic_sidebar_child_link_classes(active: current_page?(dashboard_expert_advisors_path)) do %>
+                          <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.expert_advisors_all") %></span>
+                        <% end %>
+                      </li>
                       <% (@user_expert_advisors || []).each do |uea| %>
                         <li class="mb-1 last:mb-0">
-                          <%= link_to uea.expert_advisor.name, dashboard_expert_advisor_docs_path(uea.expert_advisor, locale: I18n.locale), class: "block text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition truncate" %>
+                          <% docs_path = dashboard_expert_advisor_docs_path(uea.expert_advisor, locale: I18n.locale) %>
+                          <%= link_to docs_path, class: mosaic_sidebar_child_link_classes(active: current_page?(docs_path)) do %>
+                            <span class="<%= mosaic_sidebar_child_span_classes %>"><%= uea.expert_advisor.name %></span>
+                          <% end %>
                         </li>
                       <% end %>
                     </ul>
                   </div>
                 </li>
 
-                <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0">
-                  <%= link_to dashboard_pricing_path, class: "block text-gray-800 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white truncate transition" do %>
+                <li class="<%= mosaic_sidebar_li_classes(active: settings_group_active) %>" x-data="{ open: <%= settings_group_active ? 'true' : 'false' %> }">
+                  <a class="<%= mosaic_sidebar_group_link_classes(active: settings_group_active) %>" href="#0" @click.prevent="open = !open; sidebarExpanded = true">
                     <div class="flex items-center">
-                      <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                        <path d="M3 14h10V4H3v10Zm10-12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10Zm-7 6h4v2H6V8Z" />
+                      <svg class="<%= mosaic_sidebar_icon_classes(active: settings_group_active) %>" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                        <path d="M10.5 1a3.502 3.502 0 0 1 3.355 2.5H15a1 1 0 1 1 0 2h-1.145a3.502 3.502 0 0 1-6.71 0H1a1 1 0 0 1 0-2h6.145A3.502 3.502 0 0 1 10.5 1ZM9 4.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0ZM5.5 9a3.502 3.502 0 0 1 3.355 2.5H15a1 1 0 1 1 0 2H8.855a3.502 3.502 0 0 1-6.71 0H1a1 1 0 1 1 0-2h1.145A3.502 3.502 0 0 1 5.5 9ZM4 12.5a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0Z" fill-rule="evenodd" />
                       </svg>
-                      <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200"><%= t("dashboard.nav.pricing", default: "Pricing") %></span>
+                      <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200"><%= t("dashboard.nav.settings") %></span>
                     </div>
-                  <% end %>
-                </li>
-
-                <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0">
-                  <%= link_to dashboard_billing_path, class: "block text-gray-800 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white truncate transition" do %>
-                    <div class="flex items-center">
-                      <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                        <path d="M1.5 1A1.5 1.5 0 0 0 0 2.5v6A1.5 1.5 0 0 0 1.5 10h.5v1.5a.5.5 0 0 0 .79.407L5.5 10H9A1.5 1.5 0 0 0 10.5 8.5v-6A1.5 1.5 0 0 0 9 1h-7.5Z" />
-                        <path d="M12 3h2.5A1.5 1.5 0 0 1 16 4.5v7a1.5 1.5 0 0 1-1.5 1.5H11l-2.71 2.053A.5.5 0 0 1 7.5 14.61V13H7a1 1 0 0 1-1-1v-1h3.5A2.5 2.5 0 0 0 12 8.5v-5Z" />
+                    <div class="flex shrink-0 ml-2 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                      <svg class="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500" :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
+                        <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
                       </svg>
-                      <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200"><%= t("dashboard.nav.billing", default: "Billing") %></span>
                     </div>
-                  <% end %>
-                </li>
-
-                <li class="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0">
-                  <%= link_to dashboard_support_path, class: "block text-gray-800 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white truncate transition" do %>
-                    <div class="flex items-center">
-                      <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                        <path d="M8 1.5A6.5 6.5 0 0 0 1.5 8v4a.5.5 0 0 0 .5.5h3.5l2.56 2.561a.5.5 0 0 0 .853-.354V12.5H12a.5.5 0 0 0 .5-.5V8A6.5 6.5 0 0 0 8 1.5Zm0 1a5.5 5.5 0 0 1 5.5 5.5v3.5H8.914a.5.5 0 0 0-.5.5v2.293L6.707 12.5a.5.5 0 0 0-.354-.146H2V8A5.5 5.5 0 0 1 8 2.5Z" />
-                      </svg>
-                      <span class="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200"><%= t("dashboard.nav.support", default: "Support") %></span>
-                    </div>
-                  <% end %>
+                  </a>
+                  <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
+                    <ul class="pl-8 mt-1 hidden" :class="open ? 'block!' : 'hidden'">
+                      <li class="mb-1 last:mb-0">
+                        <%= link_to dashboard_settings_path, class: mosaic_sidebar_child_link_classes(active: settings_account_active) do %>
+                          <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.my_account") %></span>
+                        <% end %>
+                      </li>
+                      <li class="mb-1 last:mb-0">
+                        <%= link_to dashboard_pricing_path, class: mosaic_sidebar_child_link_classes(active: settings_plans_active) do %>
+                          <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.plans") %></span>
+                        <% end %>
+                      </li>
+                      <li class="mb-1 last:mb-0">
+                        <%= link_to dashboard_billing_path, class: mosaic_sidebar_child_link_classes(active: settings_billing_active) do %>
+                          <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.billing_invoices") %></span>
+                        <% end %>
+                      </li>
+                      <li class="mb-1 last:mb-0">
+                        <%= link_to dashboard_support_path, class: mosaic_sidebar_child_link_classes(active: settings_support_active) do %>
+                          <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.support") %></span>
+                        <% end %>
+                      </li>
+                    </ul>
+                  </div>
                 </li>
               </ul>
             </div>
@@ -165,50 +195,139 @@
         </div>
       </div>
 
-      <div class="relative flex flex-1 flex-col overflow-y-auto">
-        <header class="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800">
+      <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+        <!-- Site header -->
+        <header class="sticky top-0 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 lg:before:bg-gray-100/90 dark:lg:before:bg-gray-900/90 before:-z-10 max-lg:shadow-xs z-30">
           <div class="px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16 -mb-px">
-              <div class="flex items-center gap-3">
-                <button class="text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 lg:hidden" @click.stop="sidebarOpen = !sidebarOpen" aria-controls="sidebar" aria-expanded="sidebarOpen">
-                  <span class="sr-only">Open sidebar</span>
-                  <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
-                    <path d="M4 5h16M4 12h16M4 19h16" />
+            <div class="flex items-center justify-between h-16 lg:border-b border-gray-200 dark:border-gray-700/60">
+              <!-- Header: Left side -->
+              <div class="flex">
+                <!-- Hamburger button -->
+                <button
+                  class="text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 lg:hidden"
+                  @click.stop="sidebarOpen = !sidebarOpen"
+                  aria-controls="sidebar"
+                  :aria-expanded="sidebarOpen"
+                >
+                  <span class="sr-only"><%= t("dashboard.header.open_sidebar") %></span>
+                  <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="4" y="5" width="16" height="2" />
+                    <rect x="4" y="11" width="16" height="2" />
+                    <rect x="4" y="17" width="16" height="2" />
                   </svg>
                 </button>
-                <div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("app.name") %></div>
-                  <div class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= t("app.tagline") %></div>
-                </div>
               </div>
 
-              <div class="flex items-center gap-3">
-                <div class="flex items-center gap-2 bg-gray-200/70 dark:bg-gray-800/80 rounded-full px-2 py-1">
-                  <%= link_to "EN", url_for(locale: :en), class: "text-xs px-2 py-1 rounded-full #{I18n.locale == :en ? 'bg-violet-500 text-white' : 'text-gray-700 dark:text-gray-200 hover:text-violet-500'}" %>
-                  <%= link_to "ES", url_for(locale: :es), class: "text-xs px-2 py-1 rounded-full #{I18n.locale == :es ? 'bg-violet-500 text-white' : 'text-gray-700 dark:text-gray-200 hover:text-violet-500'}" %>
-                </div>
-                <label class="relative inline-flex items-center h-6 rounded-full w-11 border border-gray-300 dark:border-gray-700 cursor-pointer px-1">
-                  <span class="sr-only">Toggle theme</span>
-                  <input type="checkbox" class="light-switch sr-only">
-                  <span class="inline-block h-5 w-5 rounded-full bg-white dark:bg-gray-800 shadow transform transition"></span>
-                </label>
-                <% user_initial = (current_user.name.presence || current_user.email).to_s.first&.upcase %>
-                <div class="relative" x-data="{ open: false }" @keydown.escape.stop="open=false" @click.outside="open=false">
-                  <button class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200" @click="open = !open">
-                    <div class="w-8 h-8 rounded-full bg-violet-500 text-white flex items-center justify-center"><%= user_initial %></div>
-                    <svg class="w-3 h-3 fill-current" viewBox="0 0 12 12">
-                      <path d="M5.9 11.4 0 5.5l1.4-1.4 4.5 4.5 4.5-4.5L12 5.5z" />
+              <!-- Header: Right side -->
+              <div class="flex items-center space-x-3">
+                <!-- Language toggle -->
+                <div class="relative inline-flex" x-data="{ open: false }">
+                  <button
+                    class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 lg:hover:bg-gray-200 dark:hover:bg-gray-700/50 dark:lg:hover:bg-gray-800 rounded-full"
+                    aria-haspopup="true"
+                    @click.prevent="open = !open"
+                    :aria-expanded="open"
+                  >
+                    <span class="sr-only"><%= t("dashboard.header.language") %></span>
+                    <svg class="fill-current text-gray-500/80 dark:text-gray-400/80" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0ZM2.05 7A6.03 6.03 0 0 1 6.3 2.34 9.94 9.94 0 0 0 5.3 7H2.05ZM2.05 9H5.3c.17 1.7.63 3.28 1 4.66A6.03 6.03 0 0 1 2.05 9ZM8 14a10.62 10.62 0 0 1-1.7-5H9.7A10.62 10.62 0 0 1 8 14Zm1.88-7H6.12A9.92 9.92 0 0 1 8 2a9.92 9.92 0 0 1 1.88 5ZM9.7 7c-.17-1.7-.63-3.28-1-4.66A6.03 6.03 0 0 1 13.95 7H9.7Zm.99 6.66c.37-1.38.83-2.96 1-4.66h3.25a6.03 6.03 0 0 1-4.25 4.66Z" />
                     </svg>
                   </button>
                   <div
-                    class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 z-20"
+                    class="origin-top-right z-10 absolute top-full right-0 min-w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden mt-1"
+                    @click.outside="open = false"
+                    @keydown.escape.window="open = false"
                     x-show="open"
-                    x-transition
+                    x-transition:enter="transition ease-out duration-200 transform"
+                    x-transition:enter-start="opacity-0 -translate-y-2"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    x-transition:leave="transition ease-out duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
                     x-cloak
                   >
-                    <%= link_to t("dashboard.nav.profile", default: "Profile"), dashboard_path, class: "block px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md" %>
-                    <%= link_to t("dashboard.nav.billing", default: "Billing"), dashboard_billing_path, class: "block px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md" %>
-                    <%= link_to t("nav.sign_out"), destroy_user_session_path, data: { turbo_method: :delete }, class: "block px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md" %>
+                    <ul>
+                      <li>
+                        <%= link_to url_for(locale: :en), class: "font-medium text-sm #{I18n.locale == :en ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200'} flex items-center py-1 px-3" do %>
+                          <span class="mr-2">EN</span>
+                          <% if I18n.locale == :en %>
+                            <svg class="w-3 h-3 fill-current text-violet-500 shrink-0 ml-auto" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M10.28 2.28L3.99 8.58 1.7 6.28A1 1 0 0 0 .28 7.7l3 3a1 1 0 0 0 1.41 0l7-7a1 1 0 1 0-1.41-1.41Z" />
+                            </svg>
+                          <% end %>
+                        <% end %>
+                      </li>
+                      <li>
+                        <%= link_to url_for(locale: :es), class: "font-medium text-sm #{I18n.locale == :es ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200'} flex items-center py-1 px-3" do %>
+                          <span class="mr-2">ES</span>
+                          <% if I18n.locale == :es %>
+                            <svg class="w-3 h-3 fill-current text-violet-500 shrink-0 ml-auto" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M10.28 2.28L3.99 8.58 1.7 6.28A1 1 0 0 0 .28 7.7l3 3a1 1 0 0 0 1.41 0l7-7a1 1 0 1 0-1.41-1.41Z" />
+                            </svg>
+                          <% end %>
+                        <% end %>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Dark mode toggle -->
+                <div>
+                  <input type="checkbox" name="light-switch" id="light-switch" class="light-switch sr-only" />
+                  <label class="flex items-center justify-center cursor-pointer w-8 h-8 hover:bg-gray-100 lg:hover:bg-gray-200 dark:hover:bg-gray-700/50 dark:lg:hover:bg-gray-800 rounded-full" for="light-switch">
+                    <svg class="dark:hidden fill-current text-gray-500/80 dark:text-gray-400/80" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 0a1 1 0 0 1 1 1v.5a1 1 0 1 1-2 0V1a1 1 0 0 1 1-1Z"/>
+                      <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0Zm-4 2a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+                      <path d="M13.657 3.757a1 1 0 0 0-1.414-1.414l-.354.354a1 1 0 0 0 1.414 1.414l.354-.354ZM13.5 8a1 1 0 0 1 1-1h.5a1 1 0 1 1 0 2h-.5a1 1 0 0 1-1-1ZM13.303 11.889a1 1 0 0 0-1.414 1.414l.354.354a1 1 0 0 0 1.414-1.414l-.354-.354ZM8 13.5a1 1 0 0 1 1 1v.5a1 1 0 1 1-2 0v-.5a1 1 0 0 1 1-1ZM4.111 13.303a1 1 0 1 0-1.414-1.414l-.354.354a1 1 0 1 0 1.414 1.414l.354-.354ZM0 8a1 1 0 0 1 1-1h.5a1 1 0 0 1 0 2H1a1 1 0 0 1-1-1ZM3.757 2.343a1 1 0 1 0-1.414 1.414l.354.354A1 1 0 1 0 4.11 2.697l-.354-.354Z" />
+                    </svg>
+                    <svg class="hidden dark:block fill-current text-gray-500/80 dark:text-gray-400/80" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M11.875 4.375a.625.625 0 1 0 1.25 0c.001-.69.56-1.249 1.25-1.25a.625.625 0 1 0 0-1.25 1.252 1.252 0 0 1-1.25-1.25.625.625 0 1 0-1.25 0 1.252 1.252 0 0 1-1.25 1.25.625.625 0 1 0 0 1.25c.69.001 1.249.56 1.25 1.25Z" />
+                      <path d="M7.019 1.985a1.55 1.55 0 0 0-.483-1.36 1.44 1.44 0 0 0-1.53-.277C2.056 1.553 0 4.5 0 7.9 0 12.352 3.648 16 8.1 16c3.407 0 6.246-2.058 7.51-4.963a1.446 1.446 0 0 0-.25-1.55 1.554 1.554 0 0 0-1.372-.502c-4.01.552-7.539-2.987-6.97-7ZM2 7.9C2 5.64 3.193 3.664 4.961 2.6 4.82 7.245 8.72 11.158 13.36 11.04 12.265 12.822 10.341 14 8.1 14 4.752 14 2 11.248 2 7.9Z" />
+                    </svg>
+                    <span class="sr-only"><%= t("dashboard.header.toggle_theme") %></span>
+                  </label>
+                </div>
+
+                <!-- Divider -->
+                <hr class="w-px h-6 bg-gray-200 dark:bg-gray-700/60 border-none" />
+
+                <!-- User button -->
+                <div class="relative inline-flex" x-data="{ open: false }">
+                  <button
+                    class="inline-flex justify-center items-center group"
+                    aria-haspopup="true"
+                    @click.prevent="open = !open"
+                    :aria-expanded="open"
+                  >
+                    <%= image_tag "mosaic/images/avatar-01.jpg", class: "w-8 h-8 rounded-full", width: 32, height: 32, alt: t("dashboard.header.user_avatar_alt") %>
+                    <div class="flex items-center truncate">
+                      <span class="truncate ml-2 text-sm font-medium text-gray-600 dark:text-gray-100 group-hover:text-gray-800 dark:group-hover:text-white"><%= current_user.name.presence || current_user.email %></span>
+                      <svg class="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500" viewBox="0 0 12 12">
+                        <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+                      </svg>
+                    </div>
+                  </button>
+                  <div
+                    class="origin-top-right z-10 absolute top-full right-0 min-w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden mt-1"
+                    @click.outside="open = false"
+                    @keydown.escape.window="open = false"
+                    x-show="open"
+                    x-transition:enter="transition ease-out duration-200 transform"
+                    x-transition:enter-start="opacity-0 -translate-y-2"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    x-transition:leave="transition ease-out duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    x-cloak
+                  >
+                    <ul>
+                      <li>
+                        <%= link_to t("dashboard.nav.settings"), dashboard_settings_path, class: "font-medium text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200 flex items-center py-1 px-3" %>
+                      </li>
+                      <li>
+                        <%= link_to t("nav.sign_out"), destroy_user_session_path, data: { turbo_method: :delete }, class: "font-medium text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200 flex items-center py-1 px-3" %>
+                      </li>
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -216,8 +335,10 @@
           </div>
         </header>
 
-        <main class="grow px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
-          <%= yield %>
+        <main class="grow">
+          <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-[96rem] mx-auto">
+            <%= yield %>
+          </div>
         </main>
       </div>
     </div>
