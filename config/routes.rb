@@ -1,6 +1,4 @@
 Rails.application.routes.draw do
-  mount Pay::Engine => "/pay", as: "pay_engine"
-
   scope "(:locale)", locale: /en|es/ do
     devise_for :users, controllers: {
       registrations: "users/registrations",
