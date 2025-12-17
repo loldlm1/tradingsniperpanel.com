@@ -24,6 +24,7 @@ gem "jbuilder"
 
 gem "devise"
 gem "pay"
+gem "commonmarker"
 gem "stripe", "~> 18.0"
 gem "refer"
 gem "maxminddb"

@@ -110,6 +110,10 @@ es:
     billing_manage_copy: "Actualiza método de pago, facturas o cancela tu plan."
     billing_subscribe_copy: "Actualiza o reactiva tu suscripción con el checkout."
     billing_support_copy: "¿Necesitas ayuda con billing? Escríbenos."
+    billing:
+      invalid_price: "Selección de precio inválida"
+      checkout_error: "No se pudo iniciar el checkout. Intenta de nuevo."
+      portal_error: "No se pudo abrir el portal de facturación en este momento."
     support_overview: "Obtén ayuda rápido. Añadiremos métricas pronto."
     support_docs_copy: "Lee los manuales y changelog de cada EA."
     support_billing_copy: "Gestiona suscripción, facturas y métodos de pago."

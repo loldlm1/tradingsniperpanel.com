@@ -40,7 +40,7 @@ RSpec.describe "Localization", type: :request do
 
       get root_path(locale: :es)
 
-      expect(response).to be_successful
+      expect(response).to redirect_to(dashboard_path(locale: :es))
       expect(user.reload.preferred_locale).to eq("es")
     end
 
@@ -51,6 +51,7 @@ RSpec.describe "Localization", type: :request do
       expect do
         get root_path
       end.not_to(change { user.reload.preferred_locale })
+      expect(response).to redirect_to(dashboard_path)
     end
   end
 

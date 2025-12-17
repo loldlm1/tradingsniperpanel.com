@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  mount Pay::Engine => "/pay", as: "pay_engine"
+
   scope "(:locale)", locale: /en|es/ do
     devise_for :users, controllers: {
       registrations: "users/registrations",
@@ -12,6 +14,8 @@ Rails.application.routes.draw do
     get "dashboard/billing", to: "dashboards#billing", as: :dashboard_billing
     get "dashboard/support", to: "dashboards#support", as: :dashboard_support
     get "dashboard/expert_advisors/:id/docs", to: "expert_advisors#docs", as: :dashboard_expert_advisor_docs
+    post "dashboard/checkout", to: "dashboards#checkout", as: :dashboard_checkout
+    post "dashboard/billing_portal", to: "dashboards#billing_portal", as: :dashboard_billing_portal
 
     get "pricing", to: "pages#pricing"
     get "docs", to: "pages#docs"
