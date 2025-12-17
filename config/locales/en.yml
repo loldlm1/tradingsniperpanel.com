@@ -110,6 +110,10 @@ en:
     billing_manage_copy: "Update payment method, view invoices, or cancel your plan."
     billing_subscribe_copy: "Upgrade or restart your subscription with the checkout flow."
     billing_support_copy: "Need help with billing? Reach out and we’ll follow up."
+    billing:
+      invalid_price: "Invalid price selection"
+      checkout_error: "Unable to start checkout. Please try again."
+      portal_error: "Unable to open billing portal right now."
     support_overview: "Get help fast. We’ll add live metrics soon."
     support_docs_copy: "Read the manuals and change logs for each EA."
     support_billing_copy: "Manage subscription, invoices, and payment methods."

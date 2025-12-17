@@ -5,33 +5,52 @@
   <p class="text-gray-600 dark:text-gray-300"><%= t("pricing.subtitle") %></p>
 </div>
 
+<% current_price = @subscription&.processor_plan %>
+<% price_tiers = [
+  { key: "basic_monthly", name: "Basic Monthly", env: ENV["STRIPE_PRICE_BASIC_MONTHLY"], badge: "Monthly" },
+  { key: "basic_annual", name: "Basic Annual", env: ENV["STRIPE_PRICE_BASIC_ANNUAL"], badge: "Annual" },
+  { key: "hft_monthly", name: "HFT Monthly", env: ENV["STRIPE_PRICE_HFT_MONTHLY"], badge: "Monthly" },
+  { key: "hft_annual", name: "HFT Annual", env: ENV["STRIPE_PRICE_HFT_ANNUAL"], badge: "Annual" },
+  { key: "pro_monthly", name: "Pro Monthly", env: ENV["STRIPE_PRICE_PRO_MONTHLY"], badge: "Monthly" },
+  { key: "pro_annual", name: "Pro Annual", env: ENV["STRIPE_PRICE_PRO_ANNUAL"], badge: "Annual" }
+].select { |tier| tier[:env].present? } %>
+
 <div class="grid gap-6 lg:grid-cols-3">
-  <% plans = [
-    { name: "Basic", price: "$39/mo", features: ["Core EA access", "Manuals & docs", "Email support"] },
-    { name: "HFT", price: "$79/mo", features: ["HFT EA access", "Priority updates", "Email + chat support"] },
-    { name: "Pro", price: "$129/mo", features: ["All EAs", "Priority fixes", "1:1 onboarding"] }
-  ] %>
-  <% plans.each do |plan| %>
+  <% price_tiers.each do |tier| %>
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex flex-col">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex items-start justify-between mb-4">
         <div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 uppercase font-semibold"><%= plan[:name] %></div>
-          <div class="text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= plan[:price] %></div>
+          <div class="text-sm text-gray-500 dark:text-gray-400 uppercase font-semibold"><%= tier[:name] %></div>
+          <div class="text-xs text-gray-400 dark:text-gray-500"><%= tier[:env].presence || "price_xxx" %></div>
         </div>
+        <span class="px-2 py-1 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"><%= tier[:badge] %></span>
       </div>
       <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-2 flex-1">
-        <% plan[:features].each do |feature| %>
-          <li class="flex items-start gap-2">
-            <svg class="w-4 h-4 text-emerald-500 mt-1" viewBox="0 0 12 12">
-              <path d="M10.28 1.28 3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
-            </svg>
-            <span><%= feature %></span>
-          </li>
-        <% end %>
+        <li class="flex items-start gap-2">
+          <svg class="w-4 h-4 text-emerald-500 mt-1" viewBox="0 0 12 12">
+            <path d="M10.28 1.28 3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
+          </svg>
+          <span><%= t("pricing.subtitle") %></span>
+        </li>
+        <li class="flex items-start gap-2">
+          <svg class="w-4 h-4 text-emerald-500 mt-1" viewBox="0 0 12 12">
+            <path d="M10.28 1.28 3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
+          </svg>
+          <span><%= t("pricing.bullets").first %></span>
+        </li>
       </ul>
       <div class="mt-4">
-        <%= link_to t("dashboard.plan_card.subscribe"), dashboard_billing_path, class: "btn-sm bg-violet-600 hover:bg-violet-700 text-white w-full text-center" %>
+        <% if current_price.present? && current_price == tier[:env] %>
+          <div class="text-sm text-emerald-500 font-semibold text-center py-2 border border-emerald-500/60 rounded-lg"><%= t("dashboard.plan_card.status_active") %></div>
+        <% else %>
+          <%= button_to t("dashboard.plan_card.subscribe"), dashboard_checkout_path(price_key: tier[:key]), method: :post, class: "btn-sm bg-violet-600 hover:bg-violet-700 text-white w-full text-center", data: { turbo: false } %>
+        <% end %>
       </div>
     </div>
   <% end %>
+</div>
+
+<div class="mt-8 flex flex-col sm:flex-row gap-3">
+  <%= button_to t("dashboard.plan_card.manage"), dashboard_billing_portal_path, method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white", data: { turbo: false } %>
+  <%= link_to t("dashboard.nav.support", default: "Support"), dashboard_support_path, class: "btn bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
 </div>

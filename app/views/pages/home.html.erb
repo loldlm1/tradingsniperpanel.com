@@ -1,5 +1,6 @@
 <% content_for :title, t("app.name") %>
 
+<!-- Hero -->
 <section class="relative overflow-hidden">
   <div class="absolute bottom-0 left-0 right-0 bg-linear-to-t from-gray-800 to-gray-900 opacity-60 h-[10rem] pointer-events-none -z-10" aria-hidden="true"></div>
   <div class="absolute left-1/2 -translate-x-1/2 pointer-events-none -z-10" aria-hidden="true">
@@ -32,22 +33,43 @@
   </div>
 </section>
 
+<!-- Press logos -->
 <section>
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
-    <div class="py-12 md:py-16 border-b border-gray-800">
-      <div class="max-w-3xl mx-auto text-center pb-12">
-        <h2 class="h2 font-uncut-sans mb-4"><%= t("features.title") %></h2>
-        <p class="text-lg text-gray-400"><%= t("app.tagline") %></p>
+    <div class="py-6 border-b border-gray-800">
+      <div class="max-w-sm md:max-w-5xl mx-auto grid gap-2 grid-cols-4 md:grid-cols-5">
+        <% logos = (1..8).to_a %>
+        <% logos.each_with_index do |logo, idx| %>
+          <div class="flex items-center justify-center py-2 col-span-2 md:col-auto" data-aos="zoom-out" data-aos-delay="<%= idx * 100 %>">
+            <span class="text-gray-500 text-sm">Logo <%= logo %></span>
+          </div>
+        <% end %>
       </div>
-      <div class="grid gap-6 md:grid-cols-2">
-        <% feature_items = [:risk, :scope, :grid, :theme] %>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="py-12 md:py-20">
+      <div class="text-center pb-12 md:pb-20">
+        <h2 class="h2 font-uncut-sans" data-aos="zoom-out"><%= t("features.title") %></h2>
+      </div>
+
+      <div class="pb-16" data-aos="zoom-out">
+        <%= image_tag "neon/images/features.svg", width: 1104, height: 512, alt: "Features" %>
+      </div>
+
+      <div class="max-w-sm mx-auto grid gap-8 md:grid-cols-3 lg:gap-16 items-start md:max-w-none">
+        <% feature_items = [:risk, :scope, :grid] %>
         <% feature_items.each_with_index do |item, index| %>
-          <div class="relative bg-gray-800/50 border border-gray-800 rounded-2xl p-6" data-aos="fade-up" data-aos-delay="<%= (index + 1) * 50 %>">
-            <div class="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center mb-4 text-blue-400 font-semibold">
+          <div class="flex flex-col items-center" data-aos="zoom-out" data-aos-delay="<%= index * 200 %>">
+            <div class="mb-4 w-14 h-14 rounded-full bg-linear-to-t from-blue-600/60 to-pink-400/60 flex items-center justify-center text-white font-semibold">
               0<%= index + 1 %>
             </div>
-            <h3 class="text-lg font-semibold text-gray-100 mb-2"><%= t("features.items.#{item}.title") %></h3>
-            <p class="text-gray-400"><%= t("features.items.#{item}.body") %></p>
+            <h4 class="h4 text-gray-200 text-center mb-2"><%= t("features.items.#{item}.title") %></h4>
+            <p class="text-lg text-gray-400 text-center"><%= t("features.items.#{item}.body") %></p>
           </div>
         <% end %>
       </div>
@@ -55,19 +77,55 @@
   </div>
 </section>
 
-<section>
+<!-- Features #2 -->
+<section class="relative">
+  <div class="absolute inset-0 pointer-events-none mb-16" aria-hidden="true">
+    <div class="w-full h-40 bg-gradient-to-b from-gray-900"></div>
+  </div>
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
-    <div class="py-12 md:py-16">
-      <div class="max-w-3xl mx-auto text-center pb-12">
-        <h2 class="h2 font-uncut-sans mb-4"><%= t("workflow.title") %></h2>
+    <div class="py-12 md:py-20">
+      <div class="grid gap-8 lg:grid-cols-12 lg:gap-16 items-center">
+        <div class="max-w-xl lg:max-w-none lg:col-span-7" data-aos="zoom-out">
+          <%= image_tag "neon/images/features-illustration.svg", class: "max-w-none mx-auto", width: 608, height: 305, alt: "Illustration" %>
+        </div>
+        <div class="lg:col-span-5" data-aos="zoom-out" data-aos-delay="200">
+          <h3 class="h3 text-gray-100 mb-4">Use sensitive data without sacrificing privacy</h3>
+          <p class="text-lg text-gray-400 mb-6">We emphasize building new features with real users and real data, generating insights with constant validation.</p>
+          <ul class="space-y-3 text-gray-300 text-sm">
+            <li class="flex items-start">
+              <span class="text-blue-400 mr-2">•</span>
+              <span>Analytics SDK with pre-built dashboards</span>
+            </li>
+            <li class="flex items-start">
+              <span class="text-blue-400 mr-2">•</span>
+              <span>Feature flagging with guardrails</span>
+            </li>
+            <li class="flex items-start">
+              <span class="text-blue-400 mr-2">•</span>
+              <span>Secure, self-serve permissions</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Metrics -->
+<section class="relative">
+  <div class="absolute inset-0 bg-gray-900 pointer-events-none -z-10" aria-hidden="true"></div>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="py-12 md:py-20">
+      <div class="max-w-3xl text-center mx-auto mb-12">
+        <h2 class="h2 font-uncut-sans mb-4">Find a plan that's right for you</h2>
+        <p class="text-lg text-gray-400">Scale from testing to production with predictable pricing.</p>
       </div>
       <div class="grid gap-6 md:grid-cols-3">
-        <% workflow_steps = [:projection, :signal, :scope] %>
-        <% workflow_steps.each_with_index do |step, index| %>
-          <div class="relative bg-linear-to-t from-gray-800/80 to-gray-800 rounded-2xl border border-gray-800 p-6" data-aos="fade-up" data-aos-delay="<%= (index + 1) * 75 %>">
-            <div class="text-sm text-blue-300 mb-3">0<%= index + 1 %></div>
-            <h3 class="text-lg font-semibold text-gray-100 mb-2"><%= t("workflow.steps.#{step}.title") %></h3>
-            <p class="text-gray-400"><%= t("workflow.steps.#{step}.body") %></p>
+        <% (1..3).each do |n| %>
+          <div class="bg-gray-800 rounded-2xl border border-gray-800 p-6" data-aos="fade" data-aos-delay="<%= n * 100 %>">
+            <div class="text-sm text-gray-400 mb-2">PLAN 0<%= n %></div>
+            <h3 class="text-xl font-semibold text-gray-100 mb-2">Plan <%= n %></h3>
+            <p class="text-gray-400">Everything you need to launch and scale quickly.</p>
           </div>
         <% end %>
       </div>
@@ -75,49 +133,62 @@
   </div>
 </section>
 
+<!-- Testimonials -->
 <section>
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
-    <div class="py-12 md:py-16 border-t border-b border-gray-800">
-      <div class="grid gap-10 md:grid-cols-2 items-center">
-        <div data-aos="fade-right">
-          <h2 class="h2 font-uncut-sans mb-4"><%= t("docs.title") %></h2>
-          <p class="text-gray-400 mb-6"><%= t("docs.note") %></p>
-          <ul class="space-y-3 text-gray-200 text-sm">
-            <li>
-              <%= link_to t("docs.manuals.en"), "/docs/sniper_advanced_panel/Manual_EN.md", class: "hover:text-blue-400 underline decoration-blue-400/70" %>
-            </li>
-            <li>
-              <%= link_to t("docs.manuals.es"), "/docs/sniper_advanced_panel/Manual_ES.md", class: "hover:text-blue-400 underline decoration-blue-400/70" %>
-            </li>
-            <li>
-              <%= link_to t("docs.manuals.pdf_es"), "/docs/sniper_advanced_panel/sniper_advanced_panel_es.pdf", class: "hover:text-blue-400 underline decoration-blue-400/70" %>
-            </li>
-            <li>
-              <%= link_to t("docs.manuals.presentation_es"), "/docs/sniper_advanced_panel/sniper_advanced_panel_presentation_es.pdf", class: "hover:text-blue-400 underline decoration-blue-400/70" %>
-            </li>
-          </ul>
-        </div>
-        <div class="bg-gray-800/50 border border-gray-800 rounded-2xl p-6" data-aos="fade-left">
-          <h3 class="text-lg font-semibold text-gray-100 mb-4"><%= t("pricing.title") %></h3>
-          <p class="text-gray-400 mb-4"><%= t("pricing.subtitle") %></p>
-          <ul class="space-y-2 text-gray-300 mb-6">
-            <% t("pricing.bullets").each do |bullet| %>
-              <li class="flex items-start gap-2">
-                <span class="text-blue-400 mt-1">•</span>
-                <span><%= bullet %></span>
-              </li>
-            <% end %>
-          </ul>
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <%= link_to t("pricing.cta"), user_signed_in? ? dashboard_path : new_user_registration_path, class: "btn text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full sm:w-auto shadow-lg" %>
-            <div class="text-sm text-gray-400"><%= t("pricing.price_callout") %></div>
-          </div>
-        </div>
+    <div class="py-12 md:py-20 border-t border-gray-800">
+      <div class="max-w-3xl text-center mx-auto mb-12">
+        <h2 class="h2 font-uncut-sans">Sound too good? Hear what our customers have to say</h2>
+      </div>
+      <div class="max-w-sm mx-auto sm:max-w-none grid gap-12 sm:grid-cols-2 md:grid-cols-3 sm:gap-x-6 sm:gap-y-8 items-start" data-aos-id-testimonials>
+        <% (1..6).each do |n| %>
+          <article class="h-full flex flex-col bg-gray-800 p-6" data-aos="fade" data-aos-anchor="[data-aos-id-testimonials]" data-aos-delay="<%= n * 100 %>">
+            <header class="mb-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                  <%= image_tag "neon/images/testimonial-0#{n}.jpg", class: "rounded-full shrink-0", width: 48, height: 48, alt: "Testimonial #{n}" %>
+                  <div>
+                    <div class="font-semibold text-gray-100">Customer <%= n %></div>
+                    <div class="text-sm text-gray-400">Founder</div>
+                  </div>
+                </div>
+              </div>
+            </header>
+            <p class="text-gray-300 flex-1">“We shipped faster and iterated safely thanks to the launch controls and visibility.”</p>
+          </article>
+        <% end %>
       </div>
     </div>
   </div>
 </section>
 
+<!-- Resources -->
+<section>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="py-12 md:py-20 border-t border-gray-800">
+      <div class="max-w-3xl text-center mx-auto mb-12">
+        <h2 class="h2 font-uncut-sans">Resources to help you get the most out of Neon</h2>
+      </div>
+      <div class="grid gap-6 md:grid-cols-3">
+        <% resources = [
+          { title: "Documentation", body: "Read how to integrate and deploy quickly.", href: docs_path },
+          { title: "Pricing", body: "Predictable plans with transparent billing.", href: pricing_path },
+          { title: "Support", body: "We’re here to help you launch safely.", href: user_signed_in? ? dashboard_support_path : new_user_registration_path }
+        ] %>
+        <% resources.each_with_index do |resource, idx| %>
+          <div class="bg-gray-800 rounded-2xl border border-gray-800 p-6" data-aos="fade" data-aos-delay="<%= idx * 150 %>">
+            <div class="text-sm text-gray-400 mb-2">0<%= idx + 1 %></div>
+            <h3 class="text-lg font-semibold text-gray-100 mb-2"><%= resource[:title] %></h3>
+            <p class="text-gray-400 mb-3"><%= resource[:body] %></p>
+            <%= link_to "Learn more", resource[:href], class: "text-blue-400 hover:text-blue-300" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
 <section class="py-12 md:py-16">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="bg-linear-to-t from-gray-800/70 to-gray-800 rounded-2xl border border-gray-800 p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6" data-aos="zoom-out">

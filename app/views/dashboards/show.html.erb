@@ -1,6 +1,4 @@
 <% content_for :title, "#{t('app.short_name')} Dashboard" %>
-<% pay_customer = Pay::Customer.table_exists? ? current_user.pay_customers.first : nil %>
-<% subscription = pay_customer&.subscriptions&.active&.first %>
 <% referral_code = current_user.referral_codes.first&.code %>
 
 <div class="sm:flex sm:justify-between sm:items-center mb-8">
@@ -18,12 +16,12 @@
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
     <div class="flex items-start justify-between">
       <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.plan_card.title") %></div>
-      <span class="px-3 py-1 rounded-full text-xs font-semibold <%= subscription&.active? ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100' %>">
-        <%= subscription&.active? ? t("dashboard.plan_card.status_active") : t("dashboard.plan_card.status_inactive") %>
+      <span class="px-3 py-1 rounded-full text-xs font-semibold <%= @subscription&.active? ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100' %>">
+        <%= @subscription&.active? ? t("dashboard.plan_card.status_active") : t("dashboard.plan_card.status_inactive") %>
       </span>
     </div>
-    <div class="mt-3 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= subscription&.name || "Sniper Advanced Panel" %></div>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Stripe Price: <%= ENV.fetch("STRIPE_PRICE_ID", "price_xxx") %></p>
+    <div class="mt-3 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= @subscription&.name || "Sniper Advanced Panel" %></div>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Stripe Price: <%= ENV.fetch("STRIPE_PRICE_BASIC_MONTHLY", "price_xxx") %></p>
   </div>
 
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">

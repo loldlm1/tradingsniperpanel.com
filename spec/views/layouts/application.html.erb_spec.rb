@@ -21,8 +21,7 @@ RSpec.describe "layouts/application", type: :view do
     render template: "pages/home", layout: "layouts/application"
 
     expect(rendered).to include(%(lang="es"))
-    expect(rendered).to include(I18n.t("nav.pricing"))
-    expect(rendered).to include("EN")
-    expect(rendered).to include("ES")
+    expect(rendered).to include(I18n.t("nav.sign_in"))
+    expect(rendered).to include(I18n.t("nav.sign_up"))
   end
 end
