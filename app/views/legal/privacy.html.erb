@@ -1,0 +1,8 @@
+<% content_for :title, "#{t('legal.privacy.title')} | #{t('app.name')}" %>
+
+<%= render "document",
+  title: t("legal.privacy.title"),
+  subtitle: t("legal.privacy.subtitle"),
+  updated_at: t("legal.updated_at"),
+  sections: Array(t("legal.privacy.sections", default: [])) %>
+

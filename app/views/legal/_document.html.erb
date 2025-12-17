@@ -1,0 +1,32 @@
+<section class="relative max-w-6xl mx-auto px-4 sm:px-6 pt-32 pb-12 md:pt-36 md:pb-16">
+  <div class="max-w-3xl">
+    <div class="text-sm text-blue-300 uppercase mb-3"><%= t("legal.badge") %></div>
+    <h1 class="h1 font-uncut-sans mb-4"><%= title %></h1>
+    <p class="text-lg text-gray-400 mb-4"><%= subtitle %></p>
+    <p class="text-sm text-gray-500"><%= t("legal.last_updated", date: updated_at) %></p>
+  </div>
+
+  <div class="max-w-3xl mt-10 space-y-10">
+    <% sections.each do |section| %>
+      <div>
+        <h2 class="text-xl font-semibold text-gray-100 mb-3"><%= section["title"] %></h2>
+
+        <% Array(section["paragraphs"]).each do |paragraph| %>
+          <p class="text-gray-400 mb-4"><%= paragraph %></p>
+        <% end %>
+
+        <% if section["bullets"].present? %>
+          <ul class="space-y-3 text-gray-300">
+            <% section["bullets"].each do |bullet| %>
+              <li class="flex items-start gap-2">
+                <span class="text-blue-400 mt-1">•</span>
+                <span><%= bullet %></span>
+              </li>
+            <% end %>
+          </ul>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</section>
+

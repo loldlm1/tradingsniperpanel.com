@@ -140,33 +140,136 @@ en:
     tagline: "Built for disciplined MQL5 traders."
     terms: "Terms"
     privacy: "Privacy Policy"
-    products:
-      title: "Products"
-      items:
-        - "Neon Manage"
-        - "Neon Analyse"
-        - "Neon Launch"
-        - "Experimentation"
     resources:
       title: "Resources"
-      items:
-        - "Blog"
-        - "Cheat Sheet"
-        - "Channel Partners"
-        - "Affiliate Program"
-    compare:
-      title: "Compare"
-      items:
-        - "Session Recording"
-        - "Feature Flags"
-        - "Heatmaps"
-        - "Correlation Analysis"
-    company:
-      title: "Company"
-      items:
-        - "About Us"
-        - "Our Story"
-        - "Work With Us"
+      links:
+        getting_started: "Getting Started"
+        tutorials: "Tutorial Videos"
+        support: "Support"
+    product:
+      title: "Product"
+      links:
+        manuals: "Manuals"
+        pricing: "Pricing"
+        expert_advisors: "Expert Advisors"
+    dashboard:
+      title: "Dashboard"
+      links:
+        dashboard: "Dashboard"
+        pricing: "Pricing"
+        billing: "Billing"
+        support: "Support"
+    legal:
+      title: "Legal"
+      links:
+        terms: "Terms"
+        privacy: "Privacy Policy"
+  legal:
+    badge: "Legal"
+    last_updated: "Last updated: %{date}"
+    updated_at: "December 17, 2025"
+    terms:
+      title: "Terms of Service"
+      subtitle: "These Terms govern your access to Trading Sniper Panel and related Expert Advisor resources."
+      sections:
+        - title: "1. Agreement to These Terms"
+          paragraphs:
+            - "By accessing or using Trading Sniper Panel (the “Service”), you agree to these Terms of Service (the “Terms”). If you do not agree, do not use the Service."
+            - "If you use the Service on behalf of an organization, you represent that you have authority to bind that organization to these Terms."
+        - title: "2. The Service"
+          paragraphs:
+            - "The Service provides dashboards, documentation, downloads, and subscription access related to Expert Advisors and trading tools."
+            - "We may modify, suspend, or discontinue any part of the Service at any time, including features, content, and availability."
+        - title: "3. Eligibility and Accounts"
+          paragraphs:
+            - "You must be at least 18 years old (or the age of majority where you live) to use the Service."
+            - "You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account."
+            - "You agree to provide accurate information and to keep it up to date."
+        - title: "4. Subscriptions, Billing, and Refunds"
+          paragraphs:
+            - "Some features require a paid subscription. Payments are processed by third-party payment processors (currently Stripe). We do not store full payment card details."
+            - "Subscriptions may renew automatically until canceled. You can manage or cancel your subscription from the billing portal when available."
+            - "Except where required by law, fees are non-refundable. If you believe you were billed in error, contact us promptly."
+        - title: "5. License and Acceptable Use"
+          paragraphs:
+            - "We grant you a limited, non-exclusive, non-transferable, revocable license to access and use the Service for your personal or internal business purposes."
+          bullets:
+            - "Do not copy, sell, sublicense, or redistribute the Service or its content unless expressly permitted."
+            - "Do not reverse engineer, decompile, or attempt to extract source code or underlying ideas from the Service."
+            - "Do not share access credentials or allow unauthorized access to your account."
+            - "Do not interfere with or disrupt the Service, including by probing, scanning, or testing vulnerabilities."
+            - "Do not use the Service for unlawful, harmful, or deceptive activity."
+        - title: "6. Trading Risk Disclaimer (Not Financial Advice)"
+          paragraphs:
+            - "The Service and any related Expert Advisors, dashboards, and documentation are provided for informational and automation purposes only and do not constitute financial, investment, legal, or tax advice."
+            - "Trading involves risk and may result in significant losses. You are solely responsible for your trading decisions, configurations, and risk management."
+            - "Past performance is not indicative of future results."
+        - title: "7. Third-Party Services"
+          paragraphs:
+            - "The Service may integrate with third-party platforms and services (for example, Stripe and trading platforms). Your use of those services is subject to their own terms and policies."
+            - "We are not responsible for third-party interruptions, errors, or losses caused by third-party services."
+        - title: "8. Intellectual Property and Feedback"
+          paragraphs:
+            - "The Service, including all software, designs, text, graphics, and trademarks, is owned by us or our licensors and is protected by applicable intellectual property laws."
+            - "If you provide feedback or suggestions, you grant us the right to use them without restriction or compensation."
+        - title: "9. Disclaimers"
+          paragraphs:
+            - "The Service is provided “as is” and “as available” without warranties of any kind, whether express or implied."
+            - "We do not warrant that the Service will be uninterrupted, secure, or error-free."
+        - title: "10. Limitation of Liability"
+          paragraphs:
+            - "To the maximum extent permitted by law, we will not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues."
+            - "To the extent permitted by law, our total liability for any claim relating to the Service will not exceed the amounts you paid to us for the Service in the twelve (12) months preceding the event giving rise to the claim."
+        - title: "11. Termination"
+          paragraphs:
+            - "You may stop using the Service at any time. We may suspend or terminate your access if we reasonably believe you have violated these Terms or if required to protect the Service."
+        - title: "12. Changes and Contact"
+          paragraphs:
+            - "We may update these Terms from time to time. Continued use of the Service after an update becomes effective constitutes acceptance of the updated Terms."
+            - "Questions about these Terms can be sent to support@tradingsniperpanel.com."
+    privacy:
+      title: "Privacy Policy"
+      subtitle: "This policy explains what data we collect and how we use it."
+      sections:
+        - title: "1. Overview"
+          paragraphs:
+            - "This Privacy Policy describes how we collect, use, and share information when you access or use the Service."
+            - "If you do not agree with this policy, do not use the Service."
+        - title: "2. Information We Collect"
+          paragraphs:
+            - "Account information: such as your name, email address, and locale preferences."
+            - "Usage information: such as pages viewed, actions taken, device and browser information, and approximate location derived from IP address."
+            - "Billing information: payment processing is handled by Stripe; we may receive limited billing metadata (for example, subscription status and invoice identifiers)."
+            - "Support communications: information you provide when you contact support."
+        - title: "3. How We Use Information"
+          paragraphs:
+            - "To provide and operate the Service, including authentication, localization, and account features."
+            - "To process subscriptions and manage billing status."
+            - "To improve reliability, security, and user experience (for example, debugging and analytics)."
+            - "To communicate with you about service updates, billing, and support requests."
+        - title: "4. Cookies and Similar Technologies"
+          paragraphs:
+            - "We use cookies and similar technologies to keep you signed in, remember preferences (such as language), and attribute referrals when applicable."
+            - "You can control cookies through your browser settings; however, disabling cookies may affect functionality."
+        - title: "5. Sharing and Disclosures"
+          paragraphs:
+            - "We may share information with service providers who provide our infrastructure and payment processing (for example, Stripe), solely to perform services on our behalf."
+            - "We may disclose information if required by law or to protect the rights, safety, and security of users and the Service."
+            - "We may share aggregated or de-identified information that cannot reasonably identify you."
+        - title: "6. Data Retention and Security"
+          paragraphs:
+            - "We retain information for as long as necessary to provide the Service and comply with legal obligations."
+            - "We implement reasonable administrative, technical, and organizational measures to protect information, but no method of transmission or storage is completely secure."
+        - title: "7. Your Choices and Rights"
+          paragraphs:
+            - "You can update certain account information in your settings. You may also request access to or deletion of your personal information, subject to legal exceptions."
+            - "To make a privacy request, contact support@tradingsniperpanel.com."
+        - title: "8. International Transfers"
+          paragraphs:
+            - "Your information may be processed in countries other than your own. Where required, we take steps to provide appropriate safeguards."
+        - title: "9. Changes"
+          paragraphs:
+            - "We may update this Privacy Policy from time to time. Continued use of the Service after an update becomes effective constitutes acceptance of the updated policy."
   landing:
     neon:
       features2:
@@ -216,3 +319,52 @@ en:
               - "Priority fixes"
               - "Early feature access"
               - "1:1 onboarding (limited)"
+      testimonials:
+        title: "Sound too good? Hear what our customers have to say"
+        avatar_alt: "Testimonial avatar %{index}"
+        items:
+          - quote: "The risk box keeps my sizing disciplined — Lot/%/$ modes with broker-aware guardrails just work."
+            name: "Trader 01"
+            source: "Sniper Panel"
+          - quote: "Sniper Scope is fast and precise. Crosshair TP/SL placement with Enter/Esc confirmations feels natural."
+            name: "Trader 02"
+            source: "Sniper Panel"
+          - quote: "Grid depth on demand helps me plan exits without clutter — projections stay clear and readable."
+            name: "Trader 03"
+            source: "Sniper Panel"
+          - quote: "Cycling tickets for partial closes and break-even moves saves time when volatility spikes."
+            name: "Trader 04"
+            source: "Sniper Panel"
+          - quote: "Having the manual and videos inside the dashboard removes friction. No more hunting for PDFs."
+            name: "Trader 05"
+            source: "Sniper Panel"
+          - quote: "Subscription and invoices are straightforward. Checkout is quick and management stays in one place."
+            name: "Trader 06"
+            source: "Sniper Panel"
+          - quote: "The UI feels like a cockpit — fewer clicks, fewer mistakes, and clearer decisions."
+            name: "Trader 07"
+            source: "Sniper Panel"
+          - quote: "Dark mode + language toggle are surprisingly helpful when switching sessions and setups."
+            name: "Trader 08"
+            source: "Sniper Panel"
+          - quote: "Updates ship without surprises — the panel stays consistent while new capabilities arrive."
+            name: "Trader 09"
+            source: "Sniper Panel"
+      resources:
+        title: "Resources to help you get the most out of Sniper Panel"
+        categories:
+          manuals: "Manuals"
+          getting_started: "Getting Started"
+          billing: "Billing"
+          support: "Support"
+        boxes:
+          manuals: "Manuals & Docs"
+          getting_started: "Getting Started"
+          billing: "Billing & Subscriptions"
+          support: "Support"
+          pricing: "Pricing & Plans"
+          tutorials: "Tutorial Videos"
+      cta:
+        title: "Get started with Sniper Panel"
+        body: "Create your account, subscribe, and access the full Sniper Advanced Panel experience in minutes."
+        button: "Start now"

@@ -17,6 +17,8 @@ Rails.application.routes.draw do
 
     get "pricing", to: "pages#pricing"
     get "docs", to: "pages#docs"
+    get "terms", to: "legal#terms"
+    get "privacy", to: "legal#privacy"
     root "pages#home"
   end
 
