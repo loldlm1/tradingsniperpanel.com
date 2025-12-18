@@ -102,12 +102,12 @@
                   <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
                     <ul class="pl-8 mt-1" :class="open ? 'block!' : 'hidden'">
                       <li class="mb-1 last:mb-0">
-                        <%= link_to dashboard_path, class: mosaic_sidebar_child_link_classes(active: dashboard_main_active) do %>
+                        <%= link_to dashboard_path, data: { turbo: false }, class: mosaic_sidebar_child_link_classes(active: dashboard_main_active) do %>
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.main", default: "Main") %></span>
                         <% end %>
                       </li>
                       <li class="mb-1 last:mb-0">
-                        <%= link_to dashboard_analytics_path, class: mosaic_sidebar_child_link_classes(active: dashboard_analytics_active) do %>
+                        <%= link_to dashboard_analytics_path, data: { turbo: false }, class: mosaic_sidebar_child_link_classes(active: dashboard_analytics_active) do %>
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.analytics", default: "Analytics") %></span>
                         <% end %>
                       </li>
@@ -134,14 +134,14 @@
                   <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
                     <ul class="pl-8 mt-1 hidden" :class="open ? 'block!' : 'hidden'">
                       <li class="mb-1 last:mb-0">
-                        <%= link_to dashboard_expert_advisors_path, class: mosaic_sidebar_child_link_classes(active: current_page?(dashboard_expert_advisors_path)) do %>
+                        <%= link_to dashboard_expert_advisors_path, data: { turbo: false }, class: mosaic_sidebar_child_link_classes(active: current_page?(dashboard_expert_advisors_path)) do %>
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.expert_advisors_all") %></span>
                         <% end %>
                       </li>
                       <% (@user_expert_advisors || []).each do |uea| %>
                         <li class="mb-1 last:mb-0">
                           <% docs_path = dashboard_expert_advisor_docs_path(uea.expert_advisor, locale: I18n.locale) %>
-                          <%= link_to docs_path, class: mosaic_sidebar_child_link_classes(active: current_page?(docs_path)) do %>
+                          <%= link_to docs_path, data: { turbo: false }, class: mosaic_sidebar_child_link_classes(active: current_page?(docs_path)) do %>
                             <span class="<%= mosaic_sidebar_child_span_classes %>"><%= uea.expert_advisor.name %></span>
                           <% end %>
                         </li>
@@ -169,22 +169,22 @@
                   <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
                     <ul class="pl-8 mt-1 hidden" :class="open ? 'block!' : 'hidden'">
                       <li class="mb-1 last:mb-0">
-                        <%= link_to dashboard_settings_path, class: mosaic_sidebar_child_link_classes(active: settings_account_active) do %>
+                        <%= link_to dashboard_settings_path, data: { turbo: false }, class: mosaic_sidebar_child_link_classes(active: settings_account_active) do %>
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.my_account") %></span>
                         <% end %>
                       </li>
                       <li class="mb-1 last:mb-0">
-                        <%= link_to dashboard_pricing_path, class: mosaic_sidebar_child_link_classes(active: settings_plans_active) do %>
+                        <%= link_to dashboard_pricing_path, data: { turbo: false }, class: mosaic_sidebar_child_link_classes(active: settings_plans_active) do %>
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.plans") %></span>
                         <% end %>
                       </li>
                       <li class="mb-1 last:mb-0">
-                        <%= link_to dashboard_billing_path, class: mosaic_sidebar_child_link_classes(active: settings_billing_active) do %>
+                        <%= link_to dashboard_billing_path, data: { turbo: false }, class: mosaic_sidebar_child_link_classes(active: settings_billing_active) do %>
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.billing_invoices") %></span>
                         <% end %>
                       </li>
                       <li class="mb-1 last:mb-0">
-                        <%= link_to dashboard_support_path, class: mosaic_sidebar_child_link_classes(active: settings_support_active) do %>
+                        <%= link_to dashboard_support_path, data: { turbo: false }, class: mosaic_sidebar_child_link_classes(active: settings_support_active) do %>
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.support") %></span>
                         <% end %>
                       </li>
@@ -250,7 +250,7 @@
                   >
                     <ul>
                       <li>
-                        <%= link_to url_for(locale: :en), class: "font-medium text-sm #{I18n.locale == :en ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200'} flex items-center py-1 px-3" do %>
+                        <%= link_to url_for(locale: :en), data: { turbo: false }, class: "font-medium text-sm #{I18n.locale == :en ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200'} flex items-center py-1 px-3" do %>
                           <span class="mr-2">EN</span>
                           <% if I18n.locale == :en %>
                             <svg class="w-3 h-3 fill-current text-violet-500 shrink-0 ml-auto" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
@@ -260,7 +260,7 @@
                         <% end %>
                       </li>
                       <li>
-                        <%= link_to url_for(locale: :es), class: "font-medium text-sm #{I18n.locale == :es ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200'} flex items-center py-1 px-3" do %>
+                        <%= link_to url_for(locale: :es), data: { turbo: false }, class: "font-medium text-sm #{I18n.locale == :es ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200'} flex items-center py-1 px-3" do %>
                           <span class="mr-2">ES</span>
                           <% if I18n.locale == :es %>
                             <svg class="w-3 h-3 fill-current text-violet-500 shrink-0 ml-auto" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
@@ -328,7 +328,7 @@
                     </div>
                     <ul>
                       <li>
-                        <%= link_to dashboard_settings_path, class: "font-medium text-sm text-violet-500 hover:text-violet-600 dark:hover:text-violet-400 flex items-center py-1 px-3" do %>
+                        <%= link_to dashboard_settings_path, data: { turbo: false }, class: "font-medium text-sm text-violet-500 hover:text-violet-600 dark:hover:text-violet-400 flex items-center py-1 px-3" do %>
                           <span><%= t("dashboard.nav.settings") %></span>
                         <% end %>
                       </li>
