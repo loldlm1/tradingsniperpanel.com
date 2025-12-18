@@ -10,6 +10,7 @@ module Licenses
 
     def call
       return unless user
+      return unless encoder.configured?
 
       ExpertAdvisor.active.where(trial_enabled: true).find_each do |expert_advisor|
         provision_for(expert_advisor)

@@ -9,7 +9,11 @@ class ApplicationController < ActionController::Base
 
   def after_sign_in_path_for(_resource)
     desired_plan = stored_desired_plan
-    return dashboard_pricing_path(price_key: desired_plan[:price_key]) if desired_plan&.dig(:price_key).present?
+    if desired_plan&.dig(:price_key).present?
+      return dashboard_pricing_path(price_key: desired_plan[:price_key])
+    elsif desired_plan&.dig(:product_id).present?
+      return dashboard_pricing_path(product_id: desired_plan[:product_id])
+    end
 
     dashboard_path
   end
@@ -58,17 +62,19 @@ class ApplicationController < ActionController::Base
 
   def capture_desired_plan
     plan_key = params[:price_key] || params[:plan] || params[:desired_plan]
-    return if plan_key.blank?
+    product_id = params[:product_id]
+    return if plan_key.blank? && product_id.blank?
 
     cookies.signed[:desired_plan] = {
-      value: { price_key: plan_key },
+      value: { price_key: plan_key, product_id: product_id },
       expires: 1.hour.from_now,
       httponly: true
     }
   end
 
   def stored_desired_plan
-    cookies.signed[:desired_plan]
+    plan = cookies.signed[:desired_plan]
+    plan.respond_to?(:with_indifferent_access) ? plan.with_indifferent_access : plan
   end
 
   def clear_desired_plan
