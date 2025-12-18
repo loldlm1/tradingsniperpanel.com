@@ -5,8 +5,12 @@ class ApplicationController < ActionController::Base
 
   before_action :set_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
+  before_action :capture_desired_plan, if: -> { request.format.html? }
 
   def after_sign_in_path_for(_resource)
+    desired_plan = stored_desired_plan
+    return dashboard_pricing_path(price_key: desired_plan[:price_key]) if desired_plan&.dig(:price_key).present?
+
     dashboard_path
   end
 
@@ -50,5 +54,24 @@ class ApplicationController < ActionController::Base
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:sign_up, keys: [:name, :preferred_locale])
     devise_parameter_sanitizer.permit(:account_update, keys: [:name, :preferred_locale])
+  end
+
+  def capture_desired_plan
+    plan_key = params[:price_key] || params[:plan] || params[:desired_plan]
+    return if plan_key.blank?
+
+    cookies.signed[:desired_plan] = {
+      value: { price_key: plan_key },
+      expires: 1.hour.from_now,
+      httponly: true
+    }
+  end
+
+  def stored_desired_plan
+    cookies.signed[:desired_plan]
+  end
+
+  def clear_desired_plan
+    cookies.delete(:desired_plan)
   end
 end

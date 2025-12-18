@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_16_130100) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_18_181113) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,8 +23,31 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_130100) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "ea_id", null: false
+    t.boolean "trial_enabled", default: true, null: false
     t.index ["deleted_at"], name: "index_expert_advisors_on_deleted_at"
+    t.index ["ea_id"], name: "index_expert_advisors_on_ea_id", unique: true
     t.index ["ea_type"], name: "index_expert_advisors_on_ea_type"
+  end
+
+  create_table "licenses", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "expert_advisor_id", null: false
+    t.string "status", default: "trial", null: false
+    t.string "plan_interval"
+    t.datetime "expires_at"
+    t.datetime "trial_ends_at"
+    t.string "encrypted_key", null: false
+    t.string "source"
+    t.datetime "last_synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expert_advisor_id"], name: "index_licenses_on_expert_advisor_id"
+    t.index ["expires_at"], name: "index_licenses_on_expires_at"
+    t.index ["status"], name: "index_licenses_on_status"
+    t.index ["trial_ends_at"], name: "index_licenses_on_trial_ends_at"
+    t.index ["user_id", "expert_advisor_id"], name: "index_licenses_on_user_id_and_expert_advisor_id", unique: true
+    t.index ["user_id"], name: "index_licenses_on_user_id"
   end
 
   create_table "pay_charges", force: :cascade do |t|
@@ -192,6 +215,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_16_130100) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "licenses", "expert_advisors"
+  add_foreign_key "licenses", "users"
   add_foreign_key "pay_charges", "pay_customers", column: "customer_id"
   add_foreign_key "pay_charges", "pay_subscriptions", column: "subscription_id"
   add_foreign_key "pay_payment_methods", "pay_customers", column: "customer_id"
