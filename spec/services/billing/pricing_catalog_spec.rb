@@ -28,7 +28,6 @@ RSpec.describe Billing::PricingCatalog do
     annual_price = double(unit_amount: 18000, currency: "usd")
 
     expect(Stripe::Price).to receive(:retrieve).with("price_basic_monthly").and_return(monthly_price)
-    expect(Stripe::Price).to receive(:retrieve).with("prod_basic").and_raise(Stripe::InvalidRequestError.new("No such price", {}))
     expect(Stripe::Product).to receive(:retrieve).with("prod_basic").and_return(annual_product)
     expect(Stripe::Price).to receive(:retrieve).with("price_basic_annual_default").and_return(annual_price)
 

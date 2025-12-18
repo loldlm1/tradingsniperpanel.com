@@ -46,10 +46,10 @@ module Billing
       {}
     end
 
-    def price_details(price_id)
-      return if price_id.blank?
+    def price_details(price_or_product_id)
+      return if price_or_product_id.blank?
 
-      stripe_price = retrieve_stripe_price(price_id)
+      stripe_price = retrieve_price_or_product_default(price_or_product_id)
       return unless stripe_price&.unit_amount
 
       amount_cents = stripe_price.unit_amount.to_i
@@ -60,26 +60,23 @@ module Billing
       }
     end
 
-    def retrieve_stripe_price(price_id)
+    def retrieve_price_or_product_default(price_or_product_id)
       Stripe.api_key = ENV["STRIPE_SECRET_KEY"]
-      price = Stripe::Price.retrieve(price_id)
-      return price if price&.unit_amount
 
-      fallback_price_from_product(price_id)
+      if product_id?(price_or_product_id)
+        product = Stripe::Product.retrieve(price_or_product_id)
+        default_price_id = product&.respond_to?(:default_price) ? product.default_price : nil
+        return Stripe::Price.retrieve(default_price_id) if default_price_id.present?
+      end
+
+      Stripe::Price.retrieve(price_or_product_id)
     rescue StandardError => e
-      Rails.logger.warn("Stripe price lookup failed: #{price_id} (#{e.class}: #{e.message})")
-      fallback_price_from_product(price_id)
+      Rails.logger.warn("Stripe price lookup failed: #{price_or_product_id} (#{e.class}: #{e.message})")
+      nil
     end
 
-    def fallback_price_from_product(product_id)
-      product = Stripe::Product.retrieve(product_id)
-      default_price_id = product&.respond_to?(:default_price) ? product.default_price : nil
-      return if default_price_id.blank?
-
-      Stripe::Price.retrieve(default_price_id)
-    rescue StandardError => e
-      Rails.logger.warn("Stripe product lookup failed: #{product_id} (#{e.class}: #{e.message})")
-      nil
+    def product_id?(value)
+      value.to_s.start_with?("prod_")
     end
 
     def discount_percent(monthly:, annual:)
