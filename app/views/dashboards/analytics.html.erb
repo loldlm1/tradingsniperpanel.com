@@ -13,7 +13,20 @@
         <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics_revenue_copy", default: "Monthly performance (sample).") %></p>
       </div>
     </div>
-    <canvas id="dashboard-card-02" width="640" height="320"></canvas>
+    <ul class="space-y-3 text-sm text-gray-700 dark:text-gray-200">
+      <li class="flex items-center justify-between">
+        <span>MTD</span>
+        <span class="font-semibold">$12.4k</span>
+      </li>
+      <li class="flex items-center justify-between">
+        <span>Last month</span>
+        <span class="font-semibold">$19.2k</span>
+      </li>
+      <li class="flex items-center justify-between">
+        <span>Subscribers</span>
+        <span class="font-semibold">428</span>
+      </li>
+    </ul>
   </div>
 
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
@@ -23,9 +36,24 @@
         <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics_geo_copy", default: "Geographic distribution (sample).") %></p>
       </div>
     </div>
-    <div class="relative">
-      <canvas id="dashboard-card-03" width="640" height="320"></canvas>
-    </div>
+    <ul class="space-y-3 text-sm text-gray-700 dark:text-gray-200">
+      <li class="flex items-center justify-between">
+        <span>United States</span>
+        <span class="font-semibold">42%</span>
+      </li>
+      <li class="flex items-center justify-between">
+        <span>Spain</span>
+        <span class="font-semibold">18%</span>
+      </li>
+      <li class="flex items-center justify-between">
+        <span>Mexico</span>
+        <span class="font-semibold">14%</span>
+      </li>
+      <li class="flex items-center justify-between">
+        <span>Others</span>
+        <span class="font-semibold">26%</span>
+      </li>
+    </ul>
   </div>
 </div>
 
@@ -37,22 +65,43 @@
         <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics_channels_copy", default: "Channel attribution (sample).") %></p>
       </div>
     </div>
-    <div class="relative">
-      <canvas id="dashboard-card-04" width="900" height="320"></canvas>
-      <div id="dashboard-card-04-legend" class="mt-4 grid grid-cols-2 gap-2 text-xs text-gray-500 dark:text-gray-400"></div>
-    </div>
+    <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+      <li class="flex items-center justify-between">
+        <span>Direct</span>
+        <span class="font-semibold">38%</span>
+      </li>
+      <li class="flex items-center justify-between">
+        <span>Referrals</span>
+        <span class="font-semibold">27%</span>
+      </li>
+      <li class="flex items-center justify-between">
+        <span>Paid</span>
+        <span class="font-semibold">19%</span>
+      </li>
+      <li class="flex items-center justify-between">
+        <span>Organic</span>
+        <span class="font-semibold">16%</span>
+      </li>
+    </ul>
   </div>
 
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
     <div class="flex items-center justify-between mb-4">
       <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics_value", default: "Real Time Value") %></div>
     </div>
-    <div class="relative">
-      <div class="flex items-center justify-between mb-2">
-        <div class="text-3xl font-semibold text-gray-800 dark:text-gray-100" id="dashboard-card-05-value">$24.780</div>
-        <div class="text-sm text-emerald-500" id="dashboard-card-05-deviation">+49%</div>
+    <div class="space-y-3 text-sm text-gray-700 dark:text-gray-200">
+      <div class="flex items-center justify-between">
+        <span>ARR (placeholder)</span>
+        <span class="font-semibold">$248k</span>
       </div>
-      <canvas id="dashboard-card-05" width="320" height="200"></canvas>
+      <div class="flex items-center justify-between">
+        <span>MRR (placeholder)</span>
+        <span class="font-semibold">$20.6k</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span>Growth</span>
+        <span class="font-semibold text-emerald-500">+8.4%</span>
+      </div>
     </div>
   </div>
 </div>
