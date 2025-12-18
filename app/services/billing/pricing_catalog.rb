@@ -62,9 +62,23 @@ module Billing
 
     def retrieve_stripe_price(price_id)
       Stripe.api_key = ENV["STRIPE_SECRET_KEY"]
-      Stripe::Price.retrieve(price_id)
+      price = Stripe::Price.retrieve(price_id)
+      return price if price&.unit_amount
+
+      fallback_price_from_product(price_id)
     rescue StandardError => e
       Rails.logger.warn("Stripe price lookup failed: #{price_id} (#{e.class}: #{e.message})")
+      fallback_price_from_product(price_id)
+    end
+
+    def fallback_price_from_product(product_id)
+      product = Stripe::Product.retrieve(product_id)
+      default_price_id = product&.respond_to?(:default_price) ? product.default_price : nil
+      return if default_price_id.blank?
+
+      Stripe::Price.retrieve(default_price_id)
+    rescue StandardError => e
+      Rails.logger.warn("Stripe product lookup failed: #{product_id} (#{e.class}: #{e.message})")
       nil
     end
 
@@ -91,4 +105,3 @@ module Billing
     end
   end
 end
-
