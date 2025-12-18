@@ -362,41 +362,6 @@
     <%= javascript_include_tag "mosaic/js/vendors/flatpickr", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "mosaic/js/flatpickr-init", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "mosaic/js/main", "data-turbo-track": "reload", defer: true %>
-    <script data-turbo-track="reload">
-      function bindLightSwitches() {
-        document.querySelectorAll('.light-switch').forEach((lightSwitch, index) => {
-          if (lightSwitch.dataset.bound === 'true') return;
-          lightSwitch.dataset.bound = 'true';
-          if (localStorage.getItem('dark-mode') === 'true') {
-            lightSwitch.checked = true;
-          }
-          lightSwitch.addEventListener('change', () => {
-            const { checked } = lightSwitch;
-            document.querySelectorAll('.light-switch').forEach((el, n) => {
-              if (n !== index) el.checked = checked;
-            });
-            document.documentElement.classList.add('**:transition-none!');
-            if (checked) {
-              document.documentElement.classList.add('dark');
-              document.querySelector('html').style.colorScheme = 'dark';
-              localStorage.setItem('dark-mode', true);
-            } else {
-              document.documentElement.classList.remove('dark');
-              document.querySelector('html').style.colorScheme = 'light';
-              localStorage.setItem('dark-mode', false);
-            }
-            setTimeout(() => document.documentElement.classList.remove('**:transition-none!'), 1);
-          });
-        });
-      }
-
-      document.addEventListener('turbo:load', () => {
-        if (window.Alpine && window.Alpine.initTree) {
-          window.Alpine.initTree(document.body);
-        }
-        bindLightSwitches();
-      });
-    </script>
     <%= yield :scripts if content_for?(:scripts) %>
   </body>
 </html>
