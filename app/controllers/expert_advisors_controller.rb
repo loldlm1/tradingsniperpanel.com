@@ -1,22 +1,37 @@
 class ExpertAdvisorsController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
-  before_action :set_user_expert_advisors
-  before_action :set_expert_advisor, only: [:docs]
+  before_action :set_accessible_expert_advisors
+  before_action :set_expert_advisor_entry, only: [:docs, :download]
   before_action :set_markdown, only: [:docs]
 
   def index; end
 
   def docs; end
 
-  private
+  def download
+    docs = @expert_advisor.active_documents.with_indifferent_access
+    path = docs[params[:doc_key]]
+    return redirect_back fallback_location: dashboard_expert_advisors_path, alert: t("dashboard.expert_advisors.download_missing", default: "Document not found") if path.blank?
 
-  def set_user_expert_advisors
-    @user_expert_advisors = current_user.user_expert_advisors.active.includes(:expert_advisor)
+    absolute = Rails.root.join(path)
+    docs_root = Rails.root.join("docs_eas")
+    docs_root = docs_root.realpath if docs_root.exist?
+    file_real = absolute.realpath
+    unless file_real.to_s.start_with?(docs_root.to_s)
+      redirect_back(fallback_location: dashboard_expert_advisors_path, alert: t("dashboard.expert_advisors.download_missing", default: "Document not found")) and return
+    end
+
+    send_file file_real, disposition: "inline"
+  rescue Errno::ENOENT
+    redirect_back fallback_location: dashboard_expert_advisors_path, alert: t("dashboard.expert_advisors.download_missing", default: "Document not found")
   end
 
-  def set_expert_advisor
-    @expert_advisor = @user_expert_advisors.find_by!(expert_advisor_id: params[:id]).expert_advisor
+  private
+
+  def set_expert_advisor_entry
+    @expert_advisor_entry = @accessible_eas.detect { |entry| entry.expert_advisor.ea_id == params[:id] }
+    @expert_advisor = @expert_advisor_entry&.expert_advisor || ExpertAdvisor.find_by!(ea_id: params[:id])
   end
 
   def set_markdown
@@ -27,7 +42,7 @@ class ExpertAdvisorsController < ApplicationController
     path = docs[locale_key] || docs[fallback_key]
     return unless path&.end_with?(".md")
 
-    absolute = Rails.root.join("public", path.delete_prefix("/"))
+    absolute = Rails.root.join(path.delete_prefix("/"))
     return unless File.exist?(absolute)
 
     markdown = File.read(absolute)

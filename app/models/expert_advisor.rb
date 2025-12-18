@@ -19,6 +19,10 @@ class ExpertAdvisor < ApplicationRecord
     documents || {}
   end
 
+  def to_param
+    ea_id
+  end
+
   def allowed_for_tier?(tier)
     return true if allowed_subscription_tiers.blank?
 

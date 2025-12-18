@@ -1,9 +1,11 @@
 class DashboardsController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
-  before_action :set_user_expert_advisors
+  before_action :set_accessible_expert_advisors
   before_action :ensure_payment_processor, only: [:checkout, :billing_portal]
-  before_action :set_subscription, only: [:show, :pricing, :billing]
+  before_action :set_subscription, only: [:show, :pricing, :billing, :checkout]
+  before_action :set_plan_context, only: [:show, :pricing, :billing, :checkout]
+  before_action :set_invoices, only: [:billing]
 
   def show; end
 
@@ -11,7 +13,6 @@ class DashboardsController < ApplicationController
 
   def pricing
     @pricing_catalog = Billing::PricingCatalog.new.call
-    @plan_context = Billing::DashboardPlan.new(subscription: @subscription).call
     @requested_price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
   end
 
@@ -21,6 +22,13 @@ class DashboardsController < ApplicationController
 
   def checkout
     price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
+    desired_tier = price_key&.split("_")&.first&.to_sym
+    current_tier = @plan_context[:current_tier]
+
+    if @subscription.present? && desired_tier && current_tier && Billing::DashboardPlan::TIERS.index(desired_tier) <= Billing::DashboardPlan::TIERS.index(current_tier)
+      redirect_to dashboard_pricing_path, alert: t("dashboard.pricing.cta.current", default: "You already have this plan.") and return
+    end
+
     price_id = Billing::ConfiguredPrices.price_id_for(price_key)
     unless price_id
       redirect_to dashboard_pricing_path, alert: t("dashboard.billing.invalid_price", default: "Invalid price selection") and return
@@ -52,13 +60,17 @@ class DashboardsController < ApplicationController
 
   private
 
-  def set_user_expert_advisors
-    @user_expert_advisors = current_user.user_expert_advisors.active.includes(:expert_advisor)
-  end
-
   def set_subscription
     @pay_customer = Pay::Customer.table_exists? ? current_user.pay_customers.first : nil
     @subscription = @pay_customer&.subscriptions&.active&.first
+  end
+
+  def set_plan_context
+    @plan_context = Billing::DashboardPlan.new(subscription: @subscription).call
+  end
+
+  def set_invoices
+    @invoices = @pay_customer&.charges&.order(created_at: :desc)&.limit(20) || []
   end
 
   def ensure_payment_processor

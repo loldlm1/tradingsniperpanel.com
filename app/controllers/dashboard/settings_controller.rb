@@ -3,7 +3,6 @@ module Dashboard
     layout "dashboard"
 
     before_action :authenticate_user!
-    before_action :set_user_expert_advisors
 
     def show
       @user = current_user
@@ -23,13 +22,8 @@ module Dashboard
 
     private
 
-    def set_user_expert_advisors
-      @user_expert_advisors = current_user.user_expert_advisors.active.includes(:expert_advisor)
-    end
-
     def account_params
       params.require(:user).permit(:name, :current_password, :password, :password_confirmation)
     end
   end
 end
-

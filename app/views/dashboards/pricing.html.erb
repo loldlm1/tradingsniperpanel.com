@@ -80,6 +80,11 @@
 
             <!-- Pricing tabs -->
             <div class="grid grid-cols-12 gap-6">
+              <% if visible_tiers.blank? %>
+                <div class="col-span-full text-sm text-gray-500 dark:text-gray-400">
+                  <%= t("dashboard.pricing.cta.current") %> — no higher tiers available.
+                </div>
+              <% end %>
               <% tier_configs = {
                 basic: { accent: "green", border: "bg-green-500", name: t("dashboard.pricing.tiers.basic.name") },
                 hft: { accent: "sky", border: "bg-sky-500", name: t("dashboard.pricing.tiers.hft.name") },

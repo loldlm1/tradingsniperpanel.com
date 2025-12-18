@@ -6,6 +6,7 @@ class ApplicationController < ActionController::Base
   before_action :set_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :capture_desired_plan, if: -> { request.format.html? }
+  before_action :set_accessible_expert_advisors, if: :user_signed_in?
 
   def after_sign_in_path_for(_resource)
     desired_plan = stored_desired_plan
@@ -79,5 +80,9 @@ class ApplicationController < ActionController::Base
 
   def clear_desired_plan
     cookies.delete(:desired_plan)
+  end
+
+  def set_accessible_expert_advisors
+    @accessible_eas ||= Licenses::AccessibleExpertAdvisors.new(user: current_user).call
   end
 end

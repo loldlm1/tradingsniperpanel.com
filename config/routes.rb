@@ -15,6 +15,7 @@ Rails.application.routes.draw do
     get "dashboard/settings", to: "dashboard/settings#show", as: :dashboard_settings
     patch "dashboard/settings", to: "dashboard/settings#update"
     get "dashboard/expert_advisors/:id/docs", to: "expert_advisors#docs", as: :dashboard_expert_advisor_docs
+    get "dashboard/expert_advisors/:id/download/:doc_key", to: "expert_advisors#download", as: :dashboard_expert_advisor_download
     post "dashboard/checkout", to: "dashboards#checkout", as: :dashboard_checkout
     post "dashboard/billing_portal", to: "dashboards#billing_portal", as: :dashboard_billing_portal
 

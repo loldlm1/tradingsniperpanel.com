@@ -10,14 +10,16 @@ module Billing
       current_price_id = subscription&.processor_plan
       current_price_key = Billing::PriceKeyResolver.key_for_price_id(current_price_id)
       current_tier = current_price_key&.split("_")&.first&.to_sym
+      current_interval = current_price_key&.split("_")&.last
 
       current_index = current_tier ? TIERS.index(current_tier) : nil
-      visible_tiers = current_index ? TIERS.drop(current_index) : TIERS
+      visible_tiers = current_index ? TIERS.drop(current_index + 1) : TIERS
 
       {
         current_price_id: current_price_id,
         current_price_key: current_price_key,
         current_tier: current_tier,
+        current_interval: current_interval,
         visible_tiers: visible_tiers
       }
     end
@@ -27,4 +29,3 @@ module Billing
     attr_reader :subscription
   end
 end
-
