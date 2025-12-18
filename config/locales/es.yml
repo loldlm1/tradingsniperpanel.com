@@ -142,6 +142,7 @@ es:
         upgrade: "Actualizar"
         subscribe: "Suscribirse"
         unavailable: "No disponible"
+      requested_plan: "Plan seleccionado"
       whats_included: "Incluye"
       help:
         title: "¿Necesitas ayuda para elegir un plan?"

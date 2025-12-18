@@ -6,6 +6,9 @@
 <% visible_tiers = plan[:visible_tiers] || %i[basic hft pro] %>
 <% discount_percent = pricing.dig(:annual, :discount_percent) %>
 <% subscribed = @subscription.present? %>
+<% requested_price_key = @requested_price_key.to_s.presence %>
+<% requested_tier = requested_price_key&.split("_")&.first&.to_sym %>
+<% requested_interval = requested_price_key&.split("_")&.last %>
 
 <div class="mb-8">
   <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.nav.plans") %></h1>
@@ -56,7 +59,7 @@
             <div class="text-sm"><%= t("dashboard.pricing.subtitle") %></div>
           </div>
 
-          <div x-data="{ annual: false }">
+          <div x-data="{ annual: <%= requested_interval == 'annual' ? 'true' : 'false' %> }">
             <!-- Toggle switch -->
             <div class="flex items-center space-x-3 mb-6">
               <div class="text-sm text-gray-500 font-medium"><%= t("dashboard.pricing.toggle.monthly") %></div>
@@ -86,6 +89,7 @@
               <% visible_tiers.each do |tier| %>
                 <% config = tier_configs.fetch(tier) %>
                 <% current_plan = current_tier == tier %>
+                <% requested_for_card = requested_tier == tier %>
                 <% monthly_key = "#{tier}_monthly" %>
                 <% annual_key = "#{tier}_annual" %>
                 <% monthly_available = Billing::ConfiguredPrices.price_id_for(monthly_key).present? %>
@@ -141,6 +145,11 @@
                   </div>
 
                   <div class="px-5 pt-4 pb-5">
+                    <% if requested_for_card %>
+                      <div class="inline-flex items-center px-2 py-1 mb-3 text-xs font-semibold text-violet-600 bg-violet-50 rounded-md dark:bg-violet-500/20 dark:text-violet-100">
+                        <%= t("dashboard.pricing.requested_plan", default: "Selected plan") %>
+                      </div>
+                    <% end %>
                     <div class="text-xs text-gray-800 dark:text-gray-100 font-semibold uppercase mb-4"><%= t("dashboard.pricing.whats_included") %></div>
                     <ul>
                       <% t("pricing.bullets").each do |bullet| %>

@@ -1,6 +1,9 @@
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
+ENV['EA_LICENSE_PRIMARY_KEY'] ||= 'PRIMARY_KEY_SPEC'
+ENV['EA_LICENSE_SECRET_KEY'] ||= 'SECONDARY_KEY_SPEC'
+ENV['EA_LICENSE_SOURCE_ID'] ||= 'trading_sniper_ea'
 require_relative '../config/environment'
 # Prevent database truncation if the environment is production
 abort("The Rails environment is running in production mode!") if Rails.env.production?

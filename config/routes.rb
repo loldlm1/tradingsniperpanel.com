@@ -26,4 +26,10 @@ Rails.application.routes.draw do
   end
 
   get "up" => "rails/health#show", as: :rails_health_check
+
+  namespace :api do
+    namespace :v1 do
+      post "licenses/verify", to: "licenses#verify"
+    end
+  end
 end

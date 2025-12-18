@@ -12,6 +12,7 @@ class DashboardsController < ApplicationController
   def pricing
     @pricing_catalog = Billing::PricingCatalog.new.call
     @plan_context = Billing::DashboardPlan.new(subscription: @subscription).call
+    @requested_price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
   end
 
   def billing; end
@@ -19,7 +20,8 @@ class DashboardsController < ApplicationController
   def support; end
 
   def checkout
-    price_id = Billing::ConfiguredPrices.price_id_for(params[:price_key])
+    price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
+    price_id = Billing::ConfiguredPrices.price_id_for(price_key)
     unless price_id
       redirect_to dashboard_pricing_path, alert: t("dashboard.billing.invalid_price", default: "Invalid price selection") and return
     end
@@ -33,6 +35,7 @@ class DashboardsController < ApplicationController
       client_reference_id: current_user.id
     )
 
+    clear_desired_plan
     redirect_to session.url, allow_other_host: true
   rescue StandardError => e
     Rails.logger.error("Checkout failed: #{e.class} - #{e.message}")
