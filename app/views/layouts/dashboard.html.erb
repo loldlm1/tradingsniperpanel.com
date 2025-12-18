@@ -138,11 +138,11 @@
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.expert_advisors_all") %></span>
                         <% end %>
                       </li>
-                      <% (@user_expert_advisors || []).each do |uea| %>
+                      <% (@accessible_eas || []).each do |entry| %>
                         <li class="mb-1 last:mb-0">
-                          <% docs_path = dashboard_expert_advisor_docs_path(uea.expert_advisor, locale: I18n.locale) %>
+                          <% docs_path = dashboard_expert_advisor_docs_path(entry.expert_advisor, locale: I18n.locale) %>
                           <%= link_to docs_path, data: { turbo: false }, class: mosaic_sidebar_child_link_classes(active: current_page?(docs_path)) do %>
-                            <span class="<%= mosaic_sidebar_child_span_classes %>"><%= uea.expert_advisor.name %></span>
+                            <span class="<%= mosaic_sidebar_child_span_classes %>"><%= entry.expert_advisor.name %></span>
                           <% end %>
                         </li>
                       <% end %>

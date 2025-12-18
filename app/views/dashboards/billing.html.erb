@@ -6,33 +6,78 @@
 </div>
 
 <div class="grid gap-6 lg:grid-cols-3">
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
-    <div class="flex items-center justify-between mb-4">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2 space-y-4">
+    <div class="flex items-center justify-between">
       <div>
         <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.plan_card.title") %></div>
         <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("pricing.subtitle") %></p>
       </div>
-    </div>
-    <div class="grid gap-4 md:grid-cols-2">
-      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-        <div class="text-sm text-gray-500 dark:text-gray-400 uppercase font-semibold mb-2"><%= t("dashboard.plan_card.manage") %></div>
-        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3"><%= t("dashboard.billing_manage_copy", default: "Update payment method, view invoices, or cancel your plan.") %></p>
-        <%= button_to t("dashboard.plan_card.manage"), dashboard_billing_portal_path, method: :post, class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full text-center", data: { turbo: false } %>
-      </div>
-      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-        <div class="text-sm text-gray-500 dark:text-gray-400 uppercase font-semibold mb-2"><%= t("dashboard.plan_card.subscribe") %></div>
-        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3"><%= t("dashboard.billing_subscribe_copy", default: "Upgrade or restart your subscription with the checkout flow.") %></p>
-        <%= link_to t("dashboard.plan_card.subscribe"), dashboard_pricing_path, class: "btn-sm bg-violet-600 hover:bg-violet-700 text-white w-full text-center" %>
+      <div class="flex gap-2">
+        <%= button_to t("dashboard.plan_card.manage"), dashboard_billing_portal_path, method: :post, class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white", data: { turbo: false } %>
+        <%= link_to t("dashboard.plan_card.subscribe"), dashboard_pricing_path, class: "btn-sm bg-violet-600 hover:bg-violet-700 text-white" %>
       </div>
     </div>
 
     <% if @subscription.present? %>
-      <div class="mt-6">
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2"><%= t("dashboard.plan_card.status_active") %></div>
-        <div class="text-sm text-gray-600 dark:text-gray-300 mb-1">Plan: <%= @subscription.name %></div>
-        <div class="text-xs text-gray-500 dark:text-gray-400">Processor plan: <%= @subscription.processor_plan %></div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1"><%= @plan_context[:current_tier]&.to_s&.upcase || t("dashboard.plan_card.status_active") %></div>
+          <div class="text-sm text-gray-600 dark:text-gray-300"><%= @plan_context[:current_interval]&.capitalize || "" %></div>
+          <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Processor plan: <%= @subscription.processor_plan %></div>
+        </div>
+        <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1"><%= t("dashboard.billing_subscribe_copy", default: "Upgrade or restart your subscription.") %></div>
+          <p class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.billing_manage_copy", default: "Update payment method, view invoices, or cancel your plan.") %></p>
+        </div>
       </div>
+    <% else %>
+      <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.plan_card.status_inactive") %></p>
     <% end %>
+
+    <div>
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">Invoices</div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="table-auto w-full text-sm">
+          <thead class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20 border-t border-b border-gray-100 dark:border-gray-700/60">
+            <tr>
+              <th class="px-3 py-2 text-left">Date</th>
+              <th class="px-3 py-2 text-left">Amount</th>
+              <th class="px-3 py-2 text-left">Status</th>
+              <th class="px-3 py-2 text-left">Receipt</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
+            <% @invoices.each do |invoice| %>
+              <% amount = invoice.amount&.to_f ? invoice.amount.to_f / 100.0 : nil %>
+              <tr>
+                <td class="px-3 py-2 text-gray-800 dark:text-gray-100"><%= l(invoice.created_at, format: :short) %></td>
+                <td class="px-3 py-2 text-gray-800 dark:text-gray-100"><%= amount ? number_to_currency(amount) : "—" %></td>
+                <td class="px-3 py-2">
+                  <span class="px-2 py-1 rounded-full text-xs font-semibold <%= invoice.status == "succeeded" ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100' %>">
+                    <%= invoice.status || "pending" %>
+                  </span>
+                </td>
+                <td class="px-3 py-2">
+                  <% receipt = invoice.respond_to?(:receipt_url) ? invoice.receipt_url : nil %>
+                  <% if receipt.present? %>
+                    <%= link_to "View", receipt, target: "_blank", rel: "noopener", class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+                  <% else %>
+                    <span class="text-gray-500 dark:text-gray-400">—</span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+            <% if @invoices.empty? %>
+              <tr>
+                <td colspan="4" class="px-3 py-4 text-center text-gray-500 dark:text-gray-400">No invoices yet.</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">

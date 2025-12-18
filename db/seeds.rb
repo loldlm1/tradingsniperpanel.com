@@ -8,10 +8,10 @@ expert_advisors = [
     trial_enabled: true,
     allowed_subscription_tiers: %w[basic hft pro],
     documents: {
-      manual_en: "/docs/sniper_advanced_panel/Manual_EN.md",
-      manual_es: "/docs/sniper_advanced_panel/Manual_ES.md",
-      pdf_es: "/docs/sniper_advanced_panel/sniper_advanced_panel_es.pdf",
-      presentation_es: "/docs/sniper_advanced_panel/sniper_advanced_panel_presentation_es.pdf"
+      markdown_en: "docs_eas/sniper_advanced_panel/Manual_EN.md",
+      markdown_es: "docs_eas/sniper_advanced_panel/Manual_ES.md",
+      pdf_es: "docs_eas/sniper_advanced_panel/sniper_advanced_panel_es.pdf",
+      presentation_es: "docs_eas/sniper_advanced_panel/sniper_advanced_panel_presentation_es.pdf"
     }
   },
   {
@@ -21,10 +21,9 @@ expert_advisors = [
     trial_enabled: true,
     allowed_subscription_tiers: %w[hft pro],
     documents: {
-      manual_en: "#",
-      manual_es: "#",
-      pdf_en: "#",
-      pdf_es: "#"
+      markdown_en: "docs_eas/sniper_advanced_panel/Manual_EN.md",
+      markdown_es: "docs_eas/sniper_advanced_panel/Manual_ES.md",
+      pdf_es: "docs_eas/sniper_advanced_panel/sniper_advanced_panel_es.pdf"
     }
   },
   {
@@ -34,10 +33,9 @@ expert_advisors = [
     trial_enabled: true,
     allowed_subscription_tiers: %w[pro],
     documents: {
-      manual_en: "#",
-      manual_es: "#",
-      pdf_en: "#",
-      pdf_es: "#"
+      markdown_en: "docs_eas/sniper_advanced_panel/Manual_EN.md",
+      markdown_es: "docs_eas/sniper_advanced_panel/Manual_ES.md",
+      pdf_es: "docs_eas/sniper_advanced_panel/sniper_advanced_panel_es.pdf"
     }
   }
 ]

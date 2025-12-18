@@ -1,5 +1,7 @@
 <% content_for :title, "#{t('app.short_name')} Dashboard" %>
 <% referral_code = current_user.referral_codes.first&.code %>
+<% accessible_eas = @accessible_eas || [] %>
+<% active_eas = accessible_eas.select(&:accessible) %>
 
 <div class="sm:flex sm:justify-between sm:items-center mb-8">
   <div class="mb-4 sm:mb-0">
@@ -20,8 +22,12 @@
         <%= @subscription&.active? ? t("dashboard.plan_card.status_active") : t("dashboard.plan_card.status_inactive") %>
       </span>
     </div>
-    <div class="mt-3 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= @subscription&.name || "Sniper Advanced Panel" %></div>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Stripe Price: <%= ENV.fetch("STRIPE_PRICE_BASIC_MONTHLY", "price_xxx") %></p>
+    <div class="mt-3 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= @plan_context[:current_tier]&.to_s&.upcase || "—" %> <%= @plan_context[:current_interval]&.capitalize %></div>
+    <% if @plan_context[:current_price_key].present? %>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Plan key: <%= @plan_context[:current_price_key] %></p>
+    <% else %>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.plan_card.status_inactive") %></p>
+    <% end %>
   </div>
 
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
@@ -57,7 +63,7 @@
 
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
     <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.download_card.title") %></div>
-    <div class="mt-3 text-3xl font-semibold text-gray-800 dark:text-gray-100"><%= @user_expert_advisors&.size || 0 %></div>
+    <div class="mt-3 text-3xl font-semibold text-gray-800 dark:text-gray-100"><%= active_eas.size %></div>
     <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.nav.expert_advisors", default: "Expert Advisors") %></p>
   </div>
 </div>
@@ -114,12 +120,12 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-          <% (@user_expert_advisors || []).each do |uea| %>
+          <% active_eas.each do |entry| %>
             <tr class="text-gray-800 dark:text-gray-100">
-              <td class="py-3 font-semibold"><%= uea.expert_advisor.name %></td>
-              <td class="py-3 capitalize"><%= uea.expert_advisor.ea_type %></td>
+              <td class="py-3 font-semibold"><%= entry.expert_advisor.name %></td>
+              <td class="py-3 capitalize"><%= entry.expert_advisor.ea_type %></td>
               <td class="py-3">
-                <%= link_to t("nav.docs"), dashboard_expert_advisor_docs_path(uea.expert_advisor, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+                <%= link_to t("nav.docs"), dashboard_expert_advisor_docs_path(entry.expert_advisor, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
               </td>
             </tr>
           <% end %>

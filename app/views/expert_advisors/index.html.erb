@@ -7,44 +7,43 @@
   </div>
 </div>
 
-<div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl">
-  <header class="px-5 py-4">
-    <h2 class="font-semibold text-gray-800 dark:text-gray-100">
-      <%= t("dashboard.expert_advisors.index.table.title") %>
-      <span class="text-gray-400 dark:text-gray-500 font-medium"><%= @user_expert_advisors.size %></span>
-    </h2>
-  </header>
-
-  <div class="overflow-x-auto">
-    <table class="table-auto w-full dark:text-gray-300">
-      <thead class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20 border-t border-b border-gray-100 dark:border-gray-700/60">
-        <tr>
-          <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-            <div class="font-semibold text-left"><%= t("dashboard.expert_advisors.index.table.columns.name") %></div>
-          </th>
-          <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-            <div class="font-semibold text-left"><%= t("dashboard.expert_advisors.index.table.columns.type") %></div>
-          </th>
-          <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-            <div class="font-semibold text-left"><%= t("dashboard.expert_advisors.index.table.columns.docs") %></div>
-          </th>
-        </tr>
-      </thead>
-      <tbody class="text-sm divide-y divide-gray-100 dark:divide-gray-700/60">
-        <% @user_expert_advisors.each do |uea| %>
-          <tr>
-            <td class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-              <div class="font-medium text-gray-800 dark:text-gray-100"><%= uea.expert_advisor.name %></div>
-            </td>
-            <td class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-              <div class="text-gray-800 dark:text-gray-100 capitalize"><%= uea.expert_advisor.ea_type %></div>
-            </td>
-            <td class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-              <%= link_to t("nav.docs"), dashboard_expert_advisor_docs_path(uea.expert_advisor, locale: I18n.locale), data: { turbo: false }, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
-            </td>
-          </tr>
+<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+  <% (@accessible_eas || []).each do |entry| %>
+    <% ea = entry.expert_advisor %>
+    <% badge_class = case entry.status
+                    when :active then "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
+                    when :trial then "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
+                    else "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200"
+                    end %>
+    <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between">
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= ea.name %></h2>
+          <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= entry.status.to_s.humanize %></span>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= ea.description %></p>
+        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold"><%= ea.ea_type %></div>
+        <% if entry.accessible && entry.license_key.present? %>
+          <div class="mt-2">
+            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1"><%= t("dashboard.license_key", default: "License Key") %></div>
+            <div class="flex items-center gap-2 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
+              <span class="truncate"><%= entry.license_key %></span>
+              <button type="button" class="text-violet-600 dark:text-violet-300 font-semibold" onclick="navigator.clipboard && navigator.clipboard.writeText('<%= j entry.license_key %>')"><%= t('dashboard.copy', default: 'Copy') %></button>
+            </div>
+            <% if entry.expires_at.present? %>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.expires_at", default: "Expires") %>: <%= l(entry.expires_at, format: :short) %></div>
+            <% end %>
+          </div>
         <% end %>
-      </tbody>
-    </table>
-  </div>
+      </div>
+      <div class="mt-4 flex items-center justify-between">
+        <%= link_to t("nav.docs"), dashboard_expert_advisor_docs_path(ea, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100 text-sm font-semibold" %>
+        <% unless entry.accessible %>
+          <% tier = entry.allowed_tiers.first %>
+          <% cta_key = "#{tier}_monthly" %>
+          <%= link_to t("dashboard.pricing.cta.subscribe"), dashboard_pricing_path(price_key: cta_key), class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
 </div>

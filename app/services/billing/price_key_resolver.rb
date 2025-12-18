@@ -4,11 +4,12 @@ module Billing
       return nil if price_id.blank?
 
       ConfiguredPrices::PRICE_KEYS.each do |key, env_key|
-        return key.to_s if ENV[env_key] == price_id
+        env_val = ENV[env_key]
+        resolved = Billing::ConfiguredPrices.resolve_price_id(env_val)
+        return key.to_s if env_val == price_id || resolved == price_id
       end
 
       nil
     end
   end
 end
-
