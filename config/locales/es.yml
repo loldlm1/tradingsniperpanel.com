@@ -78,6 +78,7 @@ es:
       language: "Idioma"
       toggle_theme: "Cambiar tema claro/oscuro"
       user_avatar_alt: "Usuario"
+      role: "Administrador"
     sidebar:
       pages: "Páginas"
       close_sidebar: "Cerrar sidebar"

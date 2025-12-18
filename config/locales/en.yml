@@ -78,6 +78,7 @@ en:
       language: "Language"
       toggle_theme: "Switch to light / dark version"
       user_avatar_alt: "User"
+      role: "Administrator"
     sidebar:
       pages: "Pages"
       close_sidebar: "Close sidebar"
