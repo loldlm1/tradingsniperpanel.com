@@ -9,6 +9,10 @@ module Licenses
       @secondary_key = secondary_key
     end
 
+    def configured?
+      primary_key.present? && secondary_key.present?
+    end
+
     def generate(email:, ea_id:)
       validate_configuration!
       payload = build_payload(email:, ea_id:)
@@ -32,7 +36,7 @@ module Licenses
     end
 
     def validate_configuration!
-      raise ConfigurationError, "EA license keys are not configured" if primary_key.blank? || secondary_key.blank?
+      raise ConfigurationError, "EA license keys are not configured" unless configured?
     end
 
     def encrypt(plaintext)

@@ -13,7 +13,8 @@ module Billing
       return if key.blank?
 
       env_key = PRICE_KEYS[key.to_s.to_sym]
-      env_key ? ENV[env_key] : nil
+      raw_value = env_key ? ENV[env_key] : nil
+      resolve_price_id(raw_value)
     end
 
     def self.price_id_for_tier(tier, interval)
@@ -23,6 +24,24 @@ module Billing
     def self.all_price_ids
       PRICE_KEYS.values.filter_map { |env_key| ENV[env_key].presence }
     end
+
+    def self.resolve_price_id(value)
+      return if value.blank?
+      return value unless product_id?(value)
+
+      Stripe.api_key = ENV["STRIPE_SECRET_KEY"]
+      product = Stripe::Product.retrieve(value)
+      default_price_id = product&.respond_to?(:default_price) ? product.default_price : nil
+      return default_price_id if default_price_id.present?
+
+      Stripe::Price.retrieve(value)&.id
+    rescue StandardError => e
+      Rails.logger.warn("ConfiguredPrices.resolve_price_id failed for #{value}: #{e.class} - #{e.message}")
+      nil
+    end
+
+    def self.product_id?(value)
+      value.to_s.start_with?("prod_")
+    end
   end
 end
-

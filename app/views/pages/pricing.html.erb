@@ -1,33 +1,96 @@
 <% content_for :title, "#{t('pricing.title')} | #{t('app.name')}" %>
+<% pricing = @pricing_catalog || {} %>
+<% requested_price_key = @requested_price_key.to_s.presence %>
 
-<section class="relative max-w-6xl mx-auto px-4 sm:px-6 pt-32 pb-12 md:pt-36 md:pb-16">
+<section class="relative max-w-6xl mx-auto px-4 sm:px-6 pt-32 pb-12 md:pt-36 md:pb-16 space-y-10">
   <div class="max-w-3xl">
     <div class="text-sm text-blue-300 uppercase mb-3"><%= t("pricing.title") %></div>
     <h1 class="h1 font-uncut-sans mb-4"><%= t("app.name") %></h1>
     <p class="text-lg text-gray-400 mb-8"><%= t("pricing.subtitle") %></p>
   </div>
 
-  <div class="grid gap-6 md:grid-cols-2">
-    <div class="bg-gray-800/60 border border-gray-800 rounded-2xl p-6">
-      <h2 class="text-xl font-semibold text-gray-100 mb-4"><%= t("pricing.title") %></h2>
-      <ul class="space-y-3 text-gray-300 mb-6">
-        <% t("pricing.bullets").each do |bullet| %>
-          <li class="flex items-start gap-2">
-            <span class="text-blue-400 mt-1">•</span>
-            <span><%= bullet %></span>
-          </li>
-        <% end %>
-      </ul>
-      <%= link_to (user_signed_in? ? dashboard_path : new_user_registration_path), class: "btn text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg" do %>
-        <%= t("pricing.cta") %>
-        <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+  <div class="bg-gray-800/60 border border-gray-800 rounded-2xl p-6">
+    <h2 class="text-xl font-semibold text-gray-100 mb-4"><%= t("pricing.title") %></h2>
+    <ul class="space-y-3 text-gray-300 mb-6">
+      <% t("pricing.bullets").each do |bullet| %>
+        <li class="flex items-start gap-2">
+          <span class="text-blue-400 mt-1">•</span>
+          <span><%= bullet %></span>
+        </li>
       <% end %>
-      <p class="text-sm text-gray-400 mt-4"><%= t("pricing.price_callout") %></p>
+    </ul>
+    <p class="text-sm text-gray-400"><%= t("pricing.price_callout") %></p>
+  </div>
+
+  <div class="space-y-6">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div class="text-gray-300 font-medium"><%= t("dashboard.pricing.subtitle") %></div>
+      <div class="flex items-center space-x-3 text-sm text-gray-400">
+        <span><%= t("dashboard.pricing.toggle.monthly") %></span>
+        <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+        <span><%= t("dashboard.pricing.toggle.annually") %></span>
+      </div>
     </div>
-    <div class="bg-gray-800/40 border border-gray-800 rounded-2xl p-6">
-      <h2 class="text-xl font-semibold text-gray-100 mb-4"><%= t("referral.title") %></h2>
-      <p class="text-gray-300 mb-6"><%= t("referral.body") %></p>
-      <%= link_to t("nav.sign_up"), new_user_registration_path, class: "btn-sm text-gray-300 bg-gray-800 hover:bg-gray-700 shadow-lg" unless user_signed_in? %>
+
+    <div class="grid gap-6 md:grid-cols-3">
+      <% tier_configs = {
+        basic: { accent: "from-green-500/20 to-green-500/10", badge: "bg-green-500/20 text-green-100", name: t("dashboard.pricing.tiers.basic.name") },
+        hft: { accent: "from-sky-500/20 to-sky-500/10", badge: "bg-sky-500/20 text-sky-100", name: t("dashboard.pricing.tiers.hft.name") },
+        pro: { accent: "from-violet-500/20 to-violet-500/10", badge: "bg-violet-500/20 text-violet-100", name: t("dashboard.pricing.tiers.pro.name") }
+      } %>
+
+      <% tier_configs.each do |tier, config| %>
+        <% monthly_key = "#{tier}_monthly" %>
+        <% annual_key = "#{tier}_annual" %>
+        <% monthly_env_key = Billing::ConfiguredPrices::PRICE_KEYS[monthly_key.to_sym] %>
+        <% annual_env_key = Billing::ConfiguredPrices::PRICE_KEYS[annual_key.to_sym] %>
+        <% monthly_available = monthly_env_key && ENV[monthly_env_key].present? %>
+        <% annual_available = annual_env_key && ENV[annual_env_key].present? %>
+        <% monthly_display = pricing.dig(:monthly, tier, :display) || "—" %>
+        <% annual_display = pricing.dig(:annual, tier, :effective_monthly_display) || "—" %>
+        <% requested = requested_price_key.in?([monthly_key, annual_key]) %>
+        <div class="bg-gradient-to-br <%= config[:accent] %> border border-gray-800 rounded-2xl p-5 flex flex-col justify-between h-full">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-100"><%= config[:name] %></h3>
+              <% if requested %>
+                <span class="px-2 py-1 text-xs font-semibold rounded-md <%= config[:badge] %>"><%= t("dashboard.pricing.requested_plan") %></span>
+              <% end %>
+            </div>
+            <p class="text-sm text-gray-300"><%= t("dashboard.pricing.tiers.#{tier}.description") %></p>
+            <div class="text-gray-100">
+              <div class="text-sm text-gray-400"><%= t("dashboard.pricing.toggle.monthly") %></div>
+              <div class="text-3xl font-bold">$<%= monthly_display %><span class="text-sm text-gray-400">/mo</span></div>
+            </div>
+            <div class="text-gray-100">
+              <div class="text-sm text-gray-400"><%= t("dashboard.pricing.toggle.annually") %></div>
+              <div class="text-3xl font-bold">$<%= annual_display %><span class="text-sm text-gray-400">/mo</span></div>
+            </div>
+          </div>
+          <div class="mt-6 space-y-2">
+            <% monthly_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
+            <% annual_path = user_signed_in? ? dashboard_pricing_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
+
+            <% if monthly_available %>
+              <%= link_to t("dashboard.pricing.cta.subscribe"), monthly_path, class: "btn w-full text-white bg-gray-900 hover:bg-gray-800" %>
+            <% else %>
+              <button class="btn w-full border border-gray-700 text-gray-500" disabled><%= t("dashboard.pricing.cta.unavailable") %></button>
+            <% end %>
+
+            <% if annual_available %>
+              <%= link_to "#{t('dashboard.pricing.cta.subscribe')} · #{t('dashboard.pricing.toggle.annually')}", annual_path, class: "btn w-full border border-gray-700 text-gray-200 hover:border-gray-500" %>
+            <% else %>
+              <button class="btn w-full border border-gray-700 text-gray-500" disabled><%= t("dashboard.pricing.cta.unavailable") %></button>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
+  </div>
+
+  <div class="bg-gray-800/40 border border-gray-800 rounded-2xl p-6">
+    <h2 class="text-xl font-semibold text-gray-100 mb-4"><%= t("referral.title") %></h2>
+    <p class="text-gray-300 mb-6"><%= t("referral.body") %></p>
+    <%= link_to t("nav.sign_up"), new_user_registration_path, class: "btn-sm text-gray-300 bg-gray-800 hover:bg-gray-700 shadow-lg" unless user_signed_in? %>
   </div>
 </section>

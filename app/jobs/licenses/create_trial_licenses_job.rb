@@ -5,6 +5,12 @@ class Licenses::CreateTrialLicensesJob < ApplicationJob
     user = User.find_by(id: user_id)
     return unless user
 
-    Licenses::TrialProvisioner.new(user: user).call
+    encoder = Licenses::LicenseKeyEncoder.new
+    unless encoder.configured?
+      Rails.logger.warn("Licenses::CreateTrialLicensesJob skipped: license keys not configured")
+      return
+    end
+
+    Licenses::TrialProvisioner.new(user: user, encoder: encoder).call
   end
 end
