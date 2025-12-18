@@ -40,7 +40,7 @@
               <div class="text-gray-800 dark:text-gray-100 capitalize"><%= uea.expert_advisor.ea_type %></div>
             </td>
             <td class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-              <%= link_to t("nav.docs"), dashboard_expert_advisor_docs_path(uea.expert_advisor, locale: I18n.locale), class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
+              <%= link_to t("nav.docs"), dashboard_expert_advisor_docs_path(uea.expert_advisor, locale: I18n.locale), data: { turbo: false }, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
             </td>
           </tr>
         <% end %>
