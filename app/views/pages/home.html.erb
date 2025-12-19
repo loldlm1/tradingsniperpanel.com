@@ -178,8 +178,11 @@
   </div>
 </section>
 
+<% requested_interval = [params[:price_key], params[:plan], params[:desired_plan]].compact.map { |key| key.to_s.split('_').last }.find { |interval| interval.in?(%w[monthly annual]) } %>
+<% initial_period = requested_interval || "monthly" %>
+
 <!-- Pricing -->
-<section class="relative" x-data="{ period: 'monthly' }">
+<section class="relative" x-data="{ period: '<%= initial_period %>' }">
   <div class="hidden lg:block absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none -z-10" aria-hidden="true">
     <%= image_tag "neon/images/pricing-illustration.svg", class: "max-w-none", width: 618, height: 468, alt: "Pricing Illustration" %>
   </div>
@@ -220,8 +223,9 @@
             <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.plans.basic.description") %></div>
             <% monthly_key = "basic_monthly" %>
             <% annual_key = "basic_annual" %>
-            <% cta_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
-            <%= link_to cta_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" do %>
+            <% monthly_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
+            <% annual_path = user_signed_in? ? dashboard_pricing_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
+            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group", :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
               <%= t("landing.neon.pricing.plans.cta") %>
               <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
             <% end %>
@@ -259,8 +263,10 @@
             </div>
             <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.plans.hft.description") %></div>
             <% monthly_key = "hft_monthly" %>
-            <% cta_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
-            <%= link_to cta_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" do %>
+            <% annual_key = "hft_annual" %>
+            <% monthly_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
+            <% annual_path = user_signed_in? ? dashboard_pricing_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
+            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group", :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
               <%= t("landing.neon.pricing.plans.cta") %>
               <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
             <% end %>
@@ -290,8 +296,10 @@
             </div>
             <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.plans.pro.description") %></div>
             <% monthly_key = "pro_monthly" %>
-            <% cta_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
-            <%= link_to cta_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" do %>
+            <% annual_key = "pro_annual" %>
+            <% monthly_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
+            <% annual_path = user_signed_in? ? dashboard_pricing_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
+            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group", :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
               <%= t("landing.neon.pricing.plans.cta") %>
               <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
             <% end %>
