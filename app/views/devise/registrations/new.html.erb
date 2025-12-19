@@ -62,14 +62,12 @@
                     <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-input py-2 w-full" %>
                   </div>
                   <div class="p-4 rounded-lg border border-gray-800 bg-gray-950/40">
-                    <div class="relative flex items-start">
-                      <div class="flex items-center h-5">
-                        <%= f.check_box :terms_of_service, { required: true, class: "form-checkbox w-4 h-4 text-blue-500" }, "1", "0" %>
-                      </div>
-                      <div class="ml-3 text-sm text-gray-300 leading-5">
+                    <label class="flex items-center">
+                      <%= f.check_box :terms_of_service, { required: true, class: "form-checkbox text-blue-500" }, "1", "0" %>
+                      <span class="text-sm ml-2 text-gray-300">
                         <%= t("devise.terms_checkbox_html", terms_link: link_to(t("legal.links.terms"), terms_path, class: "text-blue-400 underline"), privacy_link: link_to(t("legal.links.privacy"), privacy_path, class: "text-blue-400 underline")).html_safe %>
-                      </div>
-                    </div>
+                      </span>
+                    </label>
                   </div>
                   <div class="mt-6">
                     <%= f.submit t("devise.sign_up_title"), class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" %>
