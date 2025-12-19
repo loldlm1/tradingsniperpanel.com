@@ -32,7 +32,7 @@ RSpec.describe "Subscription upgrades", type: :request do
       type: "Pay::Stripe::Subscription"
     )
 
-    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).with("price_hft_monthly", hash_including(prorate: true)).and_return(true)
+    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).with("price_hft_monthly", hash_including(proration_behavior: "always_invoice")).and_return(true)
 
     sign_in user, scope: :user
 

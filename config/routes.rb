@@ -2,12 +2,16 @@ Rails.application.routes.draw do
   # Pay Stripe webhooks (outside locale scope)
   post "/webhooks/stripe", to: "pay/webhooks/stripe#create"
 
+  devise_for :users, only: :omniauth_callbacks, controllers: {
+    omniauth_callbacks: "users/omniauth_callbacks"
+  }
+
   scope "(:locale)", locale: /en|es/ do
     devise_for :users, controllers: {
       registrations: "users/registrations",
       sessions: "users/sessions",
       passwords: "users/passwords"
-    }
+    }, skip: [:omniauth_callbacks]
 
     get "dashboard", to: "dashboards#show", as: :dashboard
     get "dashboard/analytics", to: "dashboards#analytics", as: :dashboard_analytics
@@ -21,6 +25,8 @@ Rails.application.routes.draw do
     get "dashboard/expert_advisors/:id/download/:doc_key", to: "expert_advisors#download", as: :dashboard_expert_advisor_download
     post "dashboard/checkout", to: "dashboards#checkout", as: :dashboard_checkout
     post "dashboard/billing_portal", to: "dashboards#billing_portal", as: :dashboard_billing_portal
+
+    resource :terms_acceptance, only: [:new, :create]
 
     get "pricing", to: "pages#pricing"
     get "docs", to: "pages#docs"

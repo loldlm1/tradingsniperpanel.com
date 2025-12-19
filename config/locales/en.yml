@@ -207,6 +207,7 @@ en:
     no_account: "Don't have an account?"
     have_account: "Already registered?"
     or: "Or"
+    terms_checkbox_html: "I agree to the %{terms_link} and %{privacy_link}."
     continue_with_google: "Continue With Google"
     consent_copy: "By filling out this form, I consent to the collection and use of my personal data."
     reset_instructions: "Enter your email address. If an account exists, you’ll receive an email with a password reset link soon."
@@ -239,7 +240,21 @@ en:
       links:
         terms: "Terms"
         privacy: "Privacy Policy"
+  terms_acceptance:
+    title: "Accept Terms & Privacy"
+    badge: "Consent required"
+    heading: "Confirm Terms of Service and Privacy Policy"
+    description: "Before you continue to the dashboard, please confirm you accept our latest Terms of Service and Privacy Policy."
+    checkbox_html: "I accept the %{terms_link} and %{privacy_link}."
+    cta: "Continue"
+    success: "Thanks! You can continue to the dashboard."
+    failure: "We couldn't save your consent. Please try again."
+    required: "Please accept the Terms of Service and Privacy Policy to continue to the dashboard."
+    checkbox_error: "Please confirm you accept the Terms of Service and Privacy Policy."
   legal:
+    links:
+      terms: "Terms of Service"
+      privacy: "Privacy Policy"
     badge: "Legal"
     last_updated: "Last updated: %{date}"
     updated_at: "December 17, 2025"

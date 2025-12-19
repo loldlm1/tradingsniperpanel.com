@@ -6,6 +6,7 @@ class ApplicationController < ActionController::Base
   before_action :set_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :capture_desired_plan, if: -> { request.format.html? }
+  before_action :ensure_terms_accepted, if: :user_signed_in?
   before_action :set_accessible_expert_advisors, if: :user_signed_in?
 
   def after_sign_in_path_for(_resource)
@@ -57,7 +58,7 @@ class ApplicationController < ActionController::Base
   end
 
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_up, keys: [:name, :preferred_locale])
+    devise_parameter_sanitizer.permit(:sign_up, keys: [:name, :preferred_locale, :terms_of_service])
     devise_parameter_sanitizer.permit(:account_update, keys: [:name, :preferred_locale])
   end
 
@@ -84,5 +85,20 @@ class ApplicationController < ActionController::Base
 
   def set_accessible_expert_advisors
     @accessible_eas ||= Licenses::AccessibleExpertAdvisors.new(user: current_user).call
+  end
+
+  def ensure_terms_accepted
+    return if current_user.terms_accepted_at.present?
+    return unless requires_terms_acceptance?
+
+    redirect_to new_terms_acceptance_path, alert: t("terms_acceptance.required")
+  end
+
+  def requires_terms_acceptance?
+    return false if devise_controller?
+    return false if controller_path == "terms_acceptances"
+    return false unless request.format.html?
+
+    request.path.include?("/dashboard")
   end
 end

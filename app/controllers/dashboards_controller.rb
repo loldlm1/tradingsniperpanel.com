@@ -35,7 +35,7 @@ class DashboardsController < ApplicationController
     end
 
     if @subscription.present?
-      @subscription.swap(price_id, prorate: true)
+      @subscription.swap(price_id, proration_behavior: "always_invoice")
       clear_desired_plan
       redirect_to dashboard_pricing_path, notice: t("dashboard.billing.upgraded", default: "Your subscription has been updated.") and return
     end

@@ -48,4 +48,29 @@ RSpec.describe User, type: :model do
       expect(user.referral_codes.first.code).to be_present
     end
   end
+
+  describe "roles" do
+    it "defaults to trader" do
+      user = create(:user)
+
+      expect(user.role).to eq("trader")
+      expect(user).to be_trader
+    end
+  end
+
+  describe "terms acceptance" do
+    it "sets terms_accepted_at when checkbox is checked" do
+      user = build(:user, terms_of_service: "1", terms_accepted_at: nil)
+
+      expect(user).to be_valid
+      expect(user.terms_accepted_at).to be_present
+    end
+
+    it "is invalid without accepting terms on create" do
+      user = build(:user, terms_of_service: "0", terms_accepted_at: nil)
+
+      expect(user).not_to be_valid
+      expect(user.errors[:terms_of_service]).to be_present
+    end
+  end
 end
