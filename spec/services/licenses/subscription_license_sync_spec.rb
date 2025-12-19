@@ -66,6 +66,19 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
     expect(license.expires_at.to_i).to eq(past_end.to_i)
   end
 
+  it "activates pro-only EAs when on a pro plan" do
+    subscription = create_subscription(
+      processor_plan: ENV["STRIPE_PRICE_PRO_MONTHLY"],
+      current_period_end: 1.month.from_now
+    )
+
+    described_class.new(subscription_id: subscription.id, encoder: encoder).call
+
+    pro_license = License.find_by(user:, expert_advisor: pro_only_ea)
+    expect(pro_license).to be_active
+    expect(pro_license.plan_interval).to eq("monthly")
+  end
+
   def create_subscription(processor_plan:, current_period_end:, ends_at: nil)
     customer = user.pay_customers.create!(
       processor: "stripe",

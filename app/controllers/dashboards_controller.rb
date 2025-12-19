@@ -70,7 +70,7 @@ class DashboardsController < ApplicationController
   end
 
   def set_invoices
-    @invoices = @pay_customer&.charges&.order(created_at: :desc)&.limit(20) || []
+    @invoices = @pay_customer.present? ? Pay::Charge.where(customer: @pay_customer).order(created_at: :desc).limit(20) : []
   end
 
   def ensure_payment_processor

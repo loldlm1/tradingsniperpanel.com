@@ -17,6 +17,8 @@ module Licenses
       tier, interval = parse_price_key(price_key)
       return unless tier && interval
 
+      Rails.logger.info("[Licenses::SubscriptionLicenseSync] syncing subscription_id=#{subscription.id} user_id=#{user.id} price_key=#{price_key} tier=#{tier} interval=#{interval}")
+
       allowed_eas = ExpertAdvisor.active.select { |ea| ea.allowed_for_tier?(tier) }
       allowed_ids = allowed_eas.map(&:id)
 
