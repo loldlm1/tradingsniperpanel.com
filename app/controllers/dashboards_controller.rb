@@ -34,6 +34,12 @@ class DashboardsController < ApplicationController
       redirect_to dashboard_pricing_path, alert: t("dashboard.billing.invalid_price", default: "Invalid price selection") and return
     end
 
+    if @subscription.present?
+      @subscription.swap(price_id, prorate: true)
+      clear_desired_plan
+      redirect_to dashboard_pricing_path, notice: t("dashboard.billing.upgraded", default: "Your subscription has been updated.") and return
+    end
+
     session = current_user.payment_processor.checkout(
       mode: "subscription",
       line_items: [{ price: price_id, quantity: 1 }],
@@ -62,7 +68,7 @@ class DashboardsController < ApplicationController
 
   def set_subscription
     @pay_customer = Pay::Customer.table_exists? ? current_user.pay_customers.first : nil
-    @subscription = @pay_customer&.subscriptions&.active&.first
+    @subscription = @pay_customer&.subscriptions&.active&.order(created_at: :desc)&.first
   end
 
   def set_plan_context
