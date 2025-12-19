@@ -51,12 +51,15 @@
           <tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
             <% @invoices.each do |invoice| %>
               <% amount = invoice.amount&.to_f ? invoice.amount.to_f / 100.0 : nil %>
+              <% status_label = invoice.respond_to?(:data) ? invoice.data&.dig("status") : nil %>
+              <% status_label ||= invoice.respond_to?(:object) ? invoice.object&.dig("status") : nil %>
+              <% status_label ||= invoice.amount_refunded.to_i.positive? ? "refunded" : "succeeded" %>
               <tr>
                 <td class="px-3 py-2 text-gray-800 dark:text-gray-100"><%= l(invoice.created_at, format: :short) %></td>
                 <td class="px-3 py-2 text-gray-800 dark:text-gray-100"><%= amount ? number_to_currency(amount) : "—" %></td>
                 <td class="px-3 py-2">
-                  <span class="px-2 py-1 rounded-full text-xs font-semibold <%= invoice.status == "succeeded" ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100' %>">
-                    <%= invoice.status || "pending" %>
+                  <span class="px-2 py-1 rounded-full text-xs font-semibold <%= status_label == "succeeded" ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100' %>">
+                    <%= status_label || "pending" %>
                   </span>
                 </td>
                 <td class="px-3 py-2">
