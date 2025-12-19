@@ -324,8 +324,9 @@
                     x-cloak
                   >
                     <div class="pt-0.5 pb-2 px-3 mb-1 border-b border-gray-200 dark:border-gray-700/60">
+                      <% role_label = dashboard_user&.role&.to_s&.titleize.presence || t("dashboard.header.role", default: "Administrator") %>
                       <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= dashboard_user&.name.presence || dashboard_user&.email %></div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.header.role", default: "Administrator") %></div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400"><%= role_label %></div>
                     </div>
                     <ul>
                       <li>
