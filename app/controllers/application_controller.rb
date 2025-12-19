@@ -53,6 +53,21 @@ class ApplicationController < ActionController::Base
     Rails.logger.warn("Failed to persist locale for user #{current_user.id}") unless updated
   end
 
+  def current_user
+    user = begin
+      super
+    rescue NoMethodError
+      nil
+    end
+    return user if user.is_a?(User) || user.nil?
+
+    if user.is_a?(Hash)
+      User.find_by(id: user["id"] || user[:id]) || user
+    else
+      user
+    end
+  end
+
   def default_url_options
     I18n.locale == I18n.default_locale ? {} : { locale: I18n.locale }
   end
@@ -88,6 +103,7 @@ class ApplicationController < ActionController::Base
   end
 
   def ensure_terms_accepted
+    return unless current_user.respond_to?(:terms_accepted_at)
     return if current_user.terms_accepted_at.present?
     return unless requires_terms_acceptance?
 
@@ -97,6 +113,7 @@ class ApplicationController < ActionController::Base
   def requires_terms_acceptance?
     return false if devise_controller?
     return false if controller_path == "terms_acceptances"
+    return false if controller_path == "legal"
     return false unless request.format.html?
 
     request.path.include?("/dashboard")
