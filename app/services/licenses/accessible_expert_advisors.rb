@@ -17,6 +17,7 @@ module Licenses
 
     def call
       return [] unless user
+      return [] unless user.respond_to?(:licenses)
 
       eas = ExpertAdvisor.active.includes(:licenses).order(:name)
       license_map = licenses_indexed
