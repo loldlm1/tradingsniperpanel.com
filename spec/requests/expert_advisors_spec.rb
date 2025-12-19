@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe "Expert advisor docs", type: :request do
   let(:user) { create(:user) }
-  let(:expert_advisor) { create(:expert_advisor, documents: { manual_en: "/docs/sniper_advanced_panel/Manual_EN.md" }) }
+  let(:expert_advisor) { create(:expert_advisor, documents: { markdown_en: "docs_eas/sniper_advanced_panel/Manual_EN.md" }) }
 
   it "renders the Expert Advisors index page" do
     create(:user_expert_advisor, user:, expert_advisor:)

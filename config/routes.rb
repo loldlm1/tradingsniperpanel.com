@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  # Pay Stripe webhooks (outside locale scope)
+  post "/webhooks/stripe", to: "pay/webhooks/stripe#create"
+
   scope "(:locale)", locale: /en|es/ do
     devise_for :users, controllers: {
       registrations: "users/registrations",
