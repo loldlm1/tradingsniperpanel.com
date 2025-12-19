@@ -1,0 +1,40 @@
+<% content_for :title, "#{t('terms_acceptance.title')} | #{t('app.name')}" %>
+
+<main class="relative bg-gray-900 text-slate-200">
+  <div class="relative max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="pt-12 md:pt-20 pb-12 md:pb-20">
+      <div class="grid lg:grid-cols-3 gap-12">
+        <div class="lg:col-span-2">
+          <div class="max-w-lg">
+            <p class="inline-flex px-3 py-1 rounded-full text-sm font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-400/40 mb-4">
+              <%= t("terms_acceptance.badge") %>
+            </p>
+            <h1 class="h2 font-uncut-sans mb-4"><%= t("terms_acceptance.heading") %></h1>
+            <p class="text-gray-400"><%= t("terms_acceptance.description") %></p>
+          </div>
+        </div>
+
+        <div class="w-full max-w-sm mx-auto">
+          <div class="py-12 md:py-16">
+            <%= form_with url: terms_acceptance_path, method: :post, class: "space-y-6" do %>
+              <%= render "devise/shared/error_messages", resource: current_user %>
+
+              <div class="p-4 rounded-lg border border-gray-800 bg-gray-950/40">
+                <label class="flex items-start space-x-3 cursor-pointer">
+                  <%= check_box_tag :accept_terms, "1", false, class: "form-checkbox mt-1 text-blue-500" %>
+                  <span class="text-sm text-gray-300">
+                    <%= t("terms_acceptance.checkbox_html", terms_link: link_to(t("legal.links.terms"), terms_path, class: "text-blue-400 underline"), privacy_link: link_to(t("legal.links.privacy"), privacy_path, class: "text-blue-400 underline")).html_safe %>
+                  </span>
+                </label>
+              </div>
+
+              <div>
+                <%= button_tag t("terms_acceptance.cta"), type: :submit, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

@@ -8,7 +8,15 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable
+         :recoverable, :rememberable, :validatable,
+         :omniauthable, omniauth_providers: [:google_oauth2]
+
+  enum :role, { trader: 0, partner: 1, admin: 2 }
+
+  attr_accessor :terms_of_service
+
+  before_validation :set_terms_accepted_at_from_checkbox, on: :create
+  validate :terms_must_be_accepted, on: :create
 
   after_create :ensure_referral_code
   after_commit :enqueue_trial_licenses, on: :create
@@ -37,6 +45,20 @@ class User < ApplicationRecord
   end
 
   private
+
+  def set_terms_accepted_at_from_checkbox
+    return if terms_accepted_at.present?
+
+    if ActiveModel::Type::Boolean.new.cast(terms_of_service)
+      self.terms_accepted_at = Time.current
+    end
+  end
+
+  def terms_must_be_accepted
+    return if terms_accepted_at.present?
+
+    errors.add(:terms_of_service, :accepted)
+  end
 
   def enqueue_trial_licenses
     Licenses::CreateTrialLicensesJob.perform_later(id)

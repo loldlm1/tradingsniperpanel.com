@@ -207,6 +207,7 @@ es:
     no_account: "¿Aún no tienes cuenta?"
     have_account: "¿Ya tienes cuenta?"
     or: "O"
+    terms_checkbox_html: "Acepto los %{terms_link} y la %{privacy_link}."
     continue_with_google: "Continuar con Google"
     consent_copy: "Al completar este formulario, autorizo el uso de mis datos personales."
     reset_instructions: "Ingresa tu correo. Si existe una cuenta, recibirás un email con el enlace de reseteo."
@@ -239,7 +240,21 @@ es:
       links:
         terms: "Términos"
         privacy: "Privacidad"
+  terms_acceptance:
+    title: "Aceptar Términos y Privacidad"
+    badge: "Consentimiento requerido"
+    heading: "Confirma los Términos de Servicio y la Política de Privacidad"
+    description: "Antes de entrar al panel, confirma que aceptas nuestros Términos de Servicio y Política de Privacidad."
+    checkbox_html: "Acepto los %{terms_link} y la %{privacy_link}."
+    cta: "Continuar"
+    success: "¡Listo! Puedes ir al dashboard."
+    failure: "No pudimos guardar tu consentimiento. Intenta de nuevo."
+    required: "Acepta los Términos de Servicio y la Política de Privacidad para continuar al dashboard."
+    checkbox_error: "Confirma que aceptas los Términos de Servicio y la Política de Privacidad."
   legal:
+    links:
+      terms: "Términos del servicio"
+      privacy: "Política de privacidad"
     badge: "Legal"
     last_updated: "Última actualización: %{date}"
     updated_at: "17 de diciembre de 2025"

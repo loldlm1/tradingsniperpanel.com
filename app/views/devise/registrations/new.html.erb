@@ -61,6 +61,14 @@
                     <%= f.label :password_confirmation, class: "block text-sm text-gray-400 font-medium mb-1" %>
                     <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-input py-2 w-full" %>
                   </div>
+                  <div class="p-4 rounded-lg border border-gray-800 bg-gray-950/40">
+                    <label class="flex items-start space-x-3 cursor-pointer">
+                      <%= f.check_box :terms_of_service, { required: true, class: "form-checkbox mt-1 text-blue-500" }, "1", "0" %>
+                      <span class="text-sm text-gray-300">
+                        <%= t("devise.terms_checkbox_html", terms_link: link_to(t("legal.links.terms"), terms_path, class: "text-blue-400 underline"), privacy_link: link_to(t("legal.links.privacy"), privacy_path, class: "text-blue-400 underline")).html_safe %>
+                      </span>
+                    </label>
+                  </div>
                   <div class="mt-6">
                     <%= f.submit t("devise.sign_up_title"), class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" %>
                   </div>
@@ -72,14 +80,17 @@
                   <div class="border-t border-gray-800 grow ml-3" aria-hidden="true"></div>
                 </div>
 
-                <button class="btn-sm text-white bg-linear-to-t from-pink-500 to-pink-400 hover:to-pink-500 w-full relative flex after:flex-1">
+                <%= button_to user_google_oauth2_omniauth_authorize_path(locale: I18n.locale),
+                              method: :post,
+                              data: { turbo: false },
+                              class: "btn-sm text-white bg-linear-to-t from-pink-500 to-pink-400 hover:to-pink-500 w-full relative flex after:flex-1" do %>
                   <div class="flex-1 flex items-center">
                     <svg class="w-4 h-4 fill-current text-pink-200 shrink-0" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
                       <path d="M15.679 6.545H8.043v3.273h4.328c-.692 2.182-2.401 2.91-4.363 2.91a4.727 4.727 0 1 1 3.035-8.347l2.378-2.265A8 8 0 1 0 8.008 16c4.41 0 8.4-2.909 7.67-9.455Z" />
                     </svg>
                   </div>
                   <span class="flex-auto text-pink-50 pl-3"><%= t("devise.continue_with_google", default: "Continue With Google") %></span>
-                </button>
+                <% end %>
 
                 <div class="text-sm text-gray-500 italic mt-6 mb-4">
                   <%= t("devise.consent_copy", default: "By filling out this form, I consent to the collection and use of my personal data.") %>
