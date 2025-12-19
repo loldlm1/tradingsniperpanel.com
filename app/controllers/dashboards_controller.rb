@@ -67,6 +67,8 @@ class DashboardsController < ApplicationController
   private
 
   def set_subscription
+    return unless current_user.respond_to?(:pay_customers)
+
     @pay_customer = Pay::Customer.table_exists? ? current_user.pay_customers.first : nil
     @subscription = @pay_customer&.subscriptions&.active&.order(created_at: :desc)&.first
   end

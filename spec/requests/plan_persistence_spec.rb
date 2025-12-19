@@ -10,7 +10,8 @@ RSpec.describe "Plan persistence across auth", type: :request do
         user: {
           email: "newuser@example.com",
           password: "password123",
-          password_confirmation: "password123"
+          password_confirmation: "password123",
+          terms_of_service: "1"
         }
       }
 
