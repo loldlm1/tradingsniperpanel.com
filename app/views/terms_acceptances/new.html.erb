@@ -20,9 +20,9 @@
               <%= render "devise/shared/error_messages", resource: current_user %>
 
               <div class="p-4 rounded-lg border border-gray-800 bg-gray-950/40">
-                <label class="flex items-start space-x-3 cursor-pointer">
-                  <%= check_box_tag :accept_terms, "1", false, class: "form-checkbox mt-1 text-blue-500" %>
-                  <span class="text-sm text-gray-300">
+                <label class="flex items-center">
+                  <%= check_box_tag :accept_terms, "1", false, class: "form-checkbox text-blue-500" %>
+                  <span class="text-sm ml-2 text-gray-300">
                     <%= t("terms_acceptance.checkbox_html", terms_link: link_to(t("legal.links.terms"), terms_path, class: "text-blue-400 underline"), privacy_link: link_to(t("legal.links.privacy"), privacy_path, class: "text-blue-400 underline")).html_safe %>
                   </span>
                 </label>
