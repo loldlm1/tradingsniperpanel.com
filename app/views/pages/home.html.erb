@@ -218,7 +218,10 @@
               <span class="font-medium text-gray-400">/mo</span>
             </div>
             <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.plans.basic.description") %></div>
-            <%= link_to new_user_registration_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" do %>
+            <% monthly_key = "basic_monthly" %>
+            <% annual_key = "basic_annual" %>
+            <% cta_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
+            <%= link_to cta_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" do %>
               <%= t("landing.neon.pricing.plans.cta") %>
               <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
             <% end %>
@@ -255,7 +258,9 @@
               <span class="font-medium text-gray-400">/mo</span>
             </div>
             <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.plans.hft.description") %></div>
-            <%= link_to new_user_registration_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" do %>
+            <% monthly_key = "hft_monthly" %>
+            <% cta_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
+            <%= link_to cta_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" do %>
               <%= t("landing.neon.pricing.plans.cta") %>
               <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
             <% end %>
@@ -284,7 +289,9 @@
               <span class="font-medium text-gray-400">/mo</span>
             </div>
             <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.plans.pro.description") %></div>
-            <%= link_to new_user_registration_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" do %>
+            <% monthly_key = "pro_monthly" %>
+            <% cta_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
+            <%= link_to cta_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" do %>
               <%= t("landing.neon.pricing.plans.cta") %>
               <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
             <% end %>
