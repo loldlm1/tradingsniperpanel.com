@@ -31,7 +31,7 @@ bin/dev
 ## Environment
 - Postgres: `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME`, `DB_NAME_TEST`.
 - App/host: `APP_HOST`, `APP_HOST_PROTOCOL`, `RAILS_MASTER_KEY` (for credentials).
-- Stripe (Pay): `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, and price IDs per plan:
+- Stripe (Pay): `STRIPE_PRIVATE_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_SIGNING_SECRET`, and price IDs per plan:
   - Monthly: `STRIPE_PRICE_BASIC_MONTHLY`, `STRIPE_PRICE_HFT_MONTHLY`, `STRIPE_PRICE_PRO_MONTHLY`
   - Annual (60% discount vs monthly): `STRIPE_PRICE_BASIC_ANNUAL`, `STRIPE_PRICE_HFT_ANNUAL`, `STRIPE_PRICE_PRO_ANNUAL`
 - Referrals: `REFER_DEFAULT_DISCOUNT_PERCENT` (for downstream logic), query param `ref` handled by the refer gem.

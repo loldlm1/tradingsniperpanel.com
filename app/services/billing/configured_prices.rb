@@ -29,7 +29,7 @@ module Billing
       return if value.blank?
       return value unless product_id?(value)
 
-      Stripe.api_key = ENV["STRIPE_SECRET_KEY"]
+      Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
       product = Stripe::Product.retrieve(value)
       default_price_id = product&.respond_to?(:default_price) ? product.default_price : nil
       return default_price_id if default_price_id.present?

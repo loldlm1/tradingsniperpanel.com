@@ -7,7 +7,7 @@ RSpec.describe Billing::PricingCatalog do
     original_env = ENV.to_hash
     begin
       Rails.cache.clear
-      ENV["STRIPE_SECRET_KEY"] = "sk_test"
+      ENV["STRIPE_PRIVATE_KEY"] = "sk_test"
       ENV["STRIPE_PRICE_BASIC_MONTHLY"] = "price_basic_monthly"
       ENV["STRIPE_PRICE_HFT_MONTHLY"] = nil
       ENV["STRIPE_PRICE_PRO_MONTHLY"] = nil

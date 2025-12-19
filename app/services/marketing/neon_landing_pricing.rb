@@ -7,7 +7,7 @@ module Marketing
     def call
       return {} if Rails.env.test?
 
-      return {} unless ENV["STRIPE_SECRET_KEY"].present?
+      return {} unless ENV["STRIPE_PRIVATE_KEY"].present?
 
       price_ids = configured_price_ids
       return {} if price_ids.empty?
@@ -76,7 +76,7 @@ module Marketing
     end
 
     def retrieve_stripe_price(price_or_product_id)
-      Stripe.api_key = ENV["STRIPE_SECRET_KEY"]
+      Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
 
       if product_id?(price_or_product_id)
         product = Stripe::Product.retrieve(price_or_product_id)
