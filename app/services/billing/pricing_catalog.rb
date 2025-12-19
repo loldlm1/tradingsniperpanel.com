@@ -7,7 +7,7 @@ module Billing
 
     def call
       return {} if Rails.env.test?
-      return {} unless ENV["STRIPE_SECRET_KEY"].present?
+      return {} unless ENV["STRIPE_PRIVATE_KEY"].present?
 
       price_ids = Billing::ConfiguredPrices.all_price_ids
       return {} if price_ids.empty?
@@ -64,7 +64,7 @@ module Billing
     end
 
     def retrieve_price(price_id)
-      Stripe.api_key = ENV["STRIPE_SECRET_KEY"]
+      Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
       Stripe::Price.retrieve(price_id)
     rescue StandardError => e
       Rails.logger.warn("Stripe price lookup failed: #{price_id} (#{e.class}: #{e.message})")
