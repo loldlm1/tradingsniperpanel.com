@@ -460,8 +460,8 @@ es:
           getting_started: "Primeros pasos"
           billing: "Facturación y suscripciones"
           support: "Soporte"
-      pricing: "Precios y planes"
-      tutorials: "Videos tutoriales"
+          pricing: "Precios y planes"
+          tutorials: "Videos tutoriales"
     cta:
       title: "Empieza con Sniper Panel"
       body: "Crea tu cuenta, suscríbete y accede a toda la experiencia de Sniper Advanced Panel en minutos."
