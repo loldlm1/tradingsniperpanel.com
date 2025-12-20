@@ -31,7 +31,7 @@
               <button type="button" class="text-violet-600 dark:text-violet-300 font-semibold" onclick="navigator.clipboard && navigator.clipboard.writeText('<%= j entry.license_key %>')"><%= t('dashboard.copy', default: 'Copy') %></button>
             </div>
             <% if entry.expires_at.present? %>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.expires_at", default: "Expires") %>: <%= l(entry.expires_at, format: :short) %></div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.expires_at", default: "Expires") %>: <%= l(entry.expires_at, format: :short_with_year) %></div>
             <% end %>
           </div>
         <% end %>
