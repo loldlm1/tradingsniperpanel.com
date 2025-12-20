@@ -463,3 +463,6 @@ en:
   date:
     formats:
       short_with_year: "%b %-d, %Y"
+  time:
+    formats:
+      short_with_year: "%b %-d, %Y"
