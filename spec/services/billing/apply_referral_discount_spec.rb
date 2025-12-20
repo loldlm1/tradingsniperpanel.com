@@ -26,7 +26,7 @@ RSpec.describe Billing::ApplyReferralDiscount do
     result = described_class.new(user: referred_user, checkout_params: checkout_params).call
 
     expect(result[:discounts]).to eq([{ coupon: "coupon_123" }])
-    expect(result[:allow_promotion_codes]).to be(false)
+    expect(result).not_to have_key(:allow_promotion_codes)
     expect(result[:subscription_data][:metadata]["referrer_id"]).to eq(referrer.id.to_s)
     expect(result[:subscription_data][:metadata]["referral_code"]).to eq(referrer.referral_codes.first.code)
   end
