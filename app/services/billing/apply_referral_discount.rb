@@ -14,7 +14,7 @@ module Billing
       return checkout_params if coupon_id.blank?
 
       with_discount = checkout_params.deep_dup
-      with_discount[:allow_promotion_codes] = false
+      with_discount.delete(:allow_promotion_codes) # Stripe disallows allow_promotion_codes with discounts
       with_discount[:discounts] = [{ coupon: coupon_id }]
       merge_metadata!(with_discount, referral_metadata)
       with_discount
