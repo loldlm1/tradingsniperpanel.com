@@ -10,9 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_20_000000) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_21_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "broker_accounts", force: :cascade do |t|
+    t.string "name"
+    t.string "company", null: false
+    t.bigint "account_number", null: false
+    t.integer "account_type", default: 0, null: false
+    t.bigint "license_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company", "account_number", "account_type"], name: "index_broker_accounts_on_company_number_type", unique: true
+    t.index ["license_id"], name: "index_broker_accounts_on_license_id"
+  end
 
   create_table "expert_advisors", force: :cascade do |t|
     t.string "name", null: false
@@ -221,6 +233,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_20_000000) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "broker_accounts", "licenses"
   add_foreign_key "licenses", "expert_advisors"
   add_foreign_key "licenses", "users"
   add_foreign_key "pay_charges", "pay_customers", column: "customer_id"

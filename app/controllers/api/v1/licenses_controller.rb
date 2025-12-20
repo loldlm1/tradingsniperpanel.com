@@ -13,11 +13,13 @@ module Api
         )
 
         if result.ok?
+          broker_account = upsert_broker_account(result.license)
           render json: {
             ok: true,
             plan_interval: result.plan_interval,
             trial: result.trial,
-            expires_at: result.expires_at&.iso8601
+            expires_at: result.expires_at&.iso8601,
+            broker_account: broker_account ? serialize_broker_account(broker_account) : nil
           }
         else
           render json: { ok: false, error: result.error }, status: result.code
@@ -31,6 +33,63 @@ module Api
 
       def verifier
         @verifier ||= Licenses::LicenseVerifier.new
+      end
+
+      def broker_account_params
+        params.fetch(:broker_account, {}).permit(:name, :company, :account_number, :account_type)
+      end
+
+      def upsert_broker_account(license)
+        attrs = broker_account_params
+        return nil if attrs.blank?
+
+        company = attrs[:company].to_s.strip
+        account_number = safe_account_number(attrs[:account_number])
+        account_type = attrs[:account_type].to_s
+        name = attrs[:name].presence
+
+        return nil if company.blank? || account_number.nil?
+        return nil unless BrokerAccount.account_types.key?(account_type)
+
+        broker_account = nil
+
+        ApplicationRecord.transaction(requires_new: true) do
+          broker_account = BrokerAccount.find_or_create_by!(
+            company: company,
+            account_number: account_number,
+            account_type: account_type
+          ) do |acct|
+            acct.name = name
+            acct.license = license
+          end
+
+          if broker_account.license_id != license.id
+            broker_account.update!(license:)
+          elsif name.present? && broker_account.name.blank?
+            broker_account.update!(name:)
+          end
+        end
+
+        broker_account
+      rescue ActiveRecord::RecordNotUnique
+        retry
+      end
+
+      def safe_account_number(raw)
+        return nil if raw.blank?
+
+        Integer(raw.to_s, 10)
+      rescue ArgumentError, TypeError
+        nil
+      end
+
+      def serialize_broker_account(account)
+        {
+          name: account.name,
+          company: account.company,
+          account_number: account.account_number,
+          account_type: account.account_type
+        }
       end
 
       def ensure_json

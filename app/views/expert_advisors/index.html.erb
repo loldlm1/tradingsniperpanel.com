@@ -33,6 +33,7 @@
             <% if entry.expires_at.present? %>
               <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.expires_at", default: "Expires") %>: <%= l(entry.expires_at, format: :short_with_year) %></div>
             <% end %>
+            <%= render "expert_advisors/broker_accounts", broker_accounts: entry.license&.broker_accounts if entry.license.present? %>
           </div>
         <% end %>
       </div>

@@ -43,7 +43,7 @@ module Licenses
     attr_reader :user
 
     def licenses_indexed
-      user.licenses.includes(:expert_advisor).index_by(&:expert_advisor_id)
+      user.licenses.includes(:expert_advisor, :broker_accounts).index_by(&:expert_advisor_id)
     end
 
     def status_for(license)
