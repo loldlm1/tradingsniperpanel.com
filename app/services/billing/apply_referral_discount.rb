@@ -19,7 +19,9 @@ module Billing
       merge_metadata!(with_discount, referral_metadata)
       with_discount
     rescue StandardError => e
-      logger.warn("[Billing::ApplyReferralDiscount] failed user_id=#{user&.id}: #{e.class} - #{e.message}")
+      logger.warn(
+        "[Billing::ApplyReferralDiscount] failed user_id=#{user&.id}: #{e.class} - #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}"
+      )
       checkout_params
     end
 

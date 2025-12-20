@@ -54,7 +54,7 @@ class DashboardsController < ApplicationController
       checkout_params: checkout_params
     ).call
 
-    session = current_user.payment_processor.checkout(checkout_params)
+    session = current_user.payment_processor.checkout(**checkout_params)
 
     clear_desired_plan
     redirect_to session.url, allow_other_host: true
