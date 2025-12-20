@@ -39,16 +39,12 @@ module Billing
       referral = user.referral
       return {} unless referral
 
-      metadata = {
-        referral_code: referral.referral_code&.code,
-        referrer_id: user.referrer&.id,
-        referrer_type: user.referrer&.class&.name,
-        referral_discount_percent: discount_percent
-      }.compact_blank
-
-      metadata.transform_keys!(&:to_s)
-      metadata.transform_values!(&:to_s)
-      metadata
+      {
+        "referral_code" => referral.referral_code&.code.to_s.presence,
+        "referrer_id" => user.referrer&.id&.to_s,
+        "referrer_type" => user.referrer&.class&.name,
+        "referral_discount_percent" => discount_percent.to_s
+      }.compact
     end
 
     def merge_metadata!(params, metadata)
