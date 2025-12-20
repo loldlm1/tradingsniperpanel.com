@@ -171,6 +171,7 @@ es:
     referral_card:
       title: "Código de referido"
       copy: "Compártelo para otorgar descuento. Lo aplicamos en el checkout de Stripe."
+      referrer_label: "Referido por"
     analytics_overview: "Actividad de tráfico y suscripciones (datos de ejemplo)."
     analytics_revenue: "Ingresos"
     analytics_revenue_copy: "Desempeño mensual (ejemplo)."

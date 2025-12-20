@@ -18,7 +18,8 @@ class User < ApplicationRecord
   before_validation :set_terms_accepted_at_from_checkbox, on: :create
   validate :terms_must_be_accepted, on: :create
 
-  after_create :ensure_referral_code
+  after_commit :ensure_referral_code_for_partner, on: :create
+  after_commit :ensure_referral_code_for_new_partner, if: -> { saved_change_to_role? && partner? }
   after_commit :enqueue_trial_licenses, on: :create
 
   def pay_customer_name
@@ -38,6 +39,18 @@ class User < ApplicationRecord
 
   def ensure_referral_code
     referral_codes.first_or_create
+  end
+
+  def ensure_referral_code_if_referred!
+    ensure_referral_code if referrer.present?
+  end
+
+  def ensure_referral_code_for_partner
+    ensure_referral_code if partner?
+  end
+
+  def ensure_referral_code_for_new_partner
+    ensure_referral_code
   end
 
   def preferred_locale_code

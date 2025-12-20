@@ -40,14 +40,21 @@ class DashboardsController < ApplicationController
       redirect_to dashboard_pricing_path, notice: t("dashboard.billing.upgraded", default: "Your subscription has been updated.") and return
     end
 
-    session = current_user.payment_processor.checkout(
+    checkout_params = {
       mode: "subscription",
       line_items: [{ price: price_id, quantity: 1 }],
       success_url: dashboard_url,
       cancel_url: dashboard_pricing_url,
       allow_promotion_codes: true,
       client_reference_id: current_user.id
-    )
+    }
+
+    checkout_params = Billing::ApplyReferralDiscount.new(
+      user: current_user,
+      checkout_params: checkout_params
+    ).call
+
+    session = current_user.payment_processor.checkout(checkout_params)
 
     clear_desired_plan
     redirect_to session.url, allow_other_host: true
