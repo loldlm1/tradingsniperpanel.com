@@ -17,7 +17,7 @@ RSpec.describe User, type: :model do
 
   describe "#stripe_customer_attributes" do
     it "includes metadata about the user" do
-      user = create(:user, preferred_locale: "es")
+      user = create(:user, :partner, preferred_locale: "es")
       metadata = user.stripe_customer_attributes[:metadata]
 
       expect(metadata[:user_id]).to eq(user.id)
@@ -41,8 +41,24 @@ RSpec.describe User, type: :model do
   end
 
   describe "#ensure_referral_code" do
-    it "creates a referral code after creation" do
+    it "creates a referral code after creation for partners" do
+      user = create(:user, :partner)
+
+      expect(user.referral_codes.count).to eq(1)
+      expect(user.referral_codes.first.code).to be_present
+    end
+
+    it "does not create a referral code for traders without referrers" do
       user = create(:user)
+
+      expect(user.referral_codes.count).to eq(0)
+    end
+
+    it "creates a referral code for referred traders" do
+      referrer = create(:user, :partner)
+      user = create(:user)
+
+      Referrals::AttachReferrer.new(user:, code: referrer.referral_codes.first.code).call
 
       expect(user.referral_codes.count).to eq(1)
       expect(user.referral_codes.first.code).to be_present

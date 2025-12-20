@@ -22,6 +22,8 @@ module Licenses
       allowed_eas = ExpertAdvisor.active.select { |ea| ea.allowed_for_tier?(tier) }
       allowed_ids = allowed_eas.map(&:id)
 
+      mark_referral_completed(user:, subscription:) if subscription_active?(subscription)
+
       allowed_eas.each do |ea|
         sync_license_for(user:, expert_advisor: ea, interval:, subscription:)
       end
@@ -62,6 +64,12 @@ module Licenses
       return true if active_until.nil?
 
       active_until.future?
+    end
+
+    def mark_referral_completed(user:, subscription:)
+      Referrals::MarkCompleted.new(user: user).call
+    rescue StandardError => e
+      Rails.logger.warn("[Licenses::SubscriptionLicenseSync] referral completion failed subscription_id=#{subscription.id}: #{e.class} - #{e.message}")
     end
 
     def expire_disallowed_licenses(user:, allowed_ids:)

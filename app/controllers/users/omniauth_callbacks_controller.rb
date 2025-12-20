@@ -4,7 +4,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     result = Auth::GoogleOauth.new(auth:, locale: I18n.locale).call
 
     if result.user.persisted?
-      refer(result.user) if result.status == :created
+      Referrals::AttachReferrer.new(user: result.user, code: cookies[Refer.cookie_name]).call if result.status == :created
       set_flash_message(:notice, :success, kind: "Google") if is_navigational_format?
       sign_in_and_redirect result.user, event: :authentication
     else

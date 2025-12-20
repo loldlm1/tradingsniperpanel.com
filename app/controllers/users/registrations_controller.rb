@@ -13,7 +13,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
   def create
     super do |resource|
       if resource.persisted?
-        refer(resource)
+        Referrals::AttachReferrer.new(user: resource, code: cookies[Refer.cookie_name]).call
         resource.update(preferred_locale: I18n.locale.to_s) if resource.preferred_locale != I18n.locale.to_s
       end
     end
