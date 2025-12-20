@@ -459,3 +459,7 @@ es:
         title: "Empieza con Sniper Panel"
         body: "Crea tu cuenta, suscríbete y accede a toda la experiencia de Sniper Advanced Panel en minutos."
         button: "Empezar"
+
+  date:
+    formats:
+      short_with_year: "%-d %b %Y"

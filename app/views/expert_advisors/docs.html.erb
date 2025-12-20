@@ -18,7 +18,7 @@
       <div>
         <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.license_key", default: "License Key") %></div>
         <% if @expert_advisor_entry&.expires_at.present? %>
-          <div class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.expires_at", default: "Expires") %>: <%= l(@expert_advisor_entry.expires_at, format: :short) %></div>
+          <div class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.expires_at", default: "Expires") %>: <%= l(@expert_advisor_entry.expires_at, format: :short_with_year) %></div>
         <% end %>
       </div>
       <% status = @expert_advisor_entry&.status || :locked %>
