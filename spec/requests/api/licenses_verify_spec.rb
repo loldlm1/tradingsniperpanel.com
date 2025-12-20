@@ -44,4 +44,33 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["ok"]).to eq(false)
     expect(body["error"]).to eq("invalid_source")
   end
+
+  it "creates or reuses broker accounts from payload" do
+    params = {
+      source: "trading_sniper_ea",
+      email: user.email,
+      ea_id: expert_advisor.ea_id,
+      license_key: license_key,
+      broker_account: {
+        name: "Account A",
+        company: "BrokerX",
+        account_number: 9876,
+        account_type: :real
+      }
+    }
+
+    expect do
+      post "/api/v1/licenses/verify", params: params
+    end.to change(BrokerAccount, :count).by(1)
+
+    body = JSON.parse(response.body)
+    expect(body["broker_account"]["company"]).to eq("BrokerX")
+    expect(body["broker_account"]["account_number"]).to eq(9876)
+
+    expect do
+      post "/api/v1/licenses/verify", params: params.merge(broker_account: params[:broker_account].merge(name: "Updated Name"))
+    end.not_to change(BrokerAccount, :count)
+
+    expect(BrokerAccount.first.name).to eq("Account A")
+  end
 end

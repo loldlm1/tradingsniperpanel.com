@@ -172,6 +172,13 @@ es:
       title: "Código de referido"
       copy: "Compártelo para otorgar descuento. Lo aplicamos en el checkout de Stripe."
       referrer_label: "Referido por"
+    broker_accounts:
+      title: "Cuentas de broker"
+      unnamed: "Cuenta de broker"
+      none: "Sin cuentas de broker conectadas."
+      account_type:
+        real: "Real"
+        demo: "Demo"
     analytics_overview: "Actividad de tráfico y suscripciones (datos de ejemplo)."
     analytics_revenue: "Ingresos"
     analytics_revenue_copy: "Desempeño mensual (ejemplo)."
@@ -453,12 +460,12 @@ es:
           getting_started: "Primeros pasos"
           billing: "Facturación y suscripciones"
           support: "Soporte"
-          pricing: "Precios y planes"
-          tutorials: "Videos tutoriales"
-      cta:
-        title: "Empieza con Sniper Panel"
-        body: "Crea tu cuenta, suscríbete y accede a toda la experiencia de Sniper Advanced Panel en minutos."
-        button: "Empezar"
+      pricing: "Precios y planes"
+      tutorials: "Videos tutoriales"
+    cta:
+      title: "Empieza con Sniper Panel"
+      body: "Crea tu cuenta, suscríbete y accede a toda la experiencia de Sniper Advanced Panel en minutos."
+      button: "Empezar"
 
   date:
     formats:

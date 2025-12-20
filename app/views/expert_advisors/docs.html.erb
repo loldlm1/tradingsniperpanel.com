@@ -37,6 +37,7 @@
     <% else %>
       <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.locked", default: "Subscribe to unlock this EA and receive your license.") %></p>
     <% end %>
+    <%= render "expert_advisors/broker_accounts", broker_accounts: @expert_advisor_entry&.license&.broker_accounts if @expert_advisor_entry&.license.present? %>
   </div>
 
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">

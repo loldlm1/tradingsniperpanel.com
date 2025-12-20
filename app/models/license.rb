@@ -8,6 +8,7 @@ class License < ApplicationRecord
 
   belongs_to :user
   belongs_to :expert_advisor
+  has_many :broker_accounts, dependent: :destroy
 
   enum :status, STATUSES
 
