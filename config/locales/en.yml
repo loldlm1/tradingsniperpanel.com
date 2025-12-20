@@ -458,10 +458,10 @@ en:
         boxes:
           manuals: "Manuals & Docs"
           getting_started: "Getting Started"
-      billing: "Billing & Subscriptions"
-      support: "Support"
-      pricing: "Pricing & Plans"
-      tutorials: "Tutorial Videos"
+          billing: "Billing & Subscriptions"
+          support: "Support"
+          pricing: "Pricing & Plans"
+          tutorials: "Tutorial Videos"
     cta:
       title: "Get started with Sniper Panel"
       body: "Create your account, subscribe, and access the full Sniper Advanced Panel experience in minutes."
