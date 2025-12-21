@@ -10,10 +10,10 @@ RSpec.describe Billing::ApplyReferralDiscount do
   end
 
   let(:referrer) { create(:user, :partner) }
-  let(:coupon_service) { instance_double(Billing::ReferralCoupon, coupon_id: "coupon_123") }
+  let(:coupon_service) { instance_double(Partners::ReferralCoupon, coupon_id: "coupon_123") }
 
   before do
-    allow(Billing::ReferralCoupon).to receive(:new).and_return(coupon_service)
+    allow(Partners::ReferralCoupon).to receive(:new).and_return(coupon_service)
   end
 
   it "adds a coupon and metadata for referred users" do
@@ -22,6 +22,8 @@ RSpec.describe Billing::ApplyReferralDiscount do
     Referrals::AttachReferrer.new(user: referred_user, code: referral_code.code).call
     referred_user.reload
     expect(referred_user.referrer).to eq(referrer)
+    profile = PartnerProfile.find_or_initialize_by(user: referrer)
+    profile.update!(discount_percent: 10, payout_mode: :once_paid)
 
     result = described_class.new(user: referred_user, checkout_params: checkout_params).call
 

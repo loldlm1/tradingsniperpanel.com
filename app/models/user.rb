@@ -4,6 +4,7 @@ class User < ApplicationRecord
   has_many :user_expert_advisors, dependent: :destroy
   has_many :expert_advisors, through: :user_expert_advisors
   has_many :licenses, dependent: :destroy
+  has_one :partner_profile, dependent: :destroy
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
@@ -20,6 +21,8 @@ class User < ApplicationRecord
 
   after_commit :ensure_referral_code_for_partner, on: :create
   after_commit :ensure_referral_code_for_new_partner, if: -> { saved_change_to_role? && partner? }
+  after_commit :ensure_partner_profile_for_partner, on: :create
+  after_commit :ensure_partner_profile_for_new_partner, if: -> { saved_change_to_role? && partner? }
   after_commit :enqueue_trial_licenses, on: :create
 
   def pay_customer_name
@@ -51,6 +54,15 @@ class User < ApplicationRecord
 
   def ensure_referral_code_for_new_partner
     ensure_referral_code
+  end
+
+  def ensure_partner_profile_for_partner
+    Partners::MembershipManager.new.ensure_profile_for(self)
+  end
+
+  def ensure_partner_profile_for_new_partner
+    ensure_partner_profile_for_partner
+    Partners::ReassignMembershipsJob.perform_later(id)
   end
 
   def preferred_locale_code
