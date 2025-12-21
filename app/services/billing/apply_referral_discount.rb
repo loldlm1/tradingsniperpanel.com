@@ -10,7 +10,10 @@ module Billing
     def call
       return checkout_params unless eligible?
 
-      coupon_id = Billing::ReferralCoupon.new(percent: discount_percent).coupon_id
+      partner_profile, partner_percent = resolver
+      return checkout_params unless partner_profile
+
+      coupon_id = Partners::ReferralCoupon.new(partner_profile: partner_profile, percent: partner_percent).coupon_id
       return checkout_params if coupon_id.blank?
 
       with_discount = checkout_params.deep_dup
@@ -33,8 +36,14 @@ module Billing
       user.is_a?(User) && user.referrer.present?
     end
 
-    def discount_percent
-      (percent.presence || ENV.fetch("REFER_DEFAULT_DISCOUNT_PERCENT", "0")).to_i
+    def resolver
+      profile, default_percent = Partners::DiscountResolver.new(user: user).call
+      return [nil, nil] unless profile
+
+      resolved_percent = (percent.presence || default_percent).to_i
+      return [nil, nil] unless resolved_percent.positive?
+
+      [profile, resolved_percent]
     end
 
     def referral_metadata
@@ -45,8 +54,15 @@ module Billing
         "referral_code" => referral.referral_code&.code.to_s.presence,
         "referrer_id" => user.referrer&.id&.to_s,
         "referrer_type" => user.referrer&.class&.name,
-        "referral_discount_percent" => discount_percent.to_s
+        "referral_discount_percent" => resolver.last.to_s,
+        "partner_profile_id" => partner_membership&.partner_profile_id&.to_s,
+        "partner_membership_id" => partner_membership&.id&.to_s,
+        "partner_payout_mode" => partner_membership&.partner_profile&.payout_mode
       }.compact
+    end
+
+    def partner_membership
+      @partner_membership ||= PartnerMembership.active.find_by(user: user)
     end
 
     def merge_metadata!(params, metadata)

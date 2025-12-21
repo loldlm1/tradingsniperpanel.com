@@ -62,6 +62,75 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_21_000000) do
     t.index ["user_id"], name: "index_licenses_on_user_id"
   end
 
+  create_table "partner_commissions", force: :cascade do |t|
+    t.bigint "partner_profile_id", null: false
+    t.bigint "partner_membership_id", null: false
+    t.bigint "referred_user_id", null: false
+    t.bigint "referral_id"
+    t.bigint "pay_charge_id"
+    t.bigint "pay_subscription_id"
+    t.bigint "payout_request_id"
+    t.integer "commission_kind", default: 0, null: false
+    t.integer "amount_cents", default: 0, null: false
+    t.string "currency", default: "usd", null: false
+    t.integer "percent_applied"
+    t.integer "status", default: 0, null: false
+    t.datetime "occurred_at", null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["commission_kind"], name: "index_partner_commissions_on_commission_kind"
+    t.index ["partner_membership_id"], name: "index_partner_commissions_on_partner_membership_id"
+    t.index ["partner_profile_id", "pay_charge_id"], name: "idx_on_partner_profile_id_pay_charge_id_219f4dd17a", unique: true
+    t.index ["partner_profile_id"], name: "index_partner_commissions_on_partner_profile_id"
+    t.index ["pay_charge_id"], name: "index_partner_commissions_on_pay_charge_id"
+    t.index ["pay_subscription_id"], name: "index_partner_commissions_on_pay_subscription_id"
+    t.index ["payout_request_id"], name: "index_partner_commissions_on_payout_request_id"
+    t.index ["referral_id"], name: "index_partner_commissions_on_referral_id"
+    t.index ["referred_user_id"], name: "index_partner_commissions_on_referred_user_id"
+    t.index ["status"], name: "index_partner_commissions_on_status"
+  end
+
+  create_table "partner_memberships", force: :cascade do |t|
+    t.bigint "partner_profile_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "referral_id"
+    t.integer "depth", default: 0, null: false
+    t.datetime "started_at", null: false
+    t.datetime "ended_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["partner_profile_id"], name: "index_partner_memberships_on_partner_profile_id"
+    t.index ["referral_id"], name: "index_partner_memberships_on_referral_id"
+    t.index ["user_id", "ended_at"], name: "index_partner_memberships_on_user_id_and_ended_at", unique: true, where: "(ended_at IS NULL)"
+    t.index ["user_id"], name: "index_partner_memberships_on_user_id"
+  end
+
+  create_table "partner_payout_requests", force: :cascade do |t|
+    t.bigint "partner_profile_id", null: false
+    t.integer "status", default: 0, null: false
+    t.integer "total_cents", default: 0, null: false
+    t.datetime "requested_at"
+    t.datetime "paid_at"
+    t.text "note"
+    t.string "payment_reference"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["partner_profile_id"], name: "index_partner_payout_requests_on_partner_profile_id"
+  end
+
+  create_table "partner_profiles", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.integer "discount_percent"
+    t.integer "payout_mode", default: 0, null: false
+    t.datetime "started_at"
+    t.string "stripe_coupon_id"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_partner_profiles_on_user_id", unique: true
+  end
+
   create_table "pay_charges", force: :cascade do |t|
     t.bigint "customer_id", null: false
     t.bigint "subscription_id"
@@ -236,6 +305,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_21_000000) do
   add_foreign_key "broker_accounts", "licenses"
   add_foreign_key "licenses", "expert_advisors"
   add_foreign_key "licenses", "users"
+  add_foreign_key "partner_commissions", "partner_memberships"
+  add_foreign_key "partner_commissions", "partner_payout_requests", column: "payout_request_id"
+  add_foreign_key "partner_commissions", "partner_profiles"
+  add_foreign_key "partner_commissions", "pay_charges"
+  add_foreign_key "partner_commissions", "pay_subscriptions"
+  add_foreign_key "partner_commissions", "refer_referrals", column: "referral_id"
+  add_foreign_key "partner_commissions", "users", column: "referred_user_id"
+  add_foreign_key "partner_memberships", "partner_profiles"
+  add_foreign_key "partner_memberships", "refer_referrals", column: "referral_id"
+  add_foreign_key "partner_memberships", "users"
+  add_foreign_key "partner_payout_requests", "partner_profiles"
+  add_foreign_key "partner_profiles", "users"
   add_foreign_key "pay_charges", "pay_customers", column: "customer_id"
   add_foreign_key "pay_charges", "pay_subscriptions", column: "subscription_id"
   add_foreign_key "pay_payment_methods", "pay_customers", column: "customer_id"

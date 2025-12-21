@@ -13,6 +13,7 @@ module Referrals
       Refer.refer(code:, referee: user)
       user.reload
       user.ensure_referral_code_if_referred!
+      Partners::MembershipManager.new.assign_membership_for(user)
     rescue StandardError => e
       logger.warn(
         "[Referrals::AttachReferrer] failed user_id=#{user&.id} code=#{code} error=#{e.class}: #{e.message}"

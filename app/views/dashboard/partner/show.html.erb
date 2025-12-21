@@ -1,0 +1,151 @@
+<% content_for :title, "#{t('partner_dashboard.title', default: 'Partner Dashboard')} | #{t('app.short_name')}" %>
+
+<div class="mb-8 flex items-center justify-between flex-wrap gap-4">
+  <div>
+    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("partner_dashboard.title", default: "Partner Dashboard") %></h1>
+    <p class="text-gray-600 dark:text-gray-300"><%= t("partner_dashboard.subtitle", default: "Track your referrals, revenue, and payouts.") %></p>
+  </div>
+  <%= button_to t("partner_dashboard.request_payout", default: "Request payout"), request_payout_dashboard_partner_path, method: :post, class: "btn bg-indigo-600 hover:bg-indigo-700 text-white" %>
+</div>
+
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <%= render partial: "dashboard/partner/stat_card", locals: { label: t("partner_dashboard.metrics.pending", default: "Pending"), amount_cents: @metrics[:pending_cents], tone: "amber" } %>
+  <%= render partial: "dashboard/partner/stat_card", locals: { label: t("partner_dashboard.metrics.requested", default: "Requested"), amount_cents: @metrics[:requested_cents], tone: "blue" } %>
+  <%= render partial: "dashboard/partner/stat_card", locals: { label: t("partner_dashboard.metrics.paid", default: "Paid"), amount_cents: @metrics[:paid_cents], tone: "emerald" } %>
+  <%= render partial: "dashboard/partner/stat_card", locals: { label: t("partner_dashboard.metrics.lifetime", default: "Lifetime"), amount_cents: @metrics[:lifetime_cents], tone: "gray" } %>
+</div>
+
+<div class="grid gap-6 mt-6 lg:grid-cols-3">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("partner_dashboard.monthly_revenue", default: "Monthly revenue (paid)") %></div>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.monthly_revenue_copy", default: "Last 6 months of paid commissions.") %></p>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700 dark:text-gray-200">
+      <% @monthly_paid.sort_by { |month, _| month }.each do |month, cents| %>
+        <div class="flex items-center justify-between border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
+          <span><%= month.strftime('%b %Y') %></span>
+          <span class="font-semibold"><%= number_to_currency(cents.to_i / 100.0) %></span>
+        </div>
+      <% end %>
+      <% if @monthly_paid.empty? %>
+        <div class="text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.no_history", default: "No commissions yet.") %></div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("partner_dashboard.network", default: "Network") %></div>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.network_copy", default: "Invited users and subscribers.") %></p>
+      </div>
+    </div>
+    <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-200">
+      <li class="flex items-center justify-between">
+        <span><%= t("partner_dashboard.invited", default: "Invited") %></span>
+        <span class="font-semibold"><%= @metrics[:invited_count] %></span>
+      </li>
+      <li class="flex items-center justify-between">
+        <span><%= t("partner_dashboard.subscribers", default: "Subscribers") %></span>
+        <span class="font-semibold"><%= @metrics[:subscriber_count] %></span>
+      </li>
+      <li class="flex items-center justify-between">
+        <span><%= t("partner_dashboard.current_month", default: "Current month (all)") %></span>
+        <span class="font-semibold"><%= number_to_currency(@metrics[:current_month_cents].to_i / 100.0) %></span>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="mt-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
+  <div class="flex items-center justify-between p-5 gap-3 flex-wrap">
+    <div>
+      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("partner_dashboard.invited_users", default: "Invited users") %></div>
+      <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.invited_users_copy", default: "Search and explore your branches.") %></p>
+    </div>
+    <%= form_with url: dashboard_partner_path, method: :get, local: true, class: "w-full sm:w-auto" do |f| %>
+      <div class="flex items-center gap-2">
+        <%= f.text_field :q, value: params[:q], placeholder: t("partner_dashboard.search_placeholder", default: "Search name or email"), class: "form-input w-full sm:w-64" %>
+        <%= f.submit t("partner_dashboard.search", default: "Search"), class: "btn bg-gray-900 text-white hover:bg-gray-800" %>
+      </div>
+    <% end %>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm text-gray-800 dark:text-gray-100">
+      <thead>
+        <tr class="bg-gray-50 dark:bg-gray-900/40 text-left">
+          <th class="px-5 py-3 font-semibold"><%= t("partner_dashboard.user", default: "User") %></th>
+          <th class="px-5 py-3 font-semibold"><%= t("partner_dashboard.email", default: "Email") %></th>
+          <th class="px-5 py-3 font-semibold"><%= t("partner_dashboard.depth", default: "Depth") %></th>
+          <th class="px-5 py-3 font-semibold"><%= t("partner_dashboard.joined_at", default: "Joined") %></th>
+          <th class="px-5 py-3 font-semibold"><%= t("partner_dashboard.subscription", default: "Subscription") %></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+        <% @memberships.each do |membership| %>
+          <tr>
+            <td class="px-5 py-3 whitespace-nowrap"><%= membership.user.name.presence || t("partner_dashboard.unknown", default: "Unknown") %></td>
+            <td class="px-5 py-3 whitespace-nowrap"><%= membership.user.email %></td>
+            <td class="px-5 py-3 whitespace-nowrap"><%= membership.depth %></td>
+            <td class="px-5 py-3 whitespace-nowrap"><%= l(membership.started_at.to_date) %></td>
+            <td class="px-5 py-3 whitespace-nowrap">
+              <% if subscription_for(membership.user) %>
+                <span class="inline-flex items-center px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold"><%= t("partner_dashboard.subscribed", default: "Subscribed") %></span>
+              <% else %>
+                <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold"><%= t("partner_dashboard.not_subscribed", default: "Not subscribed") %></span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+        <% if @memberships.empty? %>
+          <tr>
+            <td colspan="5" class="px-5 py-3 text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.no_invites", default: "No invited users yet.") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="mt-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
+  <div class="flex items-center justify-between p-5">
+    <div>
+      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("partner_dashboard.revenue", default: "Revenue log") %></div>
+      <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.revenue_copy", default: "Recent commissions, status, and plan info.") %></p>
+    </div>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm text-gray-800 dark:text-gray-100">
+      <thead>
+        <tr class="bg-gray-50 dark:bg-gray-900/40 text-left">
+          <th class="px-5 py-3 font-semibold"><%= t("partner_dashboard.date", default: "Date") %></th>
+          <th class="px-5 py-3 font-semibold"><%= t("partner_dashboard.user", default: "User") %></th>
+          <th class="px-5 py-3 font-semibold"><%= t("partner_dashboard.plan", default: "Plan") %></th>
+          <th class="px-5 py-3 font-semibold"><%= t("partner_dashboard.amount", default: "Amount") %></th>
+          <th class="px-5 py-3 font-semibold"><%= t("partner_dashboard.status", default: "Status") %></th>
+          <th class="px-5 py-3 font-semibold"><%= t("partner_dashboard.kind", default: "Kind") %></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+        <% @commissions.each do |commission| %>
+          <tr>
+            <td class="px-5 py-3 whitespace-nowrap"><%= l(commission.occurred_at.to_date) %></td>
+            <td class="px-5 py-3 whitespace-nowrap"><%= commission.referred_user.email %></td>
+            <td class="px-5 py-3 whitespace-nowrap"><%= commission.pay_subscription&.processor_plan || t("partner_dashboard.unknown", default: "Unknown") %></td>
+            <td class="px-5 py-3 whitespace-nowrap font-semibold"><%= number_to_currency(commission.amount_cents / 100.0) %></td>
+            <td class="px-5 py-3 whitespace-nowrap"><%= commission.status %></td>
+            <td class="px-5 py-3 whitespace-nowrap"><%= commission.commission_kind %></td>
+          </tr>
+        <% end %>
+        <% if @commissions.empty? %>
+          <tr>
+            <td colspan="6" class="px-5 py-3 text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.no_commissions", default: "No commissions yet.") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

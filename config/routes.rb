@@ -25,6 +25,9 @@ Rails.application.routes.draw do
     get "dashboard/expert_advisors/:id/download/:doc_key", to: "expert_advisors#download", as: :dashboard_expert_advisor_download
     post "dashboard/checkout", to: "dashboards#checkout", as: :dashboard_checkout
     post "dashboard/billing_portal", to: "dashboards#billing_portal", as: :dashboard_billing_portal
+    resource :dashboard_partner, only: [:show], path: "dashboard/partner", controller: "dashboard/partner" do
+      post :request_payout
+    end
 
     resource :terms_acceptance, only: [:new, :create]
 
