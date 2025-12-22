@@ -10,3 +10,4 @@
 - **Performance & safety**: eager load associations for dashboards, paginate any user-facing lists, and validate inputs (strong params, presence/format on models). Cache low-churn content (docs lists) when useful; expire on deploy.
 - **Assets**: keep third-party template assets under `app/assets/templates/...` and avoid mutating vendor files. Add new CSS/JS via Tailwind (tailwindcss-rails) or importmap pins; prefer small, explicit imports over global packs.
 - **Internationalization**: detect locale via params/session/GeoIP/Accept-Language; persist user preference. Never concatenate translated strings; use interpolation and provide fallbacks (`I18n.fallbacks = [:en]`).
+- **Reference docs**: see `docs/database_model_reference.md` for the data model/API surface and `docs/cruip_template_guide.md` for the Cruip (Neon/Mosaic) component catalogue and JS hooks before adding features.
