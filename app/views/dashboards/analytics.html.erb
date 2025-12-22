@@ -1,107 +1,223 @@
 <% content_for :title, "#{t('dashboard.nav.analytics', default: 'Analytics')} | #{t('app.short_name')}" %>
+<% analytics = @broker_analytics %>
+<% totals = analytics.totals %>
+<% tiles = analytics.tiles %>
 
 <div class="mb-8">
   <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.nav.analytics", default: "Analytics") %></h1>
-  <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.analytics_overview", default: "Sample analytics widgets from Mosaic with placeholder data.") %></p>
+  <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.analytics.pnl_page_copy") %></p>
 </div>
 
-<div class="grid gap-6 lg:grid-cols-2">
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics_revenue", default: "Revenue") %></div>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics_revenue_copy", default: "Monthly performance (sample).") %></p>
-      </div>
+<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 mb-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <input type="text" class="form-input datepicker w-48" placeholder="<%= t('dashboard.analytics.filters.date_range') %>" />
+      <select class="form-select w-48">
+        <option><%= t("dashboard.analytics.filters.all_eas") %></option>
+        <% (@accessible_eas || []).each do |entry| %>
+          <option><%= entry.expert_advisor.name %></option>
+        <% end %>
+      </select>
+      <select class="form-select w-40">
+        <option><%= t("dashboard.analytics.filters.all_brokers") %></option>
+        <option>Apex FX</option>
+        <option>Fusion Markets</option>
+        <option>Demo Lab</option>
+      </select>
     </div>
-    <ul class="space-y-3 text-sm text-gray-700 dark:text-gray-200">
-      <li class="flex items-center justify-between">
-        <span>MTD</span>
-        <span class="font-semibold">$12.4k</span>
-      </li>
-      <li class="flex items-center justify-between">
-        <span>Last month</span>
-        <span class="font-semibold">$19.2k</span>
-      </li>
-      <li class="flex items-center justify-between">
-        <span>Subscribers</span>
-        <span class="font-semibold">428</span>
-      </li>
-    </ul>
-  </div>
-
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics_geo", default: "Top Countries") %></div>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics_geo_copy", default: "Geographic distribution (sample).") %></p>
-      </div>
-    </div>
-    <ul class="space-y-3 text-sm text-gray-700 dark:text-gray-200">
-      <li class="flex items-center justify-between">
-        <span>United States</span>
-        <span class="font-semibold">42%</span>
-      </li>
-      <li class="flex items-center justify-between">
-        <span>Spain</span>
-        <span class="font-semibold">18%</span>
-      </li>
-      <li class="flex items-center justify-between">
-        <span>Mexico</span>
-        <span class="font-semibold">14%</span>
-      </li>
-      <li class="flex items-center justify-between">
-        <span>Others</span>
-        <span class="font-semibold">26%</span>
-      </li>
-    </ul>
+    <div class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.filters.placeholder_note") %></div>
   </div>
 </div>
 
-<div class="grid gap-6 mt-6 lg:grid-cols-3">
+<div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4 mb-6">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="text-sm font-semibold text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.tiles.total_accounts") %></div>
+    <div class="mt-2 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= totals[:total] %></div>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.analytics.tiles.total_hint") %></p>
+  </div>
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="text-sm font-semibold text-gray-500 dark:text-gray-400"><%= t("dashboard.broker_accounts.account_type.real") %></div>
+    <div class="mt-2 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= totals[:real] %></div>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.analytics.tiles.real_hint") %></p>
+  </div>
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="text-sm font-semibold text-gray-500 dark:text-gray-400"><%= t("dashboard.broker_accounts.account_type.demo") %></div>
+    <div class="mt-2 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= totals[:demo] %></div>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.analytics.tiles.demo_hint") %></p>
+  </div>
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+    <div class="text-sm font-semibold text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.tiles.avg_daily_pnl") %></div>
+    <div class="mt-2 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= number_to_currency(tiles[:average_daily_pnl_cents].to_i / 100.0, unit: "$", precision: 2) %></div>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.analytics.tiles.pnl_hint") %></p>
+  </div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
     <div class="flex items-center justify-between mb-4">
       <div>
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics_channels", default: "Channels") %></div>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics_channels_copy", default: "Channel attribution (sample).") %></p>
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.pnl_title") %></div>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.pnl_copy") %></p>
       </div>
+      <span class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.placeholder_data") %></span>
     </div>
-    <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-200">
-      <li class="flex items-center justify-between">
-        <span>Direct</span>
-        <span class="font-semibold">38%</span>
-      </li>
-      <li class="flex items-center justify-between">
-        <span>Referrals</span>
-        <span class="font-semibold">27%</span>
-      </li>
-      <li class="flex items-center justify-between">
-        <span>Paid</span>
-        <span class="font-semibold">19%</span>
-      </li>
-      <li class="flex items-center justify-between">
-        <span>Organic</span>
-        <span class="font-semibold">16%</span>
-      </li>
-    </ul>
+    <div class="relative">
+      <canvas id="broker-pnl-chart" height="320"></canvas>
+    </div>
   </div>
 
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
     <div class="flex items-center justify-between mb-4">
-      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics_value", default: "Real Time Value") %></div>
+      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.top_setups") %></div>
+      <span class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.pagination_note") %></span>
     </div>
-    <div class="space-y-3 text-sm text-gray-700 dark:text-gray-200">
-      <div class="flex items-center justify-between">
-        <span>ARR (placeholder)</span>
-        <span class="font-semibold">$248k</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <span>MRR (placeholder)</span>
-        <span class="font-semibold">$20.6k</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <span>Growth</span>
-        <span class="font-semibold text-emerald-500">+8.4%</span>
-      </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm text-gray-800 dark:text-gray-100">
+        <thead class="bg-gray-50 dark:bg-gray-900/30 text-left">
+          <tr>
+            <th class="px-3 py-2 font-semibold"><%= t("dashboard.analytics.columns.ea") %></th>
+            <th class="px-3 py-2 font-semibold"><%= t("dashboard.analytics.columns.broker") %></th>
+            <th class="px-3 py-2 font-semibold"><%= t("dashboard.analytics.columns.pnl") %></th>
+            <th class="px-3 py-2 font-semibold"><%= t("dashboard.analytics.columns.win_rate") %></th>
+            <th class="px-3 py-2 font-semibold"><%= t("dashboard.analytics.columns.last_sync") %></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          <% analytics.setups.each do |row| %>
+            <tr>
+              <td class="px-3 py-2"><%= row.ea_name %></td>
+              <td class="px-3 py-2"><%= row.broker_name %> <span class="text-xs text-gray-500 dark:text-gray-400 uppercase ml-1"><%= row.account_type %></span></td>
+              <td class="px-3 py-2 font-semibold <%= row.pnl_7d_cents.to_i >= 0 ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300' %>"><%= number_to_currency(row.pnl_7d_cents.to_i / 100.0, unit: "$", precision: 2) %></td>
+              <td class="px-3 py-2"><%= "#{row.win_rate}%" %></td>
+              <td class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400"><%= l(row.last_synced_at, format: :short_with_year) %></td>
+            </tr>
+          <% end %>
+          <% if analytics.setups.empty? %>
+            <tr>
+              <td colspan="5" class="px-3 py-4 text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.empty") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
     </div>
+    <% if analytics.pagination[:total_pages] > 1 %>
+      <div class="flex items-center justify-between mt-4 text-xs text-gray-500 dark:text-gray-400">
+        <span><%= t("dashboard.analytics.page", current: analytics.pagination[:current_page], total: analytics.pagination[:total_pages]) %></span>
+        <div class="flex items-center gap-2">
+          <% prev_page = analytics.pagination[:current_page] - 1 %>
+          <% next_page = analytics.pagination[:current_page] + 1 %>
+          <% if analytics.pagination[:current_page] > 1 %>
+            <%= link_to t("dashboard.analytics.prev"), dashboard_analytics_path(page: prev_page), class: "px-3 py-1 rounded border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600" %>
+          <% end %>
+          <% if analytics.pagination[:current_page] < analytics.pagination[:total_pages] %>
+            <%= link_to t("dashboard.analytics.next"), dashboard_analytics_path(page: next_page), class: "px-3 py-1 rounded border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
   </div>
 </div>
+
+<div class="mt-6">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.cards_title") %></div>
+      <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards_copy") %></p>
+    </div>
+    <span class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.placeholder_data") %></span>
+  </div>
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <% analytics.broker_cards.each do |card| %>
+      <div class="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm p-4 flex flex-col gap-3">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= card.title %></div>
+            <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= card.account_type %></div>
+          </div>
+          <span class="px-2 py-1 rounded-full text-xs font-semibold <%= card.pnl_cents.to_i >= 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-100' %>">
+            <%= number_to_currency(card.pnl_cents.to_i / 100.0, unit: "$", precision: 2) %>
+          </span>
+        </div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">
+          <span class="font-semibold text-gray-700 dark:text-gray-200"><%= card.ea_name %></span>
+          <span class="ml-1"><%= t("dashboard.analytics.cards.associated") %></span>
+        </div>
+        <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+          <span><%= t("dashboard.analytics.cards.identifier", id: card.identifier) %></span>
+          <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-700 dark:text-gray-200"><%= card.status.to_s.humanize %></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" class="btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full"><%= t("dashboard.analytics.view_account") %></button>
+        </div>
+      </div>
+    <% end %>
+    <% if analytics.broker_cards.empty? %>
+      <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.empty") %></div>
+    <% end %>
+  </div>
+</div>
+
+<%= javascript_tag nonce: content_security_policy_nonce do %>
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('broker-pnl-chart');
+    if (!ctx || !window.Chart) return;
+
+    const points = <%= raw analytics.chart_points.map { |point| { label: point[:label].strftime('%Y-%m-%d'), amount: (point[:amount_cents].to_i / 100.0) } }.to_json %>;
+    const labels = points.map(point => point.label);
+    const data = points.map(point => point.amount);
+
+    const isDark = localStorage.getItem('dark-mode') === 'true';
+    const borderColor = '#8470FF';
+    const gradient = (context) => {
+      const chart = context.chart;
+      const {ctx, chartArea} = chart;
+      if (!chartArea) return null;
+      const g = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+      g.addColorStop(0, `rgba(132, 112, 255, 0)`);
+      g.addColorStop(1, `rgba(132, 112, 255, 0.18)`);
+      return g;
+    };
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          borderColor: borderColor,
+          borderWidth: 2,
+          fill: true,
+          backgroundColor: gradient,
+          pointRadius: 0,
+          tension: 0.25
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) => `$${value.toFixed(2)}`
+            },
+            grid: {
+              color: isDark ? '#374151' : '#E5E7EB'
+            }
+          },
+          x: {
+            grid: { display: false }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context) => `$${context.parsed.y.toFixed(2)}`
+            }
+          }
+        },
+        interaction: { intersect: false, mode: 'nearest' },
+        maintainAspectRatio: false
+      }
+    });
+  });
+<% end %>
