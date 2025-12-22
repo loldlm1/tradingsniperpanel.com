@@ -5,11 +5,19 @@
 <% referrer_name = referrer&.name %>
 <% accessible_eas = @accessible_eas || [] %>
 <% active_eas = accessible_eas.select(&:accessible) %>
+<% plan = @overview.plan %>
+<% broker_summary = @overview.broker_summary %>
+<% activities = @overview.activity_feed.sort_by(&:occurred_at).reverse %>
 
-<div class="sm:flex sm:justify-between sm:items-center mb-8">
-  <div class="mb-4 sm:mb-0">
+<div class="sm:flex sm:justify-between sm:items-start mb-8 gap-4">
+  <div class="space-y-3">
     <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.hero_title") %></h1>
-    <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.hero_subtitle") %></p>
+    <p class="text-gray-600 dark:text-gray-300 max-w-3xl"><%= t("dashboard.hero_subtitle") %></p>
+    <% if plan[:renews_at].present? %>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        <%= t("dashboard.plan_card.renews_on", default: "Renews on %{date}", date: l(plan[:renews_at].to_date)) %>
+      </p>
+    <% end %>
   </div>
   <div class="flex items-center gap-3">
     <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
@@ -20,26 +28,49 @@
 <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
     <div class="flex items-start justify-between">
-      <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.plan_card.title") %></div>
-      <span class="px-3 py-1 rounded-full text-xs font-semibold <%= @subscription&.active? ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100' %>">
-        <%= @subscription&.active? ? t("dashboard.plan_card.status_active") : t("dashboard.plan_card.status_inactive") %>
+      <div>
+        <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.plan_card.title") %></div>
+        <div class="mt-3 text-2xl font-semibold text-gray-800 dark:text-gray-100">
+          <%= plan[:tier]&.to_s&.upcase || "—" %>
+          <span class="text-base text-gray-500 dark:text-gray-400 font-normal"><%= plan[:interval]&.capitalize %></span>
+        </div>
+        <% if plan[:price_key].present? %>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.plan_card.plan_key", default: "Plan key") %>: <%= plan[:price_key] %></p>
+        <% else %>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.plan_card.status_inactive") %></p>
+        <% end %>
+      </div>
+      <span class="px-3 py-1 rounded-full text-xs font-semibold <%= plan[:status] == :active ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100' %>">
+        <%= plan[:status] == :active ? t("dashboard.plan_card.status_active") : t("dashboard.plan_card.status_inactive") %>
       </span>
     </div>
-    <div class="mt-3 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= @plan_context[:current_tier]&.to_s&.upcase || "—" %> <%= @plan_context[:current_interval]&.capitalize %></div>
-    <% if @plan_context[:current_price_key].present? %>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Plan key: <%= @plan_context[:current_price_key] %></p>
-    <% else %>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.plan_card.status_inactive") %></p>
-    <% end %>
+    <div class="mt-4 flex flex-wrap gap-2">
+      <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "btn-xs bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+      <%= link_to t("dashboard.nav.pricing", default: "Pricing"), dashboard_pricing_path, class: "btn-xs bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
+    </div>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="flex items-start justify-between">
-      <div>
-        <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.download_card.title") %></div>
-        <div class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.download_card.label") %></div>
-      </div>
+  <% @overview.stat_tiles.each do |tile| %>
+    <%= render "dashboards/stat_tile", label: tile[:label], value: tile[:value], hint: tile[:hint] %>
+  <% end %>
+</div>
+
+<div class="grid gap-4 sm:grid-cols-3 mt-6">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+    <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1"><%= t("dashboard.broker_accounts.title") %></div>
+    <div class="flex items-center justify-between">
+      <div class="text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= broker_summary[:total] %></div>
+      <%= link_to t("dashboard.analytics.cta", default: "View analytics"), dashboard_analytics_path, class: "text-xs font-semibold text-violet-600 dark:text-violet-300 hover:text-violet-800 dark:hover:text-violet-100" %>
     </div>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.broker_accounts.copy") %></p>
+    <div class="mt-3 flex items-center gap-3 text-xs text-gray-600 dark:text-gray-300">
+      <span class="inline-flex items-center px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-100 font-semibold"><%= t("dashboard.broker_accounts.account_type.real") %>: <%= broker_summary[:real] %></span>
+      <span class="inline-flex items-center px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-100 font-semibold"><%= t("dashboard.broker_accounts.account_type.demo") %>: <%= broker_summary[:demo] %></span>
+    </div>
+  </div>
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+    <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1"><%= t("dashboard.download_card.title") %></div>
+    <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.download_card.label") %></p>
     <ul class="mt-3 space-y-2 text-sm">
       <% docs = [
         { label: t("dashboard.download_card.manual_en"), url: "/docs/sniper_advanced_panel/Manual_EN.md" },
@@ -51,15 +82,14 @@
       <% end %>
     </ul>
   </div>
-
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.referral_card.title") %></div>
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+    <div class="flex items-start justify-between">
+      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.referral_card.title") %></div>
+      <% if referrer_name.present? %>
+        <span class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.referral_card.referrer_label") %> <strong class="text-gray-800 dark:text-gray-100"><%= referrer_name %></strong></span>
+      <% end %>
+    </div>
     <div class="mt-3 text-xl font-semibold text-gray-800 dark:text-gray-100"><%= referral_code.presence || "—" %></div>
-    <% if referrer_name.present? %>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-        <%= t("dashboard.referral_card.referrer_label") %> <span class="font-semibold text-gray-800 dark:text-gray-100"><%= referrer_name %></span>
-      </p>
-    <% end %>
     <% if referral_code.present? %>
       <% share_url = root_url(locale: I18n.locale, ref: referral_code) %>
       <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.referral_card.copy") %></p>
@@ -68,21 +98,16 @@
       <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.referral_card.copy") %></p>
     <% end %>
   </div>
-
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.download_card.title") %></div>
-    <div class="mt-3 text-3xl font-semibold text-gray-800 dark:text-gray-100"><%= active_eas.size %></div>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.nav.expert_advisors", default: "Expert Advisors") %></p>
-  </div>
 </div>
 
 <div class="grid gap-6 mt-6 lg:grid-cols-3">
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
     <div class="flex items-center justify-between mb-4">
       <div>
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.nav.analytics", default: "Analytics") %></div>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics_overview", default: "Traffic and subscription activity (sample data).") %></p>
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.pnl_title") %></div>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.pnl_copy") %></p>
       </div>
+      <%= link_to t("dashboard.analytics.cta", default: "View analytics"), dashboard_analytics_path, class: "text-sm font-semibold text-violet-600 dark:text-violet-300 hover:text-violet-800 dark:hover:text-violet-100" %>
     </div>
     <div class="relative">
       <canvas id="dashboard-card-01" width="800" height="320"></canvas>
@@ -91,21 +116,29 @@
 
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
     <div class="flex items-center justify-between mb-4">
-      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.nav.support", default: "Support") %></div>
+      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.activity.title") %></div>
+      <span class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.activity.subhead") %></span>
     </div>
-    <ul class="space-y-3 text-sm">
-      <li class="flex items-center justify-between">
-        <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.docs", default: "Docs") %></span>
-        <%= link_to t("nav.docs"), docs_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
-      </li>
-      <li class="flex items-center justify-between">
-        <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.billing", default: "Billing") %></span>
-        <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
-      </li>
-      <li class="flex items-center justify-between">
-        <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.support", default: "Support") %></span>
-        <%= link_to t("dashboard.contact_support", default: "Contact"), dashboard_support_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
-      </li>
+    <ul class="space-y-3">
+      <% activities.each do |activity| %>
+        <li class="flex items-start justify-between">
+          <div>
+            <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= activity.title %></div>
+            <div class="text-xs text-gray-500 dark:text-gray-400"><%= activity.subtitle %></div>
+          </div>
+          <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
+            <% if activity.occurred_at.present? %>
+              <div><%= l(activity.occurred_at.to_date, format: :short_with_year) %></div>
+            <% else %>
+              <div><%= t("dashboard.activity.recently", default: "Recently") %></div>
+            <% end %>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full <%= activity.tone == :success ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200' %>"><%= activity.tone.to_s.humanize %></span>
+          </div>
+        </li>
+      <% end %>
+      <% if activities.empty? %>
+        <li class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.activity.empty") %></li>
+      <% end %>
     </ul>
   </div>
 </div>
@@ -117,36 +150,68 @@
         <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.nav.expert_advisors", default: "Expert Advisors") %></div>
         <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.ea_docs_overview", default: "Docs per EA are linked below.") %></p>
       </div>
+      <%= link_to t("dashboard.analytics.cta", default: "View analytics"), dashboard_analytics_path, class: "text-xs font-semibold text-violet-600 dark:text-violet-300 hover:text-violet-800 dark:hover:text-violet-100" %>
     </div>
-    <div class="overflow-x-auto">
-      <table class="table-auto w-full text-sm">
-        <thead class="text-gray-500 dark:text-gray-400 text-left">
-          <tr>
-            <th class="pb-3">Name</th>
-            <th class="pb-3">Type</th>
-            <th class="pb-3"><%= t("nav.docs") %></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-          <% active_eas.each do |entry| %>
-            <tr class="text-gray-800 dark:text-gray-100">
-              <td class="py-3 font-semibold"><%= entry.expert_advisor.name %></td>
-              <td class="py-3 capitalize"><%= entry.expert_advisor.ea_type %></td>
-              <td class="py-3">
-                <%= link_to t("nav.docs"), dashboard_expert_advisor_docs_path(entry.expert_advisor, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
-              </td>
-            </tr>
+    <div class="grid gap-4 md:grid-cols-2">
+      <% active_eas.each do |entry| %>
+        <% ea = entry.expert_advisor %>
+        <% badge_class = case entry.status
+                        when :active then "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
+                        when :trial then "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
+                        else "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200"
+                        end %>
+        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50/60 dark:bg-gray-900/30">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= ea.name %></div>
+              <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= ea.ea_type %></div>
+            </div>
+            <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= entry.status.to_s.humanize %></span>
+          </div>
+          <% if entry.expires_at.present? %>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.expires_at", default: "Expires") %>: <%= l(entry.expires_at, format: :short_with_year) %></p>
           <% end %>
-        </tbody>
-      </table>
+          <div class="mt-3 flex items-center gap-2 text-sm">
+            <%= link_to t("nav.docs"), dashboard_expert_advisor_docs_path(ea, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100 font-semibold" %>
+            <% unless entry.accessible %>
+              <% tier = entry.allowed_tiers.first %>
+              <% cta_key = "#{tier}_monthly" %>
+              <%= link_to t("dashboard.pricing.cta.subscribe"), dashboard_pricing_path(price_key: cta_key), class: "text-xs px-3 py-1 rounded-lg bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      <% if active_eas.empty? %>
+        <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.index.subtitle") %></div>
+      <% end %>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="flex items-center justify-between mb-4">
-      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.nav.pricing", default: "Pricing") %></div>
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
+    <div>
+      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2"><%= t("dashboard.nav.support", default: "Support") %></div>
+      <ul class="space-y-2 text-sm">
+        <li class="flex items-center justify-between">
+          <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.docs", default: "Docs") %></span>
+          <%= link_to t("nav.docs"), docs_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+        </li>
+        <li class="flex items-center justify-between">
+          <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.billing", default: "Billing") %></span>
+          <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+        </li>
+        <li class="flex items-center justify-between">
+          <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.support", default: "Support") %></span>
+          <%= link_to t("dashboard.contact_support", default: "Contact"), dashboard_support_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+        </li>
+      </ul>
     </div>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4"><%= t("pricing.subtitle") %></p>
-    <%= link_to t("dashboard.nav.pricing", default: "Pricing"), dashboard_pricing_path, class: "btn-sm bg-violet-600 hover:bg-violet-700 text-white w-full text-center" %>
+    <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-300">
+      <div class="font-semibold text-gray-800 dark:text-gray-100 mb-1"><%= t("dashboard.quick_links.title", default: "Quick actions") %></div>
+      <ul class="space-y-1">
+        <li><%= link_to t("dashboard.quick_links.analytics", default: "Open Analytics"), dashboard_analytics_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %></li>
+        <li><%= link_to t("dashboard.nav.expert_advisors", default: "Expert Advisors"), dashboard_expert_advisors_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %></li>
+        <li><%= link_to t("dashboard.nav.pricing", default: "Pricing"), dashboard_pricing_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %></li>
+      </ul>
+    </div>
   </div>
 </div>

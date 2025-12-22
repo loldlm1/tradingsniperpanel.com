@@ -7,9 +7,22 @@ class DashboardsController < ApplicationController
   before_action :set_plan_context, only: [:show, :pricing, :billing, :checkout]
   before_action :set_invoices, only: [:billing]
 
-  def show; end
+  def show
+    @overview = Dashboard::OverviewPresenter.new(
+      user: current_user,
+      pay_customer: @pay_customer,
+      subscription: @subscription,
+      plan_context: @plan_context,
+      accessible_eas: @accessible_eas
+    ).call
+  end
 
-  def analytics; end
+  def analytics
+    @broker_analytics = Dashboard::BrokerAnalyticsPresenter.new(
+      user: current_user,
+      page: params[:page] || 1
+    ).call
+  end
 
   def pricing
     @pricing_catalog = Billing::PricingCatalog.new.call

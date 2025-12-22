@@ -1,10 +1,24 @@
 <% content_for :title, "#{t('app.short_name')} - #{t('dashboard.expert_advisors.index.title')}" %>
 
-<div class="sm:flex sm:justify-between sm:items-center mb-8">
+<div class="sm:flex sm:justify-between sm:items-start mb-6">
   <div class="mb-4 sm:mb-0">
     <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.expert_advisors.index.title") %></h1>
     <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.index.subtitle") %></p>
   </div>
+</div>
+
+<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
+  <div class="flex flex-wrap items-center gap-3">
+    <span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.expert_advisors.filters.status") %></span>
+    <% %w[all active trial expired].each do |status| %>
+      <button type="button" class="px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/30"><%= status.capitalize %></button>
+    <% end %>
+    <span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold ml-3"><%= t("dashboard.expert_advisors.filters.type") %></span>
+    <% [[t("dashboard.expert_advisors.filters.all_types"), nil], ["EA Robot", "robot"], ["EA Tool", "tool"]].each do |label, _value| %>
+      <button type="button" class="px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/30"><%= label %></button>
+    <% end %>
+  </div>
+  <p class="text-xs text-gray-500 dark:text-gray-400 mt-3"><%= t("dashboard.expert_advisors.filters.note") %></p>
 </div>
 
 <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -15,16 +29,30 @@
                     when :trial then "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
                     else "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200"
                     end %>
+    <% broker_count = entry.license&.broker_accounts&.size.to_i %>
     <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between">
-      <div class="space-y-2">
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= ea.name %></h2>
-          <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= entry.status.to_s.humanize %></span>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= ea.name %></h2>
+            <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= ea.ea_type %></div>
+          </div>
+          <div class="flex flex-col items-end gap-1">
+            <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= entry.status.to_s.humanize %></span>
+            <span class="px-2 py-1 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200"><%= t("dashboard.expert_advisors.pnl_soon") %></span>
+          </div>
         </div>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= ea.description %></p>
-        <div class="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold"><%= ea.ea_type %></div>
+        <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed"><%= ea.description %></p>
+        <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+          <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700"><%= t("dashboard.broker_accounts.title") %>: <%= broker_count %></span>
+          <% if entry.status == :trial && entry.expires_at.present? %>
+            <span class="inline-flex items-center px-2 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-100 border border-amber-200/80 dark:border-amber-500/40">
+              <%= t("dashboard.expert_advisors.trial_countdown", default: "Trial ends %{date}", date: l(entry.expires_at.to_date, format: :short_with_year)) %>
+            </span>
+          <% end %>
+        </div>
         <% if entry.accessible && entry.license_key.present? %>
-          <div class="mt-2">
+          <div class="mt-1">
             <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1"><%= t("dashboard.license_key", default: "License Key") %></div>
             <div class="flex items-center gap-2 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
               <span class="truncate"><%= entry.license_key %></span>
@@ -46,5 +74,8 @@
         <% end %>
       </div>
     </div>
+  <% end %>
+  <% if (@accessible_eas || []).empty? %>
+    <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.index.subtitle") %></div>
   <% end %>
 </div>

@@ -42,6 +42,7 @@ class ExpertAdvisorsController < ApplicationController
   end
 
   def set_markdown
+    @doc_headings = []
     docs = @expert_advisor.active_documents.with_indifferent_access
     locale_key = "markdown_#{I18n.locale}"
     fallback_key = "manual_#{I18n.locale}"
@@ -57,6 +58,8 @@ class ExpertAdvisorsController < ApplicationController
     return unless File.exist?(absolute)
 
     markdown = File.read(absolute)
-    @markdown_html = MarkdownRenderer.render(markdown)
+    rendered = MarkdownRenderer.render(markdown, with_toc: true)
+    @markdown_html = rendered[:html]
+    @doc_headings = rendered[:headings]
   end
 end
