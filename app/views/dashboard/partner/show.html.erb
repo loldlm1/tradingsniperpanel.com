@@ -1,8 +1,9 @@
 <% content_for :title, "#{t('partner_dashboard.title', default: 'Partner Dashboard')} | #{t('app.short_name')}" %>
 
-<div class="mb-8 flex items-center justify-between flex-wrap gap-4">
+<div class="mb-10 flex items-start justify-between flex-wrap gap-4">
   <div>
-    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("partner_dashboard.title", default: "Partner Dashboard") %></h1>
+    <p class="text-sm text-violet-600 dark:text-violet-300 font-semibold uppercase tracking-wide mb-2"><%= t("partner_dashboard.title", default: "Partner Dashboard") %></p>
+    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("partner_dashboard.subtitle", default: "Track referrals, revenue, and payouts.") %></h1>
     <p class="text-gray-600 dark:text-gray-300"><%= t("partner_dashboard.subtitle", default: "Track your referrals, revenue, and payouts.") %></p>
   </div>
   <%= button_to t("partner_dashboard.request_payout", default: "Request payout"), request_payout_dashboard_partner_path, method: :post, class: "btn bg-indigo-600 hover:bg-indigo-700 text-white" %>
@@ -16,27 +17,20 @@
 </div>
 
 <div class="grid gap-6 mt-6 lg:grid-cols-3">
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
     <div class="flex items-center justify-between mb-4">
       <div>
         <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("partner_dashboard.monthly_revenue", default: "Monthly revenue (paid)") %></div>
         <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.monthly_revenue_copy", default: "Last 6 months of paid commissions.") %></p>
       </div>
+      <span class="text-xs text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.placeholder_data", default: "Live data from payouts") %></span>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700 dark:text-gray-200">
-      <% @monthly_paid.sort_by { |month, _| month }.each do |month, cents| %>
-        <div class="flex items-center justify-between border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
-          <span><%= month.strftime('%b %Y') %></span>
-          <span class="font-semibold"><%= number_to_currency(cents.to_i / 100.0) %></span>
-        </div>
-      <% end %>
-      <% if @monthly_paid.empty? %>
-        <div class="text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.no_history", default: "No commissions yet.") %></div>
-      <% end %>
+    <div class="relative h-64">
+      <canvas id="partner-commissions-chart" height="256"></canvas>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
     <div class="flex items-center justify-between mb-3">
       <div>
         <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("partner_dashboard.network", default: "Network") %></div>
@@ -57,10 +51,13 @@
         <span class="font-semibold"><%= number_to_currency(@metrics[:current_month_cents].to_i / 100.0) %></span>
       </li>
     </ul>
+    <div class="mt-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-900 border border-dashed border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-400">
+      <%= t("partner_dashboard.copy_partner_tip", default: "Use the payout request button to bundle pending commissions.") %>
+    </div>
   </div>
 </div>
 
-<div class="mt-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
+<div class="mt-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-200 dark:border-gray-700">
   <div class="flex items-center justify-between p-5 gap-3 flex-wrap">
     <div>
       <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("partner_dashboard.invited_users", default: "Invited users") %></div>
@@ -110,7 +107,7 @@
   </div>
 </div>
 
-<div class="mt-6 bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
+<div class="mt-6 bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-200 dark:border-gray-700">
   <div class="flex items-center justify-between p-5">
     <div>
       <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("partner_dashboard.revenue", default: "Revenue log") %></div>
@@ -131,12 +128,19 @@
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
         <% @commissions.each do |commission| %>
+          <% badge_class = case commission.status
+                          when "paid" then "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
+                          when "requested" then "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-100"
+                          else "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
+                          end %>
           <tr>
             <td class="px-5 py-3 whitespace-nowrap"><%= l(commission.occurred_at.to_date) %></td>
             <td class="px-5 py-3 whitespace-nowrap"><%= commission.referred_user.email %></td>
             <td class="px-5 py-3 whitespace-nowrap"><%= commission.pay_subscription&.processor_plan || t("partner_dashboard.unknown", default: "Unknown") %></td>
             <td class="px-5 py-3 whitespace-nowrap font-semibold"><%= number_to_currency(commission.amount_cents / 100.0) %></td>
-            <td class="px-5 py-3 whitespace-nowrap"><%= commission.status %></td>
+            <td class="px-5 py-3 whitespace-nowrap">
+              <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= commission.status %></span>
+            </td>
             <td class="px-5 py-3 whitespace-nowrap"><%= commission.commission_kind %></td>
           </tr>
         <% end %>
@@ -149,3 +153,37 @@
     </table>
   </div>
 </div>
+
+<%= javascript_tag nonce: content_security_policy_nonce do %>
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('partner-commissions-chart');
+    if (!ctx || !window.Chart) return;
+    const points = <%= raw @monthly_paid.sort_by { |month, _| month }.map { |month, cents| { label: month.strftime('%Y-%m'), amount: (cents.to_i / 100.0) } }.to_json %>;
+    const labels = points.map(p => p.label);
+    const data = points.map(p => p.amount);
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: '#8470FF',
+          borderRadius: 6,
+          barPercentage: 0.6
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: (value) => `$${value.toFixed(2)}` },
+            grid: { color: '#E5E7EB' }
+          },
+          x: { grid: { display: false } }
+        },
+        maintainAspectRatio: false
+      }
+    });
+  });
+<% end %>

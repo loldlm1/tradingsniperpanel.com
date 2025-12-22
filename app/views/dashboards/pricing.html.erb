@@ -10,176 +10,204 @@
 <% requested_tier = requested_price_key&.split("_")&.first&.to_sym %>
 <% requested_interval = requested_price_key&.split("_")&.last %>
 
-<div class="mb-8">
-  <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.nav.plans") %></h1>
-  <p class="text-gray-600 dark:text-gray-300"><%= t("pricing.subtitle") %></p>
+<div class="mb-10">
+  <p class="text-sm text-violet-600 dark:text-violet-300 font-semibold mb-2 uppercase tracking-wide"><%= t("dashboard.nav.plans") %></p>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.pricing.page_title", default: "Pick the plan that fits") %></h1>
+      <p class="text-gray-600 dark:text-gray-300"><%= t("pricing.subtitle") %></p>
+    </div>
+    <%= link_to t("dashboard.billing.manage_copy", default: "Manage billing"), dashboard_billing_path, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+  </div>
 </div>
 
-<div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl mb-8">
-  <div class="flex flex-col md:flex-row md:-mr-px">
-    <!-- Sidebar -->
-    <div class="flex flex-nowrap overflow-x-scroll no-scrollbar md:block md:overflow-auto px-3 py-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700/60 min-w-60 md:space-y-3">
+<div x-data="{ annual: <%= requested_interval == 'annual' ? 'true' : 'false' %> }" class="space-y-10">
+  <!-- Toggle -->
+  <div class="flex items-center justify-center gap-3">
+    <div class="text-sm text-gray-500 font-medium"><%= t("dashboard.pricing.toggle.monthly") %></div>
+    <div class="form-switch !bg-gray-200 dark:!bg-gray-700 shadow-xs">
+      <input type="checkbox" id="billing-toggle" class="sr-only" x-model="annual" />
+      <label for="billing-toggle">
+        <span class="bg-white shadow-xs" aria-hidden="true"></span>
+        <span class="sr-only"><%= t("dashboard.pricing.toggle.pay_annually") %></span>
+      </label>
+    </div>
+    <div class="text-sm text-gray-500 font-medium flex items-center gap-2">
+      <%= t("dashboard.pricing.toggle.annually") %>
+      <% if discount_percent.present? %>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100">-<%= discount_percent %>%</span>
+      <% end %>
+    </div>
+  </div>
+
+  <% tier_configs = {
+    basic: { badge: nil, accent: "from-emerald-500 to-emerald-600", name: t("dashboard.pricing.tiers.basic.name") },
+    hft: { badge: t("dashboard.pricing.popular", default: "Most Popular"), accent: "from-sky-500 to-sky-600", name: t("dashboard.pricing.tiers.hft.name") },
+    pro: { badge: nil, accent: "from-violet-500 to-violet-600", name: t("dashboard.pricing.tiers.pro.name") }
+  } %>
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <% visible_tiers.each do |tier| %>
+      <% config = tier_configs.fetch(tier) %>
+      <% current_plan = current_tier == tier %>
+      <% requested_for_card = requested_tier == tier %>
+      <% monthly_key = "#{tier}_monthly" %>
+      <% annual_key = "#{tier}_annual" %>
+      <% monthly_available = Billing::ConfiguredPrices.price_id_for(monthly_key).present? %>
+      <% annual_available = Billing::ConfiguredPrices.price_id_for(annual_key).present? %>
+
+      <div class="relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col">
+        <% if config[:badge].present? %>
+          <div class="absolute top-4 right-4 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white bg-linear-to-r from-violet-500 to-indigo-500 shadow-sm">
+            <%= config[:badge] %>
+          </div>
+        <% elsif requested_for_card %>
+          <div class="absolute top-4 right-4 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-white bg-linear-to-r from-violet-500 to-indigo-500 shadow-sm">
+            <%= t("dashboard.pricing.requested_plan", default: "Selected plan") %>
+          </div>
+        <% end %>
+
+        <div class="px-6 pt-6 pb-5 border-b border-gray-200 dark:border-gray-700">
+          <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold text-white bg-linear-to-r <%= config[:accent] %> shadow-xs mb-3">
+            <%= config[:name] %>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-gray-300"><%= t("dashboard.pricing.tiers.#{tier}.description") %></p>
+          <div class="mt-4 flex items-baseline gap-1 text-gray-900 dark:text-gray-100">
+            <span class="text-2xl">$</span>
+            <span class="text-4xl font-bold" x-show="!annual" x-cloak><%= pricing.dig(:monthly, tier, :display) || "—" %></span>
+            <span class="text-4xl font-bold" x-show="annual" x-cloak><%= pricing.dig(:annual, tier, :effective_monthly_display) || "—" %></span>
+            <span class="text-sm text-gray-500 dark:text-gray-400 font-medium">/mo</span>
+          </div>
+          <% if discount_percent.present? %>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.pricing.annual_savings", default: "Save %{percent}% billed yearly", percent: discount_percent) %></div>
+          <% end %>
+        </div>
+
+        <div class="px-6 pt-5 pb-6 space-y-5 flex-1">
+          <% if current_plan %>
+            <button class="btn w-full bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white disabled:border-gray-200 dark:disabled:border-gray-700 disabled:bg-white dark:disabled:bg-gray-800 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed" disabled>
+              <svg class="w-3 h-3 shrink-0 fill-current mr-2" viewBox="0 0 12 12">
+                <path d="M10.28 1.28L3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
+              </svg>
+              <span><%= t("dashboard.pricing.cta.current") %></span>
+            </button>
+          <% else %>
+            <% cta_label = subscribed ? t("dashboard.pricing.cta.upgrade") : t("dashboard.pricing.cta.subscribe") %>
+            <div x-show="!annual" x-cloak>
+              <% if monthly_available %>
+                <%= button_to cta_label, dashboard_checkout_path(price_key: monthly_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full" %>
+              <% else %>
+                <button class="btn w-full border border-dashed border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-500" disabled><%= t("dashboard.pricing.cta.unavailable") %></button>
+              <% end %>
+            </div>
+            <div x-show="annual" x-cloak>
+              <% if annual_available %>
+                <%= button_to cta_label, dashboard_checkout_path(price_key: annual_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full" %>
+              <% else %>
+                <button class="btn w-full border border-dashed border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-500" disabled><%= t("dashboard.pricing.cta.unavailable") %></button>
+              <% end %>
+            </div>
+          <% end %>
+
+          <div class="space-y-2">
+            <% t("pricing.bullets").each do |bullet| %>
+              <div class="flex items-center text-sm text-gray-700 dark:text-gray-200">
+                <svg class="w-4 h-4 shrink-0 fill-current text-emerald-500 mr-2" viewBox="0 0 12 12">
+                  <path d="M10.28 1.28L3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
+                </svg>
+                <span><%= bullet %></span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Comparison -->
+  <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm">
+    <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
       <div>
-        <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase mb-3"><%= t("dashboard.settings.sidebar.title") %></div>
-        <ul class="flex flex-nowrap md:block mr-3 md:mr-0">
-          <li class="mr-0.5 md:mr-0 md:mb-0.5">
-            <%= link_to dashboard_settings_path, class: "flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap" do %>
-              <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500 mr-2" width="16" height="16" viewBox="0 0 16 16">
-                <path d="M8 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm-5.143 7.91a1 1 0 1 1-1.714-1.033A7.996 7.996 0 0 1 8 10a7.996 7.996 0 0 1 6.857 3.877 1 1 0 1 1-1.714 1.032A5.996 5.996 0 0 0 8 12a5.996 5.996 0 0 0-5.143 2.91Z" />
-              </svg>
-              <span class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200"><%= t("dashboard.nav.my_account") %></span>
-            <% end %>
-          </li>
-          <li class="mr-0.5 md:mr-0 md:mb-0.5">
-            <%= link_to dashboard_pricing_path, class: "flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap bg-linear-to-r from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]" do %>
-              <svg class="shrink-0 fill-current text-violet-400 mr-2" width="16" height="16" viewBox="0 0 16 16">
-                <path d="M5 9a1 1 0 1 1 0-2h6a1 1 0 0 1 0 2H5ZM1 4a1 1 0 1 1 0-2h14a1 1 0 0 1 0 2H1Zm0 10a1 1 0 0 1 0-2h14a1 1 0 0 1 0 2H1Z" />
-              </svg>
-              <span class="text-sm font-medium text-violet-500 dark:text-violet-400"><%= t("dashboard.nav.plans") %></span>
-            <% end %>
-          </li>
-          <li class="mr-0.5 md:mr-0 md:mb-0.5">
-            <%= link_to dashboard_billing_path, class: "flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap" do %>
-              <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500 mr-2" width="16" height="16" viewBox="0 0 16 16">
-                <path d="M0 4a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4Zm2 0v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Zm9 1a1 1 0 0 1 0 2H5a1 1 0 1 1 0-2h6Zm0 4a1 1 0 0 1 0 2H5a1 1 0 1 1 0-2h6Z" />
-              </svg>
-              <span class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200"><%= t("dashboard.nav.billing_invoices") %></span>
-            <% end %>
-          </li>
-        </ul>
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.pricing.comparison_title", default: "Compare plans") %></h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.pricing.comparison_copy", default: "What’s included across tiers.") %></p>
       </div>
     </div>
-
-    <!-- Panel -->
-    <div class="grow">
-      <div class="p-6 space-y-6">
-        <section>
-          <div class="mb-8">
-            <h2 class="text-2xl text-gray-800 dark:text-gray-100 font-bold mb-4"><%= t("dashboard.nav.plans") %></h2>
-            <div class="text-sm"><%= t("dashboard.pricing.subtitle") %></div>
-          </div>
-
-          <div x-data="{ annual: <%= requested_interval == 'annual' ? 'true' : 'false' %> }">
-            <!-- Toggle switch -->
-            <div class="flex items-center space-x-3 mb-6">
-              <div class="text-sm text-gray-500 font-medium"><%= t("dashboard.pricing.toggle.monthly") %></div>
-              <div class="form-switch">
-                <input type="checkbox" id="toggle" class="sr-only" x-model="annual" />
-                <label for="toggle">
-                  <span class="bg-white shadow-xs" aria-hidden="true"></span>
-                  <span class="sr-only"><%= t("dashboard.pricing.toggle.pay_annually") %></span>
-                </label>
-              </div>
-              <div class="text-sm text-gray-500 font-medium">
-                <%= t("dashboard.pricing.toggle.annually") %>
-                <% if discount_percent.present? %>
-                  <span class="text-green-500">(-<%= discount_percent %>%)</span>
-                <% end %>
-              </div>
-            </div>
-
-            <!-- Pricing tabs -->
-            <div class="grid grid-cols-12 gap-6">
-              <% if visible_tiers.blank? %>
-                <div class="col-span-full text-sm text-gray-500 dark:text-gray-400">
-                  <%= t("dashboard.pricing.cta.current") %> — no higher tiers available.
-                </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-900/40 text-gray-600 dark:text-gray-300">
+          <tr>
+            <th class="px-5 py-3 text-left font-semibold"><%= t("dashboard.pricing.comparison_feature", default: "Feature") %></th>
+            <% visible_tiers.each do |tier| %>
+              <th class="px-5 py-3 text-center font-semibold"><%= tier.to_s.upcase %></th>
+            <% end %>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-800 dark:text-gray-100">
+          <% comparison_features = [
+            t("dashboard.pricing.feature_docs", default: "Full documentation"),
+            t("dashboard.pricing.feature_support", default: "Support & updates"),
+            t("dashboard.pricing.feature_trials", default: "Trial provisioning"),
+            t("dashboard.pricing.feature_partner", default: "Referral discounts"),
+            t("dashboard.pricing.feature_invoices", default: "Invoices & billing portal")
+          ] %>
+          <% comparison_features.each do |feature| %>
+            <tr>
+              <td class="px-5 py-3"><%= feature %></td>
+              <% visible_tiers.each do |_tier| %>
+                <td class="px-5 py-3 text-center">
+                  <svg class="w-4 h-4 inline-block fill-current text-emerald-500" viewBox="0 0 12 12">
+                    <path d="M10.28 1.28L3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
+                  </svg>
+                </td>
               <% end %>
-              <% tier_configs = {
-                basic: { accent: "green", border: "bg-green-500", name: t("dashboard.pricing.tiers.basic.name") },
-                hft: { accent: "sky", border: "bg-sky-500", name: t("dashboard.pricing.tiers.hft.name") },
-                pro: { accent: "violet", border: "bg-violet-500", name: t("dashboard.pricing.tiers.pro.name") }
-              } %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-              <% visible_tiers.each do |tier| %>
-                <% config = tier_configs.fetch(tier) %>
-                <% current_plan = current_tier == tier %>
-                <% requested_for_card = requested_tier == tier %>
-                <% monthly_key = "#{tier}_monthly" %>
-                <% annual_key = "#{tier}_annual" %>
-                <% monthly_available = Billing::ConfiguredPrices.price_id_for(monthly_key).present? %>
-                <% annual_available = Billing::ConfiguredPrices.price_id_for(annual_key).present? %>
-
-                <div class="relative col-span-full xl:col-span-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 shadow-xs rounded-b-lg">
-                  <div class="absolute top-0 left-0 right-0 h-0.5 <%= config[:border] %>" aria-hidden="true"></div>
-                  <div class="px-5 pt-5 pb-6 border-b border-gray-200 dark:border-gray-700/60">
-                    <header class="flex items-center mb-2">
-                      <div class="w-6 h-6 rounded-full shrink-0 <%= config[:border] %> mr-3">
-                        <svg class="w-6 h-6 fill-current text-white" viewBox="0 0 24 24">
-                          <path d="M12 17a.833.833 0 01-.833-.833 3.333 3.333 0 00-3.334-3.334.833.833 0 110-1.666 3.333 3.333 0 003.334-3.334.833.833 0 111.666 0 3.333 3.333 0 003.334 3.334.833.833 0 110 1.666 3.333 3.333 0 00-3.334 3.334c0 .46-.373.833-.833.833z" />
-                        </svg>
-                      </div>
-                      <h3 class="text-lg text-gray-800 dark:text-gray-100 font-semibold"><%= config[:name] %></h3>
-                    </header>
-
-                    <div class="text-sm mb-2"><%= t("dashboard.pricing.tiers.#{tier}.description") %></div>
-
-                    <!-- Price -->
-                    <div class="text-gray-800 dark:text-gray-100 font-bold mb-4">
-                      <span class="text-2xl">$</span>
-                      <span class="text-3xl" x-show="!annual" x-cloak><%= pricing.dig(:monthly, tier, :display) || "—" %></span>
-                      <span class="text-3xl" x-show="annual" x-cloak><%= pricing.dig(:annual, tier, :effective_monthly_display) || "—" %></span>
-                      <span class="text-gray-500 font-medium text-sm">/mo</span>
-                    </div>
-
-                    <!-- CTA -->
-                    <% if current_plan %>
-                      <button class="btn w-full bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white disabled:border-gray-200 dark:disabled:border-gray-700 disabled:bg-white dark:disabled:bg-gray-800 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed" disabled>
-                        <svg class="w-3 h-3 shrink-0 fill-current mr-2" viewBox="0 0 12 12">
-                          <path d="M10.28 1.28L3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
-                        </svg>
-                        <span><%= t("dashboard.pricing.cta.current") %></span>
-                      </button>
-                    <% else %>
-                      <% cta_label = subscribed ? t("dashboard.pricing.cta.upgrade") : t("dashboard.pricing.cta.subscribe") %>
-                      <div x-show="!annual" x-cloak>
-                        <% if monthly_available %>
-                          <%= button_to cta_label, dashboard_checkout_path(price_key: monthly_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full" %>
-                        <% else %>
-                          <button class="btn w-full border-gray-200 dark:border-gray-700/60 text-gray-400 dark:text-gray-500" disabled><%= t("dashboard.pricing.cta.unavailable") %></button>
-                        <% end %>
-                      </div>
-                      <div x-show="annual" x-cloak>
-                        <% if annual_available %>
-                          <%= button_to cta_label, dashboard_checkout_path(price_key: annual_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full" %>
-                        <% else %>
-                          <button class="btn w-full border-gray-200 dark:border-gray-700/60 text-gray-400 dark:text-gray-500" disabled><%= t("dashboard.pricing.cta.unavailable") %></button>
-                        <% end %>
-                      </div>
-                    <% end %>
-                  </div>
-
-                  <div class="px-5 pt-4 pb-5">
-                    <% if requested_for_card %>
-                      <div class="inline-flex items-center px-2 py-1 mb-3 text-xs font-semibold text-violet-600 bg-violet-50 rounded-md dark:bg-violet-500/20 dark:text-violet-100">
-                        <%= t("dashboard.pricing.requested_plan", default: "Selected plan") %>
-                      </div>
-                    <% end %>
-                    <div class="text-xs text-gray-800 dark:text-gray-100 font-semibold uppercase mb-4"><%= t("dashboard.pricing.whats_included") %></div>
-                    <ul>
-                      <% t("pricing.bullets").each do |bullet| %>
-                        <li class="flex items-center py-1">
-                          <svg class="w-3 h-3 shrink-0 fill-current text-green-500 mr-2" viewBox="0 0 12 12">
-                            <path d="M10.28 1.28L3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
-                          </svg>
-                          <div class="text-sm"><%= bullet %></div>
-                        </li>
-                      <% end %>
-                    </ul>
-                  </div>
-                </div>
-              <% end %>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <div class="px-5 py-3 bg-linear-to-r from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04] rounded-lg text-center xl:text-left xl:flex xl:flex-wrap xl:justify-between xl:items-center">
-            <div class="text-gray-800 dark:text-gray-100 font-semibold mb-2 xl:mb-0"><%= t("dashboard.pricing.help.title") %></div>
-            <%= link_to t("dashboard.pricing.help.cta"), dashboard_support_path, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
-          </div>
-        </section>
+  <!-- FAQ -->
+  <div class="grid gap-6 lg:grid-cols-3">
+    <div class="lg:col-span-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm">
+      <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.pricing.faq_title", default: "Questions about plans") %></h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.pricing.faq_copy", default: "Everything you need to know before subscribing.") %></p>
       </div>
+      <div class="divide-y divide-gray-200 dark:divide-gray-700">
+        <% faq_items = t("dashboard.pricing.faq_items", default: []).presence || [
+          { q: t("dashboard.pricing.faq_default_q1", default: "Can I upgrade mid-cycle?"), a: t("dashboard.pricing.faq_default_a1", default: "Yes. We swap the Stripe subscription and prorate automatically.") },
+          { q: t("dashboard.pricing.faq_default_q2", default: "Do referrals apply automatically?"), a: t("dashboard.pricing.faq_default_a2", default: "If you came from a referral link, we apply the coupon in Stripe checkout when available.") },
+          { q: t("dashboard.pricing.faq_default_q3", default: "Where do I manage invoices?"), a: t("dashboard.pricing.faq_default_a3", default: "Use the billing portal link from the Billing page to view invoices and payment methods.") }
+        ] %>
+        <% faq_items.each do |item| %>
+          <details class="group">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer">
+              <span class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= item[:q] %></span>
+              <svg class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" viewBox="0 0 12 12">
+                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-sm text-gray-600 dark:text-gray-300"><%= item[:a] %></div>
+          </details>
+        <% end %>
+      </div>
+    </div>
+    <div class="bg-linear-to-r from-violet-500 to-indigo-500 rounded-2xl text-white p-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8.009 8.009 0 0 1-8 8Z"></path>
+            <path d="M11 11h2v5h-2zM11 7h2v2h-2z"></path>
+          </svg>
+        </span>
+        <div>
+          <div class="text-lg font-semibold"><%= t("dashboard.pricing.help.title") %></div>
+          <p class="text-sm text-white/80"><%= t("dashboard.pricing.help.copy", default: "Not sure which plan fits? We can help you choose.") %></p>
+        </div>
+      </div>
+      <%= link_to t("dashboard.pricing.help.cta"), dashboard_support_path, class: "btn w-full bg-white text-gray-900 hover:bg-gray-50" %>
+      <p class="text-xs text-white/80 mt-3"><%= t("dashboard.pricing.help.secondary", default: "We answer within one business day.") %></p>
     </div>
   </div>
 </div>
