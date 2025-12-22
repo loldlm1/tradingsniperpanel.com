@@ -9,7 +9,9 @@
   </div>
 
   <div class="actions">
-    <%= f.submit "Resend unlock instructions" %>
+    <%= f.submit "Resend unlock instructions", data: { loading_target: true } do %>
+      <%= loading_label("Resend unlock instructions", loading_text: t("loading.default")) %>
+    <% end %>
   </div>
 <% end %>
 

@@ -32,7 +32,9 @@
   </div>
 
   <div class="actions">
-    <%= f.submit "Update" %>
+    <%= f.submit "Update", data: { loading_target: true } do %>
+      <%= loading_label("Update", loading_text: t("loading.default")) %>
+    <% end %>
   </div>
 <% end %>
 

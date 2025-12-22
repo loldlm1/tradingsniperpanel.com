@@ -225,9 +225,15 @@
             <% annual_key = "basic_annual" %>
             <% monthly_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
             <% annual_path = user_signed_in? ? dashboard_pricing_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
-            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group", :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
-              <%= t("landing.neon.pricing.plans.cta") %>
-              <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
+              <span data-loading-label>
+                <%= t("landing.neon.pricing.plans.cta") %>
+                <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+              </span>
+              <span class="hidden items-center gap-2" data-loading-spinner>
+                <span class="inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                <span><%= t("loading.default") %></span>
+              </span>
             <% end %>
             <div class="text-xs text-gray-500 mt-3" x-show="period === 'annual'" x-cloak><%= t("landing.neon.pricing.toggle.billed_annually") %></div>
           </div>
@@ -266,9 +272,15 @@
             <% annual_key = "hft_annual" %>
             <% monthly_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
             <% annual_path = user_signed_in? ? dashboard_pricing_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
-            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group", :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
-              <%= t("landing.neon.pricing.plans.cta") %>
-              <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
+              <span data-loading-label>
+                <%= t("landing.neon.pricing.plans.cta") %>
+                <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+              </span>
+              <span class="hidden items-center gap-2" data-loading-spinner>
+                <span class="inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                <span><%= t("loading.default") %></span>
+              </span>
             <% end %>
             <div class="text-xs text-gray-500 mt-3" x-show="period === 'annual'" x-cloak><%= t("landing.neon.pricing.toggle.billed_annually") %></div>
           </div>
@@ -299,9 +311,15 @@
             <% annual_key = "pro_annual" %>
             <% monthly_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
             <% annual_path = user_signed_in? ? dashboard_pricing_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
-            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group", :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
-              <%= t("landing.neon.pricing.plans.cta") %>
-              <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
+              <span data-loading-label>
+                <%= t("landing.neon.pricing.plans.cta") %>
+                <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+              </span>
+              <span class="hidden items-center gap-2" data-loading-spinner>
+                <span class="inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                <span><%= t("loading.default") %></span>
+              </span>
             <% end %>
             <div class="text-xs text-gray-500 mt-3" x-show="period === 'annual'" x-cloak><%= t("landing.neon.pricing.toggle.billed_annually") %></div>
           </div>
@@ -503,9 +521,15 @@
         </div>
 
         <div class="shrink-0">
-          <%= link_to(user_signed_in? ? dashboard_path : new_user_registration_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full group shadow-lg") do %>
-            <%= t("landing.neon.cta.button") %>
-            <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+          <%= link_to(user_signed_in? ? dashboard_path : new_user_registration_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full group shadow-lg flex items-center justify-center gap-2", data: { loading_target: true }) do %>
+            <span data-loading-label>
+              <%= t("landing.neon.cta.button") %>
+              <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+            </span>
+            <span class="hidden items-center gap-2" data-loading-spinner>
+              <span class="inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+              <span><%= t("loading.default") %></span>
+            </span>
           <% end %>
         </div>
       </div>

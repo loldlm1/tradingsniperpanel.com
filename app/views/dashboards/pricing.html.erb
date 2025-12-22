@@ -95,14 +95,18 @@
             <% cta_label = subscribed ? t("dashboard.pricing.cta.upgrade") : t("dashboard.pricing.cta.subscribe") %>
             <div x-show="!annual" x-cloak>
               <% if monthly_available %>
-                <%= button_to cta_label, dashboard_checkout_path(price_key: monthly_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full" %>
+                <%= button_to dashboard_checkout_path(price_key: monthly_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full", data: { loading_target: true } do %>
+                  <%= loading_label(cta_label, loading_text: t("loading.default")) %>
+                <% end %>
               <% else %>
                 <button class="btn w-full border border-dashed border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-500" disabled><%= t("dashboard.pricing.cta.unavailable") %></button>
               <% end %>
             </div>
             <div x-show="annual" x-cloak>
               <% if annual_available %>
-                <%= button_to cta_label, dashboard_checkout_path(price_key: annual_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full" %>
+                <%= button_to dashboard_checkout_path(price_key: annual_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full", data: { loading_target: true } do %>
+                  <%= loading_label(cta_label, loading_text: t("loading.default")) %>
+                <% end %>
               <% else %>
                 <button class="btn w-full border border-dashed border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-500" disabled><%= t("dashboard.pricing.cta.unavailable") %></button>
               <% end %>

@@ -12,7 +12,9 @@
       <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.billing_manage_copy") %></p>
     </div>
     <div class="flex gap-2">
-      <%= button_to t("dashboard.plan_card.manage"), dashboard_billing_portal_path, method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+      <%= button_to dashboard_billing_portal_path, method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white", data: { loading_target: true } do %>
+        <%= loading_label(t("dashboard.plan_card.manage"), loading_text: t("loading.default")) %>
+      <% end %>
       <%= link_to t("dashboard.nav.pricing", default: "Pricing"), dashboard_pricing_path, class: "btn bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
     </div>
   </div>
@@ -27,7 +29,9 @@
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("pricing.subtitle") %></p>
         </div>
         <div class="flex items-center gap-2">
-          <%= button_to t("dashboard.plan_card.manage"), dashboard_billing_portal_path, method: :post, class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+          <%= button_to dashboard_billing_portal_path, method: :post, class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white", data: { loading_target: true } do %>
+            <%= loading_label(t("dashboard.plan_card.manage"), loading_text: t("loading.default")) %>
+          <% end %>
           <%= link_to t("dashboard.nav.pricing", default: "Pricing"), dashboard_pricing_path, class: "btn-sm bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
         </div>
       </div>
@@ -113,11 +117,15 @@
             <span class="font-semibold"><%= pm_brand&.upcase || t("dashboard.billing.card", default: "Card") %></span>
             <span class="ml-2 text-gray-500 dark:text-gray-400">•••• <%= pm_last4 || "••••" %></span>
           </div>
-          <%= button_to t("dashboard.plan_card.manage"), dashboard_billing_portal_path, method: :post, class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+          <%= button_to dashboard_billing_portal_path, method: :post, class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white", data: { loading_target: true } do %>
+            <%= loading_label(t("dashboard.plan_card.manage"), loading_text: t("loading.default")) %>
+          <% end %>
         </div>
       <% else %>
         <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.billing.no_payment_method", default: "No payment method on file yet.") %></p>
-        <%= button_to t("dashboard.plan_card.manage"), dashboard_billing_portal_path, method: :post, class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+        <%= button_to dashboard_billing_portal_path, method: :post, class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white", data: { loading_target: true } do %>
+          <%= loading_label(t("dashboard.plan_card.manage"), loading_text: t("loading.default")) %>
+        <% end %>
       <% end %>
     </div>
 

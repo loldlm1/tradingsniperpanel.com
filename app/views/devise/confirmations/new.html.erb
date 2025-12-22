@@ -9,7 +9,9 @@
   </div>
 
   <div class="actions">
-    <%= f.submit "Resend confirmation instructions" %>
+    <%= f.submit "Resend confirmation instructions", data: { loading_target: true } do %>
+      <%= loading_label("Resend confirmation instructions", loading_text: t("loading.default")) %>
+    <% end %>
   </div>
 <% end %>
 

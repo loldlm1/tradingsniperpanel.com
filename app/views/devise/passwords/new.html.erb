@@ -51,7 +51,9 @@
                     <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input py-2 w-full" %>
                   </div>
                   <div class="mt-6">
-                    <%= f.submit t("devise.forgot_password"), class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" %>
+                    <%= f.submit t("devise.forgot_password"), class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true } do %>
+                      <%= loading_label(t("devise.forgot_password"), loading_text: t("loading.default")) %>
+                    <% end %>
                   </div>
                 <% end %>
               </div>

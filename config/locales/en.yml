@@ -72,6 +72,8 @@ en:
   referral:
     title: "Referral-aware"
     body: "Share your referral link; friends get discounted checkout and you keep attribution for future rewards."
+  loading:
+    default: "Processing..."
   dashboard:
     header:
       open_sidebar: "Open sidebar"

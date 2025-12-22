@@ -29,7 +29,9 @@
               </div>
 
               <div>
-                <%= button_tag t("terms_acceptance.cta"), type: :submit, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" %>
+                <button type="submit" class="btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2" data-loading-target="true">
+                  <%= loading_label(t("terms_acceptance.cta"), loading_text: t("loading.default")) %>
+                </button>
               </div>
             <% end %>
           </div>
