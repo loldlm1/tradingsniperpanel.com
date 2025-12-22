@@ -6,8 +6,8 @@ module ApplicationHelper
 
   def loading_label(label, loading_text: t("loading.default", default: "Processing..."))
     content_tag(:span, label, data: { loading_label: true }) +
-      content_tag(:span, class: "hidden inline-flex items-center justify-center gap-2", data: { loading_spinner: true }, role: "status", "aria-live": "polite") do
-        spinner_circle = content_tag(:span, "", class: "inline-block h-4 w-4 rounded-full border-2 border-solid border-current border-t-transparent animate-spin align-middle", style: "border-color: currentColor; border-top-color: transparent;")
+      content_tag(:span, class: "inline-flex items-center justify-center gap-2", data: { loading_spinner: true }, role: "status", "aria-live": "polite", hidden: true) do
+        spinner_circle = content_tag(:span, "", class: "loading-spinner inline-block h-4 w-4 rounded-full border-2 border-solid border-current border-t-transparent align-middle", style: "border-color: currentColor; border-top-color: transparent;")
         concat(spinner_circle)
         concat(content_tag(:span, loading_text, class: "text-sm"))
       end
