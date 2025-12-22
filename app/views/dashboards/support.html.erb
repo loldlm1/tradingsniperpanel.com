@@ -1,42 +1,90 @@
 <% content_for :title, "#{t('dashboard.nav.support', default: 'Support')} | #{t('app.short_name')}" %>
 
-<div class="mb-8">
-  <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.nav.support", default: "Support") %></h1>
-  <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.support_overview", default: "Get help fast. We’ll add live metrics soon; for now use these quick links.") %></p>
+<div class="mb-10">
+  <p class="text-sm text-violet-600 dark:text-violet-300 font-semibold uppercase tracking-wide mb-2"><%= t("dashboard.nav.support", default: "Support") %></p>
+  <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.support_overview") %></h1>
+  <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.support_intro", default: "FAQs, quick links, and a way to reach us.") %></p>
 </div>
 
 <div class="grid gap-6 lg:grid-cols-3">
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
-    <div class="grid gap-4 md:grid-cols-2">
-      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2"><%= t("dashboard.nav.docs", default: "Docs") %></div>
-        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3"><%= t("dashboard.support_docs_copy", default: "Read the manuals and change logs for each EA.") %></p>
-        <%= link_to t("nav.docs"), docs_path, class: "btn-sm bg-violet-600 hover:bg-violet-700 text-white" %>
+  <div class="lg:col-span-2 space-y-6">
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm">
+      <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.support_faq_title", default: "Frequently asked questions") %></h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.support_faq_copy", default: "Answers about licenses, billing, and docs.") %></p>
       </div>
-      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2"><%= t("dashboard.nav.billing", default: "Billing") %></div>
-        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3"><%= t("dashboard.support_billing_copy", default: "Manage subscription, invoices, and payment methods.") %></p>
-        <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "btn-sm bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
+      <div class="divide-y divide-gray-200 dark:divide-gray-700">
+        <% faq_items = t("dashboard.support_faq_items", default: []).presence || [
+          { q: t("dashboard.support_faq_default_q1", default: "Where can I download my docs?"), a: t("dashboard.support_faq_default_a1", default: "Go to Expert Advisors → Docs to view markdown previews and download files.") },
+          { q: t("dashboard.support_faq_default_q2", default: "How do I update billing?"), a: t("dashboard.support_faq_default_a2", default: "Open the billing portal from the Billing page to update card and download receipts.") },
+          { q: t("dashboard.support_faq_default_q3", default: "Who do I contact for payouts?"), a: t("dashboard.support_faq_default_a3", default: "Use the Request Payout button in the Partner dashboard; we’ll email you once processed.") }
+        ] %>
+        <% faq_items.each do |item| %>
+          <details class="group">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer">
+              <span class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= item[:q] %></span>
+              <svg class="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" viewBox="0 0 12 12">
+                <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
+              </svg>
+            </summary>
+            <div class="px-6 pb-4 text-sm text-gray-600 dark:text-gray-300"><%= item[:a] %></div>
+          </details>
+        <% end %>
       </div>
-      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2"><%= t("dashboard.contact_support", default: "Contact support") %></div>
-        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3"><%= t("dashboard.support_contact_copy", default: "Email support with your referral code for faster help.") %></p>
-        <%= mail_to ENV.fetch("SUPPORT_EMAIL", "support@example.com"), ENV.fetch("SUPPORT_EMAIL", "support@example.com"), class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-6">
+      <div class="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.support_contact", default: "Contact us") %></div>
+          <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.support_contact_copy", default: "Tell us what you need; include your referral code for faster help.") %></p>
+        </div>
       </div>
-      <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2"><%= t("dashboard.nav.pricing", default: "Pricing") %></div>
-        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3"><%= t("dashboard.support_pricing_copy", default: "Review plan options or upgrade when you’re ready.") %></p>
-        <%= link_to t("dashboard.nav.pricing", default: "Pricing"), dashboard_pricing_path, class: "btn-sm bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-100"><%= t("dashboard.support_email", default: "Email") %></label>
+          <input type="email" value="<%= current_user.email %>" class="form-input w-full" readonly />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1 text-gray-800 dark:text-gray-100"><%= t("dashboard.support_message", default: "Message") %></label>
+          <textarea class="form-textarea w-full" rows="4" placeholder="<%= t('dashboard.support_placeholder', default: 'Briefly describe the issue...') %>"></textarea>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <div class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.support_response_time", default: "We respond within one business day.") %></div>
+          <%= mail_to ENV.fetch("SUPPORT_EMAIL", "support@example.com"), t("dashboard.contact_support", default: "Send message"), class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-4"><%= t("dashboard.support_status", default: "Status") %></div>
-    <p class="text-sm text-gray-600 dark:text-gray-300 mb-2"><%= t("dashboard.support_status_copy", default: "All systems operational. Live incidents will appear here.") %></p>
-    <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-sm">
-      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-      <span><%= t("dashboard.support_operational", default: "Operational") %></span>
+  <div class="space-y-4">
+    <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-5">
+      <div class="flex items-start gap-3">
+        <span class="w-3 h-3 rounded-full bg-emerald-500 mt-1"></span>
+        <div>
+          <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.support_status", default: "Status") %></div>
+          <p class="text-sm text-gray-600 dark:text-gray-300"><%= t("dashboard.support_status_copy") %></p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.support_operational", default: "Operational") %></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-5 space-y-3">
+      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.support_links_title", default: "Quick links") %></div>
+      <ul class="space-y-2 text-sm">
+        <li class="flex items-center justify-between">
+          <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.docs", default: "Docs") %></span>
+          <%= link_to t("dashboard.support_open", default: "Open"), docs_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+        </li>
+        <li class="flex items-center justify-between">
+          <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.billing", default: "Billing") %></span>
+          <%= link_to t("dashboard.support_open", default: "Open"), dashboard_billing_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+        </li>
+        <li class="flex items-center justify-between">
+          <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.pricing", default: "Pricing") %></span>
+          <%= link_to t("dashboard.support_open", default: "Open"), dashboard_pricing_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+        </li>
+      </ul>
     </div>
   </div>
 </div>

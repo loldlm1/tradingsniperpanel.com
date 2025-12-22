@@ -1,10 +1,12 @@
-<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+<% accent = tone_class(tone) %>
+<div class="relative bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-4 overflow-hidden">
+  <div class="absolute inset-x-0 top-0 h-1 <%= accent %>"></div>
   <div class="flex items-center justify-between">
     <div>
-      <div class="text-sm font-semibold text-gray-600 dark:text-gray-300"><%= label %></div>
-      <div class="text-xl font-bold text-gray-900 dark:text-gray-100 mt-1"><%= number_to_currency(amount_cents.to_i / 100.0) %></div>
+      <div class="text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 tracking-wide"><%= label %></div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2"><%= number_to_currency(amount_cents.to_i / 100.0) %></div>
     </div>
-    <div class="flex h-10 w-10 items-center justify-center rounded-full <%= tone_class(tone) %> text-white text-sm font-semibold">
+    <div class="flex h-10 w-10 items-center justify-center rounded-full <%= accent %> text-white text-sm font-semibold shadow-sm">
       <%= label.to_s.first.upcase %>
     </div>
   </div>
