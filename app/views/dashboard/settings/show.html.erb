@@ -109,7 +109,9 @@
           <div class="flex flex-col px-6 py-5 border-t border-gray-200 dark:border-gray-700/60">
             <div class="flex self-end">
               <%= link_to t("dashboard.settings.cancel"), dashboard_path, class: "btn dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300" %>
-              <%= f.submit t("dashboard.settings.save_changes"), class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white ml-3" %>
+              <%= f.submit t("dashboard.settings.save_changes"), class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white ml-3", data: { loading_target: true } do %>
+                <%= loading_label(t("dashboard.settings.save_changes"), loading_text: t("loading.default")) %>
+              <% end %>
             </div>
           </div>
         </footer>
@@ -117,4 +119,3 @@
     </div>
   </div>
 </div>
-

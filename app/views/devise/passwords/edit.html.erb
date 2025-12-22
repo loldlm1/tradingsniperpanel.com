@@ -18,7 +18,9 @@
   </div>
 
   <div class="actions">
-    <%= f.submit "Change my password" %>
+    <%= f.submit "Change my password", data: { loading_target: true } do %>
+      <%= loading_label("Change my password", loading_text: t("loading.default")) %>
+    <% end %>
   </div>
 <% end %>
 

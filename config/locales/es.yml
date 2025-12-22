@@ -72,6 +72,8 @@ es:
   referral:
     title: "Listo para referidos"
     body: "Comparte tu link: tus referidos obtienen descuento y mantenemos la atribución para futuras recompensas."
+  loading:
+    default: "Procesando..."
   dashboard:
     header:
       open_sidebar: "Abrir sidebar"

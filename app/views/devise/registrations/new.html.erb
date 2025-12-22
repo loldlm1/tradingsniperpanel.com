@@ -70,7 +70,9 @@
                     </label>
                   </div>
                   <div class="mt-6">
-                    <%= f.submit t("devise.sign_up_title"), class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" %>
+                    <%= f.submit t("devise.sign_up_title"), class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true } do %>
+                      <%= loading_label(t("devise.sign_up_title"), loading_text: t("loading.default")) %>
+                    <% end %>
                   </div>
                 <% end %>
 
