@@ -7,8 +7,8 @@ const resetLoadingButtons = () => {
     el.classList.remove("pointer-events-none", "opacity-75");
     const label = el.querySelector("[data-loading-label]");
     const spinner = el.querySelector("[data-loading-spinner]");
-    if (label) label.classList.remove("hidden");
-    if (spinner) spinner.classList.add("hidden");
+    if (label) label.hidden = false;
+    if (spinner) spinner.hidden = true;
   });
 };
 
@@ -25,8 +25,8 @@ const activateLoading = (target) => {
 
   const label = target.querySelector("[data-loading-label]");
   const spinner = target.querySelector("[data-loading-spinner]");
-  if (label) label.classList.add("hidden");
-  if (spinner) spinner.classList.remove("hidden");
+  if (label) label.hidden = true;
+  if (spinner) spinner.hidden = false;
 };
 
 const bindLoadingButtons = () => {

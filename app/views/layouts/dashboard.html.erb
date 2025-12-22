@@ -9,6 +9,10 @@
 
     <%= stylesheet_link_tag "mosaic/css/vendors/flatpickr.min" %>
     <%= stylesheet_link_tag "mosaic/style" %>
+    <style>
+      @keyframes loading-spin { to { transform: rotate(360deg); } }
+      .loading-spinner { animation: loading-spin 0.8s linear infinite; }
+    </style>
     <%= yield :head %>
   </head>
   <body
