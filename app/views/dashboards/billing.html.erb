@@ -13,7 +13,7 @@
         <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("pricing.subtitle") %></p>
       </div>
       <div class="flex gap-2">
-        <%= button_to t("dashboard.plan_card.manage"), dashboard_billing_portal_path, method: :post, class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white", data: { turbo: false } %>
+        <%= button_to t("dashboard.plan_card.manage"), dashboard_billing_portal_path, method: :post, class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
         <%= link_to t("dashboard.plan_card.subscribe"), dashboard_pricing_path, class: "btn-sm bg-violet-600 hover:bg-violet-700 text-white" %>
       </div>
     </div>

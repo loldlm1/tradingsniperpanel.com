@@ -13,8 +13,8 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%= stylesheet_link_tag "neon/css/vendors/aos", "data-turbo-track": "reload" %>
-    <%= stylesheet_link_tag "neon/style", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "neon/css/vendors/aos" %>
+    <%= stylesheet_link_tag "neon/style" %>
     <style>[x-cloak]{display:none !important}</style>
     <%= yield :head %>
   </head>
@@ -112,9 +112,9 @@
     <% end %>
 
     <%= javascript_importmap_tags %>
-    <%= javascript_include_tag "neon/js/vendors/alpinejs.min", "data-turbo-track": "reload", defer: true %>
-    <%= javascript_include_tag "neon/js/vendors/aos", "data-turbo-track": "reload" %>
-    <%= javascript_include_tag "neon/js/main", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "neon/js/vendors/alpinejs.min", defer: true %>
+    <%= javascript_include_tag "neon/js/vendors/aos" %>
+    <%= javascript_include_tag "neon/js/main" %>
     <%= yield :scripts if content_for?(:scripts) %>
   </body>
 </html>
