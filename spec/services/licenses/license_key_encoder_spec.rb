@@ -11,6 +11,12 @@ RSpec.describe Licenses::LicenseKeyEncoder do
     expect(key1).to eq(key1.upcase)
   end
 
+  it "decrypts back to the normalized payload with the static days marker" do
+    key = encoder.generate(email: "User@example.com", ea_id: "ea-alpha")
+
+    expect(encoder.decrypt(key)).to eq("user@example.com,ea-alpha,34")
+  end
+
   it "changes when email or ea_id changes" do
     base_key = encoder.generate(email: "user@example.com", ea_id: "ea-alpha")
     other_email = encoder.generate(email: "user2@example.com", ea_id: "ea-alpha")
