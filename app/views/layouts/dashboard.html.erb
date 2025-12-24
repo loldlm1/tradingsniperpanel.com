@@ -12,6 +12,7 @@
     <%= stylesheet_link_tag "dashboard" %>
     <%= yield :head %>
   </head>
+  <%= javascript_include_tag "theme" %>
   <body
     class="<%= content_for?(:body_class) ? yield(:body_class) : "font-inter antialiased bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400" %>"
     :class="{ 'sidebar-expanded': sidebarExpanded }"
@@ -357,6 +358,7 @@
     </div>
 
     <%= javascript_importmap_tags %>
+  	<%= javascript_include_tag "dashboard" %>
     <%= javascript_include_tag "mosaic/js/vendors/alpinejs.min", defer: true %>
     <%= javascript_include_tag "mosaic/js/vendors/chart.js" %>
     <%= javascript_include_tag "mosaic/js/vendors/moment.js" %>
