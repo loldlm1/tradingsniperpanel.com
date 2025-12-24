@@ -32,4 +32,19 @@ RSpec.describe "Expert advisor docs", type: :request do
 
     expect(response).to have_http_status(:not_found)
   end
+
+  it "orders expert advisors by tier_rank then name" do
+    tiered = [
+      create(:expert_advisor, name: "Sniper Advanced Panel", tier_rank: 1),
+      create(:expert_advisor, name: "Pandora Box", tier_rank: 2),
+      create(:expert_advisor, name: "XAU HFT Scalper", tier_rank: 3)
+    ]
+    sign_in user, scope: :user
+
+    get dashboard_expert_advisors_path(locale: :en)
+
+    positions = tiered.map { |ea| response.body.index(ea.name) }
+    expect(positions).to all(be_present)
+    expect(positions).to eq(positions.sort)
+  end
 end

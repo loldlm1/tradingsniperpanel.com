@@ -9,10 +9,7 @@
 
     <%= stylesheet_link_tag "mosaic/css/vendors/flatpickr.min" %>
     <%= stylesheet_link_tag "mosaic/style" %>
-    <style>
-      @keyframes loading-spin { to { transform: rotate(360deg); } }
-      .loading-spinner { animation: loading-spin 0.8s linear infinite; }
-    </style>
+    <%= stylesheet_link_tag "dashboard" %>
     <%= yield :head %>
   </head>
   <body
@@ -22,47 +19,6 @@
     x-init="$watch('sidebarExpanded', value => localStorage.setItem('sidebar-expanded', value))"
   >
     <% dashboard_user = current_user.is_a?(User) ? current_user : nil %>
-    <script>
-      if (localStorage.getItem('dark-mode') === 'false' || !('dark-mode' in localStorage)) {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.style.colorScheme = 'light';
-      } else {
-        document.documentElement.classList.add('dark');
-        document.documentElement.style.colorScheme = 'dark';
-      }
-      if (localStorage.getItem('sidebar-expanded') == 'true') {
-        document.body.classList.add('sidebar-expanded');
-      } else {
-        document.body.classList.remove('sidebar-expanded');
-      }
-    </script>
-    <%= javascript_tag nonce: content_security_policy_nonce do %>
-      window.copyToClipboard = function(button) {
-        if (!button || !button.dataset) return;
-
-        var text = button.dataset.copyText;
-        if (!text || !navigator.clipboard || !navigator.clipboard.writeText) return;
-
-        var defaultText = button.dataset.defaultText || button.textContent;
-        var copiedText = button.dataset.copiedText || 'Copied';
-        var resetAfterMs = parseInt(button.dataset.resetAfterMs || '1500', 10);
-
-        button.disabled = true;
-
-        navigator.clipboard.writeText(text).then(function() {
-          button.textContent = copiedText;
-          button.classList.add('text-emerald-600', 'dark:text-emerald-200');
-
-          setTimeout(function() {
-            button.textContent = defaultText;
-            button.classList.remove('text-emerald-600', 'dark:text-emerald-200');
-            button.disabled = false;
-          }, resetAfterMs);
-        }).catch(function() {
-          button.disabled = false;
-        });
-      };
-    <% end %>
 
     <div class="flex h-[100dvh] overflow-hidden">
       <div class="min-w-fit">

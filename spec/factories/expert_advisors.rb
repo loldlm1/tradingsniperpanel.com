@@ -3,6 +3,7 @@ FactoryBot.define do
     sequence(:name) { |n| "Expert Advisor #{n}" }
     description { "Sample expert advisor description" }
     ea_type { :ea_robot }
+    tier_rank { 0 }
     documents { { guide: "http://example.com/guide" } }
     allowed_subscription_tiers { %w[basic pro] }
   end
