@@ -10,7 +10,18 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
   let!(:basic_ea) { create(:expert_advisor, ea_id: "basic-ea", allowed_subscription_tiers: %w[basic pro]) }
   let!(:all_ea) { create(:expert_advisor, ea_id: "all-ea", allowed_subscription_tiers: []) }
   let!(:pro_only_ea) { create(:expert_advisor, ea_id: "pro-ea", allowed_subscription_tiers: %w[pro]) }
-  let!(:disallowed_license) { create(:license, user:, expert_advisor: pro_only_ea, status: "active", trial_ends_at: nil, expires_at: nil, source: "legacy") }
+  let!(:disallowed_license) do
+    create(
+      :license,
+      user:,
+      expert_advisor: pro_only_ea,
+      status: "active",
+      trial_ends_at: nil,
+      expires_at: nil,
+      encrypted_key: "LEGACY",
+      source: "legacy"
+    )
+  end
 
   before do
     clear_enqueued_jobs
@@ -57,7 +68,16 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
       current_period_end: past_end,
       ends_at: past_end
     )
-    license = create(:license, user:, expert_advisor: basic_ea, status: "active", trial_ends_at: nil, expires_at: nil, source: "legacy")
+    license = create(
+      :license,
+      user:,
+      expert_advisor: basic_ea,
+      status: "active",
+      trial_ends_at: nil,
+      expires_at: nil,
+      encrypted_key: "LEGACY",
+      source: "legacy"
+    )
 
     described_class.new(subscription_id: subscription.id, encoder: encoder).call
 

@@ -25,12 +25,13 @@ module Licenses
       license = License.find_or_initialize_by(user:, expert_advisor:)
       return if license.persisted?
 
-      license.encrypted_key = encoder.generate(email: user.email, ea_id: expert_advisor.ea_id)
       license.status = "trial"
       license.trial_ends_at = now + TRIAL_PERIOD
       license.plan_interval ||= nil
       license.source = "trial"
       license.last_synced_at = now
+      expires_at = license.effective_expires_at
+      license.encrypted_key = encoder.generate(email: user.email, ea_id: expert_advisor.ea_id, expires_at:)
       license.save!
     end
   end

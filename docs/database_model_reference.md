@@ -34,7 +34,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 - API rate limit: `Api::V1::LicensesController#verify` caches per-email hits (60/min) and upserts BrokerAccounts (retrying on uniqueness conflicts).
 
 ## API surface
-- `POST /api/v1/licenses/verify` (JSON only): params `source`, `email`, `ea_id`, `license_key`, optional `broker_account` payload (`name`, `company`, `account_number`, `account_type`). Success returns `ok`, `plan_interval`, `trial`, `expires_at`, optional `broker_account`. Errors: `user_not_found`, `ea_not_found`, `license_not_found`, `invalid_key`, `expired`, `trial_disabled`, `invalid_source`, `invalid_payload`, or `rate_limited`.
+- `POST /api/v1/licenses/verify` (JSON only): params `source`, `email`, `ea_id`, `license_key`, optional `broker_account` payload (`name`, `company`, `account_number`, `account_type`). Success returns `ok`, `plan_interval`, `trial`, `expires_at` (unix timestamp), optional `broker_account`. Errors: `user_not_found`, `ea_not_found`, `license_not_found`, `invalid_key`, `expired`, `trial_disabled`, `invalid_source`, `invalid_payload`, or `rate_limited`.
 
 ## Data flow highlights
 - New user: Devise creates record; callbacks ensure referral code, partner profile (if role partner), enqueue `Licenses::CreateTrialLicensesJob`.

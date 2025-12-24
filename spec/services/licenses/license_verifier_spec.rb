@@ -5,7 +5,8 @@ RSpec.describe Licenses::LicenseVerifier do
   let(:verifier) { described_class.new(encoder:, expected_source: "trading_sniper_ea") }
   let(:user) { create(:user, email: "trader@example.com") }
   let(:expert_advisor) { create(:expert_advisor, ea_id: "ea-test") }
-  let(:license_key) { encoder.generate(email: user.email, ea_id: expert_advisor.ea_id) }
+  let(:expires_at) { 7.days.from_now }
+  let(:license_key) { encoder.generate(email: user.email, ea_id: expert_advisor.ea_id, expires_at:) }
   let!(:license) do
     create(
       :license,
@@ -13,7 +14,7 @@ RSpec.describe Licenses::LicenseVerifier do
       expert_advisor:,
       status: "active",
       trial_ends_at: 3.days.from_now,
-      expires_at: 7.days.from_now,
+      expires_at: expires_at,
       encrypted_key: license_key
     )
   end

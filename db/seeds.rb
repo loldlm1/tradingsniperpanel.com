@@ -4,6 +4,7 @@ expert_advisors = [
   {
     name: "Sniper Advanced Panel",
     tier_rank: 1,
+		ea_id: "sniper_advanced_panel",
     description: "Risk-first trading panel with crosshair scope, grid depth control, and hotkey-driven execution.",
     ea_type: :ea_tool,
     trial_enabled: true,
@@ -17,6 +18,7 @@ expert_advisors = [
   },
   {
     name: "XAUUSD HFT EA",
+		ea_id: "xau_hft_scalper",
     tier_rank: 3,
     description: "Gold-focused high-frequency robot optimized for tight spreads and fast execution.",
     ea_type: :ea_robot,
@@ -31,6 +33,7 @@ expert_advisors = [
   {
     name: "PANDORA BOX EA",
     tier_rank: 2,
+		ea_id: "pandora_box",
     description: "Adaptive multi-symbol EA with protective filters and dynamic risk throttling.",
     ea_type: :ea_robot,
     trial_enabled: true,
