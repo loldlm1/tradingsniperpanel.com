@@ -8,10 +8,12 @@ class ExpertAdvisor < ApplicationRecord
 
   default_scope { where(deleted_at: nil) }
   scope :active, -> { where(deleted_at: nil) }
+  scope :ordered_by_rank, -> { order(:tier_rank, :name) }
 
   before_validation :assign_ea_id, on: :create
 
   validates :ea_id, presence: true, uniqueness: true
+  validates :tier_rank, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   # Prevent accidental EA identifier changes once issued
   validate :ea_id_immutable, on: :update
 

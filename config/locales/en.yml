@@ -75,6 +75,8 @@ en:
   loading:
     default: "Processing..."
   dashboard:
+    copy: "Copy"
+    copied: "Copied"
     header:
       open_sidebar: "Open sidebar"
       language: "Language"

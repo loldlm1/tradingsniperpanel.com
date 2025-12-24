@@ -34,7 +34,14 @@
       <% if entry&.accessible && entry.license_key.present? %>
         <div class="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-800 dark:text-gray-100">
           <span class="truncate"><%= entry.license_key %></span>
-          <button type="button" class="text-violet-600 dark:text-violet-300 font-semibold" onclick="navigator.clipboard && navigator.clipboard.writeText('<%= j entry.license_key %>')"><%= t("dashboard.copy", default: "Copy") %></button>
+          <button
+            type="button"
+            class="text-violet-600 dark:text-violet-300 font-semibold"
+            data-copy-text="<%= j entry.license_key %>"
+            data-default-text="<%= t('dashboard.copy', default: t('dashboard.expert_advisors.copy_code', default: 'Copy')) %>"
+            data-copied-text="<%= t('dashboard.copied', default: t('dashboard.expert_advisors.copied', default: 'Copied')) %>"
+            onclick="copyToClipboard(this)"
+          ><%= t("dashboard.copy", default: t("dashboard.expert_advisors.copy_code", default: "Copy")) %></button>
         </div>
       <% else %>
         <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.locked", default: "Subscribe to unlock this EA and receive your license.") %></p>
@@ -97,8 +104,11 @@
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
       <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3"><%= t("dashboard.nav.expert_advisors", default: "Expert Advisors") %></div>
       <div class="flex flex-wrap gap-2">
-        <% (@accessible_eas || []).each do |e| %>
-          <%= link_to e.expert_advisor.name, dashboard_expert_advisor_docs_path(e.expert_advisor, locale: I18n.locale), class: "px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-100 hover:border-violet-400 dark:hover:border-violet-400" %>
+        <% (@accessible_eas || []).each_with_index do |e, idx| %>
+          <%= link_to dashboard_expert_advisor_docs_path(e.expert_advisor, locale: I18n.locale), class: "px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-100 hover:border-violet-400 dark:hover:border-violet-400 flex items-center gap-2" do %>
+            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= idx + 1 %></span>
+            <span class="truncate"><%= e.expert_advisor.name %></span>
+          <% end %>
         <% end %>
       </div>
     </div>

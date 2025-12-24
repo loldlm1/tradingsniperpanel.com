@@ -22,7 +22,7 @@
 </div>
 
 <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-  <% (@accessible_eas || []).each do |entry| %>
+  <% (@accessible_eas || []).each_with_index do |entry, idx| %>
     <% ea = entry.expert_advisor %>
     <% badge_class = case entry.status
                     when :active then "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
@@ -33,9 +33,12 @@
     <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between">
       <div class="space-y-3">
         <div class="flex items-center justify-between gap-2">
-          <div>
-            <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= ea.name %></h2>
-            <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= ea.ea_type %></div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-xs font-semibold"><%= idx + 1 %></span>
+            <div>
+              <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= ea.name %></h2>
+              <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= ea.ea_type %></div>
+            </div>
           </div>
           <div class="flex flex-col items-end gap-1">
             <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= entry.status.to_s.humanize %></span>
@@ -56,7 +59,14 @@
             <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1"><%= t("dashboard.license_key", default: "License Key") %></div>
             <div class="flex items-center gap-2 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
               <span class="truncate"><%= entry.license_key %></span>
-              <button type="button" class="text-violet-600 dark:text-violet-300 font-semibold" onclick="navigator.clipboard && navigator.clipboard.writeText('<%= j entry.license_key %>')"><%= t('dashboard.copy', default: 'Copy') %></button>
+              <button
+                type="button"
+                class="text-violet-600 dark:text-violet-300 font-semibold"
+                data-copy-text="<%= j entry.license_key %>"
+                data-default-text="<%= t('dashboard.copy', default: t('dashboard.expert_advisors.copy_code', default: 'Copy')) %>"
+                data-copied-text="<%= t('dashboard.copied', default: t('dashboard.expert_advisors.copied', default: 'Copied')) %>"
+                onclick="copyToClipboard(this)"
+              ><%= t("dashboard.copy", default: t("dashboard.expert_advisors.copy_code", default: "Copy")) %></button>
             </div>
             <% if entry.expires_at.present? %>
               <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.expires_at", default: "Expires") %>: <%= l(entry.expires_at, format: :short_with_year) %></div>
