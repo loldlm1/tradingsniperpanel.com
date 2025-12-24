@@ -36,6 +36,33 @@
         document.body.classList.remove('sidebar-expanded');
       }
     </script>
+    <%= javascript_tag nonce: content_security_policy_nonce do %>
+      window.copyToClipboard = function(button) {
+        if (!button || !button.dataset) return;
+
+        var text = button.dataset.copyText;
+        if (!text || !navigator.clipboard || !navigator.clipboard.writeText) return;
+
+        var defaultText = button.dataset.defaultText || button.textContent;
+        var copiedText = button.dataset.copiedText || 'Copied';
+        var resetAfterMs = parseInt(button.dataset.resetAfterMs || '1500', 10);
+
+        button.disabled = true;
+
+        navigator.clipboard.writeText(text).then(function() {
+          button.textContent = copiedText;
+          button.classList.add('text-emerald-600', 'dark:text-emerald-200');
+
+          setTimeout(function() {
+            button.textContent = defaultText;
+            button.classList.remove('text-emerald-600', 'dark:text-emerald-200');
+            button.disabled = false;
+          }, resetAfterMs);
+        }).catch(function() {
+          button.disabled = false;
+        });
+      };
+    <% end %>
 
     <div class="flex h-[100dvh] overflow-hidden">
       <div class="min-w-fit">
@@ -151,11 +178,14 @@
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.expert_advisors_all") %></span>
                         <% end %>
                       </li>
-                      <% (@accessible_eas || []).each do |entry| %>
+                      <% (@accessible_eas || []).each_with_index do |entry, idx| %>
                         <li class="mb-1 last:mb-0">
                           <% docs_path = dashboard_expert_advisor_docs_path(entry.expert_advisor, locale: I18n.locale) %>
                           <%= link_to docs_path, class: mosaic_sidebar_child_link_classes(active: current_page?(docs_path)) do %>
-                            <span class="<%= mosaic_sidebar_child_span_classes %>"><%= entry.expert_advisor.name %></span>
+                            <span class="<%= mosaic_sidebar_child_span_classes %> flex items-center gap-2">
+                              <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= idx + 1 %></span>
+                              <span class="truncate"><%= entry.expert_advisor.name %></span>
+                            </span>
                           <% end %>
                         </li>
                       <% end %>
