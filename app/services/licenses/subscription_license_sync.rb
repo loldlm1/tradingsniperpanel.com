@@ -45,7 +45,6 @@ module Licenses
     def sync_license_for(user:, expert_advisor:, interval:, subscription:)
       license = License.find_or_initialize_by(user:, expert_advisor:)
       license.with_lock do
-        license.encrypted_key = encoder.generate(email: user.email, ea_id: expert_advisor.ea_id)
         license.plan_interval = interval
         license.source = "stripe_subscription"
         license.last_synced_at = Time.current
@@ -53,6 +52,8 @@ module Licenses
         license.status = subscription_active?(subscription) ? "active" : "expired"
         license.trial_ends_at = nil if license.active?
         license.expires_at = subscription.current_period_end || subscription.ends_at || license.expires_at
+        expires_at = license.effective_expires_at
+        license.encrypted_key = encoder.generate(email: user.email, ea_id: expert_advisor.ea_id, expires_at:)
         license.save!
       end
     end

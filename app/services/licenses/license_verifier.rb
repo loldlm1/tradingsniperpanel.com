@@ -28,7 +28,12 @@ module Licenses
       return failure(:trial_disabled, :unauthorized) if license.trial? && !expert_advisor.trial_enabled?
       return failure(:expired, :unprocessable_entity) if license.revoked? || license.expired_by_time?
       return failure(:invalid_key, :unauthorized) unless secure_compare(license.encrypted_key, license_key)
-      return failure(:invalid_key, :unauthorized) unless encoder.valid_key?(license_key:, email: user.email, ea_id: expert_advisor.ea_id)
+      return failure(:invalid_key, :unauthorized) unless encoder.valid_key?(
+        license_key:,
+        email: user.email,
+        ea_id: expert_advisor.ea_id,
+        expires_at: license.effective_expires_at
+      )
 
       success(license)
     end

@@ -18,7 +18,7 @@ module Api
             ok: true,
             plan_interval: result.plan_interval,
             trial: result.trial,
-            expires_at: result.expires_at&.iso8601,
+            expires_at: result.expires_at&.to_i,
             broker_account: broker_account ? serialize_broker_account(broker_account) : nil
           }
         else

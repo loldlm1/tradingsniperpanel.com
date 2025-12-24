@@ -27,6 +27,7 @@ gem "stripe", "~> 18.0"
 gem "refer"
 gem "maxminddb"
 gem "sidekiq"
+gem "sidekiq-cron"
 gem "omniauth-google-oauth2"
 gem "omniauth-rails_csrf_protection"
 
