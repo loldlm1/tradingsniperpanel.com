@@ -1,5 +1,7 @@
 // Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
 
+import "./dashboard";
+
 const resetLoadingButtons = () => {
   document.querySelectorAll("[data-loading-target]").forEach((el) => {
     delete el.dataset.loadingActive;
@@ -64,3 +66,5 @@ const bindLoadingButtons = () => {
 
 document.addEventListener("DOMContentLoaded", bindLoadingButtons);
 window.addEventListener("pageshow", bindLoadingButtons);
+
+import "./dashboard";

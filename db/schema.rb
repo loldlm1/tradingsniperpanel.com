@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_21_000000) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_22_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -37,9 +37,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_21_000000) do
     t.datetime "updated_at", null: false
     t.string "ea_id", null: false
     t.boolean "trial_enabled", default: true, null: false
+    t.integer "tier_rank", default: 0, null: false
     t.index ["deleted_at"], name: "index_expert_advisors_on_deleted_at"
     t.index ["ea_id"], name: "index_expert_advisors_on_ea_id", unique: true
     t.index ["ea_type"], name: "index_expert_advisors_on_ea_type"
+    t.index ["tier_rank"], name: "index_expert_advisors_on_tier_rank"
   end
 
   create_table "licenses", force: :cascade do |t|
