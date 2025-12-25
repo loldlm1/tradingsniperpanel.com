@@ -6,6 +6,7 @@ RSpec.describe "Licenses API", type: :request do
   let(:expert_advisor) { create(:expert_advisor, ea_id: "ea-api") }
   let(:expires_at) { 5.days.from_now }
   let(:license_key) { encoder.generate(email: user.email, ea_id: expert_advisor.ea_id, expires_at:) }
+  let(:source_id) { ENV.fetch("EA_LICENSE_SOURCE_ID", "trading_sniper_floor") }
   let!(:license) do
     create(
       :license,
@@ -20,7 +21,7 @@ RSpec.describe "Licenses API", type: :request do
 
   it "returns ok for valid payload" do
     post "/api/v1/licenses/verify", params: {
-      source: "trading_sniper_ea",
+      source: source_id,
       email: user.email,
       ea_id: expert_advisor.ea_id,
       license_key: license_key
@@ -49,7 +50,7 @@ RSpec.describe "Licenses API", type: :request do
 
   it "creates or reuses broker accounts from payload" do
     params = {
-      source: "trading_sniper_ea",
+      source: source_id,
       email: user.email,
       ea_id: expert_advisor.ea_id,
       license_key: license_key,

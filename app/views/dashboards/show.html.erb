@@ -31,18 +31,44 @@
       <div>
         <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.plan_card.title") %></div>
         <div class="mt-3 text-2xl font-semibold text-gray-800 dark:text-gray-100">
-          <%= plan[:tier]&.to_s&.upcase || "—" %>
-          <span class="text-base text-gray-500 dark:text-gray-400 font-normal"><%= plan[:interval]&.capitalize %></span>
+          <% if plan[:tier].present? %>
+            <%= plan[:tier].to_s.upcase %>
+            <% if plan[:interval].present? %>
+              <span class="text-base text-gray-500 dark:text-gray-400 font-normal"><%= plan[:interval].capitalize %></span>
+            <% end %>
+          <% else %>
+            —
+          <% end %>
         </div>
-        <% if plan[:price_key].present? %>
+        <% if plan[:status] == :pending %>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <%= plan[:label].present? ? t("dashboard.plan_card.processing_with_plan", plan: plan[:label]) : t("dashboard.plan_card.processing") %>
+          </p>
+        <% elsif plan[:status] == :failed %>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.plan_card.payment_failed") %></p>
+        <% elsif plan[:price_key].present? %>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.plan_card.plan_key", default: "Plan key") %>: <%= plan[:price_key] %></p>
         <% else %>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.plan_card.status_inactive") %></p>
         <% end %>
       </div>
-      <span class="px-3 py-1 rounded-full text-xs font-semibold <%= plan[:status] == :active ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100' %>">
-        <%= plan[:status] == :active ? t("dashboard.plan_card.status_active") : t("dashboard.plan_card.status_inactive") %>
-      </span>
+      <% status_label = case plan[:status]
+                       when :active then t("dashboard.plan_card.status_active")
+                       when :pending then t("dashboard.plan_card.status_pending")
+                       when :failed then t("dashboard.plan_card.status_failed")
+                       else t("dashboard.plan_card.status_inactive")
+                       end %>
+      <% status_class = case plan[:status]
+                       when :active
+                         "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
+                       when :pending
+                         "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
+                       when :failed
+                         "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-100"
+                       else
+                         "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
+                       end %>
+      <span class="px-3 py-1 rounded-full text-xs font-semibold <%= status_class %>"><%= status_label %></span>
     </div>
     <div class="mt-4 flex flex-wrap gap-2">
       <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "btn-xs bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>

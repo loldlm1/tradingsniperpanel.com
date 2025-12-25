@@ -2,12 +2,13 @@ module Dashboard
   class OverviewPresenter
     Activity = Struct.new(:title, :subtitle, :occurred_at, :tone, keyword_init: true)
 
-    def initialize(user:, pay_customer:, subscription:, plan_context:, accessible_eas:)
+    def initialize(user:, pay_customer:, subscription:, plan_context:, accessible_eas:, plan_hint: nil)
       @user = user
       @pay_customer = pay_customer
       @subscription = subscription
       @plan_context = plan_context
       @accessible_eas = accessible_eas
+      @plan_hint = plan_hint
     end
 
     def call
@@ -15,11 +16,16 @@ module Dashboard
     end
 
     def plan
+      price_key = plan_context[:current_price_key].presence || plan_hint_key
+      hint_tier, hint_interval = parse_price_key(price_key)
+      tier = plan_context[:current_tier].presence || hint_tier
+      interval = plan_context[:current_interval].presence || hint_interval
       {
-        tier: plan_context[:current_tier],
-        interval: plan_context[:current_interval],
-        price_key: plan_context[:current_price_key],
-        status: subscription&.active? ? :active : :inactive,
+        tier: tier,
+        interval: interval,
+        price_key: price_key,
+        status: plan_status(price_key),
+        label: plan_label(tier, interval),
         renews_at: subscription&.respond_to?(:current_period_end) ? subscription.current_period_end : nil
       }
     end
@@ -63,7 +69,7 @@ module Dashboard
           title: I18n.t("dashboard.activity.charge_title", default: "Charge"),
           subtitle: charge_subtitle(charge),
           occurred_at: charge.created_at,
-          tone: charge.data["status"] == "succeeded" ? :success : :warning
+          tone: charge_succeeded?(charge) ? :success : :warning
         )
       end
 
@@ -72,7 +78,7 @@ module Dashboard
 
     private
 
-    attr_reader :user, :pay_customer, :subscription, :plan_context, :accessible_eas
+    attr_reader :user, :pay_customer, :subscription, :plan_context, :accessible_eas, :plan_hint
 
     def license_events
       licenses = user.licenses.includes(:expert_advisor)
@@ -120,6 +126,72 @@ module Dashboard
 
     def currency(cents)
       ActionController::Base.helpers.number_to_currency((cents || 0) / 100.0, unit: "$", precision: 2)
+    end
+
+    def plan_hint_key
+      plan_hint.to_s.presence
+    end
+
+    def parse_price_key(price_key)
+      parts = price_key.to_s.split("_")
+      return [nil, nil] if parts.size < 2
+
+      [parts.first, parts.last]
+    end
+
+    def plan_status(price_key)
+      return :active if subscription&.active?
+      return :failed if subscription_failed?
+      return :pending if price_key.present?
+
+      :inactive
+    end
+
+    def subscription_failed?
+      return false unless subscription
+
+      subscription.past_due? || subscription.unpaid? || subscription.status == "incomplete_expired"
+    end
+
+    def plan_label(tier, interval)
+      return nil if tier.blank?
+
+      tier_label = I18n.t("dashboard.pricing.tiers.#{tier}.name", default: tier.to_s.humanize)
+      interval_label = interval_label(interval)
+      return I18n.t("dashboard.plan_card.plan_label_tier_only", tier: tier_label) if interval_label.blank?
+
+      I18n.t("dashboard.plan_card.plan_label", tier: tier_label, interval: interval_label)
+    end
+
+    def interval_label(interval)
+      return nil if interval.blank?
+
+      key = interval.to_s == "annual" ? "annually" : interval
+      I18n.t("dashboard.pricing.toggle.#{key}", default: interval.to_s.humanize)
+    end
+
+    def charge_subtitle(charge)
+      I18n.t(
+        "dashboard.activity.charge_subtitle",
+        amount: currency(charge.amount),
+        status: charge_status_label(charge)
+      )
+    end
+
+    def charge_succeeded?(charge)
+      charge_status(charge) == "succeeded"
+    end
+
+    def charge_status(charge)
+      status = charge.data.is_a?(Hash) ? charge.data["status"] : nil
+      status.to_s.presence
+    end
+
+    def charge_status_label(charge)
+      status = charge_status(charge)
+      return I18n.t("dashboard.activity.charge_status_unknown") if status.blank?
+
+      I18n.t("dashboard.activity.charge_status.#{status}", default: status.humanize)
     end
   end
 end

@@ -2,7 +2,8 @@ require "rails_helper"
 
 RSpec.describe Licenses::LicenseVerifier do
   let(:encoder) { Licenses::LicenseKeyEncoder.new(primary_key: ENV["EA_LICENSE_PRIMARY_KEY"], secondary_key: ENV["EA_LICENSE_SECRET_KEY"]) }
-  let(:verifier) { described_class.new(encoder:, expected_source: "trading_sniper_ea") }
+  let(:source_id) { ENV.fetch("EA_LICENSE_SOURCE_ID", "trading_sniper_floor") }
+  let(:verifier) { described_class.new(encoder:, expected_source: source_id) }
   let(:user) { create(:user, email: "trader@example.com") }
   let(:expert_advisor) { create(:expert_advisor, ea_id: "ea-test") }
   let(:expires_at) { 7.days.from_now }
@@ -21,7 +22,7 @@ RSpec.describe Licenses::LicenseVerifier do
 
   it "returns success for a valid license" do
     result = verifier.call(
-      source: "trading_sniper_ea",
+      source: source_id,
       email: user.email,
       ea_id: expert_advisor.ea_id,
       license_key:
@@ -48,7 +49,7 @@ RSpec.describe Licenses::LicenseVerifier do
     license.update!(status: "trial", trial_ends_at: 1.day.ago)
 
     result = verifier.call(
-      source: "trading_sniper_ea",
+      source: source_id,
       email: user.email,
       ea_id: expert_advisor.ea_id,
       license_key:
@@ -61,7 +62,7 @@ RSpec.describe Licenses::LicenseVerifier do
 
   it "rejects mismatched license keys" do
     result = verifier.call(
-      source: "trading_sniper_ea",
+      source: source_id,
       email: user.email,
       ea_id: expert_advisor.ea_id,
       license_key: "BADKEY"
