@@ -8,13 +8,17 @@ class DashboardsController < ApplicationController
   before_action :set_invoices, only: [:billing]
 
   def show
+    plan_hint = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
     @overview = Dashboard::OverviewPresenter.new(
       user: current_user,
       pay_customer: @pay_customer,
       subscription: @subscription,
       plan_context: @plan_context,
-      accessible_eas: @accessible_eas
+      accessible_eas: @accessible_eas,
+      plan_hint: plan_hint
     ).call
+
+    clear_desired_plan if @subscription&.active?
   end
 
   def analytics
@@ -53,10 +57,11 @@ class DashboardsController < ApplicationController
       redirect_to dashboard_pricing_path, notice: t("dashboard.billing.upgraded", default: "Your subscription has been updated.") and return
     end
 
+    success_url = price_key.present? ? dashboard_url(price_key: price_key) : dashboard_url
     checkout_params = {
       mode: "subscription",
       line_items: [{ price: price_id, quantity: 1 }],
-      success_url: dashboard_url,
+      success_url: success_url,
       cancel_url: dashboard_pricing_url,
       allow_promotion_codes: true,
       client_reference_id: current_user.id
@@ -69,7 +74,6 @@ class DashboardsController < ApplicationController
 
     session = current_user.payment_processor.checkout(**checkout_params)
 
-    clear_desired_plan
     redirect_to session.url, allow_other_host: true
   rescue StandardError => e
     Rails.logger.error("Checkout failed: #{e.class} - #{e.message}")

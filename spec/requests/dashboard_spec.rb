@@ -50,6 +50,55 @@ RSpec.describe "Dashboard", type: :request do
     expect(response.body).to include(I18n.t("dashboard.plan_card.status_inactive"))
   end
 
+  it "shows a pending plan when a desired plan hint exists" do
+    sign_in user, scope: :user
+
+    get dashboard_path(locale: :en, price_key: "hft_monthly")
+
+    plan_label = I18n.t(
+      "dashboard.plan_card.plan_label",
+      locale: :en,
+      tier: I18n.t("dashboard.pricing.tiers.hft.name", locale: :en),
+      interval: I18n.t("dashboard.pricing.toggle.monthly", locale: :en)
+    )
+    pending_copy = I18n.t("dashboard.plan_card.processing_with_plan", locale: :en, plan: plan_label)
+
+    expect(response).to be_successful
+    expect(response.body).to include(I18n.t("dashboard.plan_card.status_pending", locale: :en))
+    expect(response.body).to include(pending_copy)
+  end
+
+  it "renders recent charge activity without errors" do
+    customer = user.pay_customers.create!(
+      processor: "stripe",
+      processor_id: "cus_#{SecureRandom.hex(4)}",
+      default: true
+    )
+
+    Pay::Charge.create!(
+      customer: customer,
+      processor_id: "ch_#{SecureRandom.hex(4)}",
+      amount: 1500,
+      currency: "usd",
+      data: { "status" => "succeeded" }
+    )
+
+    sign_in user, scope: :user
+
+    get dashboard_path(locale: :en)
+
+    amount = ActionController::Base.helpers.number_to_currency(15.0, unit: "$", precision: 2)
+    subtitle = I18n.t(
+      "dashboard.activity.charge_subtitle",
+      locale: :en,
+      amount: amount,
+      status: I18n.t("dashboard.activity.charge_status.succeeded", locale: :en)
+    )
+
+    expect(response).to be_successful
+    expect(response.body).to include(subtitle)
+  end
+
   it "renders the referral share URL with the locale" do
     sign_in user, scope: :user
 
