@@ -26,6 +26,11 @@
 
   <body class="<%= content_for?(:body_class) ? yield(:body_class) : "font-inter antialiased bg-gray-900 text-gray-100 tracking-tight" %>">
     <% if content_for?(:full_bleed) %>
+      <% if flash.any? %>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
+          <%= render "shared/alert" %>
+        </div>
+      <% end %>
       <%= yield %>
     <% else %>
       <div class="flex flex-col min-h-screen overflow-hidden">
@@ -56,6 +61,11 @@
         </header>
 
         <main class="grow">
+          <% if flash.any? %>
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
+              <%= render "shared/alert" %>
+            </div>
+          <% end %>
           <%= yield %>
         </main>
 
