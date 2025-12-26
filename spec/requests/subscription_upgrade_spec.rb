@@ -55,8 +55,13 @@ RSpec.describe "Subscription upgrades", type: :request do
     )
 
     schedule = instance_double(Stripe::SubscriptionSchedule, id: "sub_sched_123")
-    allow(Stripe::SubscriptionSchedule).to receive(:create).and_return(schedule)
-    allow(Stripe::SubscriptionSchedule).to receive(:update).and_return(schedule)
+    allow(Stripe::Subscription).to receive(:retrieve).and_return(double(schedule: nil))
+    expect(Stripe::SubscriptionSchedule).to receive(:create)
+      .with(hash_including(from_subscription: subscription.processor_id), hash_including(idempotency_key: kind_of(String)))
+      .and_return(schedule)
+    expect(Stripe::SubscriptionSchedule).to receive(:update)
+      .with("sub_sched_123", hash_including(end_behavior: "release", phases: kind_of(Array)))
+      .and_return(schedule)
     expect_any_instance_of(Pay::Stripe::Subscription).not_to receive(:swap)
 
     sign_in user, scope: :user
@@ -69,6 +74,35 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(subscription.metadata["scheduled_plan_key"]).to eq("basic_monthly")
     expect(subscription.metadata["scheduled_schedule_id"]).to eq("sub_sched_123")
     expect(subscription.metadata["scheduled_change_at"]).to be_present
+  end
+
+  it "updates an existing Stripe schedule when metadata is missing" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      type: "Pay::Stripe::Subscription"
+    )
+
+    schedule = instance_double(Stripe::SubscriptionSchedule, id: "sub_sched_existing")
+    allow(Stripe::Subscription).to receive(:retrieve).and_return(double(schedule: "sub_sched_existing"))
+    expect(Stripe::SubscriptionSchedule).not_to receive(:create)
+    expect(Stripe::SubscriptionSchedule).to receive(:update)
+      .with("sub_sched_existing", hash_including(end_behavior: "release", phases: kind_of(Array)))
+      .and_return(schedule)
+
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+
+    expect(response).to redirect_to(dashboard_plans_path)
+
+    subscription.reload
+    expect(subscription.metadata["scheduled_schedule_id"]).to eq("sub_sched_existing")
   end
 
   it "releases a scheduled downgrade when upgrading" do
