@@ -14,8 +14,7 @@ module Billing
       if created
         schedule = Stripe::SubscriptionSchedule.create(
           {
-            from_subscription: subscription.processor_id,
-            metadata: schedule_metadata(user_id:, target_price_key:)
+            from_subscription: subscription.processor_id
           },
           { idempotency_key: idempotency_key(target_price_id, effective_at) }
         )
