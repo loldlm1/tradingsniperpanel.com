@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe "Plan persistence across auth", type: :request do
   shared_examples "plan persistence" do |price_key|
-    it "redirects to dashboard pricing with the selected plan after signup" do
+    it "redirects to dashboard plans with the selected plan after signup" do
       get new_user_registration_path(locale: :en, price_key:)
       expect(cookies["desired_plan"]).to be_present
 
@@ -15,7 +15,7 @@ RSpec.describe "Plan persistence across auth", type: :request do
         }
       }
 
-      expect(response).to redirect_to(dashboard_pricing_path(locale: :en, price_key:))
+      expect(response).to redirect_to(dashboard_plans_path(locale: :en, price_key:))
     end
   end
 

@@ -80,7 +80,7 @@
         <% unless entry.accessible %>
           <% tier = entry.allowed_tiers.first %>
           <% cta_key = "#{tier}_monthly" %>
-          <%= link_to t("dashboard.pricing.cta.subscribe"), dashboard_pricing_path(price_key: cta_key), class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+          <%= link_to t("dashboard.plans.cta.subscribe"), dashboard_plans_path(price_key: cta_key), class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
         <% end %>
       </div>
     </div>

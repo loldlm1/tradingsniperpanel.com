@@ -156,7 +156,7 @@ module Dashboard
     def plan_label(tier, interval)
       return nil if tier.blank?
 
-      tier_label = I18n.t("dashboard.pricing.tiers.#{tier}.name", default: tier.to_s.humanize)
+      tier_label = I18n.t("dashboard.plans.tiers.#{tier}.name", default: tier.to_s.humanize)
       interval_label = interval_label(interval)
       return I18n.t("dashboard.plan_card.plan_label_tier_only", tier: tier_label) if interval_label.blank?
 
@@ -167,7 +167,7 @@ module Dashboard
       return nil if interval.blank?
 
       key = interval.to_s == "annual" ? "annually" : interval
-      I18n.t("dashboard.pricing.toggle.#{key}", default: interval.to_s.humanize)
+      I18n.t("dashboard.plans.toggle.#{key}", default: interval.to_s.humanize)
     end
 
     def charge_subtitle(charge)

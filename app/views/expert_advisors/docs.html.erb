@@ -15,7 +15,7 @@
     <p class="text-gray-600 dark:text-gray-300"><%= @expert_advisor.description %></p>
   </div>
   <% unless entry&.accessible %>
-    <%= link_to t("dashboard.pricing.cta.subscribe"), dashboard_pricing_path(price_key: cta_key), class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+    <%= link_to t("dashboard.plans.cta.subscribe"), dashboard_plans_path(price_key: cta_key), class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
   <% end %>
 </div>
 

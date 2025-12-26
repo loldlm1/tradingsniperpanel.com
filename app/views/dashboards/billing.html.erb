@@ -1,148 +1,154 @@
-<% content_for :title, "#{t('dashboard.nav.billing', default: 'Billing')} | #{t('app.short_name')}" %>
+<% content_for :title, "#{t('dashboard.nav.billing')} | #{t('app.short_name')}" %>
 
 <% default_pm = @pay_customer&.default_payment_method %>
 <% pm_brand = default_pm&.brand || default_pm&.card_type || default_pm&.type %>
 <% pm_last4 = default_pm&.last4 %>
+<% plan = @plan_context || {} %>
+<% plan_name = plan[:current_tier] ? t("dashboard.plans.tiers.#{plan[:current_tier]}.name", default: plan[:current_tier].to_s.humanize) : nil %>
+<% interval_key = plan[:current_interval] == "annual" ? "annually" : plan[:current_interval] %>
+<% interval_label = interval_key.present? ? t("dashboard.plans.toggle.#{interval_key}", default: interval_key.to_s.humanize) : nil %>
+<% summary_text = if plan_name.present? && interval_label.present?
+                    t("dashboard.billing.summary", plan_name: plan_name, interval: interval_label)
+                  else
+                    t("dashboard.billing.no_plan_summary")
+                  end %>
+<% invoice_plan_label = if plan_name.present? && interval_label.present?
+                          t("dashboard.plan_card.plan_label", tier: plan_name, interval: interval_label)
+                        elsif plan_name.present?
+                          t("dashboard.plan_card.plan_label_tier_only", tier: plan_name)
+                        else
+                          t("dashboard.billing.placeholder")
+                        end %>
 
-<div class="mb-10">
-  <p class="text-sm text-violet-600 dark:text-violet-300 font-semibold uppercase tracking-wide mb-2"><%= t("dashboard.nav.billing", default: "Billing") %></p>
-  <div class="flex flex-wrap items-center justify-between gap-3">
+<div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl mb-8">
+  <div class="p-6 space-y-6">
     <div>
-      <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.billing_overview") %></h1>
-      <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.billing_manage_copy") %></p>
+      <h2 class="text-2xl text-gray-800 dark:text-gray-100 font-bold mb-4"><%= t("dashboard.billing.title") %></h2>
+      <div class="text-sm"><%= summary_text %></div>
     </div>
-    <div class="flex gap-2">
-      <%= button_to dashboard_billing_portal_path, method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white", data: { loading_target: true } do %>
-        <%= loading_label(t("dashboard.plan_card.manage"), loading_text: t("loading.default")) %>
-      <% end %>
-      <%= link_to t("dashboard.nav.pricing", default: "Pricing"), dashboard_pricing_path, class: "btn bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
-    </div>
-  </div>
-</div>
 
-<div class="grid gap-6 lg:grid-cols-3">
-  <div class="lg:col-span-2 space-y-6">
-    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm">
-      <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <div>
-          <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.plan_card.title") %></div>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("pricing.subtitle") %></p>
-        </div>
-        <div class="flex items-center gap-2">
-          <%= button_to dashboard_billing_portal_path, method: :post, class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white", data: { loading_target: true } do %>
-            <%= loading_label(t("dashboard.plan_card.manage"), loading_text: t("loading.default")) %>
-          <% end %>
-          <%= link_to t("dashboard.nav.pricing", default: "Pricing"), dashboard_pricing_path, class: "btn-sm bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
-        </div>
-      </div>
-      <div class="p-6 grid gap-4 md:grid-cols-2">
-        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
-          <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1"><%= @plan_context[:current_tier]&.to_s&.upcase || t("dashboard.plan_card.status_inactive") %></div>
-          <div class="text-sm text-gray-600 dark:text-gray-300"><%= @plan_context[:current_interval]&.capitalize || t("dashboard.plan_card.status_inactive") %></div>
-          <% if @subscription.present? %>
-            <div class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              <%= t("dashboard.plan_card.plan_key", default: "Plan key") %>: <%= @subscription.processor_plan %>
-            </div>
-            <% if @subscription.respond_to?(:current_period_end) && @subscription.current_period_end.present? %>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                <%= t("dashboard.plan_card.renews_on", date: l(@subscription.current_period_end.to_date)) %>
-              </div>
+    <section>
+      <h3 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-1"><%= t("dashboard.billing.info_title") %></h3>
+      <ul>
+        <li class="md:flex md:justify-between md:items-center py-3 border-b border-gray-200 dark:border-gray-700/60">
+          <div class="text-sm text-gray-800 dark:text-gray-100 font-medium"><%= t("dashboard.billing.payment_method_label") %></div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 ml-4">
+            <% payment_method_text = if default_pm.present?
+                                      t("dashboard.billing.card_ending", brand: pm_brand&.upcase || t("dashboard.billing.card"), last4: pm_last4 || t("dashboard.billing.last4_placeholder"))
+                                    else
+                                      t("dashboard.billing.no_payment_method")
+                                    end %>
+            <span class="mr-3"><%= payment_method_text %></span>
+            <%= button_to dashboard_billing_portal_path, method: :post, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400", data: { loading_target: true }, form: { class: "inline" } do %>
+              <%= loading_label(t("dashboard.billing.edit_action"), loading_text: t("loading.default")) %>
             <% end %>
-          <% end %>
-        </div>
-        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
-          <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1"><%= t("dashboard.billing_support_copy") %></div>
-          <p class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.billing_subscribe_copy") %></p>
-        </div>
-      </div>
-    </div>
+          </div>
+        </li>
+        <li class="md:flex md:justify-between md:items-center py-3 border-b border-gray-200 dark:border-gray-700/60">
+          <div class="text-sm text-gray-800 dark:text-gray-100 font-medium"><%= t("dashboard.billing.billing_interval_label") %></div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 ml-4">
+            <span class="mr-3"><%= interval_label || t("dashboard.billing.placeholder") %></span>
+            <%= link_to dashboard_plans_path, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400", data: { loading_target: true } do %>
+              <%= loading_label(t("dashboard.billing.edit_action"), loading_text: t("loading.default")) %>
+            <% end %>
+          </div>
+        </li>
+        <li class="md:flex md:justify-between md:items-center py-3 border-b border-gray-200 dark:border-gray-700/60">
+          <div class="text-sm text-gray-800 dark:text-gray-100 font-medium"><%= t("dashboard.plan_card.plan_key") %></div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 ml-4">
+            <span class="mr-3"><%= @subscription&.processor_plan.presence || t("dashboard.billing.placeholder") %></span>
+            <%= link_to dashboard_plans_path, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400", data: { loading_target: true } do %>
+              <%= loading_label(t("dashboard.billing.edit_action"), loading_text: t("loading.default")) %>
+            <% end %>
+          </div>
+        </li>
+        <li class="md:flex md:justify-between md:items-center py-3 border-b border-gray-200 dark:border-gray-700/60">
+          <div class="text-sm text-gray-800 dark:text-gray-100 font-medium"><%= t("dashboard.billing.renews_on_label") %></div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 ml-4">
+            <% renewal_text = if @subscription.respond_to?(:current_period_end) && @subscription.current_period_end.present?
+                                l(@subscription.current_period_end.to_date)
+                              else
+                                t("dashboard.billing.placeholder")
+                              end %>
+            <span class="mr-3"><%= renewal_text %></span>
+          </div>
+        </li>
+        <li class="md:flex md:justify-between md:items-center py-3 border-b border-gray-200 dark:border-gray-700/60">
+          <div class="text-sm text-gray-800 dark:text-gray-100 font-medium"><%= t("dashboard.billing.billing_email_label") %></div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 ml-4">
+            <span class="mr-3"><%= current_user&.email.presence || t("dashboard.billing.placeholder") %></span>
+            <%= link_to dashboard_settings_path, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400", data: { loading_target: true } do %>
+              <%= loading_label(t("dashboard.billing.edit_action"), loading_text: t("loading.default")) %>
+            <% end %>
+          </div>
+        </li>
+      </ul>
+    </section>
 
-    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm">
-      <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <div>
-          <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">Invoices</div>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.billing.invoices_copy", default: "Recent charges and receipts.") %></p>
-        </div>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-gray-50 dark:bg-gray-900/40 text-gray-600 dark:text-gray-300">
-            <tr>
-              <th class="px-5 py-3 text-left font-semibold"><%= t("dashboard.billing.invoice_date", default: "Date") %></th>
-              <th class="px-5 py-3 text-left font-semibold"><%= t("dashboard.billing.invoice_amount", default: "Amount") %></th>
-              <th class="px-5 py-3 text-left font-semibold"><%= t("dashboard.billing.invoice_status", default: "Status") %></th>
-              <th class="px-5 py-3 text-left font-semibold"><%= t("dashboard.billing.invoice_receipt", default: "Receipt") %></th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-800 dark:text-gray-100">
-            <% @invoices.each do |invoice| %>
-              <% amount = invoice.amount&.to_f ? invoice.amount.to_f / 100.0 : nil %>
-              <% status_label = invoice.respond_to?(:data) ? invoice.data&.dig("status") : nil %>
-              <% status_label ||= invoice.respond_to?(:object) ? invoice.object&.dig("status") : nil %>
-              <% status_label ||= invoice.amount_refunded.to_i.positive? ? "refunded" : "succeeded" %>
-              <% badge_class = status_label == "succeeded" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100" : "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100" %>
-              <tr>
-                <td class="px-5 py-3 whitespace-nowrap"><%= l(invoice.created_at, format: :short_with_year) rescue l(invoice.created_at, format: :short) %></td>
-                <td class="px-5 py-3 whitespace-nowrap"><%= amount ? number_to_currency(amount) : "—" %></td>
-                <td class="px-5 py-3 whitespace-nowrap">
-                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= status_label %></span>
-                </td>
-                <td class="px-5 py-3 whitespace-nowrap">
+    <section>
+      <h3 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-1"><%= t("dashboard.billing.invoices_title") %></h3>
+      <div class="text-sm mb-4"><%= t("dashboard.billing.invoices_copy") %></div>
+      <table class="table-auto w-full dark:text-gray-400">
+        <thead class="text-xs uppercase text-gray-400 dark:text-gray-500">
+          <tr class="flex flex-wrap md:table-row md:flex-no-wrap">
+            <th class="w-full block md:w-auto md:table-cell py-2">
+              <div class="font-semibold text-left"><%= t("dashboard.billing.invoice_year") %></div>
+            </th>
+            <th class="w-full hidden md:w-auto md:table-cell py-2">
+              <div class="font-semibold text-left"><%= t("dashboard.billing.invoice_plan") %></div>
+            </th>
+            <th class="w-full hidden md:w-auto md:table-cell py-2">
+              <div class="font-semibold text-left"><%= t("dashboard.billing.invoice_amount") %></div>
+            </th>
+            <th class="w-full hidden md:w-auto md:table-cell py-2">
+              <div class="font-semibold text-left"><%= t("dashboard.billing.invoice_status") %></div>
+            </th>
+            <th class="w-full hidden md:w-auto md:table-cell py-2">
+              <div class="font-semibold text-right"><%= t("dashboard.billing.invoice_receipt") %></div>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="text-sm">
+          <% @invoices.each do |invoice| %>
+            <% amount = invoice.amount&.to_f ? invoice.amount.to_f / 100.0 : nil %>
+            <% status_label = invoice.respond_to?(:data) ? invoice.data&.dig("status") : nil %>
+            <% status_label ||= invoice.respond_to?(:object) ? invoice.object&.dig("status") : nil %>
+            <% status_label ||= invoice.amount_refunded.to_i.positive? ? "refunded" : "succeeded" %>
+            <% badge_class = status_label == "succeeded" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100" : "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100" %>
+            <tr class="flex flex-wrap md:table-row md:flex-no-wrap border-b border-gray-200 dark:border-gray-700/60 py-2 md:py-0">
+              <td class="w-full block md:w-auto md:table-cell py-0.5 md:py-2">
+                <div class="text-left font-medium text-gray-800 dark:text-gray-100"><%= invoice.created_at&.year || t("dashboard.billing.placeholder") %></div>
+              </td>
+              <td class="w-full block md:w-auto md:table-cell py-0.5 md:py-2">
+                <div class="text-left"><%= invoice_plan_label %></div>
+              </td>
+              <td class="w-full block md:w-auto md:table-cell py-0.5 md:py-2">
+                <div class="text-left font-medium"><%= amount ? number_to_currency(amount) : t("dashboard.billing.placeholder") %></div>
+              </td>
+              <td class="w-full block md:w-auto md:table-cell py-0.5 md:py-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= status_label %></span>
+              </td>
+              <td class="w-full block md:w-auto md:table-cell py-0.5 md:py-2">
+                <div class="text-right flex items-center md:justify-end">
                   <% receipt = invoice.respond_to?(:receipt_url) ? invoice.receipt_url : nil %>
                   <% if receipt.present? %>
-                    <%= link_to t("dashboard.billing.invoice_view", default: "View receipt"), receipt, target: "_blank", rel: "noopener", class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+                    <%= link_to t("dashboard.billing.invoice_view"), receipt, target: "_blank", rel: "noopener", class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
                   <% else %>
-                    <span class="text-gray-500 dark:text-gray-400">—</span>
+                    <span class="text-gray-500 dark:text-gray-400"><%= t("dashboard.billing.placeholder") %></span>
                   <% end %>
-                </td>
-              </tr>
-            <% end %>
-            <% if @invoices.empty? %>
-              <tr>
-                <td colspan="4" class="px-5 py-4 text-center text-gray-500 dark:text-gray-400"><%= t("dashboard.billing.no_invoices", default: "No invoices yet.") %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="space-y-4">
-    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-5 space-y-3">
-      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.billing.payment_method", default: "Payment method") %></div>
-      <% if default_pm.present? %>
-        <div class="flex items-center justify-between">
-          <div class="text-sm text-gray-700 dark:text-gray-200">
-            <span class="font-semibold"><%= pm_brand&.upcase || t("dashboard.billing.card", default: "Card") %></span>
-            <span class="ml-2 text-gray-500 dark:text-gray-400">•••• <%= pm_last4 || "••••" %></span>
-          </div>
-          <%= button_to dashboard_billing_portal_path, method: :post, class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white", data: { loading_target: true } do %>
-            <%= loading_label(t("dashboard.plan_card.manage"), loading_text: t("loading.default")) %>
+                </div>
+              </td>
+            </tr>
           <% end %>
-        </div>
-      <% else %>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.billing.no_payment_method", default: "No payment method on file yet.") %></p>
-        <%= button_to dashboard_billing_portal_path, method: :post, class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white", data: { loading_target: true } do %>
-          <%= loading_label(t("dashboard.plan_card.manage"), loading_text: t("loading.default")) %>
-        <% end %>
-      <% end %>
-    </div>
-
-    <div class="bg-linear-to-r from-violet-500 to-indigo-500 rounded-2xl text-white p-5 shadow-sm space-y-3">
-      <div class="flex items-center gap-3">
-        <span class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-            <path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8.009 8.009 0 0 1-8 8Z"></path>
-            <path d="M11 11h2v5h-2zM11 7h2v2h-2z"></path>
-          </svg>
-        </span>
-        <div>
-          <div class="text-lg font-semibold"><%= t("dashboard.billing_support_copy") %></div>
-          <p class="text-sm text-white/80"><%= t("dashboard.billing_support_secondary", default: "Open the portal or contact support for payment updates.") %></p>
-        </div>
-      </div>
-      <%= link_to t("dashboard.contact_support", default: "Contact support"), dashboard_support_path, class: "btn bg-white text-gray-900 hover:bg-gray-50 w-full" %>
-    </div>
+          <% if @invoices.empty? %>
+            <tr class="flex flex-wrap md:table-row md:flex-no-wrap border-b border-gray-200 dark:border-gray-700/60 py-2 md:py-0">
+              <td class="w-full block md:w-auto md:table-cell py-2" colspan="5">
+                <div class="text-center text-gray-500 dark:text-gray-400"><%= t("dashboard.billing.no_invoices") %></div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </section>
   </div>
 </div>

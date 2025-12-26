@@ -3,8 +3,8 @@ class DashboardsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_accessible_expert_advisors
   before_action :ensure_payment_processor, only: [:checkout, :billing_portal]
-  before_action :set_subscription, only: [:show, :pricing, :billing, :checkout]
-  before_action :set_plan_context, only: [:show, :pricing, :billing, :checkout]
+  before_action :set_subscription, only: [:show, :plans, :billing, :checkout]
+  before_action :set_plan_context, only: [:show, :plans, :billing, :checkout]
   before_action :set_invoices, only: [:billing]
 
   def show
@@ -28,7 +28,7 @@ class DashboardsController < ApplicationController
     ).call
   end
 
-  def pricing
+  def plans
     @pricing_catalog = Billing::PricingCatalog.new.call
     @requested_price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
   end
@@ -43,18 +43,18 @@ class DashboardsController < ApplicationController
     current_tier = @plan_context[:current_tier]
 
     if @subscription.present? && desired_tier && current_tier && Billing::DashboardPlan::TIERS.index(desired_tier) <= Billing::DashboardPlan::TIERS.index(current_tier)
-      redirect_to dashboard_pricing_path, alert: t("dashboard.pricing.cta.current", default: "You already have this plan.") and return
+      redirect_to dashboard_plans_path, alert: t("dashboard.plans.already_current") and return
     end
 
     price_id = Billing::ConfiguredPrices.price_id_for(price_key)
     unless price_id
-      redirect_to dashboard_pricing_path, alert: t("dashboard.billing.invalid_price", default: "Invalid price selection") and return
+      redirect_to dashboard_plans_path, alert: t("dashboard.billing.invalid_price") and return
     end
 
     if @subscription.present?
       @subscription.swap(price_id, proration_behavior: "always_invoice")
       clear_desired_plan
-      redirect_to dashboard_pricing_path, notice: t("dashboard.billing.upgraded", default: "Your subscription has been updated.") and return
+      redirect_to dashboard_plans_path, notice: t("dashboard.billing.upgraded") and return
     end
 
     success_url = price_key.present? ? dashboard_url(price_key: price_key) : dashboard_url
@@ -62,7 +62,7 @@ class DashboardsController < ApplicationController
       mode: "subscription",
       line_items: [{ price: price_id, quantity: 1 }],
       success_url: success_url,
-      cancel_url: dashboard_pricing_url,
+      cancel_url: dashboard_plans_url,
       allow_promotion_codes: true,
       client_reference_id: current_user.id
     }
@@ -77,7 +77,7 @@ class DashboardsController < ApplicationController
     redirect_to session.url, allow_other_host: true
   rescue StandardError => e
     Rails.logger.error("Checkout failed: #{e.class} - #{e.message}")
-    redirect_to dashboard_pricing_path, alert: t("dashboard.billing.checkout_error", default: "Unable to start checkout. Please try again.")
+    redirect_to dashboard_plans_path, alert: t("dashboard.billing.checkout_error")
   end
 
   def billing_portal
@@ -85,7 +85,7 @@ class DashboardsController < ApplicationController
     redirect_to portal.url, allow_other_host: true
   rescue StandardError => e
     Rails.logger.error("Billing portal failed: #{e.class} - #{e.message}")
-    redirect_to dashboard_billing_path, alert: t("dashboard.billing.portal_error", default: "Unable to open billing portal right now.")
+    redirect_to dashboard_billing_path, alert: t("dashboard.billing.portal_error")
   end
 
   private

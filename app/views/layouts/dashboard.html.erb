@@ -60,7 +60,7 @@
           <% expert_advisors_group_active = controller_path == "expert_advisors" %>
 
           <% settings_account_active = current_page?(dashboard_settings_path) %>
-          <% settings_plans_active = current_page?(dashboard_pricing_path) %>
+          <% settings_plans_active = current_page?(dashboard_plans_path) %>
           <% settings_billing_active = current_page?(dashboard_billing_path) %>
           <% settings_support_active = current_page?(dashboard_support_path) %>
           <% settings_group_active = settings_account_active || settings_plans_active || settings_billing_active || settings_support_active %>
@@ -174,7 +174,7 @@
                         <% end %>
                       </li>
                       <li class="mb-1 last:mb-0">
-                        <%= link_to dashboard_pricing_path, class: mosaic_sidebar_child_link_classes(active: settings_plans_active) do %>
+                        <%= link_to dashboard_plans_path, class: mosaic_sidebar_child_link_classes(active: settings_plans_active) do %>
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.plans") %></span>
                         <% end %>
                       </li>
