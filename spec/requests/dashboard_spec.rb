@@ -58,8 +58,8 @@ RSpec.describe "Dashboard", type: :request do
     plan_label = I18n.t(
       "dashboard.plan_card.plan_label",
       locale: :en,
-      tier: I18n.t("dashboard.pricing.tiers.hft.name", locale: :en),
-      interval: I18n.t("dashboard.pricing.toggle.monthly", locale: :en)
+      tier: I18n.t("dashboard.plans.tiers.hft.name", locale: :en),
+      interval: I18n.t("dashboard.plans.toggle.monthly", locale: :en)
     )
     pending_copy = I18n.t("dashboard.plan_card.processing_with_plan", locale: :en, plan: plan_label)
 

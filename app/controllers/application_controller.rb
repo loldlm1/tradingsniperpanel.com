@@ -12,9 +12,9 @@ class ApplicationController < ActionController::Base
   def after_sign_in_path_for(_resource)
     desired_plan = stored_desired_plan
     if desired_plan&.dig(:price_key).present?
-      return dashboard_pricing_path(price_key: desired_plan[:price_key])
+      return dashboard_plans_path(price_key: desired_plan[:price_key])
     elsif desired_plan&.dig(:product_id).present?
-      return dashboard_pricing_path(product_id: desired_plan[:product_id])
+      return dashboard_plans_path(product_id: desired_plan[:product_id])
     end
 
     dashboard_path
@@ -25,7 +25,7 @@ class ApplicationController < ActionController::Base
   def redirect_signed_in_users
     return unless user_signed_in?
 
-    target = action_name == "pricing" ? dashboard_pricing_path : dashboard_path
+    target = action_name == "pricing" ? dashboard_plans_path : dashboard_path
     redirect_to target
   end
 

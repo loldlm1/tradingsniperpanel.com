@@ -24,19 +24,19 @@
 
   <div class="space-y-6">
     <div class="flex items-center justify-between flex-wrap gap-3">
-      <div class="text-gray-300 font-medium"><%= t("dashboard.pricing.subtitle") %></div>
+      <div class="text-gray-300 font-medium"><%= t("dashboard.plans.subtitle") %></div>
       <div class="flex items-center space-x-3 text-sm text-gray-400">
-        <span><%= t("dashboard.pricing.toggle.monthly") %></span>
+        <span><%= t("dashboard.plans.toggle.monthly") %></span>
         <span class="w-2 h-2 rounded-full bg-gray-600"></span>
-        <span><%= t("dashboard.pricing.toggle.annually") %></span>
+        <span><%= t("dashboard.plans.toggle.annually") %></span>
       </div>
     </div>
 
     <div class="grid gap-6 md:grid-cols-3">
       <% tier_configs = {
-        basic: { accent: "from-green-500/20 to-green-500/10", badge: "bg-green-500/20 text-green-100", name: t("dashboard.pricing.tiers.basic.name") },
-        hft: { accent: "from-sky-500/20 to-sky-500/10", badge: "bg-sky-500/20 text-sky-100", name: t("dashboard.pricing.tiers.hft.name") },
-        pro: { accent: "from-violet-500/20 to-violet-500/10", badge: "bg-violet-500/20 text-violet-100", name: t("dashboard.pricing.tiers.pro.name") }
+        basic: { accent: "from-green-500/20 to-green-500/10", badge: "bg-green-500/20 text-green-100", name: t("dashboard.plans.tiers.basic.name") },
+        hft: { accent: "from-sky-500/20 to-sky-500/10", badge: "bg-sky-500/20 text-sky-100", name: t("dashboard.plans.tiers.hft.name") },
+        pro: { accent: "from-violet-500/20 to-violet-500/10", badge: "bg-violet-500/20 text-violet-100", name: t("dashboard.plans.tiers.pro.name") }
       } %>
 
       <% tier_configs.each do |tier, config| %>
@@ -46,41 +46,41 @@
         <% annual_env_key = Billing::ConfiguredPrices::PRICE_KEYS[annual_key.to_sym] %>
         <% monthly_available = monthly_env_key && ENV[monthly_env_key].present? %>
         <% annual_available = annual_env_key && ENV[annual_env_key].present? %>
-        <% monthly_display = pricing.dig(:monthly, tier, :display) || "—" %>
-        <% annual_display = pricing.dig(:annual, tier, :effective_monthly_display) || "—" %>
+        <% monthly_display = pricing.dig(:monthly, tier, :display) || t("dashboard.plans.placeholder") %>
+        <% annual_display = pricing.dig(:annual, tier, :effective_monthly_display) || t("dashboard.plans.placeholder") %>
         <% requested = requested_price_key.in?([monthly_key, annual_key]) %>
         <div class="bg-gradient-to-br <%= config[:accent] %> border border-gray-800 rounded-2xl p-5 flex flex-col justify-between h-full">
           <div class="space-y-3">
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-semibold text-gray-100"><%= config[:name] %></h3>
               <% if requested %>
-                <span class="px-2 py-1 text-xs font-semibold rounded-md <%= config[:badge] %>"><%= t("dashboard.pricing.requested_plan") %></span>
+                <span class="px-2 py-1 text-xs font-semibold rounded-md <%= config[:badge] %>"><%= t("dashboard.plans.requested_plan") %></span>
               <% end %>
             </div>
-            <p class="text-sm text-gray-300"><%= t("dashboard.pricing.tiers.#{tier}.description") %></p>
+            <p class="text-sm text-gray-300"><%= t("dashboard.plans.tiers.#{tier}.description") %></p>
             <div class="text-gray-100">
-              <div class="text-sm text-gray-400"><%= t("dashboard.pricing.toggle.monthly") %></div>
+              <div class="text-sm text-gray-400"><%= t("dashboard.plans.toggle.monthly") %></div>
               <div class="text-3xl font-bold">$<%= monthly_display %><span class="text-sm text-gray-400">/mo</span></div>
             </div>
             <div class="text-gray-100">
-              <div class="text-sm text-gray-400"><%= t("dashboard.pricing.toggle.annually") %></div>
+              <div class="text-sm text-gray-400"><%= t("dashboard.plans.toggle.annually") %></div>
               <div class="text-3xl font-bold">$<%= annual_display %><span class="text-sm text-gray-400">/mo</span></div>
             </div>
           </div>
           <div class="mt-6 space-y-2">
-            <% monthly_path = user_signed_in? ? dashboard_pricing_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
-            <% annual_path = user_signed_in? ? dashboard_pricing_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
+            <% monthly_path = user_signed_in? ? dashboard_plans_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
+            <% annual_path = user_signed_in? ? dashboard_plans_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
 
             <% if monthly_available %>
-              <%= link_to t("dashboard.pricing.cta.subscribe"), monthly_path, class: "btn w-full text-white bg-gray-900 hover:bg-gray-800" %>
+              <%= link_to t("dashboard.plans.cta.subscribe"), monthly_path, class: "btn w-full text-white bg-gray-900 hover:bg-gray-800" %>
             <% else %>
-              <button class="btn w-full border border-gray-700 text-gray-500" disabled><%= t("dashboard.pricing.cta.unavailable") %></button>
+              <button class="btn w-full border border-gray-700 text-gray-500" disabled><%= t("dashboard.plans.cta.unavailable") %></button>
             <% end %>
 
             <% if annual_available %>
-              <%= link_to "#{t('dashboard.pricing.cta.subscribe')} · #{t('dashboard.pricing.toggle.annually')}", annual_path, class: "btn w-full border border-gray-700 text-gray-200 hover:border-gray-500" %>
+              <%= link_to "#{t('dashboard.plans.cta.subscribe')} · #{t('dashboard.plans.toggle.annually')}", annual_path, class: "btn w-full border border-gray-700 text-gray-200 hover:border-gray-500" %>
             <% else %>
-              <button class="btn w-full border border-gray-700 text-gray-500" disabled><%= t("dashboard.pricing.cta.unavailable") %></button>
+              <button class="btn w-full border border-gray-700 text-gray-500" disabled><%= t("dashboard.plans.cta.unavailable") %></button>
             <% end %>
           </div>
         </div>

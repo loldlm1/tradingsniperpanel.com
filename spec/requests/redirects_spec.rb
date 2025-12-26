@@ -11,11 +11,11 @@ RSpec.describe "Authenticated redirects", type: :request do
     expect(response).to redirect_to(dashboard_path)
   end
 
-  it "redirects signed-in users from pricing to dashboard pricing" do
+  it "redirects signed-in users from pricing to dashboard plans" do
     sign_in user, scope: :user
 
     get pricing_path
 
-    expect(response).to redirect_to(dashboard_pricing_path)
+    expect(response).to redirect_to(dashboard_plans_path)
   end
 end

@@ -38,7 +38,7 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     post dashboard_checkout_path, params: { price_key: "hft_monthly" }
 
-    expect(response).to redirect_to(dashboard_pricing_path)
+    expect(response).to redirect_to(dashboard_plans_path)
   end
 
   it "prefers the most recent active subscription for display" do
