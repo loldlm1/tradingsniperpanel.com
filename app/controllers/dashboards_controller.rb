@@ -4,7 +4,7 @@ class DashboardsController < ApplicationController
   before_action :set_accessible_expert_advisors
   before_action :ensure_payment_processor, only: [:checkout, :billing_portal]
   before_action :set_subscription, only: [:show, :plans, :billing, :checkout]
-  before_action :set_plan_context, only: [:show, :plans, :billing, :checkout]
+  before_action :set_plan_context, only: [:show, :billing]
   before_action :set_invoices, only: [:billing]
 
   def show
@@ -30,6 +30,10 @@ class DashboardsController < ApplicationController
 
   def plans
     @pricing_catalog = Billing::PricingCatalog.new.call
+    @plan_context = Billing::DashboardPlan.new(
+      subscription: @subscription,
+      pricing_catalog: @pricing_catalog
+    ).call
     @requested_price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
   end
 
@@ -39,22 +43,37 @@ class DashboardsController < ApplicationController
 
   def checkout
     price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
-    desired_tier = price_key&.split("_")&.first&.to_sym
-    current_tier = @plan_context[:current_tier]
-
-    if @subscription.present? && desired_tier && current_tier && Billing::DashboardPlan::TIERS.index(desired_tier) <= Billing::DashboardPlan::TIERS.index(current_tier)
-      redirect_to dashboard_plans_path, alert: t("dashboard.plans.already_current") and return
-    end
-
     price_id = Billing::ConfiguredPrices.price_id_for(price_key)
     unless price_id
       redirect_to dashboard_plans_path, alert: t("dashboard.billing.invalid_price") and return
     end
 
     if @subscription.present?
-      @subscription.swap(price_id, proration_behavior: "always_invoice")
-      clear_desired_plan
-      redirect_to dashboard_plans_path, notice: t("dashboard.billing.upgraded") and return
+      result = Billing::PlanChange.new(
+        subscription: @subscription,
+        price_key: price_key,
+        user: current_user
+      ).call
+
+      if result.success?
+        clear_desired_plan
+      end
+
+      case result.status
+      when :upgraded
+        redirect_to dashboard_plans_path, notice: t("dashboard.billing.upgraded") and return
+      when :downgrade_scheduled
+        plan_label = plan_label_for(price_key)
+        schedule_date = result.effective_at ? l(result.effective_at.to_date) : nil
+        redirect_to dashboard_plans_path,
+                    notice: t("dashboard.plans.downgrade_scheduled", plan: plan_label, date: schedule_date) and return
+      when :already_current
+        redirect_to dashboard_plans_path, alert: t("dashboard.plans.already_current") and return
+      when :cannot_schedule
+        redirect_to dashboard_plans_path, alert: t("dashboard.plans.downgrade_unavailable") and return
+      else
+        redirect_to dashboard_plans_path, alert: t("dashboard.billing.checkout_error") and return
+      end
     end
 
     success_url = price_key.present? ? dashboard_url(price_key: price_key) : dashboard_url
@@ -107,5 +126,20 @@ class DashboardsController < ApplicationController
 
   def ensure_payment_processor
     current_user.set_payment_processor(:stripe) unless current_user.payment_processor
+  end
+
+  def plan_label_for(price_key)
+    tier, interval = price_key.to_s.split("_")
+    return price_key.to_s if tier.blank?
+
+    tier_label = t("dashboard.plans.tiers.#{tier}.name", default: tier.to_s.humanize)
+    interval_key = interval.to_s == "annual" ? "annually" : interval
+    interval_label = interval_key.present? ? t("dashboard.plans.toggle.#{interval_key}", default: interval.to_s.humanize) : nil
+
+    if interval_label.present?
+      t("dashboard.plan_card.plan_label", tier: tier_label, interval: interval_label)
+    else
+      t("dashboard.plan_card.plan_label_tier_only", tier: tier_label)
+    end
   end
 end

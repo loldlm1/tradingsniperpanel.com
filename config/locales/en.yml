@@ -181,6 +181,10 @@ en:
       subtitle: "Review your current plan and upgrade when you're ready."
       summary: "Current plan: %{plan_name} (%{interval})."
       no_plan_summary: "No active plan. Choose a plan to get started."
+      scheduled_notice: "Downgrade scheduled to %{plan} on %{date}."
+      downgrade_scheduled: "Downgrade scheduled to %{plan} on %{date}."
+      downgrade_unavailable: "We couldn't schedule that downgrade. Try again or contact support."
+      scheduled_badge: "Scheduled"
       placeholder: "—"
       toggle:
         monthly: "Monthly"
@@ -219,7 +223,9 @@ en:
       cta:
         current: "Current Plan"
         upgrade: "Upgrade"
+        downgrade: "Downgrade"
         subscribe: "Subscribe"
+        scheduled: "Scheduled"
         unavailable: "Unavailable"
       contact:
         title: "Need a custom configuration?"
@@ -277,6 +283,7 @@ en:
       processing_with_plan: "Processing subscription for %{plan}..."
       payment_failed: "Payment failed. Update billing to retry."
       renews_on: "Renews on %{date}"
+      scheduled_change: "Downgrade to %{plan} on %{date}."
     download_card:
       title: "Downloads"
       label: "Current release"

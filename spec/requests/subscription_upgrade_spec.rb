@@ -15,6 +15,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     original_env = ENV.to_hash
     ENV["STRIPE_PRICE_BASIC_MONTHLY"] = "price_basic_monthly"
     ENV["STRIPE_PRICE_HFT_MONTHLY"] = "price_hft_monthly"
+    ENV["STRIPE_PRICE_PRO_MONTHLY"] = "price_pro_monthly"
     example.run
   ensure
     ENV.replace(original_env)
@@ -39,6 +40,66 @@ RSpec.describe "Subscription upgrades", type: :request do
     post dashboard_checkout_path, params: { price_key: "hft_monthly" }
 
     expect(response).to redirect_to(dashboard_plans_path)
+  end
+
+  it "schedules a downgrade at period end for lower-priced plans" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      type: "Pay::Stripe::Subscription"
+    )
+
+    schedule = instance_double(Stripe::SubscriptionSchedule, id: "sub_sched_123")
+    allow(Stripe::SubscriptionSchedule).to receive(:create).and_return(schedule)
+    allow(Stripe::SubscriptionSchedule).to receive(:update).and_return(schedule)
+    expect_any_instance_of(Pay::Stripe::Subscription).not_to receive(:swap)
+
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+
+    expect(response).to redirect_to(dashboard_plans_path)
+
+    subscription.reload
+    expect(subscription.metadata["scheduled_plan_key"]).to eq("basic_monthly")
+    expect(subscription.metadata["scheduled_schedule_id"]).to eq("sub_sched_123")
+    expect(subscription.metadata["scheduled_change_at"]).to be_present
+  end
+
+  it "releases a scheduled downgrade when upgrading" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      metadata: {
+        "scheduled_plan_key" => "basic_monthly",
+        "scheduled_schedule_id" => "sub_sched_789",
+        "scheduled_change_at" => 1.month.from_now.iso8601
+      },
+      type: "Pay::Stripe::Subscription"
+    )
+
+    allow(Stripe::SubscriptionSchedule).to receive(:release).and_return(true)
+    expect(Stripe::SubscriptionSchedule).to receive(:release).with("sub_sched_789")
+    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).with("price_pro_monthly", hash_including(proration_behavior: "always_invoice")).and_return(true)
+
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path, params: { price_key: "pro_monthly" }
+
+    expect(response).to redirect_to(dashboard_plans_path)
+
+    subscription.reload
+    expect(subscription.metadata).not_to include("scheduled_plan_key")
   end
 
   it "prefers the most recent active subscription for display" do

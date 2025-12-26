@@ -20,13 +20,15 @@ module Dashboard
       hint_tier, hint_interval = parse_price_key(price_key)
       tier = plan_context[:current_tier].presence || hint_tier
       interval = plan_context[:current_interval].presence || hint_interval
+      scheduled_change = scheduled_plan_change
       {
         tier: tier,
         interval: interval,
         price_key: price_key,
         status: plan_status(price_key),
         label: plan_label(tier, interval),
-        renews_at: subscription&.respond_to?(:current_period_end) ? subscription.current_period_end : nil
+        renews_at: subscription&.respond_to?(:current_period_end) ? subscription.current_period_end : nil,
+        scheduled_change: scheduled_change
       }
     end
 
@@ -145,6 +147,19 @@ module Dashboard
       return :pending if price_key.present?
 
       :inactive
+    end
+
+    def scheduled_plan_change
+      change = plan_context[:scheduled_change]
+      return nil if change.blank?
+
+      {
+        price_key: change[:price_key],
+        tier: change[:tier],
+        interval: change[:interval],
+        effective_at: change[:effective_at],
+        label: plan_label(change[:tier], change[:interval])
+      }
     end
 
     def subscription_failed?
