@@ -77,6 +77,8 @@ es:
   dashboard:
     copy: "Copiar"
     copied: "Copiado"
+    alerts:
+      dismiss: "Cerrar"
     header:
       open_sidebar: "Abrir sidebar"
       language: "Idioma"
