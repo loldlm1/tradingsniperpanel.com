@@ -181,6 +181,10 @@ es:
       subtitle: "Revisa tu plan actual y haz upgrade cuando estés listo."
       summary: "Plan actual: %{plan_name} (%{interval})."
       no_plan_summary: "No hay un plan activo. Elige un plan para comenzar."
+      scheduled_notice: "Baja programada a %{plan} el %{date}."
+      downgrade_scheduled: "Baja programada a %{plan} el %{date}."
+      downgrade_unavailable: "No pudimos programar esa baja. Intenta de nuevo o contacta soporte."
+      scheduled_badge: "Programado"
       placeholder: "—"
       toggle:
         monthly: "Mensual"
@@ -219,7 +223,9 @@ es:
       cta:
         current: "Plan actual"
         upgrade: "Actualizar"
+        downgrade: "Bajar plan"
         subscribe: "Suscribirse"
+        scheduled: "Programado"
         unavailable: "No disponible"
       contact:
         title: "¿Necesitas una configuración a medida?"
@@ -277,6 +283,7 @@ es:
       processing_with_plan: "Procesando suscripción para %{plan}..."
       payment_failed: "El pago falló. Actualiza el método de pago para reintentar."
       renews_on: "Renueva el %{date}"
+      scheduled_change: "Baja a %{plan} el %{date}."
     download_card:
       title: "Descargas"
       label: "Build actual"
