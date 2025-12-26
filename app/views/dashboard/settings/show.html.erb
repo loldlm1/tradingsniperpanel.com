@@ -7,39 +7,6 @@
 
 <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl mb-8">
   <div class="flex flex-col md:flex-row md:-mr-px">
-    <!-- Sidebar -->
-    <div class="flex flex-nowrap overflow-x-scroll no-scrollbar md:block md:overflow-auto px-3 py-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700/60 min-w-60 md:space-y-3">
-      <div>
-        <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase mb-3"><%= t("dashboard.settings.sidebar.title") %></div>
-        <ul class="flex flex-nowrap md:block mr-3 md:mr-0">
-          <li class="mr-0.5 md:mr-0 md:mb-0.5">
-            <%= link_to dashboard_settings_path, class: "flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap bg-linear-to-r from-violet-500/[0.12] dark:from-violet-500/[0.24] to-violet-500/[0.04]" do %>
-              <svg class="shrink-0 fill-current text-violet-400 mr-2" width="16" height="16" viewBox="0 0 16 16">
-                <path d="M8 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm-5.143 7.91a1 1 0 1 1-1.714-1.033A7.996 7.996 0 0 1 8 10a7.996 7.996 0 0 1 6.857 3.877 1 1 0 1 1-1.714 1.032A5.996 5.996 0 0 0 8 12a5.996 5.996 0 0 0-5.143 2.91Z" />
-              </svg>
-              <span class="text-sm font-medium text-violet-500 dark:text-violet-400"><%= t("dashboard.nav.my_account") %></span>
-            <% end %>
-          </li>
-          <li class="mr-0.5 md:mr-0 md:mb-0.5">
-            <%= link_to dashboard_plans_path, class: "flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap" do %>
-              <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500 mr-2" width="16" height="16" viewBox="0 0 16 16">
-                <path d="M5 9a1 1 0 1 1 0-2h6a1 1 0 0 1 0 2H5ZM1 4a1 1 0 1 1 0-2h14a1 1 0 0 1 0 2H1Zm0 10a1 1 0 0 1 0-2h14a1 1 0 0 1 0 2H1Z" />
-              </svg>
-              <span class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200"><%= t("dashboard.nav.plans") %></span>
-            <% end %>
-          </li>
-          <li class="mr-0.5 md:mr-0 md:mb-0.5">
-            <%= link_to dashboard_billing_path, class: "flex items-center px-2.5 py-2 rounded-lg whitespace-nowrap" do %>
-              <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500 mr-2" width="16" height="16" viewBox="0 0 16 16">
-                <path d="M0 4a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4Zm2 0v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Zm9 1a1 1 0 0 1 0 2H5a1 1 0 1 1 0-2h6Zm0 4a1 1 0 0 1 0 2H5a1 1 0 1 1 0-2h6Z" />
-              </svg>
-              <span class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-200"><%= t("dashboard.nav.billing_invoices") %></span>
-            <% end %>
-          </li>
-        </ul>
-      </div>
-    </div>
-
     <!-- Panel -->
     <div class="grow">
       <%= form_with model: @user, url: dashboard_settings_path, method: :patch do |f| %>
