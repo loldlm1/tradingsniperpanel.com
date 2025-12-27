@@ -53,10 +53,19 @@ module Billing
       price_key = metadata["scheduled_plan_key"]
       return nil if price_key.blank?
 
+      schedule_id = metadata["scheduled_schedule_id"]
+      if schedule_id.present? && stripe_enabled?
+        schedule = retrieve_schedule(schedule_id: schedule_id)
+        if terminal_schedule?(schedule)
+          clear!
+          return nil
+        end
+      end
+
       {
         price_key: price_key,
         effective_at: parse_time(metadata["scheduled_change_at"]),
-        schedule_id: metadata["scheduled_schedule_id"]
+        schedule_id: schedule_id
       }
     end
 
@@ -65,6 +74,10 @@ module Billing
 
       schedule = retrieve_schedule
       return nil if schedule.blank?
+      if terminal_schedule?(schedule)
+        clear!
+        return nil
+      end
 
       phase = target_phase(schedule)
       return nil if phase.blank?
@@ -107,10 +120,10 @@ module Billing
       ENV["STRIPE_PRIVATE_KEY"].present?
     end
 
-    def retrieve_schedule
+    def retrieve_schedule(schedule_id: nil)
       Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
 
-      schedule_id = schedule_id_from_metadata || schedule_id_from_subscription_cache
+      schedule_id ||= schedule_id_from_metadata || schedule_id_from_subscription_cache
       schedule_id ||= schedule_id_from_stripe_subscription
       return nil if schedule_id.blank?
 
@@ -138,6 +151,18 @@ module Billing
     def target_phase(schedule)
       phases = schedule.respond_to?(:phases) ? schedule.phases : nil
       Array(phases).max_by { |phase| phase_start_epoch(phase).to_i }
+    end
+
+    def terminal_schedule?(schedule)
+      status = schedule_status(schedule)
+      status.present? && %w[released canceled completed].include?(status)
+    end
+
+    def schedule_status(schedule)
+      return schedule.status.to_s if schedule.respond_to?(:status)
+      return schedule[:status].to_s if schedule.is_a?(Hash)
+
+      nil
     end
 
     def phase_start_epoch(phase)

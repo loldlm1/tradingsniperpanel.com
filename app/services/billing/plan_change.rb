@@ -96,12 +96,23 @@ module Billing
     end
 
     def upgrade_subscription(target_price_id)
-      existing = scheduled_change.fetch(current_price_key: current_price_key)
-      if existing&.dig(:schedule_id).present?
-        stripe_schedule.release(existing[:schedule_id])
+      managed_schedule_id = stripe_schedule.managed_schedule_id
+      if managed_schedule_id.present?
+        stripe_schedule.release(managed_schedule_id)
         scheduled_change.clear!
       end
 
+      subscription.swap(target_price_id, proration_behavior: "always_invoice")
+    rescue Pay::Stripe::Error => e
+      raise unless managed_schedule_error?(e)
+
+      managed_schedule_id ||= stripe_schedule.managed_schedule_id
+      if managed_schedule_id.present?
+        stripe_schedule.release(managed_schedule_id)
+        scheduled_change.clear!
+      end
+
+      subscription.reload
       subscription.swap(target_price_id, proration_behavior: "always_invoice")
       Result.new(status: :upgraded, price_key: price_key)
     end
@@ -112,6 +123,10 @@ module Billing
 
     def stripe_schedule
       @stripe_schedule ||= Billing::StripeSubscriptionSchedule.new(subscription: subscription, logger: logger)
+    end
+
+    def managed_schedule_error?(error)
+      error.message.to_s.include?("managed by the subscription schedule")
     end
   end
 end

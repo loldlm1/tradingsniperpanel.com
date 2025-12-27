@@ -24,6 +24,7 @@ RSpec.describe "Subscription upgrades", type: :request do
 
   before do
     allow(Stripe::Subscription).to receive(:retrieve).and_return(double(schedule: nil))
+    allow(Stripe::SubscriptionSchedule).to receive(:retrieve).and_return(double(status: "active"))
   end
 
   it "swaps an existing subscription instead of creating a new one" do
@@ -110,6 +111,41 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(subscription.metadata["scheduled_schedule_id"]).to eq("sub_sched_existing")
   end
 
+  it "creates a new schedule when the existing one is released" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      metadata: { "scheduled_schedule_id" => "sub_sched_released" },
+      type: "Pay::Stripe::Subscription"
+    )
+
+    allow(Stripe::SubscriptionSchedule).to receive(:retrieve)
+      .with("sub_sched_released")
+      .and_return(double(status: "released"))
+
+    schedule = instance_double(Stripe::SubscriptionSchedule, id: "sub_sched_new")
+    expect(Stripe::SubscriptionSchedule).to receive(:create)
+      .with(hash_including(from_subscription: subscription.processor_id), hash_including(idempotency_key: kind_of(String)))
+      .and_return(schedule)
+    expect(Stripe::SubscriptionSchedule).to receive(:update)
+      .with("sub_sched_new", hash_including(end_behavior: "release"))
+      .and_return(schedule)
+
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+
+    expect(response).to redirect_to(dashboard_plans_path)
+
+    subscription.reload
+    expect(subscription.metadata["scheduled_schedule_id"]).to eq("sub_sched_new")
+  end
+
   it "backfills scheduled change details from Stripe when metadata is missing" do
     subscription = customer.subscriptions.create!(
       name: "default",
@@ -165,6 +201,68 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     expect(response).to redirect_to(dashboard_plans_path)
 
+    subscription.reload
+    expect(subscription.metadata).not_to include("scheduled_plan_key")
+  end
+
+  it "retries upgrade after releasing a managed schedule" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      metadata: { "scheduled_schedule_id" => "sub_sched_active" },
+      type: "Pay::Stripe::Subscription"
+    )
+
+    allow(Stripe::Subscription).to receive(:retrieve).and_return(double(schedule: "sub_sched_active"))
+    allow(Stripe::SubscriptionSchedule).to receive(:retrieve).and_return(double(status: "active"))
+    expect(Stripe::SubscriptionSchedule).to receive(:release).with("sub_sched_active").at_least(:once)
+
+    swap_calls = 0
+    allow_any_instance_of(Pay::Stripe::Subscription).to receive(:swap) do
+      swap_calls += 1
+      raise Pay::Stripe::Error.new("The subscription is managed by the subscription schedule") if swap_calls == 1
+
+      true
+    end
+
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path, params: { price_key: "pro_monthly" }
+
+    expect(response).to redirect_to(dashboard_plans_path)
+  end
+
+  it "clears scheduled metadata when Stripe shows a released schedule" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      metadata: {
+        "scheduled_plan_key" => "basic_monthly",
+        "scheduled_schedule_id" => "sub_sched_released",
+        "scheduled_change_at" => 1.month.from_now.iso8601
+      },
+      type: "Pay::Stripe::Subscription"
+    )
+
+    allow(Stripe::SubscriptionSchedule).to receive(:retrieve)
+      .with("sub_sched_released")
+      .and_return(double(status: "released"))
+
+    sign_in user, scope: :user
+
+    get dashboard_plans_path
+
+    expect(response).to be_successful
     subscription.reload
     expect(subscription.metadata).not_to include("scheduled_plan_key")
   end
