@@ -237,6 +237,37 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(response).to redirect_to(dashboard_plans_path)
   end
 
+  it "ignores missing schedules when releasing during upgrade" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      metadata: { "scheduled_schedule_id" => "sub_sched_missing" },
+      type: "Pay::Stripe::Subscription"
+    )
+
+    allow(Stripe::Subscription).to receive(:retrieve).and_return(double(schedule: "sub_sched_missing"))
+    allow(Stripe::SubscriptionSchedule).to receive(:retrieve).and_return(nil)
+    expect(Stripe::SubscriptionSchedule).to receive(:release)
+      .with("sub_sched_missing")
+      .and_raise(Stripe::InvalidRequestError.new("No such subscription schedule", nil))
+
+    expect_any_instance_of(Pay::Stripe::Subscription)
+      .to receive(:swap)
+      .with("price_pro_monthly", hash_including(proration_behavior: "always_invoice"))
+      .and_return(true)
+
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path, params: { price_key: "pro_monthly" }
+
+    expect(response).to redirect_to(dashboard_plans_path)
+  end
+
   it "clears scheduled metadata when Stripe shows a released schedule" do
     subscription = customer.subscriptions.create!(
       name: "default",
