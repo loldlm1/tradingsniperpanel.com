@@ -3,7 +3,7 @@ class DashboardsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_accessible_expert_advisors
   before_action :ensure_payment_processor, only: [:checkout, :billing_portal]
-  before_action :set_subscription, only: [:show, :plans, :billing, :checkout]
+  before_action :set_subscription, only: [:show, :plans, :billing, :checkout, :cancel_scheduled_downgrade]
   before_action :set_plan_context, only: [:show, :billing]
   before_action :set_invoices, only: [:billing]
 
@@ -105,6 +105,23 @@ class DashboardsController < ApplicationController
   rescue StandardError => e
     Rails.logger.error("Billing portal failed: #{e.class} - #{e.message}")
     redirect_to dashboard_billing_path, alert: t("dashboard.billing.portal_error")
+  end
+
+  def cancel_scheduled_downgrade
+    unless @subscription
+      redirect_to dashboard_plans_path, alert: t("dashboard.plans.cancel_unavailable") and return
+    end
+
+    result = Billing::CancelScheduledPlanChange.new(subscription: @subscription).call
+
+    case result.status
+    when :canceled
+      redirect_to dashboard_plans_path, notice: t("dashboard.plans.cancel_success")
+    when :no_schedule
+      redirect_to dashboard_plans_path, alert: t("dashboard.plans.cancel_unavailable")
+    else
+      redirect_to dashboard_plans_path, alert: t("dashboard.plans.cancel_error")
+    end
   end
 
   private

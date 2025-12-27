@@ -1,3 +1,5 @@
+require "securerandom"
+
 module Billing
   class StripeSubscriptionSchedule
     UPDATABLE_STATUSES = %w[not_started active].freeze
@@ -8,17 +10,22 @@ module Billing
       @logger = logger
     end
 
-    def schedule_downgrade(target_price_id:, effective_at:, user_id:, target_price_key:)
+    def schedule_downgrade(target_price_id:, effective_at:)
       Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
       schedule_id = existing_schedule_id
       created = false
       retried = false
+      retry_suffix = nil
       schedule = nil
 
       begin
         if schedule_id.present?
           schedule = retrieve_schedule(schedule_id)
-          unless updatable_schedule?(schedule)
+          if schedule == :missing
+            clear_schedule_metadata
+            schedule_id = nil
+            schedule = nil
+          elsif !updatable_schedule?(schedule)
             clear_schedule_metadata
             schedule_id = nil
           end
@@ -29,7 +36,7 @@ module Billing
             {
               from_subscription: subscription.processor_id
             },
-            { idempotency_key: idempotency_key(target_price_id, effective_at) }
+            { idempotency_key: idempotency_key(target_price_id, effective_at, retry_suffix:) }
           )
           schedule_id = schedule.id
           created = true
@@ -39,7 +46,6 @@ module Billing
           schedule_id,
           {
             end_behavior: "release",
-            metadata: schedule_metadata(user_id:, target_price_key:),
             phases: phases_for(target_price_id:, effective_at:)
           }
         )
@@ -48,6 +54,7 @@ module Billing
       rescue Stripe::InvalidRequestError => e
         if !retried && released_schedule_error?(e)
           retried = true
+          retry_suffix = "retry-#{SecureRandom.hex(4)}"
           clear_schedule_metadata
           schedule_id = nil
           created = false
@@ -72,6 +79,10 @@ module Billing
 
       Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
       schedule = retrieve_schedule(schedule_id)
+      if schedule == :missing
+        clear_schedule_metadata
+        return
+      end
       return if schedule && terminal_schedule?(schedule)
 
       Stripe::SubscriptionSchedule.release(schedule_id)
@@ -96,6 +107,10 @@ module Billing
       return if schedule_id.blank?
 
       schedule = retrieve_schedule(schedule_id)
+      if schedule == :missing
+        clear_schedule_metadata
+        return
+      end
       return if schedule && terminal_schedule?(schedule)
 
       schedule_id
@@ -126,6 +141,17 @@ module Billing
       return if schedule_id.blank?
 
       Stripe::SubscriptionSchedule.retrieve(schedule_id)
+    rescue Stripe::InvalidRequestError => e
+      if missing_schedule_error?(e)
+        logger.warn(
+          "[Billing::StripeSubscriptionSchedule] schedule missing subscription_id=#{subscription.id} schedule_id=#{schedule_id}"
+        )
+        return :missing
+      end
+      logger.warn(
+        "[Billing::StripeSubscriptionSchedule] schedule retrieve failed subscription_id=#{subscription.id} schedule_id=#{schedule_id}: #{e.class} - #{e.message}"
+      )
+      nil
     rescue StandardError => e
       logger.warn(
         "[Billing::StripeSubscriptionSchedule] schedule retrieve failed subscription_id=#{subscription.id} schedule_id=#{schedule_id}: #{e.class} - #{e.message}"
@@ -162,6 +188,10 @@ module Billing
       message.include?("released") ||
         message.include?("canceled") ||
         message.include?("no such subscription schedule")
+    end
+
+    def missing_schedule_error?(error)
+      error.message.to_s.downcase.include?("no such subscription schedule")
     end
 
     def updatable_schedule?(schedule)
@@ -205,21 +235,15 @@ module Billing
       ]
     end
 
-    def schedule_metadata(user_id:, target_price_key:)
-      {
-        "client_reference_id" => user_id.to_s,
-        "scheduled_plan_key" => target_price_key,
-        "origin" => "dashboard_plans"
-      }
-    end
-
-    def idempotency_key(target_price_id, effective_at)
-      [
+    def idempotency_key(target_price_id, effective_at, retry_suffix: nil)
+      parts = [
         "schedule",
         subscription.processor_id,
         target_price_id,
         effective_at.to_i
-      ].join(":")
+      ]
+      parts << retry_suffix if retry_suffix.present?
+      parts.join(":")
     end
   end
 end

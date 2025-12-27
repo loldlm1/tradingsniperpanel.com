@@ -16,7 +16,7 @@ Rails.application.routes.draw do
     get "dashboard", to: "dashboards#show", as: :dashboard
     get "dashboard/analytics", to: "dashboards#analytics", as: :dashboard_analytics
     get "dashboard/expert_advisors", to: "expert_advisors#index", as: :dashboard_expert_advisors
-  get "dashboard/plans", to: "dashboards#plans", as: :dashboard_plans
+    get "dashboard/plans", to: "dashboards#plans", as: :dashboard_plans
     get "dashboard/billing", to: "dashboards#billing", as: :dashboard_billing
     get "dashboard/support", to: "dashboards#support", as: :dashboard_support
     get "dashboard/settings", to: "dashboard/settings#show", as: :dashboard_settings
@@ -24,6 +24,7 @@ Rails.application.routes.draw do
     get "dashboard/expert_advisors/:id/docs", to: "expert_advisors#docs", as: :dashboard_expert_advisor_docs
     get "dashboard/expert_advisors/:id/download/:doc_key", to: "expert_advisors#download", as: :dashboard_expert_advisor_download
     post "dashboard/checkout", to: "dashboards#checkout", as: :dashboard_checkout
+    post "dashboard/plans/cancel", to: "dashboards#cancel_scheduled_downgrade", as: :dashboard_cancel_scheduled_downgrade
     post "dashboard/billing_portal", to: "dashboards#billing_portal", as: :dashboard_billing_portal
     resource :dashboard_partner, only: [:show], path: "dashboard/partner", controller: "dashboard/partner" do
       post :request_payout
