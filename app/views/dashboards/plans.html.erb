@@ -45,8 +45,13 @@
         <h2 class="text-2xl text-gray-800 dark:text-gray-100 font-bold mb-4"><%= t("dashboard.plans.page_title") %></h2>
         <div class="text-sm"><%= summary_text %></div>
         <% if scheduled_label.present? && scheduled_change[:effective_at].present? %>
-          <div class="text-sm text-amber-600 dark:text-amber-300 mt-2">
-            <%= t("dashboard.plans.scheduled_notice", plan: scheduled_label, date: l(scheduled_change[:effective_at].to_date)) %>
+          <div class="mt-2 flex flex-col gap-2 text-sm text-amber-600 dark:text-amber-300 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <%= t("dashboard.plans.scheduled_notice", plan: scheduled_label, date: l(scheduled_change[:effective_at].to_date)) %>
+            </div>
+            <%= button_to dashboard_cancel_scheduled_downgrade_path, method: :post, class: "btn-sm bg-white border border-amber-200 hover:border-amber-300 text-amber-700 hover:text-amber-800 dark:bg-gray-800 dark:border-amber-500/40 dark:text-amber-200 dark:hover:border-amber-400", data: { loading_target: true } do %>
+              <%= loading_label(t("dashboard.plans.cancel_scheduled"), loading_text: t("loading.default")) %>
+            <% end %>
           </div>
         <% end %>
       </div>

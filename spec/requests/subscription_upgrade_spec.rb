@@ -46,6 +46,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     post dashboard_checkout_path, params: { price_key: "hft_monthly" }
 
     expect(response).to redirect_to(dashboard_plans_path)
+    expect(flash[:notice]).to eq(I18n.t("dashboard.billing.upgraded"))
   end
 
   it "schedules a downgrade at period end for lower-priced plans" do
@@ -205,6 +206,39 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(subscription.metadata).not_to include("scheduled_plan_key")
   end
 
+  it "cancels a scheduled downgrade from the plans page" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      metadata: {
+        "scheduled_plan_key" => "basic_monthly",
+        "scheduled_schedule_id" => "sub_sched_789",
+        "scheduled_change_at" => 1.month.from_now.iso8601
+      },
+      type: "Pay::Stripe::Subscription"
+    )
+
+    allow(Stripe::SubscriptionSchedule).to receive(:retrieve)
+      .with("sub_sched_789")
+      .and_return(double(status: "active"))
+    expect(Stripe::SubscriptionSchedule).to receive(:release).with("sub_sched_789").and_return(true)
+
+    sign_in user, scope: :user
+
+    post dashboard_cancel_scheduled_downgrade_path
+
+    expect(response).to redirect_to(dashboard_plans_path)
+    expect(flash[:notice]).to eq(I18n.t("dashboard.plans.cancel_success"))
+
+    subscription.reload
+    expect(subscription.metadata).not_to include("scheduled_plan_key")
+  end
+
   it "retries upgrade after releasing a managed schedule" do
     subscription = customer.subscriptions.create!(
       name: "default",
@@ -294,6 +328,37 @@ RSpec.describe "Subscription upgrades", type: :request do
     get dashboard_plans_path
 
     expect(response).to be_successful
+    subscription.reload
+    expect(subscription.metadata).not_to include("scheduled_plan_key")
+  end
+
+  it "clears scheduled metadata when Stripe schedule is missing" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      metadata: {
+        "scheduled_plan_key" => "basic_monthly",
+        "scheduled_schedule_id" => "sub_sched_missing",
+        "scheduled_change_at" => 1.month.from_now.iso8601
+      },
+      type: "Pay::Stripe::Subscription"
+    )
+
+    allow(Stripe::SubscriptionSchedule).to receive(:retrieve)
+      .with("sub_sched_missing")
+      .and_raise(Stripe::InvalidRequestError.new("No such subscription schedule", nil))
+
+    sign_in user, scope: :user
+
+    get dashboard_plans_path
+
+    expect(response).to be_successful
+
     subscription.reload
     expect(subscription.metadata).not_to include("scheduled_plan_key")
   end

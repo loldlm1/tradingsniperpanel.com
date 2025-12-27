@@ -72,9 +72,7 @@ module Billing
 
       schedule = stripe_schedule.schedule_downgrade(
         target_price_id: target_price_id,
-        effective_at: effective_at,
-        user_id: user&.id,
-        target_price_key: price_key
+        effective_at: effective_at
       )
 
       scheduled_change.store!(
@@ -96,21 +94,13 @@ module Billing
     end
 
     def upgrade_subscription(target_price_id)
-      managed_schedule_id = stripe_schedule.managed_schedule_id
-      if managed_schedule_id.present?
-        stripe_schedule.release(managed_schedule_id)
-        scheduled_change.clear!
-      end
-
+      release_managed_schedule
       subscription.swap(target_price_id, proration_behavior: "always_invoice")
+      Result.new(status: :upgraded, price_key: price_key)
     rescue Pay::Stripe::Error => e
       raise unless managed_schedule_error?(e)
 
-      managed_schedule_id ||= stripe_schedule.managed_schedule_id
-      if managed_schedule_id.present?
-        stripe_schedule.release(managed_schedule_id)
-        scheduled_change.clear!
-      end
+      release_managed_schedule
 
       subscription.reload
       subscription.swap(target_price_id, proration_behavior: "always_invoice")
@@ -127,6 +117,24 @@ module Billing
 
     def managed_schedule_error?(error)
       error.message.to_s.include?("managed by the subscription schedule")
+    end
+
+    def release_managed_schedule
+      managed_schedule_id = stripe_schedule.managed_schedule_id
+      stripe_schedule.release(managed_schedule_id) if managed_schedule_id.present?
+      clear_scheduled_metadata if scheduled_metadata_present?
+      managed_schedule_id
+    end
+
+    def clear_scheduled_metadata
+      scheduled_change.clear!
+    end
+
+    def scheduled_metadata_present?
+      metadata = (subscription.metadata || {}).to_h
+      Billing::ScheduledPlanChange::METADATA_KEYS.any? do |key|
+        metadata[key].present? || metadata[key.to_sym].present?
+      end
     end
   end
 end

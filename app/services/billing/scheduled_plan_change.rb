@@ -56,6 +56,10 @@ module Billing
       schedule_id = metadata["scheduled_schedule_id"]
       if schedule_id.present? && stripe_enabled?
         schedule = retrieve_schedule(schedule_id: schedule_id)
+        if schedule == :missing
+          clear!
+          return nil
+        end
         if terminal_schedule?(schedule)
           clear!
           return nil
@@ -73,7 +77,7 @@ module Billing
       return nil unless stripe_enabled?
 
       schedule = retrieve_schedule
-      return nil if schedule.blank?
+      return nil if schedule.blank? || schedule == :missing
       if terminal_schedule?(schedule)
         clear!
         return nil
@@ -128,6 +132,22 @@ module Billing
       return nil if schedule_id.blank?
 
       Stripe::SubscriptionSchedule.retrieve(schedule_id)
+    rescue Stripe::InvalidRequestError => e
+      if missing_schedule_error?(e)
+        logger.warn(
+          "[Billing::ScheduledPlanChange] schedule missing subscription_id=#{subscription.id} schedule_id=#{schedule_id}"
+        )
+        return :missing
+      end
+      logger.warn(
+        "[Billing::ScheduledPlanChange] schedule retrieve failed subscription_id=#{subscription.id} schedule_id=#{schedule_id}: #{e.class} - #{e.message}"
+      )
+      nil
+    rescue StandardError => e
+      logger.warn(
+        "[Billing::ScheduledPlanChange] schedule retrieve failed subscription_id=#{subscription.id} schedule_id=#{schedule_id}: #{e.class} - #{e.message}"
+      )
+      nil
     end
 
     def schedule_id_from_metadata
@@ -163,6 +183,10 @@ module Billing
       return schedule[:status].to_s if schedule.is_a?(Hash)
 
       nil
+    end
+
+    def missing_schedule_error?(error)
+      error.message.to_s.downcase.include?("no such subscription schedule")
     end
 
     def phase_start_epoch(phase)
