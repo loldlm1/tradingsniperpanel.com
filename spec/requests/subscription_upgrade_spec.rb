@@ -16,9 +16,14 @@ RSpec.describe "Subscription upgrades", type: :request do
     ENV["STRIPE_PRICE_BASIC_MONTHLY"] = "price_basic_monthly"
     ENV["STRIPE_PRICE_HFT_MONTHLY"] = "price_hft_monthly"
     ENV["STRIPE_PRICE_PRO_MONTHLY"] = "price_pro_monthly"
+    ENV["STRIPE_PRIVATE_KEY"] = "sk_test_123"
     example.run
   ensure
     ENV.replace(original_env)
+  end
+
+  before do
+    allow(Stripe::Subscription).to receive(:retrieve).and_return(double(schedule: nil))
   end
 
   it "swaps an existing subscription instead of creating a new one" do
@@ -103,6 +108,34 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     subscription.reload
     expect(subscription.metadata["scheduled_schedule_id"]).to eq("sub_sched_existing")
+  end
+
+  it "backfills scheduled change details from Stripe when metadata is missing" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      type: "Pay::Stripe::Subscription"
+    )
+
+    phase = double(start_date: 1.month.from_now.to_i, items: [double(price: "price_basic_monthly")])
+    schedule = double(id: "sub_sched_backfill", phases: [phase])
+    allow(Stripe::Subscription).to receive(:retrieve).and_return(double(schedule: "sub_sched_backfill"))
+    allow(Stripe::SubscriptionSchedule).to receive(:retrieve).and_return(schedule)
+
+    sign_in user, scope: :user
+
+    get dashboard_plans_path
+
+    expect(response).to be_successful
+    expect(response.body).to include(I18n.t("dashboard.plans.scheduled_badge"))
+
+    subscription.reload
+    expect(subscription.metadata["scheduled_plan_key"]).to eq("basic_monthly")
   end
 
   it "releases a scheduled downgrade when upgrading" do
