@@ -96,7 +96,7 @@ module Billing
       return if schedule_id.blank?
 
       schedule = retrieve_schedule(schedule_id)
-      return unless updatable_schedule?(schedule)
+      return if schedule && terminal_schedule?(schedule)
 
       schedule_id
     end
@@ -158,11 +158,15 @@ module Billing
     end
 
     def released_schedule_error?(error)
-      message = error.message.to_s
-      message.include?("released") || message.include?("canceled")
+      message = error.message.to_s.downcase
+      message.include?("released") ||
+        message.include?("canceled") ||
+        message.include?("no such subscription schedule")
     end
 
     def updatable_schedule?(schedule)
+      return false if schedule.nil?
+
       status = schedule_status(schedule)
       status.blank? || UPDATABLE_STATUSES.include?(status)
     end
