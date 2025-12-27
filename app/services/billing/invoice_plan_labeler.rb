@@ -6,15 +6,12 @@ module Billing
     end
 
     def label_for(invoice, fallback_label: nil)
-      return fallback_label unless stripe_enabled?
+      price_totals = price_totals_for(invoice)
+      if price_totals.blank? && stripe_enabled?
+        stripe_invoice = fetch_stripe_invoice(stripe_invoice_id(invoice))
+        price_totals = price_totals_for(stripe_invoice) if stripe_invoice.present?
+      end
 
-      stripe_invoice_id = stripe_invoice_id(invoice)
-      return fallback_label if stripe_invoice_id.blank?
-
-      stripe_invoice = fetch_stripe_invoice(stripe_invoice_id)
-      return fallback_label if stripe_invoice.blank?
-
-      price_totals = price_totals_for(stripe_invoice)
       return fallback_label if price_totals.blank?
 
       if price_totals.size == 1
@@ -57,10 +54,13 @@ module Billing
     end
 
     def invoice_lines(invoice)
-      lines = if invoice.respond_to?(:lines)
-                invoice.lines
-              elsif invoice.is_a?(Hash)
-                invoice["lines"] || invoice[:lines]
+      invoice_object = stripe_invoice_object(invoice)
+      return [] if invoice_object.blank?
+
+      lines = if invoice_object.respond_to?(:lines)
+                invoice_object.lines
+              elsif invoice_object.is_a?(Hash)
+                invoice_object["lines"] || invoice_object[:lines]
               end
 
       return [] if lines.blank?
@@ -74,85 +74,80 @@ module Billing
       end
     end
 
-    def price_key_for_line(line)
-      price = line_price_object(line)
-      price_id = price_id_for(price)
-      product_id = product_id_for(price)
-      price_id ||= plan_id_for(line)
-      product_id ||= plan_product_id_for(line)
+    def stripe_invoice_object(invoice)
+      return invoice if stripe_invoice?(invoice)
 
+      if invoice.respond_to?(:stripe_invoice) && invoice.stripe_invoice.present?
+        return invoice.stripe_invoice
+      end
+
+      data = invoice.respond_to?(:data) ? invoice.data : nil
+      data&.dig("stripe_invoice") || data&.dig(:stripe_invoice)
+    end
+
+    def price_key_for_line(line)
+      price_id, product_id = pricing_details_for_line(line)
+      price_key = price_key_from_ids(price_id, product_id)
+      return price_key if price_key.present?
+
+      price = line_price_object(line)
+      price_id = price_id_for(price) || plan_id_for(line)
+      product_id = product_id_for(price) || plan_product_id_for(line)
+
+      price_key_from_ids(price_id, product_id)
+    end
+
+    def pricing_details_for_line(line)
+      pricing = line_pricing(line)
+      return [nil, nil] if pricing.blank?
+
+      pricing_type = value_for(pricing, :type)
+      if pricing_type.present? && pricing_type.to_s != "price_details"
+        return [nil, nil]
+      end
+
+      details = value_for(pricing, :price_details)
+      price_id = extract_id(value_for(details, :price))
+      product_id = extract_id(value_for(details, :product))
+      [price_id, product_id]
+    end
+
+    def line_pricing(line)
+      value_for(line, :pricing)
+    end
+
+    def line_price_object(line)
+      value_for(line, :price)
+    end
+
+    def price_id_for(price)
+      extract_id(price)
+    end
+
+    def product_id_for(price)
+      product = value_for(price, :product)
+      extract_id(product)
+    end
+
+    def plan_id_for(line)
+      extract_id(value_for(line, :plan))
+    end
+
+    def plan_product_id_for(line)
+      plan = value_for(line, :plan)
+      product = value_for(plan, :product)
+      extract_id(product)
+    end
+
+    def price_key_from_ids(price_id, product_id)
       price_key = Billing::PriceKeyResolver.key_for_product_id(product_id)
       price_key ||= Billing::PriceKeyResolver.key_for_price_id(price_id)
       price_key
     end
 
-    def line_price_object(line)
-      if line.respond_to?(:price)
-        line.price
-      elsif line.is_a?(Hash)
-        line["price"] || line[:price]
-      end
-    end
-
-    def price_id_for(price)
-      return if price.blank?
-
-      if price.respond_to?(:id)
-        price.id
-      elsif price.is_a?(Hash)
-        price["id"] || price[:id]
-      else
-        price
-      end
-    end
-
-    def product_id_for(price)
-      return if price.blank?
-
-      product = if price.respond_to?(:product)
-                  price.product
-                elsif price.is_a?(Hash)
-                  price["product"] || price[:product]
-                end
-
-      extract_id(product)
-    end
-
-    def plan_id_for(line)
-      plan = if line.respond_to?(:plan)
-               line.plan
-             elsif line.is_a?(Hash)
-               line["plan"] || line[:plan]
-             end
-
-      extract_id(plan)
-    end
-
-    def plan_product_id_for(line)
-      plan = if line.respond_to?(:plan)
-               line.plan
-             elsif line.is_a?(Hash)
-               line["plan"] || line[:plan]
-             end
-
-      return if plan.blank?
-
-      product = if plan.respond_to?(:product)
-                  plan.product
-                elsif plan.is_a?(Hash)
-                  plan["product"] || plan[:product]
-                end
-
-      extract_id(product)
-    end
-
     def line_amount(line)
-      amount = if line.respond_to?(:amount)
-                 line.amount
-               elsif line.is_a?(Hash)
-                 line["amount"] || line[:amount]
-               end
-
+      amount = value_for(line, :amount)
+      amount = value_for(line, :subtotal) if amount.nil?
       amount.to_i
     end
 
@@ -199,26 +194,26 @@ module Billing
       invoice.respond_to?(:id) ? invoice.id : nil
     end
 
+    def stripe_invoice?(invoice)
+      invoice.respond_to?(:lines)
+    end
+
     def stripe_invoice_id(invoice)
-      if invoice.respond_to?(:stripe_invoice) && invoice.stripe_invoice.present?
-        return invoice.stripe_invoice.id if invoice.stripe_invoice.respond_to?(:id)
-      end
+      return invoice.id if stripe_invoice?(invoice)
 
       data = invoice.respond_to?(:data) ? invoice.data : nil
-      return if data.blank?
-
-      stripe_invoice = data["stripe_invoice"] || data[:stripe_invoice]
-      return if stripe_invoice.blank?
-
+      stripe_invoice = data&.dig("stripe_invoice") || data&.dig(:stripe_invoice)
       extract_id(stripe_invoice)
     end
 
     def fetch_stripe_invoice(stripe_invoice_id)
+      return if stripe_invoice_id.blank?
+
       Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
       Stripe::Invoice.retrieve(
         {
           id: stripe_invoice_id,
-          expand: ["lines.data.price.product", "lines.data.plan.product"]
+          expand: ["lines.data.pricing.price_details", "lines.data.plan.product", "lines.data.price.product"]
         }
       )
     rescue StandardError => e
@@ -228,6 +223,16 @@ module Billing
 
     def stripe_enabled?
       ENV["STRIPE_PRIVATE_KEY"].present?
+    end
+
+    def value_for(source, key)
+      return if source.blank?
+
+      if source.respond_to?(key)
+        source.public_send(key)
+      elsif source.is_a?(Hash)
+        source[key.to_s] || source[key.to_sym]
+      end
     end
 
     def extract_id(value)
