@@ -83,7 +83,16 @@ module Billing
         effective_at: effective_at
       )
 
-      Result.new(status: :downgrade_scheduled, price_key: price_key, effective_at: effective_at)
+      subscription.reload
+      verified = scheduled_change.fetch(current_price_key: current_price_key)
+      unless verified
+        logger.warn(
+          "[Billing::PlanChange] scheduled change verification failed subscription_id=#{subscription.id} price_key=#{price_key}"
+        )
+        return Result.new(status: :error)
+      end
+
+      Result.new(status: :downgrade_scheduled, price_key: verified[:price_key], effective_at: verified[:effective_at])
     end
 
     def upgrade_subscription(target_price_id)

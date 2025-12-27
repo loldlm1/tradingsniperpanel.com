@@ -10,26 +10,22 @@ module Billing
     def fetch(current_price_key: nil)
       return nil unless subscription
 
-      metadata = normalized_metadata
-      price_key = metadata["scheduled_plan_key"]
-      return nil if price_key.blank?
+      result = fetch_from_metadata
+      result ||= fetch_from_stripe if result.blank?
+      return nil if result.blank?
 
-      if current_price_key.present? && price_key == current_price_key
+      if current_price_key.present? && result[:price_key] == current_price_key
         clear!
         return nil
       end
 
-      effective_at = parse_time(metadata["scheduled_change_at"])
-      if effective_at.present? && effective_at <= Time.current && current_price_key.present? && price_key == current_price_key
+      effective_at = result[:effective_at]
+      if effective_at.present? && effective_at <= Time.current && current_price_key.present? && result[:price_key] == current_price_key
         clear!
         return nil
       end
 
-      {
-        price_key: price_key,
-        effective_at: effective_at,
-        schedule_id: metadata["scheduled_schedule_id"]
-      }
+      result
     end
 
     def store!(price_key:, schedule_id:, effective_at:)
@@ -52,8 +48,121 @@ module Billing
 
     attr_reader :subscription, :logger
 
+    def fetch_from_metadata
+      metadata = normalized_metadata
+      price_key = metadata["scheduled_plan_key"]
+      return nil if price_key.blank?
+
+      {
+        price_key: price_key,
+        effective_at: parse_time(metadata["scheduled_change_at"]),
+        schedule_id: metadata["scheduled_schedule_id"]
+      }
+    end
+
+    def fetch_from_stripe
+      return nil unless stripe_enabled?
+
+      schedule = retrieve_schedule
+      return nil if schedule.blank?
+
+      phase = target_phase(schedule)
+      return nil if phase.blank?
+
+      price_id = phase_price_id(phase)
+      return nil if price_id.blank?
+
+      price_key = Billing::PriceKeyResolver.key_for_price_id(price_id)
+      return nil if price_key.blank?
+
+      effective_at = phase_start_time(phase)
+      schedule_id = schedule.respond_to?(:id) ? schedule.id : schedule.to_s
+      result = {
+        price_key: price_key,
+        effective_at: effective_at,
+        schedule_id: schedule_id
+      }
+
+      begin
+        store!(price_key: price_key, schedule_id: schedule_id, effective_at: effective_at)
+      rescue StandardError => e
+        logger.warn(
+          "[Billing::ScheduledPlanChange] failed to persist schedule metadata subscription_id=#{subscription.id}: #{e.class} - #{e.message}"
+        )
+      end
+
+      result
+    rescue StandardError => e
+      logger.warn(
+        "[Billing::ScheduledPlanChange] schedule lookup failed subscription_id=#{subscription.id}: #{e.class} - #{e.message}"
+      )
+      nil
+    end
+
     def normalized_metadata
       (subscription.metadata || {}).to_h.stringify_keys
+    end
+
+    def stripe_enabled?
+      ENV["STRIPE_PRIVATE_KEY"].present?
+    end
+
+    def retrieve_schedule
+      Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
+
+      schedule_id = schedule_id_from_metadata || schedule_id_from_subscription_cache
+      schedule_id ||= schedule_id_from_stripe_subscription
+      return nil if schedule_id.blank?
+
+      Stripe::SubscriptionSchedule.retrieve(schedule_id)
+    end
+
+    def schedule_id_from_metadata
+      normalized_metadata["scheduled_schedule_id"].presence
+    end
+
+    def schedule_id_from_subscription_cache
+      cached = subscription.object.is_a?(Hash) ? subscription.object["schedule"] : nil
+      cached = subscription.data.is_a?(Hash) ? subscription.data["schedule"] : cached
+      cached.presence
+    end
+
+    def schedule_id_from_stripe_subscription
+      stripe_subscription = Stripe::Subscription.retrieve(subscription.processor_id)
+      schedule = stripe_subscription.respond_to?(:schedule) ? stripe_subscription.schedule : nil
+      return schedule.id if schedule.respond_to?(:id)
+
+      schedule.to_s.presence
+    end
+
+    def target_phase(schedule)
+      phases = schedule.respond_to?(:phases) ? schedule.phases : nil
+      Array(phases).max_by { |phase| phase_start_epoch(phase).to_i }
+    end
+
+    def phase_start_epoch(phase)
+      return phase.start_date if phase.respond_to?(:start_date)
+      return phase[:start_date] if phase.is_a?(Hash)
+
+      nil
+    end
+
+    def phase_start_time(phase)
+      epoch = phase_start_epoch(phase).to_i
+      return if epoch.zero?
+
+      Time.zone.at(epoch)
+    end
+
+    def phase_price_id(phase)
+      items = phase.respond_to?(:items) ? phase.items : (phase.is_a?(Hash) ? phase[:items] : nil)
+      item = Array(items).first
+      return if item.blank?
+
+      price = item.respond_to?(:price) ? item.price : (item.is_a?(Hash) ? item[:price] : nil)
+      return price.id if price.respond_to?(:id)
+
+      price.to_s.presence
     end
 
     def update_metadata!(updates)
