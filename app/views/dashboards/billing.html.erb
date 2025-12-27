@@ -12,13 +12,6 @@
                   else
                     t("dashboard.billing.no_plan_summary")
                   end %>
-<% invoice_plan_label = if plan_name.present? && interval_label.present?
-                          t("dashboard.plan_card.plan_label", tier: plan_name, interval: interval_label)
-                        elsif plan_name.present?
-                          t("dashboard.plan_card.plan_label_tier_only", tier: plan_name)
-                        else
-                          t("dashboard.billing.placeholder")
-                        end %>
 <% invoice_labeler = Billing::InvoicePlanLabeler.new %>
 
 <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl mb-8">
@@ -116,7 +109,7 @@
             <% status_label ||= invoice.respond_to?(:object) ? invoice.object&.dig("status") : nil %>
             <% status_label ||= invoice.amount_refunded.to_i.positive? ? "refunded" : "succeeded" %>
             <% badge_class = status_label == "succeeded" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100" : "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100" %>
-            <% invoice_label = invoice_labeler.label_for(invoice, fallback_label: invoice_plan_label) %>
+            <% invoice_label = invoice_labeler.label_for(invoice, fallback_label: t("dashboard.billing.placeholder")) %>
             <tr class="flex flex-wrap md:table-row md:flex-no-wrap border-b border-gray-200 dark:border-gray-700/60 py-2 md:py-0">
               <td class="w-full block md:w-auto md:table-cell py-0.5 md:py-2">
                 <div class="text-left font-medium text-gray-800 dark:text-gray-100"><%= invoice.created_at&.year || t("dashboard.billing.placeholder") %></div>
