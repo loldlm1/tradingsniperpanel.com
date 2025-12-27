@@ -115,4 +115,22 @@ RSpec.describe Billing::InvoicePlanLabeler do
 
     expect(label).to eq(expected)
   end
+
+  it "extracts nested product ids from price hashes" do
+    ENV["STRIPE_PRICE_BASIC_MONTHLY"] = "prod_basic"
+
+    invoice = build_invoice([
+      { "amount" => 1200, "price" => { "id" => "price_unknown", "product" => { "id" => "prod_basic" } } }
+    ])
+
+    label = described_class.new.label_for(invoice)
+
+    expected = I18n.t(
+      "dashboard.plan_card.plan_label",
+      tier: I18n.t("dashboard.plans.tiers.basic.name"),
+      interval: I18n.t("dashboard.plans.toggle.monthly")
+    )
+
+    expect(label).to eq(expected)
+  end
 end
