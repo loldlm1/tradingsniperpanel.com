@@ -271,6 +271,62 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(response).to redirect_to(dashboard_plans_path)
   end
 
+  it "retries upgrade after a deadlock" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_BASIC_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      type: "Pay::Stripe::Subscription"
+    )
+
+    allow_any_instance_of(Pay::Stripe::Subscription).to receive(:sync!).and_return(false)
+
+    swap_calls = 0
+    allow_any_instance_of(Pay::Stripe::Subscription).to receive(:swap) do
+      swap_calls += 1
+      raise ActiveRecord::Deadlocked if swap_calls == 1
+
+      true
+    end
+
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path, params: { price_key: "hft_monthly" }
+
+    expect(response).to redirect_to(dashboard_plans_path)
+    expect(flash[:notice]).to eq(I18n.t("dashboard.billing.upgraded"))
+  end
+
+  it "returns success after a deadlock if Stripe already upgraded" do
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_BASIC_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      type: "Pay::Stripe::Subscription"
+    )
+
+    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).once.and_raise(ActiveRecord::Deadlocked)
+    allow_any_instance_of(Pay::Stripe::Subscription).to receive(:sync!) do |record|
+      record.update!(processor_plan: "price_hft_monthly")
+      true
+    end
+
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path, params: { price_key: "hft_monthly" }
+
+    expect(response).to redirect_to(dashboard_plans_path)
+    expect(flash[:notice]).to eq(I18n.t("dashboard.billing.upgraded"))
+  end
+
   it "ignores missing schedules when releasing during upgrade" do
     subscription = customer.subscriptions.create!(
       name: "default",

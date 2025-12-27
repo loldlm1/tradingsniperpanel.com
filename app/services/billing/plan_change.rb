@@ -6,6 +6,8 @@ module Billing
       end
     end
 
+    DEADLOCK_RETRIES = 2
+
     def initialize(subscription:, price_key:, user:, logger: Rails.logger)
       @subscription = subscription
       @price_key = price_key
@@ -31,12 +33,10 @@ module Billing
         target_price_id: target_price_id
       )
 
-      subscription.with_lock do
-        if direction == :downgrade
-          schedule_downgrade(target_price_id)
-        else
-          upgrade_subscription(target_price_id)
-        end
+      if direction == :downgrade
+        subscription.with_lock { schedule_downgrade(target_price_id) }
+      else
+        with_deadlock_retry(target_price_id) { upgrade_subscription(target_price_id) }
       end
     rescue StandardError => e
       logger.error(
@@ -117,6 +117,48 @@ module Billing
 
     def managed_schedule_error?(error)
       error.message.to_s.include?("managed by the subscription schedule")
+    end
+
+    def with_deadlock_retry(target_price_id)
+      attempts = 0
+
+      begin
+        attempts += 1
+        return yield
+      rescue ActiveRecord::Deadlocked => e
+        if upgraded_in_stripe?(target_price_id)
+          logger.info(
+            "[Billing::PlanChange] deadlock resolved by sync subscription_id=#{subscription.id} price_key=#{price_key}"
+          )
+          return Result.new(status: :upgraded, price_key: price_key)
+        end
+
+        if attempts <= DEADLOCK_RETRIES
+          logger.warn(
+            "[Billing::PlanChange] deadlock retry attempt=#{attempts} subscription_id=#{subscription.id} price_key=#{price_key}"
+          )
+          sleep(deadlock_backoff(attempts))
+          retry
+        end
+
+        raise e
+      end
+    end
+
+    def upgraded_in_stripe?(target_price_id)
+      subscription.sync!
+      subscription.processor_plan == target_price_id
+    rescue StandardError => e
+      logger.warn(
+        "[Billing::PlanChange] sync after deadlock failed subscription_id=#{subscription.id}: #{e.class} - #{e.message}"
+      )
+      false
+    end
+
+    def deadlock_backoff(attempt)
+      base = 0.05
+      jitter = rand * 0.02
+      base * attempt + jitter
     end
 
     def release_managed_schedule
