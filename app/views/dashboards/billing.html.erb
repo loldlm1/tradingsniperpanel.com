@@ -19,6 +19,7 @@
                         else
                           t("dashboard.billing.placeholder")
                         end %>
+<% invoice_labeler = Billing::InvoicePlanLabeler.new %>
 
 <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl mb-8">
   <div class="p-6 space-y-6">
@@ -115,12 +116,13 @@
             <% status_label ||= invoice.respond_to?(:object) ? invoice.object&.dig("status") : nil %>
             <% status_label ||= invoice.amount_refunded.to_i.positive? ? "refunded" : "succeeded" %>
             <% badge_class = status_label == "succeeded" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100" : "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100" %>
+            <% invoice_label = invoice_labeler.label_for(invoice, fallback_label: invoice_plan_label) %>
             <tr class="flex flex-wrap md:table-row md:flex-no-wrap border-b border-gray-200 dark:border-gray-700/60 py-2 md:py-0">
               <td class="w-full block md:w-auto md:table-cell py-0.5 md:py-2">
                 <div class="text-left font-medium text-gray-800 dark:text-gray-100"><%= invoice.created_at&.year || t("dashboard.billing.placeholder") %></div>
               </td>
               <td class="w-full block md:w-auto md:table-cell py-0.5 md:py-2">
-                <div class="text-left"><%= invoice_plan_label %></div>
+                <div class="text-left"><%= invoice_label %></div>
               </td>
               <td class="w-full block md:w-auto md:table-cell py-0.5 md:py-2">
                 <div class="text-left font-medium"><%= amount ? number_to_currency(amount) : t("dashboard.billing.placeholder") %></div>
