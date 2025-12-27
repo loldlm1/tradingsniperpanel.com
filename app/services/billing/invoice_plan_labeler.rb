@@ -9,20 +9,12 @@ module Billing
       price_totals = price_totals_for(invoice)
       return fallback_label if price_totals.blank?
 
-      keys_by_price = price_keys_by_price_id(price_totals.keys)
-      return fallback_label if keys_by_price.empty?
-
-      price_totals = price_totals.slice(*keys_by_price.keys)
-      return fallback_label if price_totals.blank?
-
-      if keys_by_price.size == 1
-        price_key = keys_by_price.values.first
+      if price_totals.size == 1
+        price_key = price_totals.keys.first
         return plan_label_for(price_key) || fallback_label
       end
 
-      from_price_id, to_price_id = select_change_prices(price_totals)
-      from_key = keys_by_price[from_price_id]
-      to_key = keys_by_price[to_price_id]
+      from_key, to_key = select_change_keys(price_totals)
       return fallback_label if from_key.blank? || to_key.blank?
 
       change_label = change_label_for(from_key, to_key)
@@ -47,10 +39,10 @@ module Billing
 
       totals = Hash.new(0)
       lines.each do |line|
-        price_id = line_price_id(line)
-        next if price_id.blank?
+        price_key = price_key_for_line(line)
+        next if price_key.blank?
 
-        totals[price_id] += line_amount(line)
+        totals[price_key] += line_amount(line)
       end
 
       totals.compact_blank
@@ -86,28 +78,58 @@ module Billing
       data&.dig("stripe_invoice") || data&.dig(:stripe_invoice)
     end
 
-    def line_price_id(line)
+    def price_key_for_line(line)
+      price = line_price_object(line)
+      price_id = price_id_for(price)
+      product_id = product_id_for(price)
+      price_id ||= plan_id_for(line)
+      product_id ||= plan_product_id_for(line)
+
+      price_key = Billing::PriceKeyResolver.key_for_product_id(product_id)
+      price_key ||= Billing::PriceKeyResolver.key_for_price_id(price_id)
+      price_key
+    end
+
+    def line_price_object(line)
       price = if line.respond_to?(:price)
                 line.price
               elsif line.is_a?(Hash)
                 line["price"] || line[:price]
               end
 
-      price_id = if price.respond_to?(:id)
-                   price.id
-                 elsif price.is_a?(Hash)
-                   price["id"] || price[:id]
-                 else
-                   price
-                 end
+      price
+    end
 
-      return price_id if price_id.present?
+    def price_id_for(price)
+      return if price.blank?
 
+      if price.respond_to?(:id)
+        price.id
+      elsif price.is_a?(Hash)
+        price["id"] || price[:id]
+      else
+        price
+      end
+    end
+
+    def product_id_for(price)
+      return if price.blank?
+
+      if price.respond_to?(:product)
+        price.product
+      elsif price.is_a?(Hash)
+        price["product"] || price[:product]
+      end
+    end
+
+    def plan_id_for(line)
       plan = if line.respond_to?(:plan)
                line.plan
              elsif line.is_a?(Hash)
                line["plan"] || line[:plan]
              end
+
+      return if plan.blank?
 
       if plan.respond_to?(:id)
         plan.id
@@ -115,6 +137,22 @@ module Billing
         plan["id"] || plan[:id]
       else
         plan
+      end
+    end
+
+    def plan_product_id_for(line)
+      plan = if line.respond_to?(:plan)
+               line.plan
+             elsif line.is_a?(Hash)
+               line["plan"] || line[:plan]
+             end
+
+      return if plan.blank?
+
+      if plan.respond_to?(:product)
+        plan.product
+      elsif plan.is_a?(Hash)
+        plan["product"] || plan[:product]
       end
     end
 
@@ -128,14 +166,7 @@ module Billing
       amount.to_i
     end
 
-    def price_keys_by_price_id(price_ids)
-      price_ids.each_with_object({}) do |price_id, map|
-        price_key = Billing::PriceKeyResolver.key_for_price_id(price_id)
-        map[price_id] = price_key if price_key.present?
-      end
-    end
-
-    def select_change_prices(price_totals)
+    def select_change_keys(price_totals)
       sorted = price_totals.sort_by { |_, amount| amount.to_i }
       [sorted.first[0], sorted.last[0]]
     end
