@@ -7,3 +7,17 @@
 .loading-spinner {
   animation: loading-spin 0.8s linear infinite;
 }
+
+.btn,
+.btn-lg,
+.btn-sm,
+.btn-xs {
+  cursor: pointer;
+}
+
+.btn:disabled,
+.btn-lg:disabled,
+.btn-sm:disabled,
+.btn-xs:disabled {
+  cursor: not-allowed;
+}
