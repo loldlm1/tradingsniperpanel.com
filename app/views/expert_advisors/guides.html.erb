@@ -47,23 +47,6 @@
                 data-copy-label="<%= t("dashboard.expert_advisors.copy_code") %>"
                 data-copied-label="<%= t("dashboard.expert_advisors.copied") %>"
               >
-                <div class="flex justify-center my-2">
-                  <div class="w-full max-w-4xl">
-                    <video
-                      class="w-full aspect-video rounded-sm bg-slate-900"
-                      width="1920"
-                      height="1080"
-                      controls
-                      loop
-                      playsinline
-                      aria-label="<%= t("dashboard.expert_advisors.guide_video_title") %>"
-                    >
-                      <source src="<%= asset_path("docs/videos/video.mp4") %>" type="video/mp4" />
-                      <%= t("dashboard.expert_advisors.video_fallback") %>
-                    </video>
-                  </div>
-                </div>
-
                 <%= @markdown_html %>
               </div>
             </div>
