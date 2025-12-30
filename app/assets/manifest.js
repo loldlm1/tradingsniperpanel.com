@@ -2,3 +2,4 @@
 //= link_tree ../templates
 //= link_tree ../builds
 //= link dashboard.css
+//= link guides.css
