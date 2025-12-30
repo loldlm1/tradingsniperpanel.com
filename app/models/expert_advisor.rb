@@ -5,6 +5,7 @@ class ExpertAdvisor < ApplicationRecord
 
   has_many :user_expert_advisors, dependent: :destroy
   has_many :licenses, dependent: :destroy
+  has_one_attached :ea_files
 
   default_scope { where(deleted_at: nil) }
   scope :active, -> { where(deleted_at: nil) }
@@ -17,8 +18,10 @@ class ExpertAdvisor < ApplicationRecord
   # Prevent accidental EA identifier changes once issued
   validate :ea_id_immutable, on: :update
 
-  def active_documents
-    documents || {}
+  def doc_guide_for(locale)
+    key = "doc_guide_#{locale}"
+    guide = respond_to?(key) ? public_send(key) : nil
+    guide.presence || doc_guide_en
   end
 
   def to_param

@@ -77,6 +77,8 @@ en:
   dashboard:
     copy: "Copy"
     copied: "Copied"
+    license_key: "License Key"
+    expires_at: "Expires"
     alerts:
       dismiss: "Dismiss"
     header:
@@ -253,7 +255,7 @@ en:
     expert_advisors:
       index:
         title: "Expert Advisors"
-        subtitle: "Your active Expert Advisors and docs."
+        subtitle: "Your active Expert Advisors and guides."
         table:
           title: "All Expert Advisors"
           columns:
@@ -268,6 +270,24 @@ en:
       pnl_soon: "PnL coming soon"
       trial_countdown: "Trial ends %{date}"
       docs_copy: "Markdown preview with anchors and copy-friendly code blocks."
+      guides_page_title: "%{name} Guides | %{app}"
+      guides_header: "Guides / Tutorials"
+      guides_label: "Guides"
+      guides_cta: "View guides"
+      guides_missing: "Guide content is not available yet."
+      preview_missing: "Guide preview is coming soon."
+      access_title: "Access"
+      download_bundle: "Download bundle"
+      download_missing: "Download not found."
+      download_locked: "Upgrade to download this EA bundle."
+      download_unavailable: "Bundle upload pending."
+      locked: "Subscribe to unlock this EA and receive your license."
+      unlock_cta: "Unlock access"
+      toc_empty: "No sections yet."
+      guide_video_alt: "Guide preview"
+      guide_video_open: "Open guide video"
+      guide_video_title: "Guide video"
+      video_fallback: "Your browser does not support the video tag."
       toc: "On this page"
       performance_title: "Performance (coming soon)"
       performance_copy: "We will surface live PnL, broker setup stats, and per-EA trends here."
@@ -292,9 +312,9 @@ en:
       scheduled_change: "Downgrade to %{plan} on %{date}."
     download_card:
       title: "Downloads"
-      label: "Current release"
-      manual_en: "Manual (EN)"
-      manual_es: "Manual (ES)"
+      label: "EA bundles"
+      copy: "Access guides and download the full EA bundle from Expert Advisors."
+      cta: "Open Expert Advisors"
     referral_card:
       title: "Referral code"
       copy: "Share to grant a discount. We'll apply it in Stripe checkout."
@@ -429,10 +449,10 @@ en:
     support_open: "Open"
     support_links_title: "Quick links"
     support_faq_title: "Frequently asked questions"
-    support_faq_copy: "Answers about licenses, billing, and docs."
+    support_faq_copy: "Answers about licenses, billing, and guides."
     support_faq_items: []
-    support_faq_default_q1: "Where can I download my docs?"
-    support_faq_default_a1: "Go to Expert Advisors → Docs to view markdown previews and download files."
+    support_faq_default_q1: "Where can I download my guides?"
+    support_faq_default_a1: "Go to Expert Advisors → Guides to view the guide and download the bundle."
     support_faq_default_q2: "How do I update billing?"
     support_faq_default_a2: "Open the billing portal from the Billing page to update card and download receipts."
     support_faq_default_q3: "Who do I contact for payouts?"
@@ -487,7 +507,7 @@ en:
     support_status_copy: "All systems operational. Live incidents will appear here."
     support_operational: "Operational"
     contact_support: "Contact support"
-    ea_docs_overview: "Docs per EA are linked below."
+    ea_docs_overview: "Guides per EA are linked below."
     view_doc: "View"
   devise:
     sign_in_title: "Sign in"

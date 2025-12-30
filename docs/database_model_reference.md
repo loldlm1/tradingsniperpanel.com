@@ -3,7 +3,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 
 ## Domain map
 - Users authenticate via Devise and can originate from OAuth (`provider`, `uid`, `oauth_data`). `role` enum: `trader`, `partner`, `admin`.
-- ExpertAdvisors describe each EA/tool (`ea_type`, `documents` JSON, `allowed_subscription_tiers`, `trial_enabled`); referenced by Licenses and UserExpertAdvisors.
+- ExpertAdvisors describe each EA/tool (`ea_type`, `doc_guide_en/es`, `ea_files` attachment, `allowed_subscription_tiers`, `trial_enabled`); referenced by Licenses and UserExpertAdvisors.
 - Licenses tie a User to an ExpertAdvisor with status (`trial`, `active`, `expired`, `revoked`), expiry fields, and an `encrypted_key`. BrokerAccounts hang off Licenses.
 - UserExpertAdvisors is a soft-deletable join for entitlement tracking (`subscription_tier`, `pay_subscription_id`, `expires_at`, `deleted_at`).
 - Referrals via the `refer` gem: referral_codes/visits/referrals tables connect referrers/referees; PartnerProfile leverages this.
@@ -12,7 +12,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 
 ## Tables and key fields
 - `users`: `email` (uniq), `encrypted_password`, `name`, `preferred_locale`, `time_zone`, `provider`/`uid`, `oauth_data` JSON, `terms_accepted_at`, `role` enum. Associations: `pay_customers`, `licenses`, `user_expert_advisors`, `partner_profile`, refer gem (`referrer`, `referral_codes`, `referrals`).
-- `expert_advisors`: `name`, `description`, `ea_type` enum (`ea_robot`, `ea_tool`), `documents` JSON (doc keys → paths), `allowed_subscription_tiers` JSON array, `ea_id` (immutable slug/id), `trial_enabled`, `deleted_at`.
+- `expert_advisors`: `name`, `description`, `ea_type` enum (`ea_robot`, `ea_tool`), `doc_guide_en`/`doc_guide_es` (markdown text), `allowed_subscription_tiers` JSON array, `ea_id` (immutable slug/id), `trial_enabled`, `deleted_at`, `ea_files` (Active Storage attachment for the EA bundle).
 - `licenses`: `user_id`, `expert_advisor_id`, `status` (`trial`, `active`, `expired`, `revoked`), `plan_interval`, `expires_at`, `trial_ends_at`, `encrypted_key`, `source`, `last_synced_at`. Unique `user_id + expert_advisor_id`. Scopes: `active_or_trial`.
 - `broker_accounts`: `license_id`, `company`, `account_number`, `account_type` enum (`real`, `demo`), optional `name`. Uniqueness: `company + account_number + account_type`.
 - `user_expert_advisors`: `user_id`, `expert_advisor_id`, `subscription_tier`, `pay_subscription_id`, `expires_at`, `deleted_at`. Default scope filters `deleted_at`; scope `active` filters out expired/soft-deleted.

@@ -77,6 +77,8 @@ es:
   dashboard:
     copy: "Copiar"
     copied: "Copiado"
+    license_key: "Clave de licencia"
+    expires_at: "Vence"
     alerts:
       dismiss: "Cerrar"
     header:
@@ -253,7 +255,7 @@ es:
     expert_advisors:
       index:
         title: "Expert Advisors"
-        subtitle: "Tus Expert Advisors activos y docs."
+        subtitle: "Tus Expert Advisors activos y guías."
         table:
           title: "Todos los Expert Advisors"
           columns:
@@ -268,6 +270,24 @@ es:
       pnl_soon: "PnL pronto"
       trial_countdown: "La prueba termina %{date}"
       docs_copy: "Vista previa en markdown con anclas y código para copiar."
+      guides_page_title: "%{name} Guías | %{app}"
+      guides_header: "Guías / Tutoriales"
+      guides_label: "Guías"
+      guides_cta: "Ver guías"
+      guides_missing: "El contenido de la guía aún no está disponible."
+      preview_missing: "La vista previa de la guía llegará pronto."
+      access_title: "Acceso"
+      download_bundle: "Descargar paquete"
+      download_missing: "Descarga no encontrada."
+      download_locked: "Actualiza para descargar este paquete."
+      download_unavailable: "Carga del paquete pendiente."
+      locked: "Suscríbete para desbloquear este EA y recibir tu licencia."
+      unlock_cta: "Desbloquear acceso"
+      toc_empty: "Sin secciones todavía."
+      guide_video_alt: "Vista previa de la guía"
+      guide_video_open: "Abrir video de la guía"
+      guide_video_title: "Video de la guía"
+      video_fallback: "Tu navegador no admite la etiqueta de video."
       toc: "En esta página"
       performance_title: "Rendimiento (próximamente)"
       performance_copy: "Mostraremos PnL en vivo, estadísticas de broker y tendencias por EA."
@@ -292,9 +312,9 @@ es:
       scheduled_change: "Baja a %{plan} el %{date}."
     download_card:
       title: "Descargas"
-      label: "Build actual"
-      manual_en: "Manual (EN)"
-      manual_es: "Manual (ES)"
+      label: "Paquetes de EA"
+      copy: "Accede a las guías y descarga el paquete completo desde Expert Advisors."
+      cta: "Abrir Expert Advisors"
     referral_card:
       title: "Código de referido"
       copy: "Compártelo para otorgar descuento. Lo aplicamos en el checkout de Stripe."
@@ -429,10 +449,10 @@ es:
     support_open: "Abrir"
     support_links_title: "Links rápidos"
     support_faq_title: "Preguntas frecuentes"
-    support_faq_copy: "Respuestas sobre licencias, billing y docs."
+    support_faq_copy: "Respuestas sobre licencias, billing y guías."
     support_faq_items: []
-    support_faq_default_q1: "¿Dónde descargo mis docs?"
-    support_faq_default_a1: "Ve a Expert Advisors → Docs para ver markdown y descargar archivos."
+    support_faq_default_q1: "¿Dónde descargo mis guías?"
+    support_faq_default_a1: "Ve a Expert Advisors → Guías para ver la guía y descargar el paquete."
     support_faq_default_q2: "¿Cómo actualizo billing?"
     support_faq_default_a2: "Abre el portal de facturación desde la página de Facturación para actualizar la tarjeta y descargar recibos."
     support_faq_default_q3: "¿A quién contacto para pagos de socio?"
@@ -487,7 +507,7 @@ es:
     support_status_copy: "Todos los sistemas operativos. Los incidentes aparecerán aquí."
     support_operational: "Operativo"
     contact_support: "Contactar soporte"
-    ea_docs_overview: "Docs por EA enlazados abajo."
+    ea_docs_overview: "Guías por EA enlazadas abajo."
     view_doc: "Ver"
   devise:
     sign_in_title: "Ingresar"

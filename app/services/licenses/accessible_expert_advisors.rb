@@ -19,7 +19,7 @@ module Licenses
       return [] unless user
       return [] unless user.respond_to?(:licenses)
 
-      eas = ExpertAdvisor.active.includes(:licenses).ordered_by_rank
+      eas = ExpertAdvisor.active.includes(:licenses, ea_files_attachment: :blob).ordered_by_rank
       license_map = licenses_indexed
 
       eas.map do |ea|

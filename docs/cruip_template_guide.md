@@ -1,5 +1,10 @@
 # Cruip Template Guide (Neon + Mosaic)
-How to reuse Cruip HTML templates (not our Rails views) to assemble new pages quickly. Always start from the source HTML in `neon-html/` and `mosaic-html/`, then adapt into `.erb` while keeping class names, JS hooks, and assets intact.
+How to reuse Cruip HTML templates (not our Rails views) to assemble new pages quickly. Always start from the source HTML in `neon-html/`, `mosaic-html/`, or `cruip-docs-html/`, then adapt into `.erb` while keeping class names, JS hooks, and assets intact.
+
+## Docs/Guides template (Cruip Docs HTML)
+- Source: `cruip-docs-html/` at repo root is the canonical docs/guide design.
+- Rails assets: `app/assets/templates/docs` (copied from `cruip-docs-html`) holds `style.css`, fonts, images, and videos for the guides UI.
+- Usage: lift the **Page container** section from `cruip-docs-html/guides.html` into Rails views (e.g., `app/views/expert_advisors/guides.html.erb`) and keep data attributes (`data-scrollspy-*`) intact.
 
 ## Asset layout & adaptation
 - Source: `neon-html/` and `mosaic-html/` at repo root contain the canonical HTML, CSS, JS, and assets.

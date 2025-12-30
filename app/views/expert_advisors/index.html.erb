@@ -46,42 +46,61 @@
           </div>
         </div>
         <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed"><%= ea.description %></p>
+        <% preview = @guide_previews&.dig(ea.id) %>
+        <div class="rounded-lg bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 p-3 text-xs space-y-1">
+          <div class="text-[11px] uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.expert_advisors.guides_label") %></div>
+          <% if preview&.heading.present? %>
+            <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= preview.heading %></div>
+          <% end %>
+          <% if preview&.paragraph.present? %>
+            <p class="text-xs text-gray-500 dark:text-gray-400"><%= truncate(preview.paragraph, length: 140) %></p>
+          <% else %>
+            <p class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.preview_missing") %></p>
+          <% end %>
+        </div>
         <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
           <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700"><%= t("dashboard.broker_accounts.title") %>: <%= broker_count %></span>
           <% if entry.status == :trial && entry.expires_at.present? %>
             <span class="inline-flex items-center px-2 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-100 border border-amber-200/80 dark:border-amber-500/40">
-              <%= t("dashboard.expert_advisors.trial_countdown", default: "Trial ends %{date}", date: l(entry.expires_at.to_date, format: :short_with_year)) %>
+              <%= t("dashboard.expert_advisors.trial_countdown", date: l(entry.expires_at.to_date, format: :short_with_year)) %>
             </span>
           <% end %>
         </div>
         <% if entry.accessible && entry.license_key.present? %>
           <div class="mt-1">
-            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1"><%= t("dashboard.license_key", default: "License Key") %></div>
+            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1"><%= t("dashboard.license_key") %></div>
             <div class="flex items-center gap-2 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
               <span class="truncate"><%= entry.license_key %></span>
               <button
                 type="button"
                 class="text-violet-600 dark:text-violet-300 font-semibold"
                 data-copy-text="<%= j entry.license_key %>"
-                data-default-text="<%= t('dashboard.copy', default: t('dashboard.expert_advisors.copy_code', default: 'Copy')) %>"
-                data-copied-text="<%= t('dashboard.copied', default: t('dashboard.expert_advisors.copied', default: 'Copied')) %>"
+                data-default-text="<%= t('dashboard.copy') %>"
+                data-copied-text="<%= t('dashboard.copied') %>"
                 onclick="copyToClipboard(this)"
-              ><%= t("dashboard.copy", default: t("dashboard.expert_advisors.copy_code", default: "Copy")) %></button>
+              ><%= t("dashboard.copy") %></button>
             </div>
             <% if entry.expires_at.present? %>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.expires_at", default: "Expires") %>: <%= l(entry.expires_at, format: :short_with_year) %></div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.expires_at") %>: <%= l(entry.expires_at, format: :short_with_year) %></div>
             <% end %>
             <%= render "expert_advisors/broker_accounts", broker_accounts: entry.license&.broker_accounts if entry.license.present? %>
           </div>
         <% end %>
       </div>
       <div class="mt-4 flex items-center justify-between">
-        <%= link_to t("nav.docs"), dashboard_expert_advisor_docs_path(ea, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100 text-sm font-semibold" %>
-        <% unless entry.accessible %>
-          <% tier = entry.allowed_tiers.first %>
-          <% cta_key = "#{tier}_monthly" %>
-          <%= link_to t("dashboard.plans.cta.subscribe"), dashboard_plans_path(price_key: cta_key), class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
-        <% end %>
+        <%= link_to t("dashboard.expert_advisors.guides_cta"), dashboard_expert_advisor_guides_path(ea, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100 text-sm font-semibold" %>
+        <div class="flex items-center gap-2">
+          <% if entry.accessible && ea.ea_files.attached? %>
+            <%= link_to t("dashboard.expert_advisors.download_bundle"), dashboard_expert_advisor_download_path(ea, locale: I18n.locale), class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+          <% else %>
+            <button class="btn-xs bg-gray-900 text-white opacity-60 cursor-not-allowed dark:bg-gray-100 dark:text-gray-800" disabled><%= t("dashboard.expert_advisors.download_bundle") %></button>
+            <% unless entry.accessible %>
+              <% tier = entry.allowed_tiers.first %>
+              <% cta_key = "#{tier}_monthly" %>
+              <%= link_to t("dashboard.expert_advisors.unlock_cta"), dashboard_plans_path(price_key: cta_key), class: "text-sm font-semibold text-violet-600 dark:text-violet-300 hover:text-violet-800 dark:hover:text-violet-100" %>
+            <% end %>
+          <% end %>
+        </div>
       </div>
     </div>
   <% end %>

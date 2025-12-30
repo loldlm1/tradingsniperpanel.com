@@ -2,30 +2,24 @@ class ExpertAdvisorsController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
   before_action :set_accessible_expert_advisors
-  before_action :set_expert_advisor_entry, only: [:docs, :download]
-  before_action :ensure_access!, only: [:docs]
-  before_action :set_markdown, only: [:docs]
+  before_action :set_expert_advisor_entry, only: [:guides, :download]
+  before_action :ensure_guide_access!, only: [:guides]
+  before_action :ensure_download_access!, only: [:download]
+  before_action :set_markdown, only: [:guides]
 
-  def index; end
+  def index
+    @guide_previews = ExpertAdvisors::GuidePreview.for_entries(@accessible_eas, locale: I18n.locale)
+  end
 
-  def docs; end
+  def guides; end
 
   def download
-    docs = @expert_advisor.active_documents.with_indifferent_access
-    path = docs[params[:doc_key]]
-    return redirect_back fallback_location: dashboard_expert_advisors_path, alert: t("dashboard.expert_advisors.download_missing", default: "Document not found") if path.blank?
-
-    absolute = Rails.root.join(path)
-    docs_root = Rails.root.join("docs_eas")
-    docs_root = docs_root.realpath if docs_root.exist?
-    file_real = absolute.realpath
-    unless file_real.to_s.start_with?(docs_root.to_s)
-      redirect_back(fallback_location: dashboard_expert_advisors_path, alert: t("dashboard.expert_advisors.download_missing", default: "Document not found")) and return
+    unless @expert_advisor.ea_files.attached?
+      redirect_back fallback_location: dashboard_expert_advisors_path, alert: t("dashboard.expert_advisors.download_missing")
+      return
     end
 
-    send_file file_real, disposition: "inline"
-  rescue Errno::ENOENT
-    redirect_back fallback_location: dashboard_expert_advisors_path, alert: t("dashboard.expert_advisors.download_missing", default: "Document not found")
+    redirect_to rails_blob_path(@expert_advisor.ea_files, disposition: "attachment")
   end
 
   private
@@ -35,29 +29,23 @@ class ExpertAdvisorsController < ApplicationController
     @expert_advisor = @expert_advisor_entry&.expert_advisor || ExpertAdvisor.find_by!(ea_id: params[:id])
   end
 
-  def ensure_access!
+  def ensure_guide_access!
     has_license = @expert_advisor_entry&.license.present?
     has_user_ea = current_user.user_expert_advisors.where(expert_advisor_id: @expert_advisor.id).exists?
     head :not_found unless has_license || has_user_ea
   end
 
+  def ensure_download_access!
+    return if @expert_advisor_entry&.accessible
+
+    redirect_back fallback_location: dashboard_expert_advisors_path, alert: t("dashboard.expert_advisors.download_locked")
+  end
+
   def set_markdown
     @doc_headings = []
-    docs = @expert_advisor.active_documents.with_indifferent_access
-    locale_key = "markdown_#{I18n.locale}"
-    fallback_key = "manual_#{I18n.locale}"
+    markdown = @expert_advisor.doc_guide_for(I18n.locale)
+    return if markdown.blank?
 
-    path = docs[locale_key] || docs[fallback_key]
-    return unless path&.end_with?(".md")
-
-    absolute = Rails.root.join(path.delete_prefix("/"))
-    unless File.exist?(absolute)
-      fallback_docs = Rails.root.join("docs_eas", path.delete_prefix("/docs/"))
-      absolute = fallback_docs if File.exist?(fallback_docs)
-    end
-    return unless File.exist?(absolute)
-
-    markdown = File.read(absolute)
     rendered = MarkdownRenderer.render(markdown, with_toc: true)
     @markdown_html = rendered[:html]
     @doc_headings = rendered[:headings]
