@@ -1,5 +1,6 @@
 <% content_for :title, t("dashboard.expert_advisors.guides_page_title", name: @expert_advisor.name, app: t("app.short_name")) %>
 <% content_for :body_class, "font-aspekta antialiased font-[350] bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400" %>
+<% content_for :page_container_class, "w-full max-w-none px-0 py-0" %>
 <% content_for :head do %>
   <%= stylesheet_link_tag "docs/style" %>
 <% end %>
@@ -14,13 +15,13 @@
                 else "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 end %>
 
-<div class="-mx-4 sm:-mx-6 lg:-mx-8 -mt-8">
-  <div class="relative isolate overflow-hidden">
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none -z-10" aria-hidden="true">
-      <%= image_tag "docs/images/hero-illustration.svg", class: "max-w-none", width: 1972, height: 392, alt: "" %>
-    </div>
+<div class="relative isolate overflow-hidden">
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none -z-10" aria-hidden="true">
+    <%= image_tag "docs/images/hero-illustration.svg", class: "max-w-none", width: 1972, height: 392, alt: "" %>
+  </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-8 md:pt-12">
+  <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-8 md:pt-12">
+    <div class="w-full max-w-[96rem] mx-auto">
       <article>
         <div class="min-w-0">
           <header class="mb-6">
