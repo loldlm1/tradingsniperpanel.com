@@ -15,15 +15,16 @@
                 else "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 end %>
 
-<div class="relative isolate overflow-hidden">
-  <div class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none -z-10" aria-hidden="true">
-    <%= image_tag "docs/images/hero-illustration.svg", class: "max-w-none", width: 1972, height: 392, alt: "" %>
+<div class="relative isolate">
+  <div class="absolute inset-0 pointer-events-none -z-10 rounded-2xl overflow-hidden" aria-hidden="true">
+    <div class="absolute top-0 left-1/2 -translate-x-1/2">
+      <%= image_tag "docs/images/hero-illustration.svg", class: "max-w-none", width: 1972, height: 392, alt: "" %>
+    </div>
   </div>
 
-  <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-8 md:pt-12">
-    <div class="w-full max-w-[96rem] mx-auto">
-      <article>
-        <div class="min-w-0">
+  <div class="w-full max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8 md:pt-12">
+    <article>
+      <div class="min-w-0">
           <header class="mb-6">
             <div class="flex items-start justify-between gap-4 flex-wrap">
               <div>
@@ -103,8 +104,7 @@
           <% else %>
             <p class="text-slate-600 dark:text-slate-400"><%= t("dashboard.expert_advisors.guides_missing") %></p>
           <% end %>
-        </div>
-      </article>
-    </div>
+      </div>
+    </article>
   </div>
 </div>
