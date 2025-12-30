@@ -3,7 +3,8 @@ How to reuse Cruip HTML templates (not our Rails views) to assemble new pages qu
 
 ## Docs/Guides template (Cruip Docs HTML)
 - Source: `cruip-docs-html/` at repo root is the canonical docs/guide design.
-- Rails assets: `app/assets/templates/docs` (copied from `cruip-docs-html`) holds `style.css`, fonts, images, and videos for the guides UI.
+- Rails assets: `app/assets/templates/docs` (copied from `cruip-docs-html`) holds the original `style.css`, fonts, images, and videos for the guides UI.
+- Styles: for dashboard guides, load `app/assets/stylesheets/guides.css` (curated subset) and keep Aspekta in `dashboard.css`; avoid linking `docs/style.css` directly to prevent utility collisions with Mosaic.
 - Usage: lift the **Page container** section from `cruip-docs-html/guides.html` into Rails views (e.g., `app/views/expert_advisors/guides.html.erb`) and keep data attributes (`data-scrollspy-*`) intact.
 
 ## Asset layout & adaptation

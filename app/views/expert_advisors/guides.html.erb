@@ -1,8 +1,7 @@
 <% content_for :title, t("dashboard.expert_advisors.guides_page_title", name: @expert_advisor.name, app: t("app.short_name")) %>
-<% content_for :body_class, "font-aspekta antialiased font-[350] bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400" %>
 <% content_for :page_container_class, "w-full max-w-none px-0 py-0" %>
 <% content_for :head do %>
-  <%= stylesheet_link_tag "docs/style" %>
+  <%= stylesheet_link_tag "guides" %>
 <% end %>
 
 <% entry = @expert_advisor_entry %>
