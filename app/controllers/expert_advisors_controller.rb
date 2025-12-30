@@ -2,7 +2,8 @@ class ExpertAdvisorsController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
   before_action :set_accessible_expert_advisors
-  before_action :set_expert_advisor_entry, only: [:guides, :download]
+  before_action :set_expert_advisor_entry, only: [:show, :guides, :download]
+  before_action :set_guide_preview, only: [:show]
   before_action :ensure_guide_access!, only: [:guides]
   before_action :ensure_download_access!, only: [:download]
   before_action :set_markdown, only: [:guides]
@@ -10,6 +11,8 @@ class ExpertAdvisorsController < ApplicationController
   def index
     @guide_previews = ExpertAdvisors::GuidePreview.for_entries(@accessible_eas, locale: I18n.locale)
   end
+
+  def show; end
 
   def guides; end
 
@@ -49,5 +52,9 @@ class ExpertAdvisorsController < ApplicationController
     rendered = MarkdownRenderer.render(markdown, with_toc: true)
     @markdown_html = rendered[:html]
     @doc_headings = rendered[:headings]
+  end
+
+  def set_guide_preview
+    @guide_preview = ExpertAdvisors::GuidePreview.call(@expert_advisor.doc_guide_for(I18n.locale))
   end
 end

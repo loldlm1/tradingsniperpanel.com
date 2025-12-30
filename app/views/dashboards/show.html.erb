@@ -197,7 +197,7 @@
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.expires_at", default: "Expires") %>: <%= l(entry.expires_at, format: :short_with_year) %></p>
           <% end %>
           <div class="mt-3 flex items-center gap-2 text-sm">
-            <%= link_to t("dashboard.expert_advisors.guides_cta"), dashboard_expert_advisor_guides_path(ea, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100 font-semibold" %>
+            <%= link_to t("dashboard.expert_advisors.show_cta"), dashboard_expert_advisor_path(ea, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100 font-semibold" %>
             <% unless entry.accessible %>
               <% tier = entry.allowed_tiers.first %>
               <% cta_key = "#{tier}_monthly" %>
