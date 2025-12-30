@@ -1,10 +1,23 @@
 require "rails_helper"
 
-RSpec.describe "Expert advisor docs", type: :request do
+RSpec.describe "Expert advisor guides", type: :request do
   let(:user) { create(:user) }
-  let(:expert_advisor) { create(:expert_advisor, documents: { markdown_en: "docs_eas/sniper_advanced_panel/Manual_EN.md" }) }
+  let(:expert_advisor) do
+    create(:expert_advisor, doc_guide_en: "# Sniper Advanced Panel\n\nFirst paragraph.")
+  end
+  let(:bundle_path) { Rails.root.join("spec/fixtures/files/ea_bundle.rar") }
 
-  it "renders the Expert Advisors index page" do
+  def attach_bundle(record)
+    File.open(bundle_path) do |file|
+      record.ea_files.attach(
+        io: file,
+        filename: "ea_bundle.rar",
+        content_type: "application/x-rar-compressed"
+      )
+    end
+  end
+
+  it "renders the Expert Advisors index page with guide preview" do
     create(:user_expert_advisor, user:, expert_advisor:)
     sign_in user, scope: :user
 
@@ -12,13 +25,15 @@ RSpec.describe "Expert advisor docs", type: :request do
 
     expect(response).to be_successful
     expect(response.body).to include(expert_advisor.name)
+    expect(response.body).to include("Sniper Advanced Panel")
+    expect(response.body).to include("First paragraph.")
   end
 
-  it "renders docs for an active user EA" do
+  it "renders guides for an active user EA" do
     create(:user_expert_advisor, user:, expert_advisor:)
     sign_in user, scope: :user
 
-    get dashboard_expert_advisor_docs_path(expert_advisor, locale: :en)
+    get dashboard_expert_advisor_guides_path(expert_advisor, locale: :en)
 
     expect(response).to be_successful
     expect(response.body).to include(expert_advisor.name)
@@ -28,9 +43,30 @@ RSpec.describe "Expert advisor docs", type: :request do
   it "returns not found when user does not own the EA" do
     sign_in user, scope: :user
 
-    get dashboard_expert_advisor_docs_path(expert_advisor, locale: :en)
+    get dashboard_expert_advisor_guides_path(expert_advisor, locale: :en)
 
     expect(response).to have_http_status(:not_found)
+  end
+
+  it "redirects to the bundle download when licensed" do
+    create(:license, user:, expert_advisor:)
+    attach_bundle(expert_advisor)
+    sign_in user, scope: :user
+
+    get dashboard_expert_advisor_download_path(expert_advisor, locale: :en)
+
+    expect(response).to have_http_status(:found)
+    expect(response.headers["Location"]).to include("/rails/active_storage/blobs/")
+  end
+
+  it "blocks bundle download when locked" do
+    attach_bundle(expert_advisor)
+    sign_in user, scope: :user
+
+    get dashboard_expert_advisor_download_path(expert_advisor, locale: :en)
+
+    expect(response).to have_http_status(:found)
+    expect(response.headers["Location"]).to include("/dashboard/expert_advisors")
   end
 
   it "orders expert advisors by tier_rank then name" do

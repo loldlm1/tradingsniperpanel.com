@@ -1,0 +1,198 @@
+<% content_for :title, t("dashboard.expert_advisors.guides_page_title", name: @expert_advisor.name, app: t("app.short_name")) %>
+<% content_for :body_class, "font-aspekta antialiased text-slate-800 font-[350] bg-slate-100 dark:bg-slate-900 dark:text-slate-200" %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "docs/style" %>
+<% end %>
+
+<% entry = @expert_advisor_entry %>
+<% allowed_tier = Array(@expert_advisor.allowed_subscription_tiers).presence&.first || Billing::DashboardPlan::TIERS.first %>
+<% cta_key = "#{allowed_tier}_monthly" %>
+<% status = entry&.status || :locked %>
+<% badge_class = case status
+                when :active then "bg-emerald-100 text-emerald-700"
+                when :trial then "bg-amber-100 text-amber-700"
+                else "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                end %>
+
+<div class="relative">
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none -z-10" aria-hidden="true">
+    <%= image_tag "docs/images/hero-illustration.svg", class: "max-w-none", width: 1972, height: 392, alt: "" %>
+  </div>
+
+  <div class="max-w-7xl mx-auto">
+    <div class="pt-8 md:pt-12">
+      <div class="h-16 flex items-center mb-6">
+        <svg width="64" height="54" viewBox="0 0 64 54" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path class="fill-purple-400" d="M43.832 7.206a1.32 1.32 0 0 0-.47-.492L32.694.195a1.333 1.333 0 0 0-1.39 0L20.64 6.714c-.198.12-.36.29-.471.492L32 14.436l11.832-7.23Z" />
+          <path class="fill-white dark:fill-slate-800" d="M20.168 7.206c-.11.197-.168.42-.168.645V19.69c0 .464.242.895.639 1.137l10.666 6.519c.21.128.45.195.695.196V14.437L20.168 7.206Z" />
+          <path class="fill-purple-600" d="M43.832 7.206c.11.197.168.42.168.645V19.69c0 .464-.242.895-.639 1.137l-10.666 6.519c-.21.128-.45.195-.695.196V14.437l11.832-7.231Z" />
+          <path class="fill-purple-400" d="M63.832 19.451a1.32 1.32 0 0 0-.47-.492l-10.667-6.518a1.333 1.333 0 0 0-1.39 0L40.64 18.959c-.198.12-.36.29-.471.492L52 26.683l11.832-7.232Z" />
+          <path class="fill-white dark:fill-slate-800" d="M40.168 19.451c-.11.198-.168.42-.168.647v11.837c0 .465.242.896.639 1.138l10.666 6.518c.21.128.45.196.695.196V26.683l-11.832-7.232Z" />
+          <path class="fill-purple-600" d="M63.832 19.451c.11.198.168.42.168.647v11.837c0 .465-.242.896-.639 1.138L52.695 39.59c-.21.128-.45.196-.695.196V26.683l11.832-7.232Z" />
+          <path class="fill-purple-400" d="M23.832 19.451a1.32 1.32 0 0 0-.47-.492l-10.667-6.518a1.333 1.333 0 0 0-1.39 0L.64 18.959c-.198.12-.36.29-.471.492L12 26.683l11.832-7.232Z" />
+          <path class="fill-white dark:fill-slate-800" d="M.168 19.451c-.11.198-.168.42-.168.647v11.837c0 .465.242.896.639 1.138l10.666 6.518c.21.128.45.196.695.196V26.683L.168 19.451Z" />
+          <path class="fill-purple-600" d="M23.832 19.451c.11.198.168.42.168.647v11.837c0 .465-.242.896-.639 1.138L12.695 39.59c-.21.128-.45.196-.695.196V26.683l11.832-7.232Z" />
+          <path class="fill-purple-400" d="M43.832 32.769a1.32 1.32 0 0 0-.47-.492l-10.667-6.52a1.333 1.333 0 0 0-1.39 0l-10.666 6.52c-.198.12-.36.29-.471.492L32 39.999l11.832-7.23Z" />
+          <path class="fill-white dark:fill-slate-800" d="M20.168 32.769c-.11.197-.168.42-.168.645V45.25c0 .465.242.896.639 1.138l10.666 6.518c.21.128.45.196.695.196V40l-11.832-7.23Z" />
+          <path class="fill-purple-600" d="M43.832 32.769c.11.197.168.42.168.645V45.25c0 .465-.242.896-.639 1.138l-10.666 6.518c-.21.128-.45.196-.695.196V40l11.832-7.23Z" />
+        </svg>
+        <span class="font-nycd text-xl text-purple-600 ml-4"><%= t("dashboard.expert_advisors.guides_header") %></span>
+      </div>
+
+      <article class="flex flex-col xl:flex-row xl:space-x-12">
+        <div class="min-w-0 flex-1">
+          <header class="mb-6">
+            <div class="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h1 class="h2 text-slate-800 mb-2 dark:text-slate-200"><%= @expert_advisor.name %></h1>
+                <p class="text-lg text-slate-600 dark:text-slate-400"><%= @expert_advisor.description %></p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= status.to_s.humanize %></span>
+                <% unless entry&.accessible %>
+                  <%= link_to t("dashboard.plans.cta.subscribe"), dashboard_plans_path(price_key: cta_key), class: "btn-sm inline-flex items-center text-slate-100 bg-blue-600 hover:bg-blue-700 shadow-xs" %>
+                <% end %>
+              </div>
+            </div>
+          </header>
+
+          <% if @markdown_html.present? %>
+            <div
+              class="ea-guide-content text-slate-600 dark:text-slate-400 space-y-6"
+              data-scrollspy-container
+              data-copy-label="<%= t("dashboard.expert_advisors.copy_code") %>"
+              data-copied-label="<%= t("dashboard.expert_advisors.copied") %>"
+            >
+              <div x-data="{ modalExpanded: false }">
+                <div class="relative inline-flex justify-center items-center my-2">
+                  <%= image_tag "docs/images/content-image-01.jpg", class: "rounded-sm", width: 680, height: 382, alt: t("dashboard.expert_advisors.guide_video_alt") %>
+                  <button class="absolute group" @click.prevent="modalExpanded = true" aria-controls="guide-video-modal">
+                    <svg class="w-16 h-16 fill-current sm:w-20 sm:h-20" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <circle class="text-white opacity-80 group-hover:opacity-100 transition duration-150 ease-in-out" cx="44" cy="44" r="44" />
+                      <path class="text-blue-600" d="M52 44a.999.999 0 00-.427-.82l-10-7A1 1 0 0040 37V51a.999.999 0 001.573.82l10-7A.995.995 0 0052 44V44c0 .001 0 .001 0 0z" />
+                    </svg>
+                    <span class="sr-only"><%= t("dashboard.expert_advisors.guide_video_open") %></span>
+                  </button>
+                </div>
+
+                <div
+                  class="fixed inset-0 bg-slate-900/20 z-50 transition-opacity"
+                  x-show="modalExpanded"
+                  x-transition:enter="transition ease-out duration-200"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  x-transition:leave="transition ease-out duration-100"
+                  x-transition:leave-start="opacity-100"
+                  x-transition:leave-end="opacity-0"
+                  aria-hidden="true"
+                  x-cloak
+                ></div>
+
+                <div
+                  id="guide-video-modal"
+                  class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center px-4 sm:px-6"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="guide-video-modal-title"
+                  x-show="modalExpanded"
+                  x-transition:enter="transition ease-out duration-200"
+                  x-transition:enter-start="opacity-0 scale-95"
+                  x-transition:enter-end="opacity-100 scale-100"
+                  x-transition:leave="transition ease-out duration-200"
+                  x-transition:leave-start="opacity-100 scale-100"
+                  x-transition:leave-end="opacity-0 scale-95"
+                  x-cloak
+                >
+                  <div class="bg-white overflow-auto max-w-4xl w-full max-h-full dark:bg-slate-900" @click.away="modalExpanded = false" @keydown.escape.window="modalExpanded = false">
+                    <h2 id="guide-video-modal-title" class="sr-only"><%= t("dashboard.expert_advisors.guide_video_title") %></h2>
+                    <video x-init="$watch('modalExpanded', value => value ? $el.play() : $el.pause())" class="w-full aspect-video" width="1920" height="1080" loop controls>
+                      <source src="<%= asset_path("docs/videos/video.mp4") %>" type="video/mp4" />
+                      <%= t("dashboard.expert_advisors.video_fallback") %>
+                    </video>
+                  </div>
+                </div>
+              </div>
+
+              <%= @markdown_html %>
+            </div>
+          <% else %>
+            <p class="text-slate-600 dark:text-slate-400"><%= t("dashboard.expert_advisors.guides_missing") %></p>
+          <% end %>
+        </div>
+
+        <aside class="mt-10 xl:mt-0 xl:w-64 shrink-0">
+          <div class="rounded-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs space-y-4 sticky top-24">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="text-xs uppercase text-slate-500 dark:text-slate-400 font-semibold"><%= t("dashboard.expert_advisors.access_title") %></div>
+                <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= status.to_s.humanize %></span>
+              </div>
+              <% if entry&.expires_at.present? %>
+                <div class="text-xs text-slate-500 dark:text-slate-400"><%= t("dashboard.expires_at") %>: <%= l(entry.expires_at, format: :short_with_year) %></div>
+              <% end %>
+              <% if entry&.accessible && entry.license_key.present? %>
+                <div>
+                  <div class="text-xs uppercase text-slate-500 dark:text-slate-400 font-semibold mb-1"><%= t("dashboard.license_key") %></div>
+                  <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm px-3 py-2 text-xs text-slate-800 dark:text-slate-100">
+                    <span class="truncate"><%= entry.license_key %></span>
+                    <button
+                      type="button"
+                      class="text-blue-600 dark:text-blue-400 font-semibold"
+                      data-copy-text="<%= j entry.license_key %>"
+                      data-default-text="<%= t("dashboard.copy") %>"
+                      data-copied-text="<%= t("dashboard.copied") %>"
+                      onclick="copyToClipboard(this)"
+                    ><%= t("dashboard.copy") %></button>
+                  </div>
+                </div>
+              <% else %>
+                <p class="text-xs text-slate-500 dark:text-slate-400"><%= t("dashboard.expert_advisors.locked") %></p>
+              <% end %>
+              <%= render "expert_advisors/broker_accounts", broker_accounts: entry&.license&.broker_accounts if entry&.license.present? %>
+
+              <% if entry&.accessible && @expert_advisor.ea_files.attached? %>
+                <%= link_to t("dashboard.expert_advisors.download_bundle"), dashboard_expert_advisor_download_path(@expert_advisor, locale: I18n.locale), class: "btn-sm w-full inline-flex items-center justify-center text-slate-100 bg-blue-600 hover:bg-blue-700 shadow-xs" %>
+              <% else %>
+                <button class="btn-sm w-full inline-flex items-center justify-center text-slate-100 bg-blue-600 opacity-60 cursor-not-allowed shadow-xs" disabled>
+                  <%= t("dashboard.expert_advisors.download_bundle") %>
+                </button>
+                <% unless entry&.accessible %>
+                  <%= link_to t("dashboard.expert_advisors.unlock_cta"), dashboard_plans_path(price_key: cta_key), class: "text-sm text-blue-600 hover:underline text-center block" %>
+                <% else %>
+                  <div class="text-xs text-slate-500 dark:text-slate-400 text-center"><%= t("dashboard.expert_advisors.download_unavailable") %></div>
+                <% end %>
+              <% end %>
+            </div>
+
+            <% if @doc_headings.present? %>
+              <div class="pt-4 border-t border-slate-200 dark:border-slate-800">
+                <div class="text-xs uppercase text-slate-500 dark:text-slate-400 font-semibold"><%= t("dashboard.expert_advisors.toc") %></div>
+                <ul class="mt-2">
+                  <% @doc_headings.each do |heading| %>
+                    <% indent_class = case heading.level
+                                     when 1 then ""
+                                     when 2 then "ml-0"
+                                     when 3 then "ml-4"
+                                     else "ml-8"
+                                     end %>
+                    <li class="<%= indent_class %>">
+                      <a
+                        class="relative flex items-center py-2 pl-5 text-sm before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:h-1 before:rounded-full before:bg-slate-300 dark:before:bg-slate-600"
+                        data-scrollspy-link
+                        href="##{heading.id}"
+                      ><%= heading.text %></a>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
+            <% else %>
+              <div class="pt-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
+                <%= t("dashboard.expert_advisors.toc_empty") %>
+              </div>
+            <% end %>
+          </div>
+        </aside>
+      </article>
+    </div>
+  </div>
+</div>

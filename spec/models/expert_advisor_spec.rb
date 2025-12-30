@@ -35,11 +35,17 @@ RSpec.describe ExpertAdvisor, type: :model do
     end
   end
 
-  describe "#active_documents" do
-    it "returns documents hash when present" do
-      advisor = build(:expert_advisor, documents: { guide: "http://example.com" })
+  describe "#doc_guide_for" do
+    it "returns locale guide when present" do
+      advisor = build(:expert_advisor, doc_guide_en: "English", doc_guide_es: "Espanol")
 
-      expect(advisor.active_documents).to eq({ "guide" => "http://example.com" })
+      expect(advisor.doc_guide_for(:es)).to eq("Espanol")
+    end
+
+    it "falls back to English when locale guide is missing" do
+      advisor = build(:expert_advisor, doc_guide_en: "English", doc_guide_es: "")
+
+      expect(advisor.doc_guide_for(:es)).to eq("English")
     end
   end
 end

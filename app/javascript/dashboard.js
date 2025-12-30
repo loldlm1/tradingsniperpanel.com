@@ -35,9 +35,80 @@ const setupCopyHelper = () => {
   };
 };
 
+const setupGuideCodeCopy = () => {
+  const container = document.querySelector("[data-scrollspy-container]");
+  if (!container) return;
+
+  const copyLabel = container.dataset.copyLabel || "Copy";
+  const copiedLabel = container.dataset.copiedLabel || "Copied";
+
+  container.querySelectorAll("pre").forEach((pre) => {
+    if (pre.querySelector("[data-guide-copy-button]")) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.guideCopyButton = "true";
+    button.className = "absolute top-2 right-2 text-xs px-2 py-1 rounded bg-slate-800 text-white hover:bg-slate-700";
+    button.textContent = copyLabel;
+
+    button.addEventListener("click", () => {
+      const code = pre.querySelector("code");
+      const text = code ? code.innerText : pre.innerText;
+      if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+
+      navigator.clipboard.writeText(text).then(() => {
+        button.textContent = copiedLabel;
+        setTimeout(() => {
+          button.textContent = copyLabel;
+        }, 1200);
+      });
+    });
+
+    pre.classList.add("relative");
+    pre.appendChild(button);
+  });
+};
+
+const setupGuideScrollSpy = () => {
+  const container = document.querySelector("[data-scrollspy-container]");
+  if (!container || container.dataset.scrollSpyBound === "true") return;
+
+  const targets = container.querySelectorAll("[data-scrollspy-target]");
+  const links = document.querySelectorAll("[data-scrollspy-link]");
+  if (targets.length < 1 || links.length < 1) return;
+
+  const targetMargin = 120;
+  let currentActive = -1;
+
+  const activate = (index) => {
+    if (!links[index]) return;
+    links[index].classList.add("scrollspy-active");
+  };
+
+  const clearAll = () => {
+    links.forEach((link) => link.classList.remove("scrollspy-active"));
+  };
+
+  const onScroll = () => {
+    const positions = Array.from(targets).map((target) => target.offsetTop - targetMargin);
+    const current = positions.reduce((acc, pos, idx) => (window.scrollY >= pos ? idx : acc), 0);
+    if (current !== currentActive) {
+      clearAll();
+      activate(current);
+      currentActive = current;
+    }
+  };
+
+  container.dataset.scrollSpyBound = "true";
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+};
+
 const bootstrapDashboardLayout = () => {
   applySidebarState();
   setupCopyHelper();
+  setupGuideCodeCopy();
+  setupGuideScrollSpy();
 };
 
 bootstrapDashboardLayout();
