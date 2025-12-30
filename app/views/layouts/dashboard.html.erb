@@ -137,8 +137,10 @@
                       </li>
                       <% (@accessible_eas || []).each_with_index do |entry, idx| %>
                         <li class="mb-1 last:mb-0">
-                          <% docs_path = dashboard_expert_advisor_guides_path(entry.expert_advisor, locale: I18n.locale) %>
-                          <%= link_to docs_path, class: mosaic_sidebar_child_link_classes(active: current_page?(docs_path)) do %>
+                          <% show_path = dashboard_expert_advisor_path(entry.expert_advisor, locale: I18n.locale) %>
+                          <% guides_path = dashboard_expert_advisor_guides_path(entry.expert_advisor, locale: I18n.locale) %>
+                          <% active_entry = current_page?(show_path) || current_page?(guides_path) %>
+                          <%= link_to show_path, class: mosaic_sidebar_child_link_classes(active: active_entry) do %>
                             <span class="<%= mosaic_sidebar_child_span_classes %> flex items-center gap-2">
                               <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= idx + 1 %></span>
                               <span class="truncate"><%= entry.expert_advisor.name %></span>

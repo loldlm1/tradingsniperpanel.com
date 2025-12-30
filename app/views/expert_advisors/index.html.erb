@@ -88,7 +88,7 @@
         <% end %>
       </div>
       <div class="mt-4 flex items-center justify-between">
-        <%= link_to t("dashboard.expert_advisors.guides_cta"), dashboard_expert_advisor_guides_path(ea, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100 text-sm font-semibold" %>
+        <%= link_to t("dashboard.expert_advisors.show_cta"), dashboard_expert_advisor_path(ea, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100 text-sm font-semibold" %>
         <div class="flex items-center gap-2">
           <% if entry.accessible && ea.ea_files.attached? %>
             <%= link_to t("dashboard.expert_advisors.download_bundle"), dashboard_expert_advisor_download_path(ea, locale: I18n.locale), class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>

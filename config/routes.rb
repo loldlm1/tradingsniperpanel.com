@@ -21,6 +21,7 @@ Rails.application.routes.draw do
     get "dashboard/support", to: "dashboards#support", as: :dashboard_support
     get "dashboard/settings", to: "dashboard/settings#show", as: :dashboard_settings
     patch "dashboard/settings", to: "dashboard/settings#update"
+    get "dashboard/expert_advisors/:id", to: "expert_advisors#show", as: :dashboard_expert_advisor
     get "dashboard/expert_advisors/:id/guides", to: "expert_advisors#guides", as: :dashboard_expert_advisor_guides
     get "dashboard/expert_advisors/:id/download", to: "expert_advisors#download", as: :dashboard_expert_advisor_download
     post "dashboard/checkout", to: "dashboards#checkout", as: :dashboard_checkout

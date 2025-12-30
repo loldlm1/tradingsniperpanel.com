@@ -40,6 +40,16 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(response.body).to include("Sniper Advanced Panel")
   end
 
+  it "renders the EA show page for a locked user" do
+    sign_in user, scope: :user
+
+    get dashboard_expert_advisor_path(expert_advisor, locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include(expert_advisor.name)
+    expect(response.body).to include("Sniper Advanced Panel")
+  end
+
   it "returns not found when user does not own the EA" do
     sign_in user, scope: :user
 
