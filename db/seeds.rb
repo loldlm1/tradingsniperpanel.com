@@ -4,6 +4,18 @@ manual_en_path = Rails.root.join("docs_eas", "sniper_advanced_panel", "Manual_EN
 manual_es_path = Rails.root.join("docs_eas", "sniper_advanced_panel", "Manual_ES.md")
 manual_en = manual_en_path.exist? ? File.read(manual_en_path) : ""
 manual_es = manual_es_path.exist? ? File.read(manual_es_path) : ""
+intro_video_token = "[[video:docs/videos/video.mp4]]"
+outro_youtube_token = "[[youtube:https://www.youtube.com/watch?v=dQw4w9WgXcQ]]"
+
+inject_media_tokens = lambda do |markdown|
+  content = markdown.to_s.dup
+  content = "#{intro_video_token}\n\n#{content}".strip unless content.include?(intro_video_token)
+  content = "#{content}\n\n#{outro_youtube_token}\n" unless content.include?(outro_youtube_token)
+  content
+end
+
+manual_en = inject_media_tokens.call(manual_en)
+manual_es = inject_media_tokens.call(manual_es)
 
 bundle_path = Rails.root.join("db", "seeds", "fixtures", "ea_bundle.rar")
 
