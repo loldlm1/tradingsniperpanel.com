@@ -76,3 +76,7 @@
 .scroll-mt-24 {
   scroll-margin-top: 6rem;
 }
+
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
