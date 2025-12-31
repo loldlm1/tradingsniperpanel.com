@@ -25,8 +25,9 @@
   </head>
 
   <body class="<%= content_for?(:body_class) ? yield(:body_class) : "font-inter antialiased bg-gray-900 text-gray-100 tracking-tight" %>">
+    <% show_alerts = flash.any? && !(controller_name == "pages" && action_name == "home") %>
     <% if content_for?(:full_bleed) %>
-      <% if flash.any? %>
+      <% if show_alerts %>
         <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
           <%= render "shared/alert" %>
         </div>
@@ -61,7 +62,7 @@
         </header>
 
         <main class="grow">
-          <% if flash.any? %>
+          <% if show_alerts %>
             <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
               <%= render "shared/alert" %>
             </div>
