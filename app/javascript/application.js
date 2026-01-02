@@ -48,10 +48,21 @@ const bindLoadingButtons = () => {
     if (el.tagName === "FORM") {
       el.addEventListener("submit", (event) => {
         const submitter = event.submitter || el.querySelector("[data-loading-target-button]") || el.querySelector("[type='submit']");
+        const confirmMessage = (submitter && submitter.dataset.confirmMessage) || el.dataset.confirmMessage;
+        if (confirmMessage && !window.confirm(confirmMessage)) {
+          event.preventDefault();
+          return;
+        }
+        if (event.defaultPrevented) return;
         activateLoading(submitter || el);
       });
     } else {
       el.addEventListener("click", (event) => {
+        const confirmMessage = el.dataset.confirmMessage;
+        if (confirmMessage && !window.confirm(confirmMessage)) {
+          event.preventDefault();
+          return;
+        }
         if (el.tagName === "A") {
           const href = el.getAttribute("href") || "";
           if (href.startsWith("#")) return; // skip intra-page anchors

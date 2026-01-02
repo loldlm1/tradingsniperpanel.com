@@ -57,7 +57,10 @@ module Seeds
 
     def attach_bundle(record, bundle_path)
       return unless bundle_path&.exist?
-      return if record.ea_files.attached?
+      if record.ea_files.attached?
+        record.ensure_bundle_filename!
+        return
+      end
 
       extension = File.extname(bundle_path.to_s)
       filename = "#{record.ea_id}#{extension.presence || ".rar"}"
@@ -69,6 +72,8 @@ module Seeds
           content_type: "application/x-rar-compressed"
         )
       end
+
+      record.ensure_bundle_filename!
     end
 
     def manual_for(locale:)

@@ -53,7 +53,7 @@ module Billing
       price_key = metadata["scheduled_plan_key"]
       return nil if price_key.blank?
 
-      schedule_id = metadata["scheduled_schedule_id"]
+      schedule_id = normalize_schedule_id(metadata["scheduled_schedule_id"])
       if schedule_id.present? && stripe_enabled?
         schedule = retrieve_schedule(schedule_id: schedule_id)
         if schedule == :missing
@@ -151,21 +151,19 @@ module Billing
     end
 
     def schedule_id_from_metadata
-      normalized_metadata["scheduled_schedule_id"].presence
+      normalize_schedule_id(normalized_metadata["scheduled_schedule_id"])
     end
 
     def schedule_id_from_subscription_cache
       cached = subscription.object.is_a?(Hash) ? subscription.object["schedule"] : nil
       cached = subscription.data.is_a?(Hash) ? subscription.data["schedule"] : cached
-      cached.presence
+      normalize_schedule_id(cached)
     end
 
     def schedule_id_from_stripe_subscription
       stripe_subscription = Stripe::Subscription.retrieve(subscription.processor_id)
       schedule = stripe_subscription.respond_to?(:schedule) ? stripe_subscription.schedule : nil
-      return schedule.id if schedule.respond_to?(:id)
-
-      schedule.to_s.presence
+      normalize_schedule_id(schedule)
     end
 
     def target_phase(schedule)
@@ -234,6 +232,17 @@ module Billing
     rescue ArgumentError => e
       logger.warn("[Billing::ScheduledPlanChange] invalid time #{value.inspect}: #{e.class} - #{e.message}")
       nil
+    end
+
+    def normalize_schedule_id(value)
+      return if value.blank?
+      return value if value.is_a?(String)
+      return value["id"] if value.is_a?(Hash) && value["id"].present?
+      return value[:id] if value.is_a?(Hash) && value[:id].present?
+      return if value.is_a?(Hash)
+      return value.id if value.respond_to?(:id) && value.id.present?
+
+      value.to_s.presence
     end
   end
 end

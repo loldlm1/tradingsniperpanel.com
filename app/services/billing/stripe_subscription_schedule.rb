@@ -75,6 +75,7 @@ module Billing
     end
 
     def release(schedule_id)
+      schedule_id = normalize_schedule_id(schedule_id)
       return if schedule_id.blank?
 
       Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
@@ -122,14 +123,12 @@ module Billing
 
     def existing_schedule_id
       metadata = (subscription.metadata || {}).to_h
-      schedule_id = metadata["scheduled_schedule_id"] || metadata[:scheduled_schedule_id]
+      schedule_id = normalize_schedule_id(metadata["scheduled_schedule_id"] || metadata[:scheduled_schedule_id])
       return schedule_id if schedule_id.present?
 
       stripe_subscription = Stripe::Subscription.retrieve(subscription.processor_id)
       schedule = stripe_subscription.respond_to?(:schedule) ? stripe_subscription.schedule : nil
-      return schedule.id if schedule.respond_to?(:id)
-
-      schedule.to_s.presence
+      normalize_schedule_id(schedule)
     rescue StandardError => e
       logger.warn(
         "[Billing::StripeSubscriptionSchedule] schedule lookup failed subscription_id=#{subscription.id} processor_id=#{subscription.processor_id}: #{e.class} - #{e.message}"
@@ -244,6 +243,17 @@ module Billing
       ]
       parts << retry_suffix if retry_suffix.present?
       parts.join(":")
+    end
+
+    def normalize_schedule_id(value)
+      return if value.blank?
+      return value if value.is_a?(String)
+      return value["id"] if value.is_a?(Hash) && value["id"].present?
+      return value[:id] if value.is_a?(Hash) && value[:id].present?
+      return if value.is_a?(Hash)
+      return value.id if value.respond_to?(:id) && value.id.present?
+
+      value.to_s.presence
     end
   end
 end

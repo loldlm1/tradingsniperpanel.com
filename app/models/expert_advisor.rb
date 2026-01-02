@@ -37,12 +37,28 @@ class ExpertAdvisor < ApplicationRecord
   def bundle_filename
     return unless ea_files.attached?
 
-    extension = ea_files.blob.filename.extension
-    extension = extension.presence || "rar"
-    "#{ea_id}.#{extension}"
+    "#{ea_id}.#{bundle_extension}"
+  end
+
+  def ensure_bundle_filename!
+    return unless ea_files.attached?
+
+    target = bundle_filename
+    return if target.blank?
+
+    blob = ea_files.blob
+    return if blob.filename.to_s == target
+
+    blob.update!(filename: target)
   end
 
   private
+
+  def bundle_extension
+    extension = ea_files.blob.filename.extension
+    extension = extension.presence || "rar"
+    extension
+  end
 
   def assign_ea_id
     return if ea_id.present?

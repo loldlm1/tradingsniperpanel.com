@@ -95,8 +95,8 @@
           <%= button_to dashboard_cancel_subscription_path,
                         method: :post,
                         class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full sm:w-auto",
-                        data: { loading_target: true },
-                        form: { class: "inline", onsubmit: "return confirm('#{j cancel_confirm}')" } do %>
+                        data: { loading_target: true, confirm_message: cancel_confirm },
+                        form: { class: "inline" } do %>
             <%= loading_label(t("dashboard.billing.cancel_action"), loading_text: t("loading.default")) %>
           <% end %>
         <% end %>
