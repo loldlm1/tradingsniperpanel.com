@@ -22,7 +22,11 @@ class ExpertAdvisorsController < ApplicationController
       return
     end
 
-    redirect_to rails_blob_path(@expert_advisor.ea_files, disposition: "attachment")
+    redirect_to rails_blob_path(
+      @expert_advisor.ea_files,
+      disposition: "attachment",
+      filename: @expert_advisor.bundle_filename
+    )
   end
 
   private

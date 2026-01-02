@@ -3,7 +3,7 @@ class DashboardsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_accessible_expert_advisors
   before_action :ensure_payment_processor, only: [:checkout, :billing_portal]
-  before_action :set_subscription, only: [:show, :plans, :billing, :checkout, :cancel_scheduled_downgrade]
+  before_action :set_subscription, only: [:show, :plans, :billing, :checkout, :cancel_scheduled_downgrade, :cancel_subscription]
   before_action :set_plan_context, only: [:show, :billing]
   before_action :set_invoices, only: [:billing]
 
@@ -124,6 +124,25 @@ class DashboardsController < ApplicationController
     end
   end
 
+  def cancel_subscription
+    unless @subscription
+      redirect_to dashboard_billing_path, alert: t("dashboard.billing.cancel_unavailable") and return
+    end
+
+    result = Billing::CancelSubscription.new(subscription: @subscription, user: current_user).call
+
+    case result.status
+    when :canceled
+      redirect_to dashboard_billing_path, notice: cancel_notice_for(result, key: "cancel_success")
+    when :already_canceled
+      redirect_to dashboard_billing_path, notice: cancel_notice_for(result, key: "cancel_already")
+    when :schedule_error, :no_subscription
+      redirect_to dashboard_billing_path, alert: t("dashboard.billing.cancel_error")
+    else
+      redirect_to dashboard_billing_path, alert: t("dashboard.billing.cancel_error")
+    end
+  end
+
   private
 
   def set_subscription
@@ -157,6 +176,14 @@ class DashboardsController < ApplicationController
       t("dashboard.plan_card.plan_label", tier: tier_label, interval: interval_label)
     else
       t("dashboard.plan_card.plan_label_tier_only", tier: tier_label)
+    end
+  end
+
+  def cancel_notice_for(result, key:)
+    if result.ends_at.present?
+      t("dashboard.billing.#{key}", date: l(result.ends_at.to_date))
+    else
+      t("dashboard.billing.#{key}_no_date")
     end
   end
 end

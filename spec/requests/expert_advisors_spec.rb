@@ -67,6 +67,7 @@ RSpec.describe "Expert advisor guides", type: :request do
 
     expect(response).to have_http_status(:found)
     expect(response.headers["Location"]).to include("/rails/active_storage/blobs/")
+    expect(response.headers["Location"]).to include("#{expert_advisor.ea_id}.rar")
   end
 
   it "blocks bundle download when locked" do

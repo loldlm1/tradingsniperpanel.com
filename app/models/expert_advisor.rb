@@ -34,6 +34,14 @@ class ExpertAdvisor < ApplicationRecord
     Array(allowed_subscription_tiers).map(&:to_s).include?(tier.to_s)
   end
 
+  def bundle_filename
+    return unless ea_files.attached?
+
+    extension = ea_files.blob.filename.extension
+    extension = extension.presence || "rar"
+    "#{ea_id}.#{extension}"
+  end
+
   private
 
   def assign_ea_id
