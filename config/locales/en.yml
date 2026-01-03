@@ -235,6 +235,7 @@ en:
         subscribe: "Subscribe"
         scheduled: "Scheduled"
         unavailable: "Unavailable"
+      upgrade_confirm: "Upgrade now? You will be charged immediately and payments are non-refundable."
       contact:
         title: "Need a custom configuration?"
         body: "We can help with tailored onboarding, team access, or specialized billing for your desk."
@@ -453,6 +454,10 @@ en:
       cancel_already: "Cancellation already scheduled for %{date}."
       cancel_already_no_date: "Cancellation already scheduled."
       cancel_error: "Unable to cancel your subscription right now."
+      resume_action: "Renew subscription"
+      resume_success: "Subscription renewed."
+      resume_unavailable: "Subscription cannot be renewed right now."
+      resume_error: "Unable to renew your subscription right now."
     support_overview: "Get help fast. We’ll add live metrics soon."
     support_intro: "FAQs, quick links, and a way to reach us."
     support_docs_copy: "Read the manuals and change logs for each EA."

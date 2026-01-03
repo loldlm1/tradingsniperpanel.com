@@ -112,4 +112,38 @@ RSpec.describe "Dashboard billing", type: :request do
     expect(response).to redirect_to(dashboard_billing_path)
     expect(flash[:notice]).to eq(I18n.t("dashboard.billing.cancel_success", date: I18n.l(subscription.ends_at.to_date)))
   end
+
+  it "resumes a canceled subscription from billing" do
+    customer = user.pay_customers.create!(
+      processor: "stripe",
+      processor_id: "cus_#{SecureRandom.hex(4)}",
+      default: true
+    )
+
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: "price_basic_monthly",
+      status: "active",
+      ends_at: 1.month.from_now,
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      type: "Pay::Stripe::Subscription"
+    )
+
+    allow_any_instance_of(Pay::Stripe::Subscription).to receive(:resume) do |record|
+      record.update!(ends_at: nil, status: "active")
+      true
+    end
+    allow_any_instance_of(Pay::Stripe::Subscription).to receive(:sync!).and_return(true)
+
+    sign_in user, scope: :user
+
+    post dashboard_resume_subscription_path
+
+    subscription.reload
+    expect(response).to redirect_to(dashboard_billing_path)
+    expect(flash[:notice]).to eq(I18n.t("dashboard.billing.resume_success"))
+  end
 end

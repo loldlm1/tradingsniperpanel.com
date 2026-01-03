@@ -235,6 +235,7 @@ es:
         subscribe: "Suscribirse"
         scheduled: "Programado"
         unavailable: "No disponible"
+      upgrade_confirm: "¿Hacer upgrade ahora? Se cobrará de inmediato y los pagos no son reembolsables."
       contact:
         title: "¿Necesitas una configuración a medida?"
         body: "Podemos ayudar con onboarding personalizado, acceso para equipos o facturación especializada."
@@ -453,6 +454,10 @@ es:
       cancel_already: "La cancelación ya está programada para %{date}."
       cancel_already_no_date: "La cancelación ya está programada."
       cancel_error: "No se pudo cancelar tu suscripción en este momento."
+      resume_action: "Renovar suscripción"
+      resume_success: "Suscripción renovada."
+      resume_unavailable: "No se puede renovar la suscripción en este momento."
+      resume_error: "No se pudo renovar tu suscripción en este momento."
     support_overview: "Obtén ayuda rápido. Añadiremos métricas pronto."
     support_intro: "FAQs, links rápidos y contacto."
     support_docs_copy: "Lee los manuales y changelog de cada EA."

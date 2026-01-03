@@ -45,6 +45,9 @@ const bindLoadingButtons = () => {
   resetLoadingButtons();
 
   document.querySelectorAll("[data-loading-target]").forEach((el) => {
+    if (el.dataset.loadingBound === "true") return;
+    el.dataset.loadingBound = "true";
+
     if (el.tagName === "FORM") {
       el.addEventListener("submit", (event) => {
         const submitter = event.submitter || el.querySelector("[data-loading-target-button]") || el.querySelector("[type='submit']");
@@ -57,6 +60,9 @@ const bindLoadingButtons = () => {
         activateLoading(submitter || el);
       });
     } else {
+      const parentForm = el.closest("form");
+      if (parentForm && parentForm.dataset.loadingTarget !== undefined) return;
+
       el.addEventListener("click", (event) => {
         const confirmMessage = el.dataset.confirmMessage;
         if (confirmMessage && !window.confirm(confirmMessage)) {

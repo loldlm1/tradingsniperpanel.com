@@ -3,7 +3,7 @@ class DashboardsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_accessible_expert_advisors
   before_action :ensure_payment_processor, only: [:checkout, :billing_portal]
-  before_action :set_subscription, only: [:show, :plans, :billing, :checkout, :cancel_scheduled_downgrade, :cancel_subscription]
+  before_action :set_subscription, only: [:show, :plans, :billing, :checkout, :cancel_scheduled_downgrade, :cancel_subscription, :resume_subscription]
   before_action :set_plan_context, only: [:show, :billing]
   before_action :set_invoices, only: [:billing]
 
@@ -140,6 +140,23 @@ class DashboardsController < ApplicationController
       redirect_to dashboard_billing_path, alert: t("dashboard.billing.cancel_error")
     else
       redirect_to dashboard_billing_path, alert: t("dashboard.billing.cancel_error")
+    end
+  end
+
+  def resume_subscription
+    unless @subscription
+      redirect_to dashboard_billing_path, alert: t("dashboard.billing.resume_unavailable") and return
+    end
+
+    result = Billing::ResumeSubscription.new(subscription: @subscription, user: current_user).call
+
+    case result.status
+    when :resumed
+      redirect_to dashboard_billing_path, notice: t("dashboard.billing.resume_success")
+    when :not_resumable, :no_subscription
+      redirect_to dashboard_billing_path, alert: t("dashboard.billing.resume_unavailable")
+    else
+      redirect_to dashboard_billing_path, alert: t("dashboard.billing.resume_error")
     end
   end
 
