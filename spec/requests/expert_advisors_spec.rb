@@ -66,7 +66,10 @@ RSpec.describe "Expert advisor guides", type: :request do
     get dashboard_expert_advisor_download_path(expert_advisor, locale: :en)
 
     expect(response).to have_http_status(:found)
-    expect(response.headers["Location"]).to include("/rails/active_storage/blobs/")
+    location = response.headers["Location"]
+    expect(location).to include("/rails/active_storage/blobs/")
+    expect(location).to include("/#{expert_advisor.ea_id}.rar")
+    expect(location).not_to include("ea_bundle")
   end
 
   it "blocks bundle download when locked" do

@@ -451,4 +451,46 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(response).to be_successful
     expect(response.body).to include("Plan key: hft_monthly")
   end
+
+  it "adds an upgrade confirmation when upgrades are available" do
+    customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_BASIC_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      type: "Pay::Stripe::Subscription"
+    )
+
+    sign_in user, scope: :user
+
+    get dashboard_plans_path
+
+    confirm_text = I18n.t("dashboard.plans.upgrade_confirm")
+    expect(response).to be_successful
+    expect(response.body).to include("data-confirm-message")
+    expect(response.body).to include(confirm_text)
+  end
+
+  it "omits upgrade confirmation when no upgrades are available" do
+    customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: ENV["STRIPE_PRICE_PRO_MONTHLY"],
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now,
+      type: "Pay::Stripe::Subscription"
+    )
+
+    sign_in user, scope: :user
+
+    get dashboard_plans_path
+
+    expect(response).to be_successful
+    expect(response.body).not_to include(I18n.t("dashboard.plans.upgrade_confirm"))
+  end
 end

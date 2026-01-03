@@ -13,6 +13,7 @@
                     t("dashboard.billing.no_plan_summary")
                   end %>
 <% invoice_labeler = Billing::InvoicePlanLabeler.new %>
+<% cancel_confirm = t("dashboard.billing.cancel_confirm") %>
 
 <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl mb-8">
   <div class="p-6 space-y-6">
@@ -77,6 +78,36 @@
           </div>
         </li>
       </ul>
+    </section>
+
+    <section>
+      <h3 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-1"><%= t("dashboard.billing.cancel_title") %></h3>
+      <div class="text-sm mb-3"><%= t("dashboard.billing.cancel_copy") %></div>
+      <% if @subscription.present? %>
+        <% if @subscription.ends_at.present? %>
+          <div class="text-sm text-amber-600 dark:text-amber-300 mb-3">
+            <%= t("dashboard.billing.cancel_scheduled", date: l(@subscription.ends_at.to_date)) %>
+          </div>
+          <%= button_to dashboard_resume_subscription_path,
+                        method: :post,
+                        class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full sm:w-auto",
+                        data: { loading_target: true },
+                        form: { class: "inline" } do %>
+            <%= loading_label(t("dashboard.billing.resume_action"), loading_text: t("loading.default")) %>
+          <% end %>
+        <% else %>
+          <%= button_to dashboard_cancel_subscription_path,
+                        method: :post,
+                        class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full sm:w-auto",
+                        data: { loading_target: true, confirm_message: cancel_confirm },
+                        form: { class: "inline" } do %>
+            <%= loading_label(t("dashboard.billing.cancel_action"), loading_text: t("loading.default")) %>
+          <% end %>
+        <% end %>
+      <% else %>
+        <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.billing.cancel_unavailable") %></div>
+      <% end %>
+      <div class="text-xs text-gray-500 dark:text-gray-400 mt-3"><%= t("dashboard.billing.cancel_disclaimer") %></div>
     </section>
 
     <section>

@@ -26,6 +26,8 @@ Rails.application.routes.draw do
     get "dashboard/expert_advisors/:id/download", to: "expert_advisors#download", as: :dashboard_expert_advisor_download
     post "dashboard/checkout", to: "dashboards#checkout", as: :dashboard_checkout
     post "dashboard/plans/cancel", to: "dashboards#cancel_scheduled_downgrade", as: :dashboard_cancel_scheduled_downgrade
+    post "dashboard/billing/cancel", to: "dashboards#cancel_subscription", as: :dashboard_cancel_subscription
+    post "dashboard/billing/resume", to: "dashboards#resume_subscription", as: :dashboard_resume_subscription
     post "dashboard/billing_portal", to: "dashboards#billing_portal", as: :dashboard_billing_portal
     resource :dashboard_partner, only: [:show], path: "dashboard/partner", controller: "dashboard/partner" do
       post :request_payout

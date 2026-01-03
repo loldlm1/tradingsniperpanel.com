@@ -12,6 +12,7 @@
 <% requested_tier = requested_price_key&.split("_")&.first&.to_sym %>
 <% requested_interval = requested_price_key&.split("_")&.last %>
 <% plan_states = plan[:states] || {} %>
+<% upgrade_confirm = t("dashboard.plans.upgrade_confirm") %>
 
 <% plan_name = current_tier ? t("dashboard.plans.tiers.#{current_tier}.name", default: current_tier.to_s.humanize) : nil %>
 <% interval_key = plan[:current_interval] == "annual" ? "annually" : plan[:current_interval] %>
@@ -133,7 +134,9 @@
                                          else
                                            cta_label
                                          end %>
-                      <%= button_to dashboard_checkout_path(price_key: monthly_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full", data: { loading_target: true } do %>
+                      <% monthly_data = { loading_target: true } %>
+                      <% monthly_data[:confirm_message] = upgrade_confirm if subscribed && monthly_state == :upgrade %>
+                      <%= button_to dashboard_checkout_path(price_key: monthly_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full", data: monthly_data do %>
                         <%= loading_label(monthly_label, loading_text: t("loading.default")) %>
                       <% end %>
                     <% end %>
@@ -160,7 +163,9 @@
                                         else
                                           cta_label
                                         end %>
-                      <%= button_to dashboard_checkout_path(price_key: annual_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full", data: { loading_target: true } do %>
+                      <% annual_data = { loading_target: true } %>
+                      <% annual_data[:confirm_message] = upgrade_confirm if subscribed && annual_state == :upgrade %>
+                      <%= button_to dashboard_checkout_path(price_key: annual_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full", data: annual_data do %>
                         <%= loading_label(annual_label, loading_text: t("loading.default")) %>
                       <% end %>
                     <% end %>
