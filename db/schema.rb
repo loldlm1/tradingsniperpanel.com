@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_23_000003) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_23_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_23_000003) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "broker_account_daily_results", force: :cascade do |t|
+    t.bigint "broker_account_id", null: false
+    t.bigint "result_timestamp", null: false
+    t.decimal "result_value", precision: 12, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index "broker_account_id, (((to_timestamp((result_timestamp)::double precision) AT TIME ZONE 'UTC'::text))::date)", name: "index_broker_account_daily_results_on_account_and_utc_day", unique: true
+    t.index ["broker_account_id", "result_timestamp"], name: "index_broker_account_daily_results_on_account_and_timestamp"
+    t.index ["broker_account_id"], name: "index_broker_account_daily_results_on_broker_account_id"
+    t.index ["result_timestamp"], name: "index_broker_account_daily_results_on_result_timestamp"
   end
 
   create_table "broker_accounts", force: :cascade do |t|
@@ -335,6 +347,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_23_000003) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "broker_account_daily_results", "broker_accounts"
   add_foreign_key "broker_accounts", "licenses"
   add_foreign_key "licenses", "expert_advisors"
   add_foreign_key "licenses", "users"

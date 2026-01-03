@@ -56,7 +56,7 @@ RSpec.describe Licenses::LicenseVerifier do
     )
 
     expect(result.ok?).to be(false)
-    expect(result.code).to eq(:unprocessable_entity)
+    expect(result.code).to eq(:unprocessable_content)
     expect(result.error).to eq(:expired)
   end
 

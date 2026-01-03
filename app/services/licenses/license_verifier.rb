@@ -15,7 +15,7 @@ module Licenses
       normalized_email = email.to_s.strip.downcase
 
       return failure(:invalid_source, :unauthorized) unless valid_source?(source)
-      return failure(:invalid_payload, :unprocessable_entity) if normalized_email.blank? || ea_id.blank? || license_key.blank?
+      return failure(:invalid_payload, :unprocessable_content) if normalized_email.blank? || ea_id.blank? || license_key.blank?
 
       user = User.find_by("LOWER(email) = ?", normalized_email)
       return failure(:user_not_found, :not_found) unless user
@@ -26,7 +26,7 @@ module Licenses
       license = License.find_by(user:, expert_advisor:)
       return failure(:license_not_found, :not_found) unless license
       return failure(:trial_disabled, :unauthorized) if license.trial? && !expert_advisor.trial_enabled?
-      return failure(:expired, :unprocessable_entity) if license.revoked? || license.expired_by_time?
+      return failure(:expired, :unprocessable_content) if license.revoked? || license.expired_by_time?
       return failure(:invalid_key, :unauthorized) unless secure_compare(license.encrypted_key, license_key)
       return failure(:invalid_key, :unauthorized) unless encoder.valid_key?(
         license_key:,
