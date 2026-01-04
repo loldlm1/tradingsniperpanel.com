@@ -1,25 +1,38 @@
-require "zlib"
-
 module Dashboard
   class BrokerAnalyticsPresenter
-    SetupRow = Struct.new(:ea_name, :broker_name, :account_type, :pnl_7d_cents, :win_rate, :last_synced_at, keyword_init: true)
-    BrokerCard = Struct.new(:title, :ea_name, :account_type, :pnl_cents, :status, :identifier, keyword_init: true)
+    SetupRow = Struct.new(:ea_name, :broker_name, :account_type, :total_pnl, :days_count, :last_result_at, keyword_init: true)
 
-    attr_reader :totals, :chart_points, :setups, :pagination, :broker_cards, :tiles
+    DEFAULT_RANGE_DAYS = 30
+    MAX_COMPARE_SERIES = 6
+    DAY_EXPRESSION = "date_trunc('day', to_timestamp(broker_account_daily_results.result_timestamp) AT TIME ZONE 'UTC')"
 
-    def initialize(user:, page: 1, per_page: 10)
+    attr_reader :totals, :summary, :chart_data, :setups, :pagination,
+                :available_brokers, :available_account_types, :filters, :compare_by_options
+
+    def initialize(user:, page: 1, per_page: 10, filters: {})
       @user = user
       @page = [page.to_i, 1].max
       @per_page = per_page
+      @filters = filters.to_h.symbolize_keys
+      @compare_by_options = %w[none ea broker account_type]
     end
 
     def call
-      accounts = broker_accounts.to_a
-      @totals = build_totals(accounts)
-      @chart_points = build_chart_points(accounts)
-      @setups = paginate(build_setup_rows(accounts))
-      @broker_cards = build_broker_cards(accounts)
-      @tiles = build_tiles
+      accounts_scope = broker_accounts
+      @available_brokers = accounts_scope.distinct.order(:company).pluck(:company).compact
+      @available_account_types = BrokerAccount.account_types.keys
+
+      normalize_filters!
+
+      filtered_accounts = apply_account_filters(accounts_scope).to_a
+      @totals = build_account_totals(filtered_accounts)
+
+      results_scope = apply_time_range(results_for_account_ids(filtered_accounts.map(&:id)))
+
+      @summary = build_summary(results_scope)
+      @chart_data = build_chart_data(results_scope)
+
+      @setups = paginate(build_setup_rows(filtered_accounts, results_scope))
       self
     end
 
@@ -35,47 +48,239 @@ module Dashboard
                    .where(licenses: { user_id: user.id })
     end
 
-    def build_totals(accounts)
+    def results_for_account_ids(account_ids)
+      return BrokerAccountDailyResult.none if account_ids.empty?
+
+      BrokerAccountDailyResult.joins(broker_account: { license: :expert_advisor })
+                              .where(broker_accounts: { id: account_ids })
+    end
+
+    def normalize_filters!
+      @filters[:compare_by] = normalize_compare_by(@filters[:compare_by])
+      @filters[:ea_id] = @filters[:ea_id].presence
+      @filters[:broker] = @filters[:broker].presence
+      @filters[:account_type] = normalize_account_type(@filters[:account_type])
+
+      from_ts = parse_integer(@filters[:from_ts])
+      to_ts = parse_integer(@filters[:to_ts])
+      from_date, to_date = date_range_from_ts(from_ts, to_ts)
+
+      @filters[:from_date] = from_date
+      @filters[:to_date] = to_date
+      @filters[:from_ts] = utc_day_start(from_date)
+      @filters[:to_ts] = utc_day_end(to_date)
+    end
+
+    def normalize_compare_by(raw)
+      value = raw.to_s
+      value = "none" if value.blank?
+      return value if compare_by_options.include?(value)
+
+      "none"
+    end
+
+    def normalize_account_type(raw)
+      return nil if raw.blank?
+
+      key = raw.to_s
+      return key if BrokerAccount.account_types.key?(key)
+
+      nil
+    end
+
+    def parse_integer(raw)
+      return nil if raw.blank?
+
+      Integer(raw.to_s, 10)
+    rescue ArgumentError, TypeError
+      nil
+    end
+
+    def date_range_from_ts(from_ts, to_ts)
+      if from_ts && to_ts
+        from_date = Time.at(from_ts).utc.to_date
+        to_date = Time.at(to_ts).utc.to_date
+        return [from_date, to_date].sort
+      end
+
+      to_date = Time.current.utc.to_date
+      from_date = to_date - (DEFAULT_RANGE_DAYS - 1)
+      [from_date, to_date]
+    end
+
+    def utc_day_start(date)
+      Time.utc(date.year, date.month, date.day).to_i
+    end
+
+    def utc_day_end(date)
+      Time.utc(date.year, date.month, date.day, 23, 59, 59).to_i
+    end
+
+    def date_range
+      @date_range ||= (filters[:from_date]..filters[:to_date]).to_a
+    end
+
+    def apply_account_filters(scope)
+      scoped = scope
+      scoped = scoped.where(expert_advisors: { ea_id: filters[:ea_id] }) if filters[:ea_id].present?
+      scoped = scoped.where(company: filters[:broker]) if filters[:broker].present?
+      scoped = scoped.where(account_type: filters[:account_type]) if filters[:account_type].present?
+      scoped
+    end
+
+    def apply_time_range(scope)
+      scope.where(result_timestamp: filters[:from_ts]..filters[:to_ts])
+    end
+
+    def build_account_totals(accounts)
       {
-        total: accounts.count,
+        total: accounts.size,
         real: accounts.count { |acc| acc.account_type == "real" },
         demo: accounts.count { |acc| acc.account_type == "demo" }
       }
     end
 
-    def build_tiles
-      average_daily = avg_daily_pnl_cents(chart_points)
+    def build_summary(scope)
+      total_pnl = scope.sum(:result_value) || BigDecimal("0")
+      days = date_range.size
+      average = days.positive? ? (total_pnl / days) : BigDecimal("0")
+
       {
-        average_daily_pnl_cents: average_daily
+        total_pnl: total_pnl,
+        average_daily_pnl: average,
+        days: days
       }
     end
 
-    def build_chart_points(accounts)
-      base = 150_00 + accounts.count * 25_00
-      points = (0..6).map do |index|
-        shift = (index - 3) * 12_00
-        { label: (Date.current - (6 - index).days), amount_cents: base + shift }
-      end
+    def build_chart_data(scope)
+      labels = date_range.map { |date| date.strftime("%Y-%m-%d") }
+      datasets = build_datasets(scope)
 
-      points
+      {
+        labels: labels,
+        datasets: datasets
+      }
     end
 
-    def build_setup_rows(accounts)
+    def build_datasets(scope)
+      compare_by = effective_compare_by
+      return build_total_dataset(scope) if compare_by.nil?
+
+      datasets = build_compare_datasets(scope, compare_by)
+      return build_total_dataset(scope) if datasets.empty?
+
+      datasets
+    end
+
+    def effective_compare_by
+      return nil if filters[:compare_by] == "none"
+      return nil if filters[:compare_by] == "ea" && filters[:ea_id].present?
+      return nil if filters[:compare_by] == "broker" && filters[:broker].present?
+      return nil if filters[:compare_by] == "account_type" && filters[:account_type].present?
+
+      filters[:compare_by]
+    end
+
+    def build_total_dataset(scope)
+      totals_by_day = scope.group(DAY_EXPRESSION).sum(:result_value)
+      daily_totals = totals_by_day.each_with_object({}) do |(day, value), acc|
+        acc[day.to_date] = value
+      end
+
+      data = date_range.map { |date| (daily_totals[date] || 0).to_f }
+
+      [
+        {
+          label: I18n.t("dashboard.analytics.chart.total_label"),
+          data: data
+        }
+      ]
+    end
+
+    def build_compare_datasets(scope, compare_by)
+      group_field = compare_group_field(compare_by)
+      return [] if group_field.nil?
+
+      group_totals = scope.group(group_field).sum(:result_value)
+      top_groups = group_totals.sort_by { |_, value| -value.to_f.abs }
+                               .first(MAX_COMPARE_SERIES)
+                               .map(&:first)
+
+      return [] if top_groups.empty?
+
+      @ea_labels = ExpertAdvisor.where(id: top_groups).pluck(:id, :name).to_h if compare_by == "ea"
+
+      grouped_scope = apply_group_filter(scope, compare_by, top_groups)
+      grouped_values = grouped_scope.group(DAY_EXPRESSION, group_field).sum(:result_value)
+
+      data_by_group = Hash.new { |hash, key| hash[key] = {} }
+      grouped_values.each do |(day, group), value|
+        data_by_group[group][day.to_date] = value
+      end
+
+      top_groups.map do |group|
+        {
+          label: compare_group_label(compare_by, group),
+          data: date_range.map { |date| (data_by_group[group][date] || 0).to_f }
+        }
+      end
+    end
+
+    def compare_group_field(compare_by)
+      case compare_by
+      when "ea"
+        "expert_advisors.id"
+      when "broker"
+        "broker_accounts.company"
+      when "account_type"
+        "broker_accounts.account_type"
+      end
+    end
+
+    def apply_group_filter(scope, compare_by, groups)
+      case compare_by
+      when "ea"
+        scope.where(expert_advisors: { id: groups })
+      when "broker"
+        scope.where(broker_accounts: { company: groups })
+      when "account_type"
+        scope.where(broker_accounts: { account_type: groups })
+      else
+        scope
+      end
+    end
+
+    def compare_group_label(compare_by, group)
+      case compare_by
+      when "ea"
+        (@ea_labels || {})[group] || group.to_s
+      when "broker"
+        group.to_s
+      when "account_type"
+        key = BrokerAccount.account_types.key(group) || group.to_s
+        I18n.t("dashboard.broker_accounts.account_type.#{key}", default: key.to_s.humanize)
+      else
+        group.to_s
+      end
+    end
+
+    def build_setup_rows(accounts, results_scope)
+      totals = results_scope.group(:broker_account_id).sum(:result_value)
+      day_counts = results_scope.group(:broker_account_id).count
+      last_timestamps = results_scope.group(:broker_account_id).maximum(:result_timestamp)
+
       rows = accounts.map do |account|
-        seed = account.id || account.account_number.to_s
         SetupRow.new(
           ea_name: account.license&.expert_advisor&.name || I18n.t("dashboard.analytics.unknown_ea"),
           broker_name: account.company,
           account_type: account.account_type,
-          pnl_7d_cents: sample_pnl_cents(seed),
-          win_rate: sample_win_rate(seed),
-          last_synced_at: sample_sync_time(seed)
+          total_pnl: totals[account.id] || BigDecimal("0"),
+          days_count: day_counts[account.id] || 0,
+          last_result_at: last_timestamps[account.id] ? Time.at(last_timestamps[account.id]).utc : nil
         )
       end
 
-      return rows unless rows.empty?
-
-      sample_fallback_rows
+      rows.sort_by { |row| -row.total_pnl.to_f.abs }
     end
 
     def paginate(rows)
@@ -91,84 +296,6 @@ module Dashboard
       }
 
       sliced
-    end
-
-    def build_broker_cards(accounts)
-      cards = accounts.map do |account|
-        BrokerCard.new(
-          title: account.company.presence || I18n.t("dashboard.broker_accounts.unnamed"),
-          ea_name: account.license&.expert_advisor&.name,
-          account_type: account.account_type,
-          pnl_cents: sample_pnl_cents(account.id || account.account_number.to_s),
-          status: account.license&.status || "active",
-          identifier: account.account_number
-        )
-      end
-
-      return cards unless cards.empty?
-
-      sample_fallback_cards
-    end
-
-    def sample_pnl_cents(seed)
-      raw = (Zlib.crc32(seed.to_s) % 800) - 400
-      raw * 100
-    end
-
-    def sample_win_rate(seed)
-      50 + (Zlib.crc32(seed.to_s) % 25)
-    end
-
-    def sample_sync_time(seed)
-      Time.current - (Zlib.crc32(seed.to_s) % 36).hours
-    end
-
-    def sample_fallback_rows
-      [
-        SetupRow.new(
-          ea_name: I18n.t("dashboard.analytics.sample_ea"),
-          broker_name: "Apex FX",
-          account_type: "real",
-          pnl_7d_cents: 124_50,
-          win_rate: 62,
-          last_synced_at: 2.hours.ago
-        ),
-        SetupRow.new(
-          ea_name: I18n.t("dashboard.analytics.sample_ea_alt"),
-          broker_name: "Fusion Markets",
-          account_type: "demo",
-          pnl_7d_cents: -23_75,
-          win_rate: 55,
-          last_synced_at: 5.hours.ago
-        )
-      ]
-    end
-
-    def sample_fallback_cards
-      [
-        BrokerCard.new(
-          title: "Apex FX #20145",
-          ea_name: I18n.t("dashboard.analytics.sample_ea"),
-          account_type: "real",
-          pnl_cents: 124_50,
-          status: "active",
-          identifier: "20145"
-        ),
-        BrokerCard.new(
-          title: "Demo Lab #8302",
-          ea_name: I18n.t("dashboard.analytics.sample_ea_alt"),
-          account_type: "demo",
-          pnl_cents: -23_75,
-          status: "trial",
-          identifier: "8302"
-        )
-      ]
-    end
-
-    def avg_daily_pnl_cents(points)
-      return 0 if points.empty?
-
-      (points.sum { |point| point[:amount_cents].to_i } / points.size.to_f).round
     end
   end
 end

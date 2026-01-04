@@ -1,4 +1,5 @@
 // Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
+import "dashboard_analytics";
 
 const resetLoadingButtons = () => {
   document.querySelectorAll("[data-loading-target]").forEach((el) => {

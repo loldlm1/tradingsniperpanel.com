@@ -159,3 +159,59 @@ upsert_license(
   expires_at: now - 1.day,
   encoder: encoder
 )
+
+return unless defined?(BrokerAccountDailyResult)
+
+qa_brokers = ["Apex FX", "Fusion Markets", "Demo Lab", "BlueRock Markets", "Quantum Trades"]
+qa_account_types = %i[real demo real]
+qa_days = 60
+
+def daily_result_exists?(broker_account, date)
+  BrokerAccountDailyResult
+    .where(broker_account_id: broker_account.id)
+    .where("((to_timestamp(result_timestamp) AT TIME ZONE 'UTC')::date) = ?", date)
+    .exists?
+end
+
+def seed_daily_results(broker_account, days:, seed:)
+  rng = Random.new(seed)
+  end_date = Time.current.utc.to_date
+  start_date = end_date - (days - 1)
+
+  (0...days).each do |offset|
+    date = start_date + offset
+    next if ((broker_account.account_number + offset) % 13).zero?
+    next if daily_result_exists?(broker_account, date)
+
+    timestamp = Time.utc(date.year, date.month, date.day, 12, 0, 0).to_i
+    volatility = broker_account.account_type == "real" ? 40.0 : 25.0
+    trend = (offset - (days / 2.0)) * (broker_account.account_type == "real" ? 0.4 : 0.2)
+    value = (rng.rand(-volatility..volatility) + trend).round(2)
+
+    BrokerAccountDailyResult.create!(
+      broker_account: broker_account,
+      result_timestamp: timestamp,
+      result_value: value
+    )
+  end
+end
+
+License.includes(:expert_advisor).where(user: qa_user).order(:id).each_with_index do |license, license_idx|
+  3.times do |account_idx|
+    broker_name = qa_brokers[(license_idx + account_idx) % qa_brokers.size]
+    account_type = qa_account_types[account_idx % qa_account_types.size]
+    account_number = 70_000 + (license_idx * 10) + account_idx
+
+    broker_account = BrokerAccount.find_or_create_by!(
+      company: broker_name,
+      account_number: account_number,
+      account_type: account_type
+    ) do |account|
+      account.name = "QA #{license.expert_advisor.name} #{account_idx + 1}"
+      account.license = license
+    end
+
+    broker_account.update!(license: license) if broker_account.license_id != license.id
+    seed_daily_results(broker_account, days: qa_days, seed: broker_account.account_number)
+  end
+end

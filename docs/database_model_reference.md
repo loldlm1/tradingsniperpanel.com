@@ -4,7 +4,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 ## Domain map
 - Users authenticate via Devise and can originate from OAuth (`provider`, `uid`, `oauth_data`). `role` enum: `trader`, `partner`, `admin`.
 - ExpertAdvisors describe each EA/tool (`ea_type`, `doc_guide_en/es`, `ea_files` attachment, `allowed_subscription_tiers`, `trial_enabled`); referenced by Licenses and UserExpertAdvisors.
-- Licenses tie a User to an ExpertAdvisor with status (`trial`, `active`, `expired`, `revoked`), expiry fields, and an `encrypted_key`. BrokerAccounts hang off Licenses.
+- Licenses tie a User to an ExpertAdvisor with status (`trial`, `active`, `expired`, `revoked`), expiry fields, and an `encrypted_key`. BrokerAccounts hang off Licenses and record daily PnL snapshots.
 - UserExpertAdvisors is a soft-deletable join for entitlement tracking (`subscription_tier`, `pay_subscription_id`, `expires_at`, `deleted_at`).
 - Referrals via the `refer` gem: referral_codes/visits/referrals tables connect referrers/referees; PartnerProfile leverages this.
 - Partner program: PartnerProfile (one per partner User) → PartnerMembership (downline users, with `depth` and optional `referral_id`) → PartnerCommission rows (per charge/subscription, status, amounts, `commission_kind`) → optional PartnerPayoutRequest.
@@ -15,6 +15,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 - `expert_advisors`: `name`, `description`, `ea_type` enum (`ea_robot`, `ea_tool`), `doc_guide_en`/`doc_guide_es` (markdown text), `allowed_subscription_tiers` JSON array, `ea_id` (immutable slug/id), `trial_enabled`, `deleted_at`, `ea_files` (Active Storage attachment for the EA bundle).
 - `licenses`: `user_id`, `expert_advisor_id`, `status` (`trial`, `active`, `expired`, `revoked`), `plan_interval`, `expires_at`, `trial_ends_at`, `encrypted_key`, `source`, `last_synced_at`. Unique `user_id + expert_advisor_id`. Scopes: `active_or_trial`.
 - `broker_accounts`: `license_id`, `company`, `account_number`, `account_type` enum (`real`, `demo`), optional `name`. Uniqueness: `company + account_number + account_type`.
+- `broker_account_daily_results`: `broker_account_id`, `result_timestamp` (unix seconds), `result_value` (decimal). Uniqueness: one result per UTC day per broker account (expression index on `result_timestamp`).
 - `user_expert_advisors`: `user_id`, `expert_advisor_id`, `subscription_tier`, `pay_subscription_id`, `expires_at`, `deleted_at`. Default scope filters `deleted_at`; scope `active` filters out expired/soft-deleted.
 - `partner_profiles`: `user_id` (uniq), `discount_percent`, `payout_mode` enum (`once_paid`, `concurrent`), `stripe_coupon_id`, `active`, `started_at`. Scope: `active`.
 - `partner_memberships`: `partner_profile_id`, `user_id` (one active at a time), optional `referral_id`, `depth`, `started_at`, `ended_at`. Scope: `active`.
@@ -35,6 +36,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 
 ## API surface
 - `POST /api/v1/licenses/verify` (JSON only): params `source`, `email`, `ea_id`, `license_key`, optional `broker_account` payload (`name`, `company`, `account_number`, `account_type`). Success returns `ok`, `plan_interval`, `trial`, `expires_at` (unix timestamp), optional `broker_account`. Errors: `user_not_found`, `ea_not_found`, `license_not_found`, `invalid_key`, `expired`, `trial_disabled`, `invalid_source`, `invalid_payload`, or `rate_limited`.
+- `POST /api/v1/broker_accounts/daily_results` (JSON only): params `source`, `email`, `ea_id`, `license_key`, `broker_account` (`company`, `account_number`, `account_type`), `result_timestamp` (unix seconds), `result_value`. Success returns `ok`, `result_on` (ISO date), and stored values. Errors: `broker_account_not_found`, `already_recorded`, `invalid_payload`, `invalid_key`, or `invalid_source`.
 
 ## Data flow highlights
 - New user: Devise creates record; callbacks ensure referral code, partner profile (if role partner), enqueue `Licenses::CreateTrialLicensesJob`.
