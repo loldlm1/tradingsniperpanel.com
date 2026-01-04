@@ -24,7 +24,7 @@ RSpec.describe "Dashboard analytics", type: :request do
     expect(response).to be_successful
     expect(response.body).to include(I18n.t("dashboard.analytics.pnl_title"))
     expect(response.body).to include("PagedFX")
-    expect(response.body).to include(I18n.t("dashboard.analytics.top_setups"))
+    expect(response.body).to include(I18n.t("dashboard.analytics.top_accounts"))
   end
 
   it "paginates the top setups table" do

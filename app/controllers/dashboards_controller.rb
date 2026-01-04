@@ -22,9 +22,11 @@ class DashboardsController < ApplicationController
   end
 
   def analytics
+    filters = params.permit(:from_ts, :to_ts, :ea_id, :broker, :account_type, :compare_by).to_h
     @broker_analytics = Dashboard::BrokerAnalyticsPresenter.new(
       user: current_user,
-      page: params[:page] || 1
+      page: params[:page] || 1,
+      filters: filters
     ).call
   end
 
