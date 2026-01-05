@@ -660,7 +660,7 @@ en:
         - title: "12. Changes and Contact"
           paragraphs:
             - "We may update these Terms from time to time. Continued use of the Service after an update becomes effective constitutes acceptance of the updated Terms."
-            - "Questions about these Terms can be sent to support@tradingsniperpanel.com."
+            - "Questions about these Terms can be sent to %{support_email}."
     privacy:
       title: "Privacy Policy"
       subtitle: "This policy explains what data we collect and how we use it."
@@ -697,7 +697,7 @@ en:
         - title: "7. Your Choices and Rights"
           paragraphs:
             - "You can update certain account information in your settings. You may also request access to or deletion of your personal information, subject to legal exceptions."
-            - "To make a privacy request, contact support@tradingsniperpanel.com."
+            - "To make a privacy request, contact %{support_email}."
         - title: "8. International Transfers"
           paragraphs:
             - "Your information may be processed in countries other than your own. Where required, we take steps to provide appropriate safeguards."

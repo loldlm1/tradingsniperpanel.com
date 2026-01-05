@@ -4,6 +4,7 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
 
   before_action :set_locale
+  before_action :apply_landing_template, if: :marketing_request?
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :capture_desired_plan, if: -> { request.format.html? }
   before_action :ensure_terms_accepted, if: :user_signed_in?
@@ -25,8 +26,7 @@ class ApplicationController < ActionController::Base
   def redirect_signed_in_users
     return unless user_signed_in?
 
-    target = action_name == "pricing" ? dashboard_plans_path : dashboard_path
-    redirect_to target
+    redirect_to dashboard_path
   end
 
   def redirect_if_authenticated
@@ -44,6 +44,17 @@ class ApplicationController < ActionController::Base
     I18n.locale = resolver.resolved_locale
     session[:locale] = I18n.locale
     persist_user_locale(resolver)
+  end
+
+  def apply_landing_template
+    view_path = Marketing::LandingTemplate.view_path
+    prepend_view_path(view_path) if view_path.exist?
+  end
+
+  def marketing_request?
+    return false unless request.format.html?
+
+    devise_controller? || controller_path.in?(%w[pages legal terms_acceptances])
   end
 
   def persist_user_locale(resolver)

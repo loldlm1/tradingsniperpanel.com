@@ -1,4 +1,6 @@
 # Cruip Template Guide (Neon + Mosaic)
+This project is a SaaS product for trading tools and EAs with subscription/licensing. Marketing/auth templates are selected per deployment via `LANDING_TEMPLATE` (default `neon`); dashboards stay on Mosaic. Pricing/docs live inside the landing page sections, so `/pricing` and `/docs` routes are intentionally removed.
+
 How to reuse Cruip HTML templates (not our Rails views) to assemble new pages quickly. Always start from the source HTML in `neon-html/`, `mosaic-html/`, or `cruip-docs-html/`, then adapt into `.erb` while keeping class names, JS hooks, and assets intact.
 
 ## Docs/Guides template (Cruip Docs HTML)
@@ -14,6 +16,7 @@ How to reuse Cruip HTML templates (not our Rails views) to assemble new pages qu
   - Classes/utilities as-is (Tailwind utility stack from Cruip).
   - Data/JS hooks (`data-aos`, Alpine `x-*`, IDs used by Chart.js or Flatpickr).
   - Asset paths (update to `/assets/neon/...` or `/assets/mosaic/...` equivalents when moving to Rails).
+- Template selection: add marketing/auth views under `app/views/templates/<template>` and whitelist the template in `Marketing::LandingTemplate::ALLOWED_TEMPLATES`.
 
 ## Neon HTML catalogue (marketing/auth)
 - Pages: `index.html` (full landing), `signup.html`, `signin.html`, `reset-password.html`.
