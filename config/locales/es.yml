@@ -660,7 +660,7 @@ es:
         - title: "12. Cambios y contacto"
           paragraphs:
             - "Podemos actualizar estos Términos ocasionalmente. El uso continuado del Servicio después de que una actualización entre en vigor constituye aceptación de los Términos actualizados."
-            - "Si tienes preguntas sobre estos Términos, escribe a support@tradingsniperpanel.com."
+            - "Si tienes preguntas sobre estos Términos, escribe a %{support_email}."
     privacy:
       title: "Política de privacidad"
       subtitle: "Esta política explica qué datos recopilamos y cómo los usamos."
@@ -697,7 +697,7 @@ es:
         - title: "7. Tus opciones y derechos"
           paragraphs:
             - "Puedes actualizar cierta información de tu cuenta desde tu configuración. También puedes solicitar acceso o eliminación de tu información personal, sujeto a excepciones legales."
-            - "Para solicitar información relacionada con privacidad, escribe a support@tradingsniperpanel.com."
+            - "Para solicitar información relacionada con privacidad, escribe a %{support_email}."
         - title: "8. Transferencias internacionales"
           paragraphs:
             - "Tu información puede procesarse en países distintos al tuyo. Cuando corresponda, tomamos medidas para ofrecer salvaguardas adecuadas."

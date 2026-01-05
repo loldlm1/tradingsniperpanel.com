@@ -51,7 +51,7 @@
         </div>
         <div class="flex items-center justify-between gap-3">
           <div class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.support_response_time", default: "We respond within one business day.") %></div>
-          <%= mail_to ENV.fetch("SUPPORT_EMAIL", "support@example.com"), t("dashboard.contact_support", default: "Send message"), class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+          <%= mail_to support_email, t("dashboard.contact_support", default: "Send message"), class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
         </div>
       </div>
     </div>
@@ -74,7 +74,7 @@
       <ul class="space-y-2 text-sm">
         <li class="flex items-center justify-between">
           <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.docs", default: "Docs") %></span>
-          <%= link_to t("dashboard.support_open", default: "Open"), docs_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
+          <%= link_to t("dashboard.support_open", default: "Open"), dashboard_expert_advisors_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
         </li>
         <li class="flex items-center justify-between">
           <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.billing", default: "Billing") %></span>

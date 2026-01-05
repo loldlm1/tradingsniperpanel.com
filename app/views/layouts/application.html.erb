@@ -89,8 +89,9 @@
               <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
                 <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.product.title") %></h6>
                 <ul class="text-sm space-y-2">
-                  <li><%= link_to t("footer.product.links.manuals"), docs_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                  <li><%= link_to t("footer.product.links.pricing"), pricing_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
+                  <li><%= link_to t("footer.product.links.manuals"), root_path(anchor: "resources"), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
+                  <% pricing_target = user_signed_in? ? dashboard_plans_path : root_path(anchor: "pricing") %>
+                  <li><%= link_to t("footer.product.links.pricing"), pricing_target, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
                   <li><%= link_to t("footer.product.links.expert_advisors"), new_user_registration_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
                 </ul>
               </div>
@@ -99,7 +100,7 @@
                 <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.resources.title") %></h6>
                 <ul class="text-sm space-y-2">
                   <li><%= link_to t("footer.resources.links.getting_started"), new_user_registration_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                  <li><%= link_to t("footer.resources.links.tutorials"), docs_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
+                  <li><%= link_to t("footer.resources.links.tutorials"), root_path(anchor: "resources"), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
                   <li><%= link_to t("footer.resources.links.support"), (user_signed_in? ? dashboard_support_path : new_user_registration_path), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
                 </ul>
               </div>

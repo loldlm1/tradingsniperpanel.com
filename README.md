@@ -1,6 +1,6 @@
 # Trading Sniper Panel
 
-Rails 8 app that markets and manages our MQL5 EAs, starting with the Sniper Advanced Panel. Landing/auth UI comes from Cruip Neon; the authenticated dashboard uses Cruip Mosaic. Localization supports EN/ES with IP/Accept-Language detection and user overrides.
+Rails 8 SaaS app that markets and manages MQL5 EAs with subscriptions and licensing. Landing/auth UI comes from Cruip templates (Neon by default via `LANDING_TEMPLATE`); the authenticated dashboard uses Cruip Mosaic. Localization supports EN/ES with IP/Accept-Language detection and user overrides.
 
 ## Stack
 - Ruby 3.4.5 / Rails 8.0.4, Postgres, importmap + propshaft.
@@ -31,6 +31,7 @@ bin/dev
 ## Environment
 - Postgres: `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME`, `DB_NAME_TEST`.
 - App/host: `APP_HOST`, `APP_HOST_PROTOCOL`, `RAILS_MASTER_KEY` (for credentials).
+- Branding: `APP_NAME` (optional), `APP_SHORT_NAME` (optional), `LANDING_TEMPLATE` (default `neon`).
 - Stripe (Pay): `STRIPE_PRIVATE_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_SIGNING_SECRET`, and price IDs per plan:
   - Monthly: `STRIPE_PRICE_BASIC_MONTHLY`, `STRIPE_PRICE_HFT_MONTHLY`, `STRIPE_PRICE_PRO_MONTHLY`
   - Annual (60% discount vs monthly): `STRIPE_PRICE_BASIC_ANNUAL`, `STRIPE_PRICE_HFT_ANNUAL`, `STRIPE_PRICE_PRO_ANNUAL`
@@ -40,6 +41,7 @@ bin/dev
 
 ## Frontend notes
 - Marketing/auth pages use Neon assets (`app/assets/templates/neon/...`), dashboard uses Mosaic (`app/assets/templates/mosaic/...`).
+- Marketing pricing/resources live on the landing page sections; `/pricing` and `/docs` routes are removed.
 - Docs/manuals are exposed under `public/docs/sniper_advanced_panel/` (EN/ES Markdown + PDFs).
 - Default layouts: marketing (`application.html.erb`) and dashboard (`dashboard.html.erb`); locale toggle is in the header.
 

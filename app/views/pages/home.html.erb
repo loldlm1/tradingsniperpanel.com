@@ -25,7 +25,7 @@
             <% end %>
           </div>
           <div>
-            <%= link_to t("hero.secondary_cta"), docs_path, class: "btn text-gray-300 bg-linear-to-t from-gray-800 to-gray-700 hover:to-gray-800 w-full shadow-lg" %>
+            <%= link_to t("hero.secondary_cta"), root_path(anchor: "resources"), class: "btn text-gray-300 bg-linear-to-t from-gray-800 to-gray-700 hover:to-gray-800 w-full shadow-lg" %>
           </div>
         </div>
       </div>
@@ -182,7 +182,7 @@
 <% initial_period = requested_interval || "monthly" %>
 
 <!-- Pricing -->
-<section class="relative" x-data="{ period: '<%= initial_period %>' }">
+<section id="pricing" class="relative" x-data="{ period: '<%= initial_period %>' }">
   <div class="hidden lg:block absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none -z-10" aria-hidden="true">
     <%= image_tag "neon/images/pricing-illustration.svg", class: "max-w-none", width: 618, height: 468, alt: "Pricing Illustration" %>
   </div>
@@ -374,7 +374,7 @@
 </section>
 
 <!-- Resources -->
-<section>
+<section id="resources">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="py-12 md:py-20">
       <div class="max-w-3xl mx-auto text-center pb-12 md:pb-20">
@@ -444,7 +444,11 @@
         </div>
 
         <div class="max-w-sm mx-auto sm:max-w-none grid gap-12 sm:grid-cols-2 md:grid-cols-4 sm:gap-x-6 sm:gap-y-8 items-start">
-          <%= link_to docs_path, class: "block relative before:content-[''] before:bg-gray-800 before:absolute before:-z-10 before:inset-0 p-6 group", "x-show": "['1', '3', '4'].includes(category)" do %>
+          <% manuals_target = user_signed_in? ? dashboard_expert_advisors_path : new_user_registration_path %>
+          <% pricing_target = user_signed_in? ? dashboard_plans_path : root_path(anchor: "pricing") %>
+          <% tutorials_target = manuals_target %>
+
+          <%= link_to manuals_target, class: "block relative before:content-[''] before:bg-gray-800 before:absolute before:-z-10 before:inset-0 p-6 group", "x-show": "['1', '3', '4'].includes(category)" do %>
             <div class="relative h-12 w-12 rounded-full bg-linear-to-t from-gray-800 to-gray-700 flex items-center justify-center shadow-lg mb-3 before:content-[''] before:absolute before:-z-10 before:inset-0 before:-m-0.5 before:bg-linear-to-t before:from-gray-800 before:to-gray-800 before:via-gray-600 before:rounded-full">
               <svg class="fill-blue-500 group-hover:fill-gray-200 transition duration-150 ease-in-out" width="26" height="18" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21.956.378a.47.47 0 0 0-.32-.347 1.662 1.662 0 0 0-.866.061S1.494 6.968.393 7.73c-.236.164-.316.26-.355.371-.19.546.402.78.402.78l4.968 1.607c.084.015.17.01.252-.015 1.13-.708 11.366-7.126 11.961-7.342.092-.027.162 0 .144.069-.237.823-9.083 8.622-9.131 8.669a.181.181 0 0 0-.066.16l-.464 4.815s-.194 1.498 1.315 0a42.204 42.204 0 0 1 2.612-2.373c1.708 1.171 3.546 2.466 4.339 3.143.27.26.633.398 1.008.385a1.13 1.13 0 0 0 .964-.849s3.51-14.03 3.627-15.909c.012-.182.028-.302.03-.428a1.591 1.591 0 0 0-.043-.435Z" fill-rule="nonzero" />
@@ -482,7 +486,7 @@
             <div class="font-uncut-sans text-xl text-gray-100 font-semibold"><%= t("landing.neon.resources.boxes.support") %></div>
           <% end %>
 
-          <%= link_to new_user_registration_path, class: "block relative before:content-[''] before:bg-gray-800 before:absolute before:-z-10 before:inset-0 p-6 group", "x-show": "['1', '2', '3'].includes(category)" do %>
+          <%= link_to pricing_target, class: "block relative before:content-[''] before:bg-gray-800 before:absolute before:-z-10 before:inset-0 p-6 group", "x-show": "['1', '2', '3'].includes(category)" do %>
             <div class="relative h-12 w-12 rounded-full bg-linear-to-t from-gray-800 to-gray-700 flex items-center justify-center shadow-lg mb-3 before:content-[''] before:absolute before:-z-10 before:inset-0 before:-m-0.5 before:bg-linear-to-t before:from-gray-800 before:to-gray-800 before:via-gray-600 before:rounded-full">
               <svg class="fill-blue-500 group-hover:fill-gray-200 transition duration-150 ease-in-out" width="23" height="23" xmlns="http://www.w3.org/2000/svg">
                 <path d="M4.924 19h6.927l5.128 1.386 3.399-12.548L16 6.654V4.582l5.859 1.586a1 1 0 0 1 .704 1.226l-3.913 14.48a1 1 0 0 1-1.226.705l-12.55-3.393.05-.186Z" fill-rule="nonzero" fill-opacity=".64" />
@@ -492,7 +496,7 @@
             <div class="font-uncut-sans text-xl text-gray-100 font-semibold"><%= t("landing.neon.resources.boxes.pricing") %></div>
           <% end %>
 
-          <%= link_to docs_path, class: "block relative before:content-[''] before:bg-gray-800 before:absolute before:-z-10 before:inset-0 p-6 group", "x-show": "['1', '2', '4'].includes(category)" do %>
+          <%= link_to tutorials_target, class: "block relative before:content-[''] before:bg-gray-800 before:absolute before:-z-10 before:inset-0 p-6 group", "x-show": "['1', '2', '4'].includes(category)" do %>
             <div class="relative h-12 w-12 rounded-full bg-linear-to-t from-gray-800 to-gray-700 flex items-center justify-center shadow-lg mb-3 before:content-[''] before:absolute before:-z-10 before:inset-0 before:-m-0.5 before:bg-linear-to-t before:from-gray-800 before:to-gray-800 before:via-gray-600 before:rounded-full">
               <svg class="fill-blue-500 group-hover:fill-gray-200 transition duration-150 ease-in-out" width="22" height="18" xmlns="http://www.w3.org/2000/svg">
                 <path d="M21.083 0H.917C.41 0 0 .448 0 1v16c0 .552.41 1 .917 1h20.166c.507 0 .917-.448.917-1V1c0-.552-.41-1-.917-1ZM9 13V5l6 4-6 4Z" fill-rule="nonzero" />
