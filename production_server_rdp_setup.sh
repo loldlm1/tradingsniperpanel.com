@@ -94,20 +94,25 @@ ini_set() {
   owner="$(stat -c '%u' "$file" 2>/dev/null || true)"
   group="$(stat -c '%g' "$file" 2>/dev/null || true)"
   awk -v section="$section" -v key="$key" -v value="$value" '
-    BEGIN { in_section=0; done=0 }
+    BEGIN { in_section=0; inserted=0 }
     /^[[:space:]]*\[.*\][[:space:]]*$/ {
-      if (in_section && !done) { print key"="value; done=1 }
+      if (in_section && !inserted) {
+        print key"="value
+        inserted=1
+      }
       in_section = ($0 ~ "\\["section"\\]")
+      print
+      next
     }
     {
-      if (in_section && $0 ~ "^[[:space:]]*"key"=") {
-        print key"="value
-        done=1
+      if (in_section && $0 ~ "^[[:space:]]*"key"[[:space:]]*=") {
         next
       }
       print
     }
-    END { if (in_section && !done) print key"="value }
+    END {
+      if (in_section && !inserted) print key"="value
+    }
   ' "$file" > "$tmp"
   mv "$tmp" "$file"
   if [ -n "${mode}" ]; then
@@ -252,7 +257,7 @@ fi
 cat <<EOF
 Setup complete.
 
-Make it executable and run on the server: chmod +x production_server_rdp_setup.sh then production_server_rdp_setup.sh.
+Make it executable and run on the server: chmod +x production_server_rdp_setup.sh then sudo bash production_server_rdp_setup.sh.
 
 XRDP is bound to 127.0.0.1:${RDP_PORT} and is not publicly exposed.
 
