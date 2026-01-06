@@ -229,6 +229,12 @@ cat > "${XFCE_CONFIG_DIR}/xfce4-power-manager.xml" <<'EOF'
 EOF
 chown -R "${ADMIN_USER}:${ADMIN_USER}" "${ADMIN_HOME}/.config/xfce4"
 
+TERMINAL_CONFIG_DIR="${ADMIN_HOME}/.config/xfce4/terminal"
+mkdir -p "${TERMINAL_CONFIG_DIR}"
+touch "${TERMINAL_CONFIG_DIR}/terminalrc"
+chown -R "${ADMIN_USER}:${ADMIN_USER}" "${TERMINAL_CONFIG_DIR}"
+chmod 0644 "${TERMINAL_CONFIG_DIR}/terminalrc"
+
 echo "Disabling sleep/hibernate..."
 backup_file /etc/systemd/logind.conf
 ini_set /etc/systemd/logind.conf "Login" "HandleLidSwitch" "ignore"
