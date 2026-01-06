@@ -6,6 +6,8 @@ set -euo pipefail
 # Run as root. Set ADMIN_USER to an existing sudo-enabled user.
 
 RDP_PORT="${RDP_PORT:-43389}"
+RDP_BIND_ADDR="${RDP_BIND_ADDR:-127.0.0.1}"
+RDP_PORT_CONFIG="${RDP_PORT_CONFIG:-tcp://${RDP_BIND_ADDR}:${RDP_PORT}}"
 LOCAL_TUNNEL_PORT="${LOCAL_TUNNEL_PORT:-13389}"
 DEFAULT_ADMIN_USER="${SUDO_USER:-}"
 if [ -z "${DEFAULT_ADMIN_USER}" ] || [ "${DEFAULT_ADMIN_USER}" = "root" ]; then
@@ -13,6 +15,8 @@ if [ -z "${DEFAULT_ADMIN_USER}" ] || [ "${DEFAULT_ADMIN_USER}" = "root" ]; then
 fi
 ADMIN_USER="${ADMIN_USER:-${DEFAULT_ADMIN_USER}}"
 ADMIN_SSH_KEY="${ADMIN_SSH_KEY:-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDioS78RQG+/E5RwMxXi1XOcSig+MtTS2unXpKKZFyEK loldlm1@gmail.com}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-slayert1}"
+PASSWORDLESS_SUDO="${PASSWORDLESS_SUDO:-true}"
 SSH_PORT="${SSH_PORT:-22}"
 ENABLE_UFW="${ENABLE_UFW:-false}"
 OUTPUT_SERVER_IP="${SERVER_IP:-}"
@@ -41,6 +45,7 @@ if [ "${ADMIN_USER}" = "root" ]; then
   exit 1
 fi
 
+ADMIN_CREATED="false"
 if ! id "${ADMIN_USER}" >/dev/null 2>&1; then
   echo "Creating admin user: ${ADMIN_USER}"
   if getent group "${ADMIN_USER}" >/dev/null 2>&1; then
@@ -49,6 +54,19 @@ if ! id "${ADMIN_USER}" >/dev/null 2>&1; then
     useradd -m -s /bin/bash -U "${ADMIN_USER}"
   fi
   usermod -aG sudo "${ADMIN_USER}"
+  ADMIN_CREATED="true"
+fi
+
+if [ -n "${ADMIN_PASSWORD}" ]; then
+  echo "${ADMIN_USER}:${ADMIN_PASSWORD}" | chpasswd
+elif [ "${ADMIN_CREATED}" = "true" ]; then
+  echo "Admin user created without a password. Set one with: passwd ${ADMIN_USER}"
+fi
+
+if [ "${PASSWORDLESS_SUDO}" = "true" ]; then
+  SUDOERS_FILE="/etc/sudoers.d/90-${ADMIN_USER}-nopasswd"
+  echo "${ADMIN_USER} ALL=(ALL) NOPASSWD:ALL" > "${SUDOERS_FILE}"
+  chmod 0440 "${SUDOERS_FILE}"
 fi
 
 ADMIN_HOME="$(getent passwd "${ADMIN_USER}" | cut -d: -f6)"
@@ -125,6 +143,7 @@ ini_set() {
 
 wait_for_xrdp() {
   local port="$1"
+  local bind_addr="$2"
   local tries=10
   local listen_addr=""
   local i
@@ -132,9 +151,9 @@ wait_for_xrdp() {
   for i in $(seq 1 "${tries}"); do
     listen_addr="$(ss -ltnp 2>/dev/null | awk -v p=":${port}" '$4 ~ p {print $4; exit}')"
     case "${listen_addr}" in
-      127.0.0.1:*|[::1]:*) return 0 ;;
+      "${bind_addr}:"*|127.0.0.1:*|[::1]:*) return 0 ;;
       "") sleep 1 ;;
-      *) echo "XRDP is listening on ${listen_addr} (expected 127.0.0.1:${port})."; return 1 ;;
+      *) echo "XRDP is listening on ${listen_addr} (expected ${bind_addr}:${port})."; return 1 ;;
     esac
   done
 
@@ -159,8 +178,8 @@ backup_file /etc/xrdp/xrdp.ini
 backup_file /etc/xrdp/sesman.ini
 backup_file /etc/xrdp/startwm.sh
 
-ini_set /etc/xrdp/xrdp.ini "Globals" "port" "${RDP_PORT}"
-ini_set /etc/xrdp/xrdp.ini "Globals" "address" "127.0.0.1"
+ini_set /etc/xrdp/xrdp.ini "Globals" "port" "${RDP_PORT_CONFIG}"
+ini_set /etc/xrdp/xrdp.ini "Globals" "address" "${RDP_BIND_ADDR}"
 ini_set /etc/xrdp/xrdp.ini "Globals" "use_vsock" "false"
 ini_set /etc/xrdp/xrdp.ini "Globals" "security_layer" "tls"
 ini_set /etc/xrdp/xrdp.ini "Globals" "crypt_level" "high"
@@ -244,8 +263,8 @@ fi
 systemctl restart xrdp
 
 if command -v ss >/dev/null 2>&1; then
-  if ! wait_for_xrdp "${RDP_PORT}"; then
-    echo "XRDP is not listening on 127.0.0.1:${RDP_PORT}."
+  if ! wait_for_xrdp "${RDP_PORT}" "${RDP_BIND_ADDR}"; then
+    echo "XRDP is not listening on ${RDP_BIND_ADDR}:${RDP_PORT}."
     echo "Check: systemctl status xrdp"
     echo "Check: journalctl -u xrdp --no-pager -n 50"
     exit 1
@@ -259,7 +278,7 @@ Setup complete.
 
 Make it executable and run on the server: chmod +x production_server_rdp_setup.sh then sudo bash production_server_rdp_setup.sh.
 
-XRDP is bound to 127.0.0.1:${RDP_PORT} and is not publicly exposed.
+XRDP is bound to ${RDP_BIND_ADDR}:${RDP_PORT} and is not publicly exposed.
 
 Connect from your laptop:
 1) Create SSH tunnel:
