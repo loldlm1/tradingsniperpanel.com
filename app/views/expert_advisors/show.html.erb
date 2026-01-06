@@ -1,4 +1,4 @@
-<% content_for :title, t("dashboard.expert_advisors.show_page_title", name: @expert_advisor.name, app: t("app.short_name")) %>
+<% content_for :title, t("dashboard.expert_advisors.show_page_title", name: @expert_advisor.name, app: app_short_name) %>
 <% entry = @expert_advisor_entry %>
 <% allowed_tier = Array(@expert_advisor.allowed_subscription_tiers).presence&.first || Billing::DashboardPlan::TIERS.first %>
 <% cta_key = "#{allowed_tier}_monthly" %>

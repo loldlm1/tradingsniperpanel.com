@@ -20,4 +20,22 @@ RSpec.describe ApplicationHelper, type: :helper do
     expect(helper.locale_link_class(:es)).to include("text-gray-300")
     expect(helper.locale_link_class(:es)).to include("bg-gray-800/60")
   end
+
+  it "exposes branding values from configuration" do
+    original_name = Rails.configuration.x.branding.app_name
+    original_short_name = Rails.configuration.x.branding.short_name
+    original_support_email = Rails.configuration.x.branding.support_email
+
+    Rails.configuration.x.branding.app_name = "Spec App Name"
+    Rails.configuration.x.branding.short_name = "Spec Short"
+    Rails.configuration.x.branding.support_email = "spec@example.com"
+
+    expect(helper.app_name).to eq("Spec App Name")
+    expect(helper.app_short_name).to eq("Spec Short")
+    expect(helper.support_email).to eq("spec@example.com")
+  ensure
+    Rails.configuration.x.branding.app_name = original_name
+    Rails.configuration.x.branding.short_name = original_short_name
+    Rails.configuration.x.branding.support_email = original_support_email
+  end
 end

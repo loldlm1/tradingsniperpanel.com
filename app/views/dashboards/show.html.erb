@@ -1,4 +1,4 @@
-<% content_for :title, "#{t('app.short_name')} Dashboard" %>
+<% content_for :title, "#{app_short_name} Dashboard" %>
 <% user = current_user.is_a?(User) ? current_user : nil %>
 <% referral_code = user&.referral_codes&.first&.code %>
 <% referrer = user&.referrer %>
