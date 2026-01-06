@@ -1,4 +1,4 @@
-<% content_for :title, "#{t('devise.sign_in_title')} | #{t('app.name')}" %>
+<% content_for :title, "#{t('devise.sign_in_title')} | #{app_name}" %>
 <% content_for :full_bleed, true %>
 
 <div class="flex flex-col min-h-screen overflow-hidden">
@@ -6,7 +6,7 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
       <div class="flex items-center justify-between h-16 md:h-20">
         <div class="shrink-0 mr-4">
-          <%= link_to root_path, class: "block", "aria-label": t("app.name") do %>
+          <%= link_to root_path, class: "block", "aria-label": app_name do %>
             <svg class="w-8 h-8" viewBox="0 0 32 32" xmlns:xlink="http://www.w3.org/1999/xlink">
               <defs>
                 <radialGradient cx="50%" cy="89.845%" fx="50%" fy="89.845%" r="108.567%" gradientTransform="matrix(-.00915 -.82755 .99996 -.00757 -.394 1.319)" id="logo1-b">

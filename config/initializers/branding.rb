@@ -15,6 +15,3 @@ Rails.configuration.x.branding = ActiveSupport::OrderedOptions.new
 Rails.configuration.x.branding.app_name = app_name
 Rails.configuration.x.branding.short_name = short_name
 Rails.configuration.x.branding.support_email = support_email
-
-I18n.backend.store_translations(:en, app: { name: app_name, short_name: short_name })
-I18n.backend.store_translations(:es, app: { name: app_name, short_name: short_name })

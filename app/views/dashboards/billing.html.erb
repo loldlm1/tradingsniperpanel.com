@@ -1,4 +1,4 @@
-<% content_for :title, "#{t('dashboard.nav.billing')} | #{t('app.short_name')}" %>
+<% content_for :title, "#{t('dashboard.nav.billing')} | #{app_short_name}" %>
 
 <% default_pm = @pay_customer&.default_payment_method %>
 <% pm_brand = default_pm&.brand || default_pm&.card_type || default_pm&.type %>
