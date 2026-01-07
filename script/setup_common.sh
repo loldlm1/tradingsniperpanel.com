@@ -360,6 +360,16 @@ server {
   listen 80;
   server_name ${staging_domain};
 
+  location = /webhooks/stripe {
+    proxy_pass http://app_staging;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header X-Forwarded-Proto \$scheme;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+  }
+
   location / {
 $(printf "%b" "${allow_lines}")    proxy_pass http://app_staging;
     proxy_http_version 1.1;

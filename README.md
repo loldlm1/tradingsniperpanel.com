@@ -54,13 +54,26 @@ If your SSH key has a passphrase, load it into ssh-agent before running the scri
 ```
 sudo bash /home/$USER/tradingsniperpanel.com/script/setup_staging.sh
 ```
-On first run, it will create `/home/$USER/tradingsniperpanel.com-staging/.envrc` and exit. Fill it with staging values (`APP_HOST=82.86.112.106`, `APP_HOST_PROTOCOL=http`, `PORT=48502`, `REDIS_URL=redis://localhost:6379/1`, `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME_STAGING*`, `STAGING_ALLOWLIST=82.86.112.106`), then rerun.
+On first run, it will create `/home/$USER/tradingsniperpanel.com-staging/.envrc` and exit. Fill it with staging values (`APP_HOST=<staging-host>`, `APP_HOST_PROTOCOL=http`, `PORT=48502`, `REDIS_URL=redis://localhost:6379/1`, `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME_STAGING*`, `STAGING_ALLOWLIST=<your_client_ip>`), then rerun.
 If `config/database.yml` on the staging branch does not include a `staging:` entry, add it before rerunning.
 Nginx config is applied once both env files exist and SSL files are installed.
 Scripts generate `/etc/tradingsniperpanel/*.env` from each `.envrc` and install systemd units for Puma/Sidekiq.
 Run the scripts with `sudo` from your admin user; they will use `$SUDO_USER` as the app user.
+6) Stripe webhooks (staging):
+- Webhook endpoint: `http://<staging-host>:48502/webhooks/stripe`
+- The staging Nginx config bypasses the allowlist for `/webhooks/stripe` only.
+- Recommended events (Pay + Checkout flows):
+  - `checkout.session.completed`
+  - `customer.subscription.created`
+  - `customer.subscription.updated`
+  - `customer.subscription.deleted`
+  - `invoice.payment_succeeded`
+  - `invoice.payment_failed`
+  - `invoice.payment_action_required`
+  - `payment_intent.succeeded`
+  - `payment_intent.payment_failed`
 Scripts run `db:seed` on each deploy; staging seeds reuse the production seed set and are safe to re-run.
-6) SSL files (production only):
+7) SSL files (production only):
 ```
 sudo install -d /etc/ssl/tradingsniperpanel
 sudo unzip tradingsniperpanel.com-certificates.zip -d /etc/ssl/tradingsniperpanel
@@ -154,7 +167,7 @@ Staging example (`/etc/tradingsniperpanel/staging.env`):
 sudo tee /etc/tradingsniperpanel/staging.env >/dev/null <<'EOF'
 RAILS_ENV=staging
 PORT=48502
-APP_HOST=82.86.112.106
+APP_HOST=<staging-host>
 APP_HOST_PROTOCOL=http
 RAILS_MASTER_KEY=your_master_key
 DATABASE_URL=postgres://tradingsniperpanel:change_me@localhost:5432/tradingsniperpanel_com_staging
@@ -163,7 +176,7 @@ DB_NAME_STAGING_CACHE=tradingsniperpanel_com_staging_cache
 DB_NAME_STAGING_QUEUE=tradingsniperpanel_com_staging_queue
 DB_NAME_STAGING_CABLE=tradingsniperpanel_com_staging_cable
 REDIS_URL=redis://localhost:6379/1
-STAGING_ALLOWLIST=82.86.112.106
+STAGING_ALLOWLIST=<your_client_ip>
 RAILS_LOG_TO_STDOUT=1
 RAILS_SERVE_STATIC_FILES=1
 EOF
@@ -320,10 +333,10 @@ server {
 
 server {
   listen 80;
-  server_name 82.86.112.106;
+  server_name <staging-host>;
 
   location / {
-    allow 82.86.112.106;
+    allow <your_client_ip>;
     deny all;
 
     proxy_pass http://app_staging;
@@ -346,7 +359,7 @@ sudo systemctl reload nginx
 14) Smoke tests:
 ```
 curl -I https://tradingsniperpanel.com
-curl -I http://82.86.112.106
+curl -I http://<staging-host>
 sudo systemctl status tradingsniperpanel-production.service
 sudo systemctl status tradingsniperpanel-staging.service
 ```
