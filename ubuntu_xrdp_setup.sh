@@ -290,7 +290,7 @@ Connect from your laptop:
 1) Create SSH tunnel:
    ssh -N -L ${LOCAL_TUNNEL_PORT}:127.0.0.1:${RDP_PORT} ${ADMIN_USER}@${OUTPUT_SERVER_IP}
 2) Start XRDP session:
-   xfreerdp /v:127.0.0.1:${LOCAL_TUNNEL_PORT} /u:${ADMIN_USER}
+   xfreerdp /v:127.0.0.1:${LOCAL_TUNNEL_PORT} /u:${ADMIN_USER} +clipboard +auto-reconnect /dynamic-resolution /cert:ignore
 
 Notes:
 - Use sudo on the server for root tasks.
