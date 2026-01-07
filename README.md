@@ -32,36 +32,70 @@ bin/dev
 ```
 
 ## Server setup (Ubuntu 22.04, staging + production on the same VPS)
+
+### Recommended: setup scripts
+1) Add your server SSH key to GitHub for `git@github.com:loldlm1/tradingsniperpanel.com.git`.
+2) Clone once to get the setup scripts:
+```
+git clone git@github.com:loldlm1/tradingsniperpanel.com.git /home/$USER/tradingsniperpanel.com
+```
+3) Create production `.envrc`:
+```
+cp /home/$USER/tradingsniperpanel.com/.envrc.example /home/$USER/tradingsniperpanel.com/.envrc
+```
+Set at minimum: `APP_HOST=tradingsniperpanel.com`, `APP_HOST_PROTOCOL=https`, `PORT=48501`, `REDIS_URL=redis://localhost:6379/0`, `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, and all `DB_NAME_PRODUCTION*` values.
+4) Run production setup:
+```
+sudo bash /home/$USER/tradingsniperpanel.com/script/setup_production.sh
+```
+If SSL files are not installed yet, the script will stop after setup; install certs and rerun.
+5) Run staging setup:
+```
+sudo bash /home/$USER/tradingsniperpanel.com/script/setup_staging.sh
+```
+On first run, it will create `/home/$USER/tradingsniperpanel.com-staging/.envrc` and exit. Fill it with staging values (`APP_HOST=82.86.112.106`, `APP_HOST_PROTOCOL=http`, `PORT=48502`, `REDIS_URL=redis://localhost:6379/1`, `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME_STAGING*`, `STAGING_ALLOWLIST=82.86.112.106`), then rerun.
+If `config/database.yml` on the staging branch does not include a `staging:` entry, add it before rerunning.
+Nginx config is applied once both env files exist and SSL files are installed.
+Scripts generate `/etc/tradingsniperpanel/*.env` from each `.envrc` and install systemd units for Puma/Sidekiq.
+Run the scripts with `sudo` from your admin user; they will use `$SUDO_USER` as the app user.
+6) SSL files (production only):
+```
+sudo install -d /etc/ssl/tradingsniperpanel
+sudo unzip tradingsniperpanel.com-certificates.zip -d /etc/ssl/tradingsniperpanel
+sudo cp tradingsniperpanel.com-PrivateKey.pem /etc/ssl/tradingsniperpanel/privkey.pem
+sudo cat /etc/ssl/tradingsniperpanel/tradingsniperpanel.com.crt /etc/ssl/tradingsniperpanel/ca_bundle.crt > /etc/ssl/tradingsniperpanel/fullchain.crt
+```
+Rerun the production script to apply Nginx SSL.
+
+### Manual steps (if you do not use the scripts)
 1) Install system packages (copy/paste):
 ```
 sudo apt update && sudo apt install -y build-essential git curl libssl-dev libreadline-dev zlib1g-dev libyaml-dev libffi-dev libgdbm-dev libncurses5-dev libpq-dev postgresql postgresql-contrib redis-server nginx unzip
 ```
-2) Create the deploy user (skip if it already exists):
+2) Install asdf as your admin user:
 ```
-sudo adduser deploy
-sudo usermod -aG sudo deploy
-```
-3) Login as deploy and install asdf:
-```
-su - deploy
 git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.1
 echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
 echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.bashrc
 source ~/.bashrc
 ```
-4) Clone the repo and install tool versions:
+3) Clone both environments and install tool versions:
 ```
-git clone <your_repo_url> /home/deploy/tradingsniperpanel.com
-cd /home/deploy/tradingsniperpanel.com
+git clone git@github.com:loldlm1/tradingsniperpanel.com.git /home/your_admin_user/tradingsniperpanel.com
+git clone git@github.com:loldlm1/tradingsniperpanel.com.git /home/your_admin_user/tradingsniperpanel.com-staging
+cd /home/your_admin_user/tradingsniperpanel.com && git checkout main
+cd /home/your_admin_user/tradingsniperpanel.com-staging && git checkout staging
 asdf plugin add ruby
 asdf plugin add nodejs
 bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
-asdf install
+cd /home/your_admin_user/tradingsniperpanel.com && asdf install
+cd /home/your_admin_user/tradingsniperpanel.com-staging && asdf install
 ```
-5) Install app dependencies:
+4) Create `.envrc` in both directories (copy from `.envrc.example`) and fill production vs staging values, including `PORT`, `APP_HOST`, `APP_HOST_PROTOCOL`, `REDIS_URL`, and `STAGING_ALLOWLIST` for staging.
+5) Install app dependencies in both directories:
 ```
-bundle install --without development test
-npm install
+cd /home/your_admin_user/tradingsniperpanel.com && bundle install --without development test && npm install
+cd /home/your_admin_user/tradingsniperpanel.com-staging && bundle install --without development test && npm install
 ```
 6) Enable Postgres and Redis:
 ```
@@ -81,15 +115,15 @@ CREATE DATABASE tradingsniperpanel_com_staging_queue OWNER tradingsniperpanel;
 CREATE DATABASE tradingsniperpanel_com_staging_cable OWNER tradingsniperpanel;
 SQL
 ```
-8) Add staging config files in the app:
+8) Add staging config files in the staging app:
 ```
-cp config/environments/production.rb config/environments/staging.rb
+cp /home/your_admin_user/tradingsniperpanel.com-staging/config/environments/production.rb /home/your_admin_user/tradingsniperpanel.com-staging/config/environments/staging.rb
 ```
 In `config/environments/staging.rb`, set:
 - `config.assume_ssl = false`
 - `config.force_ssl = false`
 
-Add a `staging:` entry in `config/database.yml` by copying `production:` and renaming the env vars to `DB_NAME_STAGING`, `DB_NAME_STAGING_CACHE`, `DB_NAME_STAGING_QUEUE`, `DB_NAME_STAGING_CABLE`.
+Add a `staging:` entry in `/home/your_admin_user/tradingsniperpanel.com-staging/config/database.yml` by copying `production:` and renaming the env vars to `DB_NAME_STAGING`, `DB_NAME_STAGING_CACHE`, `DB_NAME_STAGING_QUEUE`, `DB_NAME_STAGING_CABLE`.
 9) Create environment files for systemd (use `.envrc.example` as the full list reference).
 ```
 sudo install -d -m 0755 /etc/tradingsniperpanel
@@ -127,6 +161,7 @@ DB_NAME_STAGING_CACHE=tradingsniperpanel_com_staging_cache
 DB_NAME_STAGING_QUEUE=tradingsniperpanel_com_staging_queue
 DB_NAME_STAGING_CABLE=tradingsniperpanel_com_staging_cable
 REDIS_URL=redis://localhost:6379/1
+STAGING_ALLOWLIST=82.86.112.106
 RAILS_LOG_TO_STDOUT=1
 RAILS_SERVE_STATIC_FILES=1
 EOF
@@ -134,9 +169,11 @@ EOF
 10) Prepare DBs and assets (load env files before running Rails tasks):
 ```
 set -a; source /etc/tradingsniperpanel/production.env; set +a
+cd /home/your_admin_user/tradingsniperpanel.com
 bin/rails db:prepare assets:precompile
 
 set -a; source /etc/tradingsniperpanel/staging.env; set +a
+cd /home/your_admin_user/tradingsniperpanel.com-staging
 bin/rails db:prepare assets:precompile
 ```
 11) Systemd services (Puma + Sidekiq).
@@ -149,11 +186,11 @@ After=network.target
 
 [Service]
 Type=simple
-User=deploy
-WorkingDirectory=/home/deploy/tradingsniperpanel.com
+User=your_admin_user
+WorkingDirectory=/home/your_admin_user/tradingsniperpanel.com
 EnvironmentFile=/etc/tradingsniperpanel/production.env
-Environment=PATH=/home/deploy/.asdf/shims:/home/deploy/.asdf/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=/home/deploy/.asdf/shims/bundle exec puma -C config/puma.rb
+Environment=PATH=/home/your_admin_user/.asdf/shims:/home/your_admin_user/.asdf/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/your_admin_user/.asdf/shims/bundle exec puma -C config/puma.rb
 Restart=always
 TimeoutStopSec=30
 
@@ -169,11 +206,11 @@ After=network.target
 
 [Service]
 Type=simple
-User=deploy
-WorkingDirectory=/home/deploy/tradingsniperpanel.com
+User=your_admin_user
+WorkingDirectory=/home/your_admin_user/tradingsniperpanel.com
 EnvironmentFile=/etc/tradingsniperpanel/production.env
-Environment=PATH=/home/deploy/.asdf/shims:/home/deploy/.asdf/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=/home/deploy/.asdf/shims/bundle exec sidekiq -e production
+Environment=PATH=/home/your_admin_user/.asdf/shims:/home/your_admin_user/.asdf/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/your_admin_user/.asdf/shims/bundle exec sidekiq -e production
 Restart=always
 TimeoutStopSec=30
 
@@ -189,11 +226,11 @@ After=network.target
 
 [Service]
 Type=simple
-User=deploy
-WorkingDirectory=/home/deploy/tradingsniperpanel.com
+User=your_admin_user
+WorkingDirectory=/home/your_admin_user/tradingsniperpanel.com-staging
 EnvironmentFile=/etc/tradingsniperpanel/staging.env
-Environment=PATH=/home/deploy/.asdf/shims:/home/deploy/.asdf/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=/home/deploy/.asdf/shims/bundle exec puma -C config/puma.rb
+Environment=PATH=/home/your_admin_user/.asdf/shims:/home/your_admin_user/.asdf/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/your_admin_user/.asdf/shims/bundle exec puma -C config/puma.rb
 Restart=always
 TimeoutStopSec=30
 
@@ -209,11 +246,11 @@ After=network.target
 
 [Service]
 Type=simple
-User=deploy
-WorkingDirectory=/home/deploy/tradingsniperpanel.com
+User=your_admin_user
+WorkingDirectory=/home/your_admin_user/tradingsniperpanel.com-staging
 EnvironmentFile=/etc/tradingsniperpanel/staging.env
-Environment=PATH=/home/deploy/.asdf/shims:/home/deploy/.asdf/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=/home/deploy/.asdf/shims/bundle exec sidekiq -e staging
+Environment=PATH=/home/your_admin_user/.asdf/shims:/home/your_admin_user/.asdf/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/your_admin_user/.asdf/shims/bundle exec sidekiq -e staging
 Restart=always
 TimeoutStopSec=30
 
@@ -244,7 +281,7 @@ sudo cat /etc/ssl/tradingsniperpanel/tradingsniperpanel.com.crt /etc/ssl/trading
 ```
 The `tradingsniperpanel.com-CSR.pem` file is not used by Nginx.
 
-13) Nginx config (production SSL + staging IP allowlist). Replace the allowlist IPs with your own:
+13) Nginx config (production SSL + staging IP allowlist):
 ```
 # /etc/nginx/sites-available/tradingsniperpanel.conf
 upstream app_production {
@@ -284,8 +321,7 @@ server {
   server_name 82.86.112.106;
 
   location / {
-    allow 203.0.113.10;
-    allow 198.51.100.20;
+    allow 82.86.112.106;
     deny all;
 
     proxy_pass http://app_staging;
@@ -317,8 +353,9 @@ sudo systemctl status tradingsniperpanel-staging.service
 See `.envrc.example` for the full list. Key server variables:
 - Rails: `RAILS_ENV`, `PORT`, `RAILS_MASTER_KEY`, `RAILS_LOG_TO_STDOUT`, `RAILS_SERVE_STATIC_FILES`.
 - Host: `APP_HOST`, `APP_HOST_PROTOCOL`.
-- Postgres: `DATABASE_URL`, `DB_NAME_PRODUCTION*`, `DB_NAME_STAGING*`.
+- Postgres: `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DATABASE_URL`, `DB_NAME_PRODUCTION*`, `DB_NAME_STAGING*`.
 - Redis: `REDIS_URL`.
+- Staging: `STAGING_ALLOWLIST` (space-separated IPs, wrap in quotes if multiple).
 - Branding: `APP_NAME`, `APP_SHORT_NAME`, `LANDING_TEMPLATE`.
 - OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_HD`.
 - Stripe (Pay): `STRIPE_PRIVATE_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_SIGNING_SECRET`, plus all plan price IDs.
