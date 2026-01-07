@@ -30,7 +30,12 @@ init_app_user() {
 }
 
 run_as_app_user() {
-  sudo -u "${APP_USER}" bash -lc "[[ -f ~/.bashrc ]] && source ~/.bashrc; $*"
+  local ssh_sock="${SSH_AUTH_SOCK:-}"
+  if [[ -n "${ssh_sock}" ]]; then
+    sudo -u "${APP_USER}" SSH_AUTH_SOCK="${ssh_sock}" bash -lc "[[ -f ~/.bashrc ]] && source ~/.bashrc; $*"
+  else
+    sudo -u "${APP_USER}" bash -lc "[[ -f ~/.bashrc ]] && source ~/.bashrc; $*"
+  fi
 }
 
 ensure_packages() {
@@ -70,19 +75,29 @@ ensure_repo() {
   local repo_url="$1"
   local app_dir="$2"
   local branch="$3"
+  local git_env=""
+
+  if [[ "${repo_url}" == git@* || "${repo_url}" == ssh://* ]]; then
+    git_env="GIT_SSH_COMMAND='ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new' GIT_TERMINAL_PROMPT=0"
+    if ! run_as_app_user "ssh-add -L >/dev/null 2>&1"; then
+      die "SSH agent has no keys loaded. Run ssh-add as ${APP_USER} and rerun (or set REPO_URL to HTTPS)."
+    fi
+  else
+    git_env="GIT_TERMINAL_PROMPT=0"
+  fi
 
   if [[ ! -d "${app_dir}/.git" ]]; then
     log "Cloning repo into ${app_dir}"
-    run_as_app_user "git clone '${repo_url}' '${app_dir}'"
+    run_as_app_user "${git_env} git clone '${repo_url}' '${app_dir}'"
   fi
 
   local origin
-  origin="$(run_as_app_user "cd '${app_dir}' && git remote get-url origin")"
+  origin="$(run_as_app_user "cd '${app_dir}' && ${git_env} git remote get-url origin")"
   if [[ "${origin}" != "${repo_url}" ]]; then
     die "Repo origin mismatch at ${app_dir}. Expected ${repo_url}, got ${origin}."
   fi
 
-  run_as_app_user "cd '${app_dir}' && git fetch origin"
+  run_as_app_user "cd '${app_dir}' && ${git_env} git fetch origin"
 
   if ! run_as_app_user "cd '${app_dir}' && git diff --quiet --ignore-submodules --"; then
     die "Uncommitted changes in ${app_dir}. Commit or stash before running setup."
@@ -91,17 +106,17 @@ ensure_repo() {
     die "Staged changes in ${app_dir}. Commit or unstage before running setup."
   fi
 
-  if ! run_as_app_user "cd '${app_dir}' && git ls-remote --exit-code --heads origin '${branch}' >/dev/null"; then
+  if ! run_as_app_user "cd '${app_dir}' && ${git_env} git ls-remote --exit-code --heads origin '${branch}' >/dev/null"; then
     die "Branch '${branch}' not found on origin."
   fi
 
   if run_as_app_user "cd '${app_dir}' && git show-ref --verify --quiet 'refs/heads/${branch}'"; then
-    run_as_app_user "cd '${app_dir}' && git checkout '${branch}'"
+    run_as_app_user "cd '${app_dir}' && ${git_env} git checkout '${branch}'"
   else
-    run_as_app_user "cd '${app_dir}' && git checkout -b '${branch}' 'origin/${branch}'"
+    run_as_app_user "cd '${app_dir}' && ${git_env} git checkout -b '${branch}' 'origin/${branch}'"
   fi
 
-  run_as_app_user "cd '${app_dir}' && git pull --ff-only"
+  run_as_app_user "cd '${app_dir}' && ${git_env} git pull --ff-only"
 }
 
 ensure_envrc() {
