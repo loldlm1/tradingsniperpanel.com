@@ -30,7 +30,7 @@ init_app_user() {
 }
 
 run_as_app_user() {
-  sudo -u "${APP_USER}" bash -lc "$*"
+  sudo -u "${APP_USER}" bash -lc "[[ -f ~/.bashrc ]] && source ~/.bashrc; $*"
 }
 
 ensure_packages() {
@@ -47,7 +47,6 @@ ensure_asdf() {
 
   run_as_app_user "grep -q '.asdf/asdf.sh' ~/.bashrc || echo '. \"\$HOME/.asdf/asdf.sh\"' >> ~/.bashrc"
   run_as_app_user "grep -q '.asdf/completions/asdf.bash' ~/.bashrc || echo '. \"\$HOME/.asdf/completions/asdf.bash\"' >> ~/.bashrc"
-  run_as_app_user "grep -q '.asdf/asdf.sh' ~/.bash_profile || echo '. \"\$HOME/.asdf/asdf.sh\"' >> ~/.bash_profile"
 }
 
 ensure_asdf_plugins() {
@@ -59,7 +58,11 @@ ensure_asdf_plugins() {
   if ! run_as_app_user "asdf plugin list | grep -qx nodejs"; then
     log "Adding asdf nodejs plugin"
     run_as_app_user "asdf plugin add nodejs"
-    run_as_app_user "bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring"
+    if run_as_app_user "test -f ~/.asdf/plugins/nodejs/bin/import-release-team-keyring"; then
+      run_as_app_user "bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring"
+    else
+      warn "Nodejs keyring script not found; skipping import."
+    fi
   fi
 }
 
