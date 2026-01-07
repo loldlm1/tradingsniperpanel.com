@@ -235,8 +235,17 @@ EOF
 cat > "${XFCE_CONFIG_DIR}/xfce4-screensaver.xml" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfce4-screensaver" version="1.0">
-  <property name="lock-enabled" type="bool" value="false"/>
-  <property name="idle-activation-enabled" type="bool" value="false"/>
+  <property name="lock" type="empty">
+    <property name="enabled" type="bool" value="false"/>
+    <property name="lock-on-suspend" type="bool" value="false"/>
+  </property>
+  <property name="saver" type="empty">
+    <property name="enabled" type="bool" value="false"/>
+    <property name="idle-activation-enabled" type="bool" value="false"/>
+    <property name="timeout" type="int" value="0"/>
+    <property name="mode" type="int" value="0"/>
+    <property name="lock-delay" type="int" value="0"/>
+  </property>
 </channel>
 EOF
 chown -R "${ADMIN_USER}:${ADMIN_USER}" "${ADMIN_HOME}/.config/xfce4"
