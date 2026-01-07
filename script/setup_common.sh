@@ -245,32 +245,36 @@ sql_escape() {
   printf "%s" "${value//\'/\'\'}"
 }
 
+psql_as_postgres() {
+  ( cd / && sudo -u postgres -H psql "$@" )
+}
+
 ensure_postgres_role() {
   local role="$1"
   local password="$2"
   local escaped
 
-  if sudo -u postgres -H psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${role}'" | grep -q 1; then
+  if psql_as_postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${role}'" | grep -q 1; then
     log "Postgres role ${role} already exists"
     return
   fi
 
   escaped="$(sql_escape "${password}")"
   log "Creating Postgres role ${role}"
-  sudo -u postgres -H psql -v ON_ERROR_STOP=1 -c "CREATE USER ${role} WITH PASSWORD '${escaped}';"
+  psql_as_postgres -v ON_ERROR_STOP=1 -c "CREATE USER ${role} WITH PASSWORD '${escaped}';"
 }
 
 ensure_postgres_db() {
   local db_name="$1"
   local owner="$2"
 
-  if sudo -u postgres -H psql -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'" | grep -q 1; then
+  if psql_as_postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'" | grep -q 1; then
     log "Database ${db_name} already exists"
     return
   fi
 
   log "Creating database ${db_name}"
-  sudo -u postgres -H psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${db_name} OWNER ${owner};"
+  psql_as_postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${db_name} OWNER ${owner};"
 }
 
 install_app_deps() {
@@ -323,54 +327,91 @@ ensure_nginx_config() {
   local staging_env_file="$2"
   local require_ssl="${3:-1}"
 
-  if [[ ! -f "${prod_env_file}" || ! -f "${staging_env_file}" ]]; then
+  local has_prod=0
+  local has_staging=0
+  [[ -f "${prod_env_file}" ]] && has_prod=1
+  [[ -f "${staging_env_file}" ]] && has_staging=1
+
+  if [[ "${has_prod}" -eq 0 && "${has_staging}" -eq 0 ]]; then
     warn "Skipping Nginx config (missing env files)."
     return 0
   fi
 
   local prod_host prod_port staging_host staging_port allowlist
-  prod_host="$(get_env_value APP_HOST "${prod_env_file}")"
-  prod_port="$(get_env_value PORT "${prod_env_file}")"
-  staging_host="$(get_env_value APP_HOST "${staging_env_file}")"
-  staging_port="$(get_env_value PORT "${staging_env_file}")"
-  allowlist="$(get_env_value STAGING_ALLOWLIST "${staging_env_file}")"
+  if [[ "${has_prod}" -eq 1 ]]; then
+    prod_host="$(get_env_value APP_HOST "${prod_env_file}")"
+    prod_port="$(get_env_value PORT "${prod_env_file}")"
+    if [[ -z "${prod_host}" || -z "${prod_port}" ]]; then
+      die "Missing APP_HOST/PORT in ${prod_env_file}; cannot render Nginx config."
+    fi
+  else
+    log "Production env not found; generating staging-only Nginx config."
+  fi
 
-  if [[ -z "${prod_host}" || -z "${prod_port}" || -z "${staging_host}" || -z "${staging_port}" || -z "${allowlist}" ]]; then
-    die "Missing APP_HOST/PORT/STAGING_ALLOWLIST in env files; cannot render Nginx config."
+  if [[ "${has_staging}" -eq 1 ]]; then
+    staging_host="$(get_env_value APP_HOST "${staging_env_file}")"
+    staging_port="$(get_env_value PORT "${staging_env_file}")"
+    allowlist="$(get_env_value STAGING_ALLOWLIST "${staging_env_file}")"
+    if [[ -z "${staging_host}" || -z "${staging_port}" || -z "${allowlist}" ]]; then
+      die "Missing APP_HOST/PORT/STAGING_ALLOWLIST in ${staging_env_file}; cannot render Nginx config."
+    fi
+  else
+    log "Staging env not found; generating production-only Nginx config."
   fi
 
   local cert="${SSL_DIR}/fullchain.crt"
   local key="${SSL_DIR}/privkey.pem"
-  if [[ ! -f "${cert}" || ! -f "${key}" ]]; then
-    if [[ "${require_ssl}" -eq 1 ]]; then
-      die "SSL cert files missing in ${SSL_DIR}. Install them and rerun."
+  local include_prod=0
+  local include_staging=0
+
+  if [[ "${has_prod}" -eq 1 ]]; then
+    if [[ ! -f "${cert}" || ! -f "${key}" ]]; then
+      if [[ "${require_ssl}" -eq 1 ]]; then
+        die "SSL cert files missing in ${SSL_DIR}. Install them and rerun."
+      fi
+      warn "Skipping production Nginx block (SSL cert files missing)."
+    else
+      include_prod=1
     fi
-    warn "Skipping Nginx config (SSL cert files missing)."
+  fi
+
+  if [[ "${has_staging}" -eq 1 ]]; then
+    include_staging=1
+  fi
+
+  if [[ "${include_prod}" -eq 0 && "${include_staging}" -eq 0 ]]; then
+    warn "Skipping Nginx config (no usable env configuration)."
     return 0
   fi
 
-  allowlist="${allowlist//,/ }"
   local allow_lines=""
-  local ip
-  for ip in ${allowlist}; do
-    allow_lines="${allow_lines}    allow ${ip};\n"
-  done
-  allow_lines="${allow_lines}    deny all;\n"
+  local staging_domain=""
+  local prod_domain=""
+  if [[ "${include_staging}" -eq 1 ]]; then
+    allowlist="${allowlist//,/ }"
+    local ip
+    for ip in ${allowlist}; do
+      allow_lines="${allow_lines}    allow ${ip};\n"
+    done
+    allow_lines="${allow_lines}    deny all;\n"
+    staging_domain="${staging_host%%:*}"
+  fi
 
-  local prod_domain="${prod_host%%:*}"
-  local staging_domain="${staging_host%%:*}"
+  if [[ "${include_prod}" -eq 1 ]]; then
+    prod_domain="${prod_host%%:*}"
+  fi
 
-  local nginx_body
-  nginx_body="$(cat <<EOF
-# /etc/nginx/sites-available/tradingsniperpanel.conf
-upstream app_production {
-  server 127.0.0.1:${prod_port};
-}
+  local upstreams=""
+  if [[ "${include_prod}" -eq 1 ]]; then
+    upstreams="${upstreams}upstream app_production {\n  server 127.0.0.1:${prod_port};\n}\n\n"
+  fi
+  if [[ "${include_staging}" -eq 1 ]]; then
+    upstreams="${upstreams}upstream app_staging {\n  server 127.0.0.1:${staging_port};\n}\n\n"
+  fi
 
-upstream app_staging {
-  server 127.0.0.1:${staging_port};
-}
-
+  local prod_block=""
+  if [[ "${include_prod}" -eq 1 ]]; then
+    prod_block="$(cat <<EOF
 server {
   listen 80;
   server_name ${prod_domain} www.${prod_domain};
@@ -395,6 +436,13 @@ server {
   }
 }
 
+EOF
+)"
+  fi
+
+  local staging_block=""
+  if [[ "${include_staging}" -eq 1 ]]; then
+    staging_block="$(cat <<EOF
 server {
   listen 80;
   server_name ${staging_domain};
@@ -419,6 +467,14 @@ $(printf "%b" "${allow_lines}")    proxy_pass http://app_staging;
     proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
   }
 }
+EOF
+)"
+  fi
+
+  local nginx_body
+  nginx_body="$(cat <<EOF
+# /etc/nginx/sites-available/tradingsniperpanel.conf
+$(printf "%b" "${upstreams}")${prod_block}${staging_block}
 EOF
 )"
 
