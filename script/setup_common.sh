@@ -47,6 +47,7 @@ ensure_asdf() {
 
   run_as_app_user "grep -q '.asdf/asdf.sh' ~/.bashrc || echo '. \"\$HOME/.asdf/asdf.sh\"' >> ~/.bashrc"
   run_as_app_user "grep -q '.asdf/completions/asdf.bash' ~/.bashrc || echo '. \"\$HOME/.asdf/completions/asdf.bash\"' >> ~/.bashrc"
+  run_as_app_user "grep -q '.asdf/asdf.sh' ~/.bash_profile || echo '. \"\$HOME/.asdf/asdf.sh\"' >> ~/.bash_profile"
 }
 
 ensure_asdf_plugins() {
