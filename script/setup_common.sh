@@ -250,27 +250,27 @@ ensure_postgres_role() {
   local password="$2"
   local escaped
 
-  if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${role}'" | grep -q 1; then
+  if sudo -u postgres -H psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${role}'" | grep -q 1; then
     log "Postgres role ${role} already exists"
     return
   fi
 
   escaped="$(sql_escape "${password}")"
   log "Creating Postgres role ${role}"
-  sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE USER ${role} WITH PASSWORD '${escaped}';"
+  sudo -u postgres -H psql -v ON_ERROR_STOP=1 -c "CREATE USER ${role} WITH PASSWORD '${escaped}';"
 }
 
 ensure_postgres_db() {
   local db_name="$1"
   local owner="$2"
 
-  if sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'" | grep -q 1; then
+  if sudo -u postgres -H psql -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'" | grep -q 1; then
     log "Database ${db_name} already exists"
     return
   fi
 
   log "Creating database ${db_name}"
-  sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${db_name} OWNER ${owner};"
+  sudo -u postgres -H psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${db_name} OWNER ${owner};"
 }
 
 install_app_deps() {
