@@ -49,7 +49,7 @@ Set at minimum: `APP_HOST=tradingsniperpanel.com`, `APP_HOST_PROTOCOL=https`, `P
 sudo bash /home/$USER/tradingsniperpanel.com/script/setup_production.sh
 ```
 If SSL files are not installed yet, the script will stop after setup; install certs and rerun.
-If your SSH key has a passphrase, load it into ssh-agent before running the script (for example: `eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519`). If needed, run with `sudo -E` to preserve `SSH_AUTH_SOCK`.
+If your SSH key has a passphrase, load it into ssh-agent before running the script (for example: `eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519`). The scripts try to detect your agent; if they still complain, run with `sudo -E` to preserve `SSH_AUTH_SOCK`.
 5) Run staging setup:
 ```
 sudo bash /home/$USER/tradingsniperpanel.com/script/setup_staging.sh
