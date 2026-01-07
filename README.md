@@ -58,6 +58,7 @@ If `config/database.yml` on the staging branch does not include a `staging:` ent
 Nginx config is applied once both env files exist and SSL files are installed.
 Scripts generate `/etc/tradingsniperpanel/*.env` from each `.envrc` and install systemd units for Puma/Sidekiq.
 Run the scripts with `sudo` from your admin user; they will use `$SUDO_USER` as the app user.
+Scripts run `db:seed` on each deploy; staging seeds reuse the production seed set and are safe to re-run.
 6) SSL files (production only):
 ```
 sudo install -d /etc/ssl/tradingsniperpanel
@@ -170,11 +171,11 @@ EOF
 ```
 set -a; source /etc/tradingsniperpanel/production.env; set +a
 cd /home/your_admin_user/tradingsniperpanel.com
-bin/rails db:prepare assets:precompile
+bin/rails db:prepare db:seed assets:precompile
 
 set -a; source /etc/tradingsniperpanel/staging.env; set +a
 cd /home/your_admin_user/tradingsniperpanel.com-staging
-bin/rails db:prepare assets:precompile
+bin/rails db:prepare db:seed assets:precompile
 ```
 11) Systemd services (Puma + Sidekiq).
 

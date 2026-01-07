@@ -52,7 +52,7 @@ ensure_postgres_db "${db_queue}" "${db_user}"
 ensure_postgres_db "${db_cable}" "${db_user}"
 
 install_app_deps "${APP_DIR}"
-prepare_app_assets "${APP_DIR}"
+prepare_app_assets "${APP_DIR}" "production"
 
 render_systemd_unit "tradingsniperpanel-production.service" "[Unit]
 Description=Trading Sniper Panel (production web)
