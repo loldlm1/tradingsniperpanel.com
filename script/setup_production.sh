@@ -96,4 +96,24 @@ systemctl restart tradingsniperpanel-sidekiq-production.service
 
 ensure_nginx_config "${ENV_FILE}" "${ENV_DIR}/staging.env" 1
 
+verify_failed=0
+prod_host="$(get_env_value APP_HOST "${ENV_FILE}")"
+prod_domain="${prod_host%%:*}"
+prod_port="$(get_env_value PORT "${ENV_FILE}")"
+
+check_service_active "tradingsniperpanel-production.service" || verify_failed=1
+check_service_active "tradingsniperpanel-sidekiq-production.service" || verify_failed=1
+check_service_active "nginx" || verify_failed=1
+check_http_status "Production app (direct)" "http://127.0.0.1:${prod_port}" "^[23][0-9]{2}$" -H "Host: ${prod_domain}" || verify_failed=1
+check_http_status "Production app (via Nginx)" "http://127.0.0.1/" "^(200|301|302)$" -H "Host: ${prod_domain}" || verify_failed=1
+
+log "Rails logs (production): sudo journalctl -u tradingsniperpanel-production.service -f"
+log "Sidekiq logs (production): sudo journalctl -u tradingsniperpanel-sidekiq-production.service -f"
+log "Nginx access log: sudo tail -f /var/log/nginx/access.log"
+log "Nginx error log: sudo tail -f /var/log/nginx/error.log"
+
+if (( verify_failed )); then
+  die "Production verification failed. Check the logs above."
+fi
+
 log "Production setup complete."
