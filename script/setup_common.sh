@@ -17,20 +17,59 @@ require_root() {
   fi
 }
 
+detect_ssh_auth_sock() {
+  local uid="$1"
+  local user="$2"
+  local sock
+  local sockets=()
+
+  if ! command -v ssh-add >/dev/null 2>&1; then
+    return 1
+  fi
+
+  if [[ -d "/run/user/${uid}" ]]; then
+    while IFS= read -r sock; do
+      sockets+=("${sock}")
+    done < <(find "/run/user/${uid}" -maxdepth 2 -type s \( -name "ssh-*" -o -name "ssh-agent*" \) -user "${user}" 2>/dev/null)
+  fi
+
+  while IFS= read -r sock; do
+    sockets+=("${sock}")
+  done < <(find /tmp -maxdepth 2 -type s -name "agent.*" -user "${user}" 2>/dev/null)
+
+  for sock in "${sockets[@]}"; do
+    if sudo -u "${user}" SSH_AUTH_SOCK="${sock}" ssh-add -L >/dev/null 2>&1; then
+      printf "%s" "${sock}"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 init_app_user() {
   if [[ -z "${SUDO_USER:-}" ]]; then
     die "SUDO_USER is not set. Run with sudo from your admin user."
   fi
 
   APP_USER="${SUDO_USER}"
+  APP_UID="$(id -u "${APP_USER}")"
   APP_HOME="$(getent passwd "${APP_USER}" | cut -d: -f6)"
   if [[ -z "${APP_HOME}" ]]; then
     die "Could not resolve home directory for ${APP_USER}."
+  fi
+
+  SSH_AUTH_SOCK_FALLBACK=""
+  if [[ -z "${SSH_AUTH_SOCK:-}" ]]; then
+    SSH_AUTH_SOCK_FALLBACK="$(detect_ssh_auth_sock "${APP_UID}" "${APP_USER}" || true)"
   fi
 }
 
 run_as_app_user() {
   local ssh_sock="${SSH_AUTH_SOCK:-}"
+  if [[ -z "${ssh_sock}" && -n "${SSH_AUTH_SOCK_FALLBACK:-}" ]]; then
+    ssh_sock="${SSH_AUTH_SOCK_FALLBACK}"
+  fi
   if [[ -n "${ssh_sock}" ]]; then
     sudo -u "${APP_USER}" SSH_AUTH_SOCK="${ssh_sock}" bash -lc "[[ -f ~/.bashrc ]] && source ~/.bashrc; $*"
   else
