@@ -208,6 +208,11 @@ if [ -r /etc/default/locale ]; then
 fi
 unset DBUS_SESSION_BUS_ADDRESS
 unset XDG_RUNTIME_DIR
+if command -v xset >/dev/null 2>&1; then
+  xset s off
+  xset s noblank
+  xset -dpms
+fi
 startxfce4
 EOF
 chmod 0755 /etc/xrdp/startwm.sh
@@ -227,7 +232,34 @@ cat > "${XFCE_CONFIG_DIR}/xfce4-power-manager.xml" <<'EOF'
   <property name="dpms-enabled" type="bool" value="false"/>
 </channel>
 EOF
+cat > "${XFCE_CONFIG_DIR}/xfce4-screensaver.xml" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfce4-screensaver" version="1.0">
+  <property name="lock-enabled" type="bool" value="false"/>
+  <property name="idle-activation-enabled" type="bool" value="false"/>
+</channel>
+EOF
 chown -R "${ADMIN_USER}:${ADMIN_USER}" "${ADMIN_HOME}/.config/xfce4"
+
+AUTOSTART_DIR="${ADMIN_HOME}/.config/autostart"
+mkdir -p "${AUTOSTART_DIR}"
+cat > "${AUTOSTART_DIR}/xfce4-screensaver.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=XFCE Screen Saver
+Exec=xfce4-screensaver
+Hidden=true
+X-GNOME-Autostart-enabled=false
+EOF
+cat > "${AUTOSTART_DIR}/light-locker.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Light Locker
+Exec=light-locker
+Hidden=true
+X-GNOME-Autostart-enabled=false
+EOF
+chown -R "${ADMIN_USER}:${ADMIN_USER}" "${AUTOSTART_DIR}"
 
 TERMINAL_CONFIG_DIR="${ADMIN_HOME}/.config/xfce4/terminal"
 mkdir -p "${TERMINAL_CONFIG_DIR}"
