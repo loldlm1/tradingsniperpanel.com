@@ -277,6 +277,42 @@ ensure_postgres_db() {
   psql_as_postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${db_name} OWNER ${owner};"
 }
 
+check_service_active() {
+  local service="$1"
+
+  if systemctl is-active --quiet "${service}"; then
+    log "Service ${service} is active"
+    return 0
+  fi
+
+  warn "Service ${service} is not active"
+  return 1
+}
+
+check_http_status() {
+  local label="$1"
+  local url="$2"
+  local ok_regex="$3"
+  shift 3
+  local code=""
+  local attempt
+
+  for attempt in 1 2 3 4 5; do
+    if code="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 8 "$@" "${url}")"; then
+      if [[ "${code}" =~ ${ok_regex} ]]; then
+        log "${label} responded with ${code}"
+        return 0
+      fi
+    else
+      code="curl_error"
+    fi
+    sleep 2
+  done
+
+  warn "${label} did not respond with expected status (last: ${code})"
+  return 1
+}
+
 install_app_deps() {
   local app_dir="$1"
 

@@ -115,4 +115,24 @@ systemctl restart tradingsniperpanel-sidekiq-staging.service
 
 ensure_nginx_config "${ENV_DIR}/production.env" "${ENV_FILE}" 0
 
+verify_failed=0
+staging_host="$(get_env_value APP_HOST "${ENV_FILE}")"
+staging_domain="${staging_host%%:*}"
+staging_port="$(get_env_value PORT "${ENV_FILE}")"
+
+check_service_active "tradingsniperpanel-staging.service" || verify_failed=1
+check_service_active "tradingsniperpanel-sidekiq-staging.service" || verify_failed=1
+check_service_active "nginx" || verify_failed=1
+check_http_status "Staging app (direct)" "http://127.0.0.1:${staging_port}" "^[23][0-9]{2}$" -H "Host: ${staging_domain}" || verify_failed=1
+check_http_status "Staging app (via Nginx allowlist)" "http://127.0.0.1/" "^(200|301|302|403)$" -H "Host: ${staging_domain}" || verify_failed=1
+
+log "Rails logs (staging): sudo journalctl -u tradingsniperpanel-staging.service -f"
+log "Sidekiq logs (staging): sudo journalctl -u tradingsniperpanel-sidekiq-staging.service -f"
+log "Nginx access log: sudo tail -f /var/log/nginx/access.log"
+log "Nginx error log: sudo tail -f /var/log/nginx/error.log"
+
+if (( verify_failed )); then
+  die "Staging verification failed. Check the logs above."
+fi
+
 log "Staging setup complete."
