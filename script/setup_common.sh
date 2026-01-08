@@ -230,6 +230,9 @@ render_env_file() {
   grep -E '^export [A-Za-z_][A-Za-z0-9_]*=' "${envrc}" | sed 's/^export //' > "${tmp}"
   grep -Ev '^(RAILS_ENV|RAILS_LOG_TO_STDOUT|RAILS_SERVE_STATIC_FILES)=' "${tmp}" > "${filtered}"
   printf "RAILS_ENV=%s\nRAILS_LOG_TO_STDOUT=1\nRAILS_SERVE_STATIC_FILES=1\n" "${rails_env}" >> "${filtered}"
+  if ! grep -Eq '^BIND_HOST=' "${filtered}" && [[ "${rails_env}" == "staging" || "${rails_env}" == "production" ]]; then
+    printf "BIND_HOST=127.0.0.1\n" >> "${filtered}"
+  fi
 
   install -d -m 0755 "$(dirname "${dest}")"
   if [[ ! -f "${dest}" ]] || ! cmp -s "${filtered}" "${dest}"; then
