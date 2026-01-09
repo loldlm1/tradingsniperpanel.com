@@ -1,0 +1,18 @@
+<footer>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="grid sm:grid-cols-12 gap-8 py-8 md:py-12">
+      <div class="sm:col-span-12 lg:col-span-4 lg:max-w-xs">
+        <div class="mb-2">
+          <%= link_to root_path, class: "inline-flex", "aria-label": app_name do %>
+            <%= render "shared/marketing_logo", logo_class: "w-12 h-12 object-contain" %>
+          <% end %>
+        </div>
+        <div class="text-sm text-gray-600">
+          <%= link_to t("footer.terms"), terms_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %>
+          &middot;
+          <%= link_to t("footer.privacy"), privacy_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,19 @@
+<% if flash.any? %>
+  <div class="space-y-2 mb-6">
+    <% flash.each do |type, message| %>
+      <% message_text = Array(message).join(", ") %>
+      <% next if message_text.blank? %>
+      <% variant = case type.to_s
+                  when "notice", "success"
+                    "border-emerald-500/40 bg-emerald-500/10 text-emerald-100"
+                  when "alert", "error"
+                    "border-rose-500/40 bg-rose-500/10 text-rose-100"
+                  else
+                    "border-gray-700 bg-gray-900/40 text-gray-200"
+                  end %>
+      <div class="rounded-md border p-3 text-sm <%= variant %>">
+        <%= message_text %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
