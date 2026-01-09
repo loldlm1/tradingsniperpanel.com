@@ -270,6 +270,22 @@ en:
             - "Full toolset and advanced settings"
             - "Team-ready workflows"
             - "Priority support"
+        elite:
+          name: "Elite"
+          description: "Expanded access and higher limits for multi-strategy desks."
+          features:
+            - "Everything in Pro"
+            - "Expanded Expert Advisor access"
+            - "Higher account limits"
+            - "Priority onboarding"
+        enterprise:
+          name: "Enterprise"
+          description: "Custom access for teams that need dedicated support and governance."
+          features:
+            - "Everything in Elite"
+            - "Dedicated support channel"
+            - "Custom onboarding and reviews"
+            - "Billing assistance"
       popular: "Most Popular"
       requested_plan: "Selected plan"
       whats_included: "What's included"
@@ -823,6 +839,24 @@ en:
               - "Advanced execution flows"
               - "Priority support"
               - "Premium updates"
+          elite:
+            name: "Elite"
+            description: "For high-volume workflows with expanded EA access and higher limits."
+            features_title: "Everything in Pro, plus:"
+            features:
+              - "Expanded EA access and strategy depth"
+              - "Higher trade and account limits"
+              - "Dedicated onboarding check-ins"
+              - "Priority response times"
+          enterprise:
+            name: "Enterprise"
+            description: "For teams that want custom access, governance, and dedicated support."
+            features_title: "Everything in Elite, plus:"
+            features:
+              - "Custom access tiers and governance"
+              - "Dedicated support channel"
+              - "Billing assistance and reporting"
+              - "Quarterly enablement reviews"
       testimonials:
         title: "REAL TRADERS"
         avatar_alt: "Testimonial avatar %{index}"

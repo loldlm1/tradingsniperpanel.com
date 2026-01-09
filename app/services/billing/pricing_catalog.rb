@@ -134,5 +134,31 @@ module Billing
       dollars = amount_cents_or_float.to_f / 100.0
       format("%.2f", dollars).sub(/\.?0+$/, "")
     end
+
+    def self.filter_intervals(intervals:, prices:, tiers:)
+      return [] if intervals.blank?
+      return intervals if tiers.blank?
+
+      tier_keys = Array(tiers).map(&:to_s)
+      intervals.select do |interval|
+        interval_key = interval[:key]
+        tier_keys.all? { |tier| prices.dig(interval_key, tier).present? }
+      end
+    end
+
+    def self.filter_prices(prices:, intervals:, tiers:)
+      return {} if prices.blank? || intervals.blank?
+
+      tier_keys = Array(tiers).map(&:to_s)
+      interval_keys = intervals.map { |interval| interval[:key] }
+
+      interval_keys.each_with_object({}) do |interval_key, memo|
+        tier_prices = prices[interval_key] || {}
+        memo[interval_key] = tier_keys.each_with_object({}) do |tier, tier_memo|
+          value = tier_prices[tier]
+          tier_memo[tier] = value if value.present?
+        end
+      end
+    end
   end
 end

@@ -8,11 +8,7 @@ bundle_paths = {
   "pandora_box" => pandora_bundle_path
 }
 
-Seeds::BillingPlans.seed_plans!
-
 Seeds::ExpertAdvisors.core_definitions.each do |attrs|
   bundle_path = bundle_paths[attrs[:ea_id]]
   Seeds::ExpertAdvisors.upsert_expert_advisor(attrs.dup, bundle_path: bundle_path)
 end
-
-Seeds::BillingPlans.seed_entitlements!
