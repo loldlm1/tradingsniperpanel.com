@@ -10,12 +10,12 @@ RSpec.describe "Subscription upgrades", type: :request do
       default: true
     )
   end
+  let!(:basic_plan) { create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_basic_monthly", amount_cents: 1000) }
+  let!(:hft_plan) { create(:billing_plan, tier: "hft", key: "hft_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_hft_monthly", amount_cents: 2000) }
+  let!(:pro_plan) { create(:billing_plan, tier: "pro", key: "pro_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_pro_monthly", amount_cents: 3000) }
 
   around do |example|
     original_env = ENV.to_hash
-    ENV["STRIPE_PRICE_BASIC_MONTHLY"] = "price_basic_monthly"
-    ENV["STRIPE_PRICE_HFT_MONTHLY"] = "price_hft_monthly"
-    ENV["STRIPE_PRICE_PRO_MONTHLY"] = "price_pro_monthly"
     ENV["STRIPE_PRIVATE_KEY"] = "sk_test_123"
     example.run
   ensure
@@ -31,7 +31,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     existing = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_BASIC_MONTHLY"],
+      processor_plan: basic_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -39,7 +39,7 @@ RSpec.describe "Subscription upgrades", type: :request do
       type: "Pay::Stripe::Subscription"
     )
 
-    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).with("price_hft_monthly", hash_including(proration_behavior: "always_invoice")).and_return(true)
+    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).with(hft_plan.stripe_price_id, hash_including(proration_behavior: "always_invoice")).and_return(true)
 
     sign_in user, scope: :user
 
@@ -53,7 +53,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      processor_plan: hft_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -87,7 +87,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      processor_plan: hft_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -116,7 +116,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      processor_plan: hft_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -151,7 +151,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      processor_plan: hft_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -159,7 +159,7 @@ RSpec.describe "Subscription upgrades", type: :request do
       type: "Pay::Stripe::Subscription"
     )
 
-    phase = double(start_date: 1.month.from_now.to_i, items: [double(price: "price_basic_monthly")])
+    phase = double(start_date: 1.month.from_now.to_i, items: [double(price: basic_plan.stripe_price_id)])
     schedule = double(id: "sub_sched_backfill", phases: [phase])
     allow(Stripe::Subscription).to receive(:retrieve).and_return(double(schedule: "sub_sched_backfill"))
     allow(Stripe::SubscriptionSchedule).to receive(:retrieve).and_return(schedule)
@@ -179,7 +179,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      processor_plan: hft_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -194,7 +194,7 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     allow(Stripe::SubscriptionSchedule).to receive(:release).and_return(true)
     expect(Stripe::SubscriptionSchedule).to receive(:release).with("sub_sched_789")
-    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).with("price_pro_monthly", hash_including(proration_behavior: "always_invoice")).and_return(true)
+    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).with(pro_plan.stripe_price_id, hash_including(proration_behavior: "always_invoice")).and_return(true)
 
     sign_in user, scope: :user
 
@@ -210,7 +210,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      processor_plan: hft_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -243,7 +243,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      processor_plan: hft_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -275,7 +275,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_BASIC_MONTHLY"],
+      processor_plan: basic_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -305,7 +305,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_BASIC_MONTHLY"],
+      processor_plan: basic_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -315,7 +315,7 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).once.and_raise(ActiveRecord::Deadlocked)
     allow_any_instance_of(Pay::Stripe::Subscription).to receive(:sync!) do |record|
-      record.update!(processor_plan: "price_hft_monthly")
+      record.update!(processor_plan: hft_plan.stripe_price_id)
       true
     end
 
@@ -331,7 +331,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      processor_plan: hft_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -348,7 +348,7 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     expect_any_instance_of(Pay::Stripe::Subscription)
       .to receive(:swap)
-      .with("price_pro_monthly", hash_including(proration_behavior: "always_invoice"))
+      .with(pro_plan.stripe_price_id, hash_including(proration_behavior: "always_invoice"))
       .and_return(true)
 
     sign_in user, scope: :user
@@ -362,7 +362,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      processor_plan: hft_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -392,7 +392,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      processor_plan: hft_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -423,7 +423,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     older = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_BASIC_MONTHLY"],
+      processor_plan: basic_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: 2.months.ago,
@@ -435,7 +435,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     newer = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_HFT_MONTHLY"],
+      processor_plan: hft_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -456,7 +456,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_BASIC_MONTHLY"],
+      processor_plan: basic_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -478,7 +478,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: ENV["STRIPE_PRICE_PRO_MONTHLY"],
+      processor_plan: pro_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,

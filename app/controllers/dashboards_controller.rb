@@ -45,9 +45,29 @@ class DashboardsController < ApplicationController
 
   def checkout
     price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
-    price_id = Billing::ConfiguredPrices.price_id_for(price_key)
+    plan = BillingPlan.active.find_by(key: price_key)
+    price_id = plan&.stripe_price_id || Billing::ConfiguredPrices.price_id_for(price_key)
     unless price_id
       redirect_to dashboard_plans_path, alert: t("dashboard.billing.invalid_price") and return
+    end
+
+    if plan&.one_time?
+      success_url = price_key.present? ? dashboard_url(price_key: price_key) : dashboard_url
+      checkout_params = {
+        mode: "payment",
+        line_items: [{ price: price_id, quantity: 1 }],
+        success_url: success_url,
+        cancel_url: dashboard_plans_url,
+        client_reference_id: current_user.id,
+        payment_intent_data: {
+          metadata: {
+            billing_plan_key: price_key
+          }
+        }
+      }
+
+      session = current_user.payment_processor.checkout(**checkout_params)
+      redirect_to session.url, allow_other_host: true and return
     end
 
     if @subscription.present?
@@ -85,7 +105,12 @@ class DashboardsController < ApplicationController
       success_url: success_url,
       cancel_url: dashboard_plans_url,
       allow_promotion_codes: true,
-      client_reference_id: current_user.id
+      client_reference_id: current_user.id,
+      subscription_data: {
+        metadata: {
+          billing_plan_key: price_key
+        }
+      }
     }
 
     checkout_params = Billing::ApplyReferralDiscount.new(
@@ -184,18 +209,27 @@ class DashboardsController < ApplicationController
   end
 
   def plan_label_for(price_key)
-    tier, interval = price_key.to_s.split("_")
+    plan = BillingPlan.for_key(price_key)
+    return plan.name if plan&.one_time?
+
+    if plan
+      tier_label = t("dashboard.plans.tiers.#{plan.tier}.name", default: plan.tier.to_s.humanize)
+      interval_label = Billing::IntervalLabeler.label(interval: plan.interval, interval_count: plan.interval_count)
+      return t("dashboard.plan_card.plan_label_tier_only", tier: tier_label) if interval_label.blank?
+
+      return t("dashboard.plan_card.plan_label", tier: tier_label, interval: interval_label)
+    end
+
+    parts = price_key.to_s.split("_")
+    tier = parts.shift
+    interval_key = parts.join("_")
     return price_key.to_s if tier.blank?
 
     tier_label = t("dashboard.plans.tiers.#{tier}.name", default: tier.to_s.humanize)
-    interval_key = interval.to_s == "annual" ? "annually" : interval
-    interval_label = interval_key.present? ? t("dashboard.plans.toggle.#{interval_key}", default: interval.to_s.humanize) : nil
+    interval_label = Billing::IntervalLabeler.legacy_label(interval_key)
+    return t("dashboard.plan_card.plan_label_tier_only", tier: tier_label) if interval_label.blank?
 
-    if interval_label.present?
-      t("dashboard.plan_card.plan_label", tier: tier_label, interval: interval_label)
-    else
-      t("dashboard.plan_card.plan_label_tier_only", tier: tier_label)
-    end
+    t("dashboard.plan_card.plan_label", tier: tier_label, interval: interval_label)
   end
 
   def cancel_notice_for(result, key:)

@@ -2,31 +2,30 @@ require "rails_helper"
 
 RSpec.describe Billing::ConfiguredPrices do
   describe ".resolve_price_id" do
-    it "returns price id when given a price id" do
+    it "returns price id when given a matching billing plan price" do
+      create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_123")
+
       expect(described_class.resolve_price_id("price_123")).to eq("price_123")
     end
 
-    it "fetches default price when given a product id" do
-      product = instance_double(Stripe::Product, default_price: "price_default")
-      allow(Stripe::Product).to receive(:retrieve).with("prod_123").and_return(product)
+    it "returns billing plan price when given a matching product id" do
+      create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, stripe_product_id: "prod_123", stripe_price_id: "price_default")
 
       expect(described_class.resolve_price_id("prod_123")).to eq("price_default")
-    end
-
-    it "returns nil on failures" do
-      allow(Stripe::Product).to receive(:retrieve).and_raise(StandardError.new("boom"))
-
-      expect(described_class.resolve_price_id("prod_123")).to be_nil
     end
   end
 
   describe Billing::PriceKeyResolver do
-    it "matches price key when env stores product id" do
-      allow(ENV).to receive(:[]).and_call_original
-      allow(ENV).to receive(:[]).with("STRIPE_PRICE_BASIC_MONTHLY").and_return("prod_123")
-      allow(Stripe::Product).to receive(:retrieve).with("prod_123").and_return(instance_double(Stripe::Product, default_price: "price_abc"))
+    it "matches price key for a billing plan price id" do
+      create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_abc")
 
       expect(Billing::PriceKeyResolver.key_for_price_id("price_abc")).to eq("basic_monthly")
+    end
+
+    it "matches price key for a billing plan product id" do
+      create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, stripe_product_id: "prod_abc")
+
+      expect(Billing::PriceKeyResolver.key_for_product_id("prod_abc")).to eq("basic_monthly")
     end
   end
 end

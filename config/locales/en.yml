@@ -197,9 +197,54 @@ en:
       toggle:
         monthly: "Monthly"
         annually: "Annually"
+        weekly: "Weekly"
+        daily: "Daily"
         pay_annually: "Pay annually"
         save_up_to: "Save %{percent}%"
         billed_annually: "Billed annually"
+      interval:
+        toggle:
+          month:
+            one: "Monthly"
+            other: "Every %{count} months"
+          year:
+            one: "Annually"
+            other: "Every %{count} years"
+          week:
+            one: "Weekly"
+            other: "Every %{count} weeks"
+          day:
+            one: "Daily"
+            other: "Every %{count} days"
+        billed:
+          month:
+            one: "Billed monthly"
+            other: "Billed every %{count} months"
+          year:
+            one: "Billed annually"
+            other: "Billed every %{count} years"
+          week:
+            one: "Billed weekly"
+            other: "Billed every %{count} weeks"
+          day:
+            one: "Billed daily"
+            other: "Billed every %{count} days"
+        short_unit:
+          month:
+            one: "mo"
+            other: "mos"
+          year:
+            one: "yr"
+            other: "yrs"
+          week:
+            one: "wk"
+            other: "wks"
+          day:
+            one: "day"
+            other: "days"
+        per_label:
+          one: "/%{unit}"
+          other: "/%{count} %{unit}"
       tiers:
         basic:
           name: "Basic"

@@ -197,9 +197,54 @@ es:
       toggle:
         monthly: "Mensual"
         annually: "Anual"
+        weekly: "Semanal"
+        daily: "Diario"
         pay_annually: "Pagar anualmente"
         save_up_to: "Ahorra %{percent}%"
         billed_annually: "Facturado anualmente"
+      interval:
+        toggle:
+          month:
+            one: "Mensual"
+            other: "Cada %{count} meses"
+          year:
+            one: "Anual"
+            other: "Cada %{count} años"
+          week:
+            one: "Semanal"
+            other: "Cada %{count} semanas"
+          day:
+            one: "Diario"
+            other: "Cada %{count} días"
+        billed:
+          month:
+            one: "Facturado mensualmente"
+            other: "Facturado cada %{count} meses"
+          year:
+            one: "Facturado anualmente"
+            other: "Facturado cada %{count} años"
+          week:
+            one: "Facturado semanalmente"
+            other: "Facturado cada %{count} semanas"
+          day:
+            one: "Facturado diariamente"
+            other: "Facturado cada %{count} días"
+        short_unit:
+          month:
+            one: "mes"
+            other: "meses"
+          year:
+            one: "año"
+            other: "años"
+          week:
+            one: "sem"
+            other: "sem"
+          day:
+            one: "día"
+            other: "días"
+        per_label:
+          one: "/%{unit}"
+          other: "/%{count} %{unit}"
       tiers:
         basic:
           name: "Basic"

@@ -179,8 +179,11 @@
   </div>
 </section>
 
-<% requested_interval = [params[:price_key], params[:plan], params[:desired_plan]].compact.map { |key| key.to_s.split('_').last }.find { |interval| interval.in?(%w[monthly annual]) } %>
-<% initial_period = requested_interval || "monthly" %>
+<% pricing = @landing_pricing || {} %>
+<% intervals = pricing[:intervals] || [] %>
+<% interval_keys = intervals.map { |interval| interval[:key] } %>
+<% requested_interval = [params[:price_key], params[:plan], params[:desired_plan]].compact.map { |key| key.to_s.split('_').drop(1).join('_') }.find { |interval| interval.in?(interval_keys) } %>
+<% initial_period = requested_interval || interval_keys.first || "monthly" %>
 
 <!-- Pricing -->
 <section id="pricing" class="relative" x-data="{ period: '<%= initial_period %>' }">
@@ -198,46 +201,62 @@
 
         <div class="mt-8 flex items-center justify-center">
           <div class="inline-flex bg-gray-800 rounded-full p-1 border border-gray-700">
-            <button class="px-4 py-2 rounded-full text-sm font-medium transition" :class="period === 'monthly' ? 'bg-gray-900 text-gray-100' : 'text-gray-400 hover:text-gray-100'" @click="period = 'monthly'"><%= t("dashboard.plans.toggle.monthly") %></button>
-            <button class="px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-2" :class="period === 'annual' ? 'bg-gray-900 text-gray-100' : 'text-gray-400 hover:text-gray-100'" @click="period = 'annual'">
-              <span><%= t("dashboard.plans.toggle.annually") %></span>
-              <% if @landing_pricing&.dig(:annual, :discount_percent).present? %>
-                <span class="inline-flex items-center text-xs font-semibold py-0.5 px-2 text-emerald-600 bg-emerald-200 rounded-full"><%= t("dashboard.plans.toggle.save_up_to", percent: @landing_pricing.dig(:annual, :discount_percent)) %></span>
-              <% end %>
-            </button>
+            <% intervals.each do |interval| %>
+              <button class="px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-2"
+                      :class="period === '<%= interval[:key] %>' ? 'bg-gray-900 text-gray-100' : 'text-gray-400 hover:text-gray-100'"
+                      @click="period = '<%= interval[:key] %>'">
+                <span><%= interval[:label] %></span>
+                <% if interval[:key] == "annual" && pricing[:discount_percent].present? %>
+                  <span class="inline-flex items-center text-xs font-semibold py-0.5 px-2 text-emerald-600 bg-emerald-200 rounded-full"><%= t("dashboard.plans.toggle.save_up_to", percent: pricing[:discount_percent]) %></span>
+                <% end %>
+              </button>
+            <% end %>
           </div>
         </div>
       </div>
 
       <div class="max-w-sm mx-auto grid gap-8 lg:grid-cols-3 lg:gap-6 items-start lg:max-w-none pt-4">
-        <% pricing = @landing_pricing || {} %>
-        <% per_month_label = t("landing.neon.pricing.per_month") %>
+        <% prices = pricing[:prices] || {} %>
 
         <div class="relative flex flex-col h-full p-6" data-aos="zoom-out">
           <div class="mb-6">
             <div class="text-lg font-semibold mb-1"><%= t("landing.neon.pricing.tiers.basic.name") %></div>
-            <div class="font-uncut-sans inline-flex items-baseline mb-2">
-              <span class="text-3xl font-medium text-gray-400">$</span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'monthly'" x-cloak><%= pricing.dig(:monthly, :basic, :display) || t("dashboard.plans.placeholder") %></span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'annual'" x-cloak><%= pricing.dig(:annual, :basic, :effective_monthly_display) || t("dashboard.plans.placeholder") %></span>
-              <span class="font-medium text-gray-400"><%= per_month_label %></span>
-            </div>
-            <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.tiers.basic.description") %></div>
-            <% monthly_key = "basic_monthly" %>
-            <% annual_key = "basic_annual" %>
-            <% monthly_path = user_signed_in? ? dashboard_plans_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
-            <% annual_path = user_signed_in? ? dashboard_plans_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
-            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
-              <span data-loading-label>
-                <%= t("landing.neon.pricing.cta") %>
-                <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
-              </span>
-              <span class="items-center gap-2" data-loading-spinner hidden>
-                <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
-                <span><%= t("loading.default") %></span>
-              </span>
+          <div class="font-uncut-sans inline-flex items-baseline mb-2">
+            <span class="text-3xl font-medium text-gray-400">$</span>
+            <% intervals.each do |interval| %>
+              <% interval_key = interval[:key] %>
+              <% details = prices.dig(interval_key, "basic") %>
+              <% display = if details.present?
+                             interval[:uses_effective_monthly] ? details[:effective_monthly_display] : details[:display]
+                           end %>
+              <span class="text-4xl font-bold leading-7" x-show="period === '<%= interval_key %>'" x-cloak><%= display || t("dashboard.plans.placeholder") %></span>
             <% end %>
-            <div class="text-xs text-gray-500 mt-3" x-show="period === 'annual'" x-cloak><%= t("dashboard.plans.toggle.billed_annually") %></div>
+            <% intervals.each do |interval| %>
+              <span class="font-medium text-gray-400" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:per_label] %></span>
+            <% end %>
+          </div>
+            <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.tiers.basic.description") %></div>
+          <% interval_paths = intervals.each_with_object({}) do |interval, memo| %>
+            <% plan_key = prices.dig(interval[:key], "basic", :plan_key) %>
+            <% next if plan_key.blank? %>
+            <% memo[interval[:key]] = user_signed_in? ? dashboard_plans_path(price_key: plan_key) : new_user_registration_path(price_key: plan_key) %>
+          <% end %>
+          <% default_path = interval_paths.values.compact.first || "#" %>
+          <% interval_paths_json = interval_paths.to_json %>
+          <%= link_to default_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "(#{interval_paths_json})[period] || '#{default_path}'" do %>
+            <span data-loading-label>
+              <%= t("landing.neon.pricing.cta") %>
+              <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+            </span>
+            <span class="items-center gap-2" data-loading-spinner hidden>
+              <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
+              <span><%= t("loading.default") %></span>
+            </span>
+          <% end %>
+          <% intervals.each do |interval| %>
+            <% next if interval[:billed_label].blank? %>
+            <div class="text-xs text-gray-500 mt-3" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:billed_label] %></div>
+          <% end %>
           </div>
           <div class="font-medium mb-4"><%= t("landing.neon.pricing.tiers.basic.features_title") %></div>
           <ul class="text-gray-400 space-y-3 grow">
@@ -263,28 +282,42 @@
           </div>
           <div class="mb-6">
             <div class="text-lg font-semibold mb-1"><%= t("landing.neon.pricing.tiers.hft.name") %></div>
-            <div class="font-uncut-sans inline-flex items-baseline mb-2">
-              <span class="text-3xl font-medium text-gray-400">$</span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'monthly'" x-cloak><%= pricing.dig(:monthly, :hft, :display) || t("dashboard.plans.placeholder") %></span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'annual'" x-cloak><%= pricing.dig(:annual, :hft, :effective_monthly_display) || t("dashboard.plans.placeholder") %></span>
-              <span class="font-medium text-gray-400"><%= per_month_label %></span>
-            </div>
-            <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.tiers.hft.description") %></div>
-            <% monthly_key = "hft_monthly" %>
-            <% annual_key = "hft_annual" %>
-            <% monthly_path = user_signed_in? ? dashboard_plans_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
-            <% annual_path = user_signed_in? ? dashboard_plans_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
-            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
-              <span data-loading-label>
-                <%= t("landing.neon.pricing.cta") %>
-                <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
-              </span>
-              <span class="items-center gap-2" data-loading-spinner hidden>
-                <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
-                <span><%= t("loading.default") %></span>
-              </span>
+          <div class="font-uncut-sans inline-flex items-baseline mb-2">
+            <span class="text-3xl font-medium text-gray-400">$</span>
+            <% intervals.each do |interval| %>
+              <% interval_key = interval[:key] %>
+              <% details = prices.dig(interval_key, "hft") %>
+              <% display = if details.present?
+                             interval[:uses_effective_monthly] ? details[:effective_monthly_display] : details[:display]
+                           end %>
+              <span class="text-4xl font-bold leading-7" x-show="period === '<%= interval_key %>'" x-cloak><%= display || t("dashboard.plans.placeholder") %></span>
             <% end %>
-            <div class="text-xs text-gray-500 mt-3" x-show="period === 'annual'" x-cloak><%= t("dashboard.plans.toggle.billed_annually") %></div>
+            <% intervals.each do |interval| %>
+              <span class="font-medium text-gray-400" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:per_label] %></span>
+            <% end %>
+          </div>
+            <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.tiers.hft.description") %></div>
+          <% interval_paths = intervals.each_with_object({}) do |interval, memo| %>
+            <% plan_key = prices.dig(interval[:key], "hft", :plan_key) %>
+            <% next if plan_key.blank? %>
+            <% memo[interval[:key]] = user_signed_in? ? dashboard_plans_path(price_key: plan_key) : new_user_registration_path(price_key: plan_key) %>
+          <% end %>
+          <% default_path = interval_paths.values.compact.first || "#" %>
+          <% interval_paths_json = interval_paths.to_json %>
+          <%= link_to default_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "(#{interval_paths_json})[period] || '#{default_path}'" do %>
+            <span data-loading-label>
+              <%= t("landing.neon.pricing.cta") %>
+              <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+            </span>
+            <span class="items-center gap-2" data-loading-spinner hidden>
+              <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
+              <span><%= t("loading.default") %></span>
+            </span>
+          <% end %>
+          <% intervals.each do |interval| %>
+            <% next if interval[:billed_label].blank? %>
+            <div class="text-xs text-gray-500 mt-3" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:billed_label] %></div>
+          <% end %>
           </div>
           <div class="font-medium mb-4"><%= t("landing.neon.pricing.tiers.hft.features_title") %></div>
           <ul class="text-gray-400 space-y-3 grow">
@@ -302,28 +335,42 @@
         <div class="relative flex flex-col h-full p-6" data-aos="zoom-out" data-aos-delay="200">
           <div class="mb-6">
             <div class="text-lg font-semibold mb-1"><%= t("landing.neon.pricing.tiers.pro.name") %></div>
-            <div class="font-uncut-sans inline-flex items-baseline mb-2">
-              <span class="text-3xl font-medium text-gray-400">$</span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'monthly'" x-cloak><%= pricing.dig(:monthly, :pro, :display) || t("dashboard.plans.placeholder") %></span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'annual'" x-cloak><%= pricing.dig(:annual, :pro, :effective_monthly_display) || t("dashboard.plans.placeholder") %></span>
-              <span class="font-medium text-gray-400"><%= per_month_label %></span>
-            </div>
-            <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.tiers.pro.description") %></div>
-            <% monthly_key = "pro_monthly" %>
-            <% annual_key = "pro_annual" %>
-            <% monthly_path = user_signed_in? ? dashboard_plans_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
-            <% annual_path = user_signed_in? ? dashboard_plans_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
-            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
-              <span data-loading-label>
-                <%= t("landing.neon.pricing.cta") %>
-                <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
-              </span>
-              <span class="items-center gap-2" data-loading-spinner hidden>
-                <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
-                <span><%= t("loading.default") %></span>
-              </span>
+          <div class="font-uncut-sans inline-flex items-baseline mb-2">
+            <span class="text-3xl font-medium text-gray-400">$</span>
+            <% intervals.each do |interval| %>
+              <% interval_key = interval[:key] %>
+              <% details = prices.dig(interval_key, "pro") %>
+              <% display = if details.present?
+                             interval[:uses_effective_monthly] ? details[:effective_monthly_display] : details[:display]
+                           end %>
+              <span class="text-4xl font-bold leading-7" x-show="period === '<%= interval_key %>'" x-cloak><%= display || t("dashboard.plans.placeholder") %></span>
             <% end %>
-            <div class="text-xs text-gray-500 mt-3" x-show="period === 'annual'" x-cloak><%= t("dashboard.plans.toggle.billed_annually") %></div>
+            <% intervals.each do |interval| %>
+              <span class="font-medium text-gray-400" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:per_label] %></span>
+            <% end %>
+          </div>
+            <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.tiers.pro.description") %></div>
+          <% interval_paths = intervals.each_with_object({}) do |interval, memo| %>
+            <% plan_key = prices.dig(interval[:key], "pro", :plan_key) %>
+            <% next if plan_key.blank? %>
+            <% memo[interval[:key]] = user_signed_in? ? dashboard_plans_path(price_key: plan_key) : new_user_registration_path(price_key: plan_key) %>
+          <% end %>
+          <% default_path = interval_paths.values.compact.first || "#" %>
+          <% interval_paths_json = interval_paths.to_json %>
+          <%= link_to default_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "(#{interval_paths_json})[period] || '#{default_path}'" do %>
+            <span data-loading-label>
+              <%= t("landing.neon.pricing.cta") %>
+              <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+            </span>
+            <span class="items-center gap-2" data-loading-spinner hidden>
+              <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
+              <span><%= t("loading.default") %></span>
+            </span>
+          <% end %>
+          <% intervals.each do |interval| %>
+            <% next if interval[:billed_label].blank? %>
+            <div class="text-xs text-gray-500 mt-3" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:billed_label] %></div>
+          <% end %>
           </div>
           <div class="font-medium mb-4"><%= t("landing.neon.pricing.tiers.pro.features_title") %></div>
           <ul class="text-gray-400 space-y-3 grow">
