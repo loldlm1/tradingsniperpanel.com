@@ -26,6 +26,8 @@
                   <p class="text-gray-400"><%= t("devise.reset_instructions", default: "Enter your email address. If an account exists, you’ll receive an email with a password reset link soon.") %></p>
                 </div>
 
+                <%= render "devise/shared/flash" %>
+
                 <%= form_with model: resource, scope: resource_name, url: password_path(resource_name), method: :post, class: "space-y-4" do |f| %>
                   <%= render "devise/shared/error_messages", resource: resource %>
                   <div>
@@ -33,9 +35,7 @@
                     <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input py-2 w-full" %>
                   </div>
                   <div class="mt-6">
-                    <%= f.submit t("devise.forgot_password"), class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true } do %>
-                      <%= loading_label(t("devise.forgot_password"), loading_text: t("loading.default")) %>
-                    <% end %>
+                    <%= f.submit t("devise.forgot_password"), class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2" %>
                   </div>
                 <% end %>
               </div>
