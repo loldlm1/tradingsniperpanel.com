@@ -38,7 +38,12 @@ module Billing
 
     def tiers_for(plans)
       grouped = plans.where.not(tier: nil).group_by(&:tier)
-      grouped.keys.sort_by { |tier| grouped[tier].map(&:sort_order).min.to_i }
+      grouped.keys.sort_by do |tier|
+        tier_plans = grouped[tier]
+        min_sort = tier_plans.map(&:sort_order).min.to_i
+        min_price = tier_plans.map { |plan| plan.amount_cents.to_i }.min
+        [min_sort, min_price || 0, tier.to_s]
+      end
     end
 
     def intervals_for(plans)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_23_000004) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_23_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,42 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_23_000004) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "billing_plan_entitlements", force: :cascade do |t|
+    t.bigint "billing_plan_id", null: false
+    t.bigint "expert_advisor_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["billing_plan_id", "expert_advisor_id"], name: "index_billing_plan_entitlements_unique", unique: true
+    t.index ["billing_plan_id"], name: "index_billing_plan_entitlements_on_billing_plan_id"
+    t.index ["expert_advisor_id"], name: "index_billing_plan_entitlements_on_expert_advisor_id"
+  end
+
+  create_table "billing_plans", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.string "kind", null: false
+    t.string "tier"
+    t.string "interval"
+    t.integer "interval_count", default: 1
+    t.integer "amount_cents", null: false
+    t.string "currency", default: "usd", null: false
+    t.string "stripe_product_id"
+    t.string "stripe_price_id"
+    t.boolean "active", default: true, null: false
+    t.integer "sort_order", default: 0, null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_billing_plans_on_active"
+    t.index ["key"], name: "index_billing_plans_on_key", unique: true
+    t.index ["kind"], name: "index_billing_plans_on_kind"
+    t.index ["name"], name: "index_billing_plans_on_name", unique: true
+    t.index ["stripe_price_id"], name: "index_billing_plans_on_stripe_price_id", unique: true
+    t.index ["stripe_product_id"], name: "index_billing_plans_on_stripe_product_id"
+    t.index ["tier"], name: "index_billing_plans_on_tier"
   end
 
   create_table "broker_account_daily_results", force: :cascade do |t|
@@ -347,6 +383,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_23_000004) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "billing_plan_entitlements", "billing_plans"
+  add_foreign_key "billing_plan_entitlements", "expert_advisors"
   add_foreign_key "broker_account_daily_results", "broker_accounts"
   add_foreign_key "broker_accounts", "licenses"
   add_foreign_key "licenses", "expert_advisors"

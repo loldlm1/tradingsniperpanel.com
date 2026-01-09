@@ -101,4 +101,74 @@ module Seeds
       content
     end
   end
+
+  module BillingPlans
+    module_function
+
+    DEFAULT_CURRENCY = "usd"
+
+    def definitions
+      [
+        plan_definition(tier: "basic", interval: "month", interval_count: 1, amount_cents: 2000, sort_order: 1),
+        plan_definition(tier: "basic", interval: "year", interval_count: 1, amount_cents: 18_000, sort_order: 1),
+        plan_definition(tier: "hft", interval: "month", interval_count: 1, amount_cents: 4000, sort_order: 2),
+        plan_definition(tier: "hft", interval: "year", interval_count: 1, amount_cents: 36_000, sort_order: 2),
+        plan_definition(tier: "pro", interval: "month", interval_count: 1, amount_cents: 6000, sort_order: 3),
+        plan_definition(tier: "pro", interval: "year", interval_count: 1, amount_cents: 54_000, sort_order: 3)
+      ]
+    end
+
+    def seed_plans!
+      return unless stripe_configured?
+      return unless defined?(Billing::PlanCreator)
+
+      definitions.each do |attrs|
+        Billing::PlanCreator.new(attrs).call
+      end
+    end
+
+    def seed_entitlements!
+      return unless defined?(BillingPlanEntitlement)
+
+      plans = BillingPlan.subscription.active
+      return if plans.empty?
+
+      plans_by_tier = plans.group_by(&:tier)
+
+      ExpertAdvisor.active.find_each do |expert_advisor|
+        tiers = Array(expert_advisor.allowed_subscription_tiers).presence || plans_by_tier.keys
+        tiers.each do |tier|
+          Array(plans_by_tier[tier]).each do |plan|
+            BillingPlanEntitlement.find_or_create_by!(
+              billing_plan: plan,
+              expert_advisor: expert_advisor
+            )
+          end
+        end
+      end
+    end
+
+    def plan_definition(tier:, interval:, interval_count:, amount_cents:, sort_order:)
+      interval_key = Billing::IntervalLabeler.interval_key(interval: interval, interval_count: interval_count)
+      {
+        key: "#{tier}_#{interval_key}",
+        name: "#{tier.to_s.humanize} #{Billing::IntervalLabeler.label(interval: interval, interval_count: interval_count)}",
+        kind: "subscription",
+        tier: tier,
+        interval: interval,
+        interval_count: interval_count,
+        amount_cents: amount_cents,
+        currency: DEFAULT_CURRENCY,
+        active: true,
+        sort_order: sort_order
+      }
+    end
+
+    def stripe_configured?
+      return true if ENV["STRIPE_PRIVATE_KEY"].present?
+
+      Rails.logger.warn("Skipping billing plan seed because STRIPE_PRIVATE_KEY is not set.")
+      false
+    end
+  end
 end
