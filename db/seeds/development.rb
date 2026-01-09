@@ -10,6 +10,8 @@ bundle_paths = {
   "pandora_box" => pandora_bundle_path
 }
 
+Seeds::BillingPlans.seed_plans!
+
 core_records = Seeds::ExpertAdvisors.core_definitions.map do |attrs|
   bundle_path = bundle_paths[attrs[:ea_id]]
   Seeds::ExpertAdvisors.upsert_expert_advisor(attrs.dup, bundle_path: bundle_path)
@@ -76,6 +78,8 @@ qa_definitions = [
 qa_records = qa_definitions.map do |attrs|
   Seeds::ExpertAdvisors.upsert_expert_advisor(attrs.dup, bundle_path: qa_bundle_path)
 end
+
+Seeds::BillingPlans.seed_entitlements!
 
 qa_user = User.find_or_initialize_by(email: "qa@example.com")
 qa_user.name ||= "QA User"

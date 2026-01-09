@@ -28,7 +28,15 @@ class BillingPlan < ApplicationRecord
   end
 
   def self.subscription_tiers
-    subscription.active.where.not(tier: nil).select(:tier, :sort_order).distinct.order(:sort_order)
+    plans = subscription.active.where.not(tier: nil)
+    return [] if plans.empty?
+
+    grouped = plans.group_by(&:tier)
+    ordered = grouped.values.map do |tier_plans|
+      tier_plans.min_by { |plan| [plan.sort_order.to_i, plan.amount_cents.to_i] }
+    end.compact
+
+    ordered.sort_by { |plan| [plan.sort_order.to_i, plan.amount_cents.to_i, plan.tier.to_s] }
   end
 
   validates :key, presence: true, uniqueness: true, format: { with: /\A[a-z0-9_]+\z/ }
