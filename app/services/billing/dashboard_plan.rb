@@ -14,7 +14,7 @@ module Billing
       current_interval_label = current_plan&.interval_label
       scheduled_change = resolve_scheduled_change(current_price_key)
       tiers = visible_tiers
-      intervals = pricing_intervals
+      intervals = pricing_intervals(tiers)
 
       {
         current_price_id: current_price_id,
@@ -87,11 +87,14 @@ module Billing
       BillingPlan.subscription_tiers.map(&:tier)
     end
 
-    def pricing_intervals
+    def pricing_intervals(tiers)
       intervals = pricing_catalog&.dig(:intervals)
-      return intervals if intervals.present?
+      intervals ||= Billing::PricingCatalog.new.call[:intervals] || []
 
-      Billing::PricingCatalog.new.call[:intervals] || []
+      return intervals if tiers.blank?
+
+      prices = pricing_catalog&.dig(:prices) || {}
+      Billing::PricingCatalog.filter_intervals(intervals: intervals, prices: prices, tiers: tiers)
     end
   end
 end

@@ -106,16 +106,36 @@ module Seeds
     module_function
 
     DEFAULT_CURRENCY = "usd"
+    TIER_DEFINITIONS = [
+      { tier: "basic", sort_order: 1, monthly_cents: 2000 },
+      { tier: "hft", sort_order: 2, monthly_cents: 4000 },
+      { tier: "pro", sort_order: 3, monthly_cents: 6000 },
+      { tier: "elite", sort_order: 4, monthly_cents: 8000 },
+      { tier: "enterprise", sort_order: 5, monthly_cents: 10_000 }
+    ].freeze
+    INTERVAL_DEFINITIONS = [
+      { interval: "day", interval_count: 1, multiplier: (12.0 / 365) },
+      { interval: "week", interval_count: 1, multiplier: (12.0 / 52) },
+      { interval: "month", interval_count: 1, multiplier: 1.0 },
+      { interval: "year", interval_count: 1, multiplier: 9.0 }
+    ].freeze
 
     def definitions
-      [
-        plan_definition(tier: "basic", interval: "month", interval_count: 1, amount_cents: 2000, sort_order: 1),
-        plan_definition(tier: "basic", interval: "year", interval_count: 1, amount_cents: 18_000, sort_order: 1),
-        plan_definition(tier: "hft", interval: "month", interval_count: 1, amount_cents: 4000, sort_order: 2),
-        plan_definition(tier: "hft", interval: "year", interval_count: 1, amount_cents: 36_000, sort_order: 2),
-        plan_definition(tier: "pro", interval: "month", interval_count: 1, amount_cents: 6000, sort_order: 3),
-        plan_definition(tier: "pro", interval: "year", interval_count: 1, amount_cents: 54_000, sort_order: 3)
-      ]
+      TIER_DEFINITIONS.flat_map do |tier_def|
+        INTERVAL_DEFINITIONS.map do |interval_def|
+          amount = interval_amount(
+            base_cents: tier_def[:monthly_cents],
+            multiplier: interval_def[:multiplier]
+          )
+          plan_definition(
+            tier: tier_def[:tier],
+            interval: interval_def[:interval],
+            interval_count: interval_def[:interval_count],
+            amount_cents: amount,
+            sort_order: tier_def[:sort_order]
+          )
+        end
+      end
     end
 
     def seed_plans!
@@ -162,6 +182,11 @@ module Seeds
         active: true,
         sort_order: sort_order
       }
+    end
+
+    def interval_amount(base_cents:, multiplier:)
+      amount = (base_cents * multiplier).round
+      amount.positive? ? amount : 1
     end
 
     def stripe_configured?

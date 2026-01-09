@@ -1,10 +1,10 @@
 <% content_for :title, "#{t('dashboard.nav.plans')} | #{app_short_name}" %>
 
 <% pricing = @pricing_catalog || {} %>
-<% intervals = pricing[:intervals] || [] %>
+<% plan = @plan_context || {} %>
+<% intervals = plan[:intervals] || pricing[:intervals] || [] %>
 <% interval_keys = intervals.map { |interval| interval[:key] } %>
 <% prices = pricing[:prices] || {} %>
-<% plan = @plan_context || {} %>
 <% current_tier = plan[:current_tier] %>
 <% visible_tiers = plan[:visible_tiers] || pricing[:tiers] || [] %>
 <% discount_percent = pricing[:discount_percent] %>
