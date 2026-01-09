@@ -3,11 +3,11 @@ require "securerandom"
 
 RSpec.describe "Dashboard billing", type: :request do
   let(:user) { create(:user) }
+  let!(:basic_plan) { create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_basic_monthly") }
 
   around do |example|
     original_env = ENV.to_hash
     ENV["STRIPE_PRIVATE_KEY"] = "sk_test_123"
-    ENV["STRIPE_PRICE_BASIC_MONTHLY"] = "price_basic_monthly"
     example.run
   ensure
     ENV.replace(original_env)
@@ -47,7 +47,7 @@ RSpec.describe "Dashboard billing", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: "price_basic_monthly",
+      processor_plan: basic_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -84,7 +84,7 @@ RSpec.describe "Dashboard billing", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: "price_basic_monthly",
+      processor_plan: basic_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -93,7 +93,7 @@ RSpec.describe "Dashboard billing", type: :request do
       type: "Pay::Stripe::Subscription"
     )
 
-    phase = double(start_date: 1.month.from_now.to_i, items: [double(price: "price_basic_monthly")])
+    phase = double(start_date: 1.month.from_now.to_i, items: [double(price: basic_plan.stripe_price_id)])
     schedule = double(id: "sub_sched_expanded", phases: [phase], status: "active")
     expect(Stripe::SubscriptionSchedule).to receive(:retrieve).with("sub_sched_expanded").and_return(schedule).at_least(:once)
     expect(Stripe::SubscriptionSchedule).to receive(:release).with("sub_sched_expanded").and_return(true)
@@ -123,7 +123,7 @@ RSpec.describe "Dashboard billing", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: "price_basic_monthly",
+      processor_plan: basic_plan.stripe_price_id,
       status: "active",
       ends_at: 1.month.from_now,
       quantity: 1,

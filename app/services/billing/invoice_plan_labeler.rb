@@ -167,27 +167,44 @@ module Billing
     end
 
     def plan_label_for(price_key)
+      plan = BillingPlan.for_key(price_key)
+      if plan
+        return plan.name if plan.one_time?
+
+        tier = plan.tier
+        interval_label = Billing::IntervalLabeler.label(interval: plan.interval, interval_count: plan.interval_count)
+        return I18n.t("dashboard.plan_card.plan_label_tier_only", tier: tier_label_for(tier)) if interval_label.blank?
+
+        return I18n.t("dashboard.plan_card.plan_label", tier: tier_label_for(tier), interval: interval_label)
+      end
+
       tier, interval = parse_price_key(price_key)
       return if tier.blank?
 
-      tier_label = I18n.t("dashboard.plans.tiers.#{tier}.name", default: tier.to_s.humanize)
-      interval_key = interval.to_s == "annual" ? "annually" : interval
-      interval_label = if interval_key.present?
-                         I18n.t("dashboard.plans.toggle.#{interval_key}", default: interval.to_s.humanize)
-                       end
+      interval_label = legacy_interval_label(interval)
+      return I18n.t("dashboard.plan_card.plan_label_tier_only", tier: tier_label_for(tier)) if interval_label.blank?
 
-      if interval_label.present?
-        I18n.t("dashboard.plan_card.plan_label", tier: tier_label, interval: interval_label)
-      else
-        I18n.t("dashboard.plan_card.plan_label_tier_only", tier: tier_label)
-      end
+      I18n.t("dashboard.plan_card.plan_label", tier: tier_label_for(tier), interval: interval_label)
     end
 
     def parse_price_key(price_key)
       parts = price_key.to_s.split("_")
       return [nil, nil] if parts.size < 2
 
-      [parts.first.to_sym, parts.last]
+      [parts.shift.to_s, parts.join("_")]
+    end
+
+    def tier_label_for(tier)
+      return if tier.blank?
+
+      I18n.t("dashboard.plans.tiers.#{tier}.name", default: tier.to_s.humanize)
+    end
+
+    def legacy_interval_label(interval)
+      key = interval.to_s == "annual" ? "annually" : interval
+      return if key.blank?
+
+      I18n.t("dashboard.plans.toggle.#{key}", default: interval.to_s.humanize)
     end
 
     def invoice_id(invoice)

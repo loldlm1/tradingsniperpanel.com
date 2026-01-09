@@ -1,7 +1,8 @@
 <% content_for :title, t("dashboard.expert_advisors.show_page_title", name: @expert_advisor.name, app: app_short_name) %>
 <% entry = @expert_advisor_entry %>
-<% allowed_tier = Array(@expert_advisor.allowed_subscription_tiers).presence&.first || Billing::DashboardPlan::TIERS.first %>
-<% cta_key = "#{allowed_tier}_monthly" %>
+<% allowed_tier = @expert_advisor.subscription_tiers&.first || BillingPlan.subscription_tiers.map(&:tier).first %>
+<% cta_plan = allowed_tier ? BillingPlan.subscription.active.where(tier: allowed_tier).order(:sort_order).first : nil %>
+<% cta_key = cta_plan&.key || (allowed_tier ? "#{allowed_tier}_monthly" : nil) %>
 <% status = entry&.status || :locked %>
 <% badge_class = case status
                 when :active then "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
@@ -48,7 +49,7 @@
       <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3"><%= t("dashboard.expert_advisors.details_title") %></div>
       <div class="grid gap-3 sm:grid-cols-2 text-sm">
         <div class="text-gray-600 dark:text-gray-300"><span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold block mb-1"><%= t("dashboard.expert_advisors.detail_type") %></span><%= @expert_advisor.ea_type.to_s.humanize %></div>
-        <div class="text-gray-600 dark:text-gray-300"><span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold block mb-1"><%= t("dashboard.expert_advisors.detail_tier") %></span><%= Array(@expert_advisor.allowed_subscription_tiers).join(", ").presence || t("dashboard.expert_advisors.detail_tier_all") %></div>
+        <div class="text-gray-600 dark:text-gray-300"><span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold block mb-1"><%= t("dashboard.expert_advisors.detail_tier") %></span><%= Array(@expert_advisor.subscription_tiers).join(", ").presence || t("dashboard.expert_advisors.detail_tier_all") %></div>
       </div>
     </div>
   </div>

@@ -2,84 +2,121 @@ require "digest"
 
 module Billing
   class PricingCatalog
-    CACHE_VERSION = 1
-    TIERS = %i[basic hft pro].freeze
+    CACHE_VERSION = 2
 
     def call
-      return {} if Rails.env.test?
-      return {} unless ENV["STRIPE_PRIVATE_KEY"].present?
+      plans = BillingPlan.subscription.active
+      return {} if plans.empty?
 
-      price_ids = Billing::ConfiguredPrices.all_price_ids
-      return {} if price_ids.empty?
-
-      cache_key = "billing/pricing_catalog/v#{CACHE_VERSION}/#{Digest::SHA256.hexdigest(price_ids.join(':'))}"
+      cache_key = "billing/pricing_catalog/v#{CACHE_VERSION}/#{Digest::SHA256.hexdigest(cache_signature(plans))}"
       Rails.cache.fetch(cache_key, expires_in: 12.hours) do
-        build_catalog
+        build_catalog(plans)
       end
     end
 
     private
 
-    def build_catalog
-      monthly = TIERS.index_with do |tier|
-        price_details(Billing::ConfiguredPrices.price_id_for_tier(tier, :monthly))
-      end.compact_blank
-
-      annual_raw = TIERS.index_with do |tier|
-        price_details(Billing::ConfiguredPrices.price_id_for_tier(tier, :annual))
-      end.compact_blank
-
-      annual = annual_raw.transform_values do |details|
-        effective_monthly_cents = details[:amount_cents] ? (details[:amount_cents] / 12.0) : nil
-        details.merge(
-          effective_monthly_cents: effective_monthly_cents,
-          effective_monthly_display: format_amount(effective_monthly_cents)
-        )
-      end
+    def build_catalog(plans)
+      tiers = tiers_for(plans)
+      intervals = intervals_for(plans)
+      prices = prices_for(plans, intervals)
 
       {
-        monthly: monthly,
-        annual: annual.merge(discount_percent: discount_percent(monthly: monthly, annual: annual))
+        tiers: tiers,
+        intervals: intervals,
+        prices: prices,
+        discount_percent: discount_percent(prices)
       }
     rescue StandardError => e
       Rails.logger.error("Billing::PricingCatalog failed: #{e.class} - #{e.message}")
       {}
     end
 
-    def price_details(price_or_product_id)
-      return if price_or_product_id.blank?
+    def cache_signature(plans)
+      plans.order(:id).pluck(:id, :updated_at).map { |id, ts| "#{id}-#{ts.to_i}" }.join(":")
+    end
 
-      resolved_price_id = Billing::ConfiguredPrices.resolve_price_id(price_or_product_id)
-      return if resolved_price_id.blank?
+    def tiers_for(plans)
+      grouped = plans.where.not(tier: nil).group_by(&:tier)
+      grouped.keys.sort_by { |tier| grouped[tier].map(&:sort_order).min.to_i }
+    end
 
-      stripe_price = retrieve_price(resolved_price_id)
-      return unless stripe_price&.unit_amount
+    def intervals_for(plans)
+      pairs = plans.map { |plan| [plan.interval, plan.interval_count] }.uniq
+      sorted = pairs.sort_by { |interval, count| Billing::IntervalLabeler.sort_key(interval:, interval_count: count) }
 
-      amount_cents = stripe_price.unit_amount.to_i
+      sorted.map do |interval, count|
+        interval_key = Billing::IntervalLabeler.interval_key(interval:, interval_count: count)
+        uses_effective_monthly = interval.to_s == "year" && count.to_i == 1
+        per_label = Billing::IntervalLabeler.per_label(interval:, interval_count: count)
+        per_label = Billing::IntervalLabeler.per_label(interval: "month", interval_count: 1) if uses_effective_monthly
+        {
+          key: interval_key,
+          interval: interval,
+          interval_count: count,
+          label: Billing::IntervalLabeler.label(interval:, interval_count: count),
+          billed_label: Billing::IntervalLabeler.billed_label(interval:, interval_count: count),
+          per_label: per_label,
+          uses_effective_monthly: uses_effective_monthly
+        }
+      end
+    end
+
+    def prices_for(plans, intervals)
+      prices = intervals.each_with_object({}) do |interval, memo|
+        key = interval[:key]
+        memo[key] = {} if key.present?
+      end
+
+      plans.each do |plan|
+        next if plan.tier.blank?
+
+        interval_key = plan.interval_key
+        next if interval_key.blank? || !prices.key?(interval_key)
+
+        prices[interval_key][plan.tier] = price_details(plan)
+      end
+
+      prices
+    end
+
+    def price_details(plan)
+      effective_monthly_cents = effective_monthly_cents(plan)
       {
-        amount_cents: amount_cents,
-        currency: stripe_price.currency,
-        display: format_amount(amount_cents)
+        amount_cents: plan.amount_cents,
+        currency: plan.currency,
+        display: format_amount(plan.amount_cents),
+        effective_monthly_cents: effective_monthly_cents,
+        effective_monthly_display: format_amount(effective_monthly_cents),
+        plan_key: plan.key
       }
     end
 
-    def retrieve_price(price_id)
-      Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
-      Stripe::Price.retrieve(price_id)
-    rescue StandardError => e
-      Rails.logger.warn("Stripe price lookup failed: #{price_id} (#{e.class}: #{e.message})")
-      nil
+    def effective_monthly_cents(plan)
+      return unless plan.subscription?
+
+      count = plan.interval_count.to_i
+      return if count <= 0
+
+      case plan.interval
+      when "year"
+        plan.amount_cents.to_f / (12 * count)
+      when "month"
+        plan.amount_cents.to_f / count
+      end
     end
 
-    def discount_percent(monthly:, annual:)
-      percents = TIERS.filter_map do |tier|
-        monthly_cents = monthly.dig(tier, :amount_cents)
-        annual_details = annual[tier]
-        annual_cents = annual_details&.dig(:amount_cents)
-        next unless monthly_cents && annual_cents && monthly_cents.positive?
+    def discount_percent(prices)
+      monthly_key = Billing::IntervalLabeler.interval_key(interval: "month", interval_count: 1)
+      annual_key = Billing::IntervalLabeler.interval_key(interval: "year", interval_count: 1)
 
-        effective_monthly = annual_cents / 12.0
-        discount = 1 - (effective_monthly / monthly_cents)
+      percents = prices.fetch(annual_key, {}).filter_map do |tier, annual|
+        monthly = prices.fetch(monthly_key, {})[tier]
+        next unless monthly && annual
+        next unless monthly[:amount_cents].to_i.positive?
+
+        effective_monthly = annual[:amount_cents].to_f / 12.0
+        discount = 1 - (effective_monthly / monthly[:amount_cents].to_f)
         (discount * 100).round
       end
 

@@ -3,37 +3,16 @@ require "rails_helper"
 RSpec.describe Billing::PricingCatalog do
   let(:service) { described_class.new }
 
-  around do |example|
-    original_env = ENV.to_hash
-    begin
-      Rails.cache.clear
-      ENV["STRIPE_PRIVATE_KEY"] = "sk_test"
-      ENV["STRIPE_PRICE_BASIC_MONTHLY"] = "price_basic_monthly"
-      ENV["STRIPE_PRICE_HFT_MONTHLY"] = nil
-      ENV["STRIPE_PRICE_PRO_MONTHLY"] = nil
-      ENV["STRIPE_PRICE_BASIC_ANNUAL"] = "prod_basic"
-      ENV["STRIPE_PRICE_HFT_ANNUAL"] = nil
-      ENV["STRIPE_PRICE_PRO_ANNUAL"] = nil
-      example.run
-    ensure
-      ENV.replace(original_env)
-    end
-  end
-
-  it "falls back to a product default price when ENV contains a product id" do
-    allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("development"))
-
-    monthly_price = double(unit_amount: 1900, currency: "usd")
-    annual_product = double(default_price: "price_basic_annual_default")
-    annual_price = double(unit_amount: 18000, currency: "usd")
-
-    expect(Stripe::Price).to receive(:retrieve).with("price_basic_monthly").and_return(monthly_price)
-    expect(Stripe::Product).to receive(:retrieve).with("prod_basic").and_return(annual_product)
-    expect(Stripe::Price).to receive(:retrieve).with("price_basic_annual_default").and_return(annual_price)
+  it "builds intervals and prices from billing plans" do
+    create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, amount_cents: 2000)
+    create(:billing_plan, tier: "basic", key: "basic_annual", interval: "year", interval_count: 1, amount_cents: 18_000)
 
     catalog = service.call
 
-    expect(catalog.dig(:annual, :basic, :display)).to eq("180")
-    expect(catalog.dig(:annual, :discount_percent)).to be_a(Integer)
+    interval_keys = catalog.fetch(:intervals, []).map { |interval| interval[:key] }
+    expect(interval_keys).to include("monthly", "annual")
+    expect(catalog.dig(:prices, "monthly", "basic", :display)).to eq("20")
+    expect(catalog.dig(:prices, "annual", "basic", :effective_monthly_display)).to eq("15")
+    expect(catalog[:discount_percent]).to eq(25)
   end
 end
