@@ -26,105 +26,28 @@
 
   <body class="<%= content_for?(:body_class) ? yield(:body_class) : "font-inter antialiased bg-gray-900 text-gray-100 tracking-tight" %>">
     <% show_alerts = flash.any? && !(controller_name == "pages" && action_name == "home") %>
+    <% flash_partial = devise_controller? ? "devise/shared/flash" : "shared/alert" %>
     <% if content_for?(:full_bleed) %>
       <% if show_alerts %>
         <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
-          <%= render "shared/alert" %>
+          <%= render flash_partial %>
         </div>
       <% end %>
       <%= yield %>
     <% else %>
       <div class="flex flex-col min-h-screen overflow-hidden">
-        <header class="absolute w-full z-30">
-          <div class="max-w-6xl mx-auto px-4 sm:px-6">
-            <div class="flex items-center justify-between h-16 md:h-20">
-              <div class="shrink-0 mr-4">
-                <%= link_to root_path, class: "block", "aria-label": app_name do %>
-                  <img class="h-8 w-auto" src="/docs/sniper_advanced_panel/Dark_SAP_logo.png" alt="<%= app_name %>">
-                <% end %>
-              </div>
-
-              <nav class="flex grow">
-                <ul class="flex grow justify-end flex-wrap items-center">
-                  <li>
-                    <%= link_to t("nav.sign_in"), new_user_session_path, class: "font-medium text-gray-400 hover:text-blue-500 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out" %>
-                  </li>
-                  <li class="ml-3">
-                    <%= link_to new_user_registration_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group" do %>
-                      <%= t("nav.sign_up") %>
-                      <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
-                    <% end %>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-          </div>
-        </header>
+        <%= render "shared/marketing_header" %>
 
         <main class="grow">
           <% if show_alerts %>
             <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
-              <%= render "shared/alert" %>
+              <%= render flash_partial %>
             </div>
           <% end %>
           <%= yield %>
         </main>
 
-        <footer>
-          <div class="max-w-6xl mx-auto px-4 sm:px-6">
-            <div class="grid sm:grid-cols-12 gap-8 py-8 md:py-12">
-              <div class="sm:col-span-12 lg:col-span-4 lg:max-w-xs">
-                <div class="mb-2">
-                  <%= link_to root_path, class: "inline-flex", "aria-label": app_name do %>
-                    <img class="h-8 w-auto" src="/docs/sniper_advanced_panel/Dark_SAP_logo.png" alt="<%= app_name %>">
-                  <% end %>
-                </div>
-                <div class="text-sm text-gray-600">
-                  <%= link_to t("footer.terms"), terms_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %>
-                  ·
-                  <%= link_to t("footer.privacy"), privacy_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %>
-                </div>
-              </div>
-
-              <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
-                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.product.title") %></h6>
-                <ul class="text-sm space-y-2">
-                  <li><%= link_to t("footer.product.links.manuals"), root_path(anchor: "resources"), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                  <% pricing_target = user_signed_in? ? dashboard_plans_path : root_path(anchor: "pricing") %>
-                  <li><%= link_to t("footer.product.links.pricing"), pricing_target, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                  <li><%= link_to t("footer.product.links.expert_advisors"), new_user_registration_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                </ul>
-              </div>
-
-              <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
-                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.resources.title") %></h6>
-                <ul class="text-sm space-y-2">
-                  <li><%= link_to t("footer.resources.links.getting_started"), new_user_registration_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                  <li><%= link_to t("footer.resources.links.tutorials"), root_path(anchor: "resources"), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                  <li><%= link_to t("footer.resources.links.support"), (user_signed_in? ? dashboard_support_path : new_user_registration_path), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                </ul>
-              </div>
-
-              <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
-                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.dashboard.title") %></h6>
-                <ul class="text-sm space-y-2">
-                  <li><%= link_to t("footer.dashboard.links.dashboard"), (user_signed_in? ? dashboard_path : new_user_session_path), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                  <li><%= link_to t("footer.dashboard.links.pricing"), (user_signed_in? ? dashboard_plans_path : new_user_session_path), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                  <li><%= link_to t("footer.dashboard.links.billing"), (user_signed_in? ? dashboard_billing_path : new_user_session_path), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                  <li><%= link_to t("footer.dashboard.links.support"), (user_signed_in? ? dashboard_support_path : new_user_session_path), class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                </ul>
-              </div>
-
-              <div class="sm:col-span-6 md:col-span-3 lg:col-span-2">
-                <h6 class="text-xs text-gray-200 font-semibold uppercase mb-2"><%= t("footer.legal.title") %></h6>
-                <ul class="text-sm space-y-2">
-                  <li><%= link_to t("footer.legal.links.terms"), terms_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                  <li><%= link_to t("footer.legal.links.privacy"), privacy_path, class: "text-gray-400 hover:text-blue-500 transition duration-150 ease-in-out" %></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </footer>
+        <%= render "shared/marketing_footer" %>
       </div>
     <% end %>
 

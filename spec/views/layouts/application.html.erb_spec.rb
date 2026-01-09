@@ -9,6 +9,7 @@ RSpec.describe "layouts/application", type: :view do
   end
 
   before do
+    view.lookup_context.prepend_view_paths([Rails.root.join("app/views/templates/neon").to_s])
     allow(view).to receive(:user_signed_in?).and_return(false)
     allow(view).to receive(:current_user).and_return(nil)
     allow(view).to receive(:default_url_options).and_return({ locale: I18n.locale })
@@ -21,7 +22,7 @@ RSpec.describe "layouts/application", type: :view do
     render template: "pages/home", layout: "layouts/application"
 
     expect(rendered).to include(%(lang="es"))
-    expect(rendered).to include(I18n.t("nav.sign_in"))
-    expect(rendered).to include(I18n.t("nav.sign_up"))
+    expect(rendered).to include(I18n.t("landing.neon.nav.sign_in"))
+    expect(rendered).to include("logo_snipe_oficial")
   end
 end

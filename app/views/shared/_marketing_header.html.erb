@@ -1,0 +1,19 @@
+<header class="absolute w-full z-30">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="flex items-center justify-between h-16 md:h-20">
+      <div class="shrink-0 mr-4">
+        <%= link_to root_path, class: "block", "aria-label": app_name do %>
+          <%= render "shared/marketing_logo", logo_class: "w-12 h-12 object-contain" %>
+        <% end %>
+      </div>
+
+      <nav class="flex grow">
+        <ul class="flex grow justify-end flex-wrap items-center">
+          <li class="ml-3">
+            <%= link_to t("landing.neon.nav.sign_in", default: t("nav.sign_in")), new_user_session_path, class: "font-medium text-gray-400 hover:text-blue-500 px-3 lg:px-5 py-2 flex items-center transition duration-150 ease-in-out" %>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>

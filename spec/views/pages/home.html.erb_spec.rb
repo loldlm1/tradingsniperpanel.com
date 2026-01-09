@@ -8,6 +8,10 @@ RSpec.describe "pages/home", type: :view do
     I18n.locale = original
   end
 
+  before do
+    view.lookup_context.prepend_view_paths([Rails.root.join("app/views/templates/neon").to_s])
+  end
+
   let(:user) { build_stubbed(:user, preferred_locale: "es") }
 
   context "when guest" do
@@ -21,12 +25,13 @@ RSpec.describe "pages/home", type: :view do
     it "renders translated hero copy and sign up links" do
       render
 
-      expect(rendered).to include(I18n.t("hero.title"))
+      expect(rendered).to include(I18n.t("landing.neon.hero.title"))
+      expect(rendered).to include(I18n.t("landing.neon.hero.title_emphasis"))
+      expect(rendered).to include(I18n.t("landing.neon.hero.cta"))
       expect(rendered).to include(I18n.t("landing.neon.testimonials.title"))
       first_testimonial = Array(I18n.t("landing.neon.testimonials.items", default: [])).first&.with_indifferent_access
       expect(rendered).to include(first_testimonial[:quote]) if first_testimonial.present?
       expect(rendered).to include(new_user_registration_path(locale: I18n.locale))
-      expect(rendered).to include(I18n.t("hero.primary_cta"))
     end
   end
 
@@ -42,7 +47,7 @@ RSpec.describe "pages/home", type: :view do
       render
 
       expect(rendered).to include(dashboard_path(locale: I18n.locale))
-      expect(rendered).to include(I18n.t("hero.primary_cta"))
+      expect(rendered).to include(I18n.t("landing.neon.hero.cta"))
     end
   end
 end
