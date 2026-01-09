@@ -28,7 +28,7 @@
     <% show_alerts = flash.any? && !(controller_name == "pages" && action_name == "home") %>
     <% flash_partial = devise_controller? ? "devise/shared/flash" : "shared/alert" %>
     <% if content_for?(:full_bleed) %>
-      <% if show_alerts %>
+      <% if show_alerts && !devise_controller? %>
         <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
           <%= render flash_partial %>
         </div>

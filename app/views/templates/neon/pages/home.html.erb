@@ -232,8 +232,8 @@
                 <%= t("landing.neon.pricing.cta") %>
                 <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
               </span>
-              <span class="hidden items-center gap-2" data-loading-spinner>
-                <span class="inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+              <span class="items-center gap-2" data-loading-spinner hidden>
+                <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
                 <span><%= t("loading.default") %></span>
               </span>
             <% end %>
@@ -279,8 +279,8 @@
                 <%= t("landing.neon.pricing.cta") %>
                 <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
               </span>
-              <span class="hidden items-center gap-2" data-loading-spinner>
-                <span class="inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+              <span class="items-center gap-2" data-loading-spinner hidden>
+                <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
                 <span><%= t("loading.default") %></span>
               </span>
             <% end %>
@@ -318,8 +318,8 @@
                 <%= t("landing.neon.pricing.cta") %>
                 <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
               </span>
-              <span class="hidden items-center gap-2" data-loading-spinner>
-                <span class="inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+              <span class="items-center gap-2" data-loading-spinner hidden>
+                <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
                 <span><%= t("loading.default") %></span>
               </span>
             <% end %>
@@ -521,15 +521,9 @@
         </div>
 
         <div class="shrink-0">
-          <%= link_to(user_signed_in? ? dashboard_path : new_user_registration_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full group shadow-lg flex items-center justify-center gap-2", data: { loading_target: true }) do %>
-            <span data-loading-label>
-              <%= t("landing.neon.cta.button") %>
-              <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
-            </span>
-            <span class="hidden items-center gap-2" data-loading-spinner>
-              <span class="inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
-              <span><%= t("loading.default") %></span>
-            </span>
+          <%= link_to(user_signed_in? ? dashboard_path : new_user_registration_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full group shadow-lg flex items-center justify-center gap-2") do %>
+            <%= t("landing.neon.cta.button") %>
+            <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
           <% end %>
         </div>
       </div>
