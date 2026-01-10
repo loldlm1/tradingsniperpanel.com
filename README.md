@@ -89,18 +89,26 @@ sudo bash /home/$USER/tradingsniperpanel.com-staging/script/reset_staging_db.sh
 ```
 
 ### Manual steps (if you do not use the scripts)
-1) Install system packages (copy/paste):
+1) Add Redis 7 APT repo (copy/paste):
+```
+sudo apt update
+sudo apt install -y ca-certificates curl gnupg
+sudo install -d -m 0755 /usr/share/keyrings
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(. /etc/os-release && echo "$VERSION_CODENAME") main" | sudo tee /etc/apt/sources.list.d/redis.list > /dev/null
+```
+2) Install system packages (copy/paste):
 ```
 sudo apt update && sudo apt install -y build-essential git curl libssl-dev libreadline-dev zlib1g-dev libyaml-dev libffi-dev libgdbm-dev libncurses5-dev libpq-dev postgresql postgresql-contrib redis-server nginx unzip
 ```
-2) Install asdf as your admin user:
+3) Install asdf as your admin user:
 ```
 git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.1
 echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
 echo '. "$HOME/.asdf/completions/asdf.bash"' >> ~/.bashrc
 source ~/.bashrc
 ```
-3) Clone both environments and install tool versions:
+4) Clone both environments and install tool versions:
 ```
 git clone git@github.com:loldlm1/tradingsniperpanel.com.git /home/your_admin_user/tradingsniperpanel.com
 git clone git@github.com:loldlm1/tradingsniperpanel.com.git /home/your_admin_user/tradingsniperpanel.com-staging
@@ -112,17 +120,17 @@ bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
 cd /home/your_admin_user/tradingsniperpanel.com && asdf install
 cd /home/your_admin_user/tradingsniperpanel.com-staging && asdf install
 ```
-4) Create `.envrc` in both directories (copy from `.envrc.example`) and fill production vs staging values, including `PORT`, `APP_HOST`, `APP_HOST_PROTOCOL`, `REDIS_URL`, and `STAGING_ALLOWLIST` for staging.
-5) Install app dependencies in both directories:
+5) Create `.envrc` in both directories (copy from `.envrc.example`) and fill production vs staging values, including `PORT`, `APP_HOST`, `APP_HOST_PROTOCOL`, `REDIS_URL`, and `STAGING_ALLOWLIST` for staging.
+6) Install app dependencies in both directories:
 ```
 cd /home/your_admin_user/tradingsniperpanel.com && bundle install --without development test && npm install
 cd /home/your_admin_user/tradingsniperpanel.com-staging && bundle install --without development test && npm install
 ```
-6) Enable Postgres and Redis:
+7) Enable Postgres and Redis:
 ```
 sudo systemctl enable --now postgresql redis-server
 ```
-7) Create the database user and databases (example, adjust names/passwords):
+8) Create the database user and databases (example, adjust names/passwords):
 ```
 sudo -u postgres psql <<'SQL'
 CREATE USER tradingsniperpanel WITH PASSWORD 'change_me';
@@ -136,7 +144,7 @@ CREATE DATABASE tradingsniperpanel_com_staging_queue OWNER tradingsniperpanel;
 CREATE DATABASE tradingsniperpanel_com_staging_cable OWNER tradingsniperpanel;
 SQL
 ```
-8) Add staging config files in the staging app:
+9) Add staging config files in the staging app:
 ```
 cp /home/your_admin_user/tradingsniperpanel.com-staging/config/environments/production.rb /home/your_admin_user/tradingsniperpanel.com-staging/config/environments/staging.rb
 ```

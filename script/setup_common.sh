@@ -77,10 +77,51 @@ run_as_app_user() {
   fi
 }
 
+ensure_redis_repo() {
+  local list="/etc/apt/sources.list.d/redis.list"
+  local keyring="/usr/share/keyrings/redis-archive-keyring.gpg"
+
+  if [[ -f "${list}" && -f "${keyring}" ]] && grep -q "packages.redis.io" "${list}"; then
+    return 1
+  fi
+
+  log "Adding Redis APT repo"
+  apt-get install -y ca-certificates curl gnupg
+  install -d -m 0755 /usr/share/keyrings
+  curl -fsSL https://packages.redis.io/gpg | gpg --dearmor -o "${keyring}"
+  local codename
+  codename="$(. /etc/os-release; echo "$VERSION_CODENAME")"
+  printf "deb [signed-by=%s] https://packages.redis.io/deb %s main\n" "${keyring}" "${codename}" > "${list}"
+  return 0
+}
+
+ensure_redis_version() {
+  local output major
+
+  if ! command -v redis-server >/dev/null 2>&1; then
+    die "redis-server not found after install."
+  fi
+
+  output="$(redis-server --version)"
+  major="$(printf "%s" "${output}" | sed -n 's/.* v=\([0-9]\+\)\..*/\1/p')"
+
+  if [[ -z "${major}" ]]; then
+    die "Unable to detect Redis version from: ${output}"
+  fi
+
+  if (( major < 7 )); then
+    die "Redis ${major}.x detected. Sidekiq 8 requires Redis >= 7.0."
+  fi
+}
+
 ensure_packages() {
   log "Installing system packages"
   apt-get update
-  apt-get install -y build-essential git curl libssl-dev libreadline-dev zlib1g-dev libyaml-dev libffi-dev libgdbm-dev libncurses5-dev libpq-dev postgresql postgresql-contrib redis-server nginx unzip
+  if ensure_redis_repo; then
+    apt-get update
+  fi
+  apt-get install -y build-essential ca-certificates git curl gnupg libssl-dev libreadline-dev zlib1g-dev libyaml-dev libffi-dev libgdbm-dev libncurses5-dev libpq-dev postgresql postgresql-contrib redis-server nginx unzip
+  ensure_redis_version
 }
 
 ensure_asdf() {
