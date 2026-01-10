@@ -88,6 +88,12 @@ This will wipe staging data and rebuild all databases, then reseed:
 sudo bash /home/$USER/tradingsniperpanel.com-staging/script/reset_staging_db.sh
 ```
 
+### Staging Sidekiq cleanup (QA)
+Clears Sidekiq retry/dead sets on staging:
+```
+sudo bash /home/$USER/tradingsniperpanel.com-staging/script/clear_sidekiq_staging.sh
+```
+
 ### Manual steps (if you do not use the scripts)
 1) Add Redis 7 APT repo (copy/paste):
 ```
