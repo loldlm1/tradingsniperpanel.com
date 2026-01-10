@@ -24,6 +24,13 @@ if [[ ! -x "${BUNDLE_BIN}" ]]; then
   die "Missing ${BUNDLE_BIN}. Install Ruby with asdf and rerun."
 fi
 
+if [[ ! -f "${ENV_FILE}" ]]; then
+  die "Missing ${ENV_FILE}. Run staging setup first."
+fi
+
+chown root:"${APP_USER}" "${ENV_FILE}"
+chmod 0640 "${ENV_FILE}"
+
 log "Stopping staging services"
 systemctl stop tradingsniperpanel-staging.service tradingsniperpanel-sidekiq-staging.service
 
