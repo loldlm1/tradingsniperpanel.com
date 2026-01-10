@@ -82,6 +82,12 @@ sudo cat /etc/ssl/tradingsniperpanel/tradingsniperpanel.com.crt /etc/ssl/trading
 ```
 Rerun the production script to apply Nginx SSL.
 
+### Staging reset (QA)
+This will wipe staging data and rebuild all databases, then reseed:
+```
+sudo bash /home/$USER/tradingsniperpanel.com/script/reset_staging_db.sh
+```
+
 ### Manual steps (if you do not use the scripts)
 1) Install system packages (copy/paste):
 ```
