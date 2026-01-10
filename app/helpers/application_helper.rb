@@ -16,6 +16,21 @@ module ApplicationHelper
     I18n.locale.to_s == locale.to_s ? "#{base} bg-blue-500 text-white" : "#{base} text-gray-300 hover:text-white bg-gray-800/60"
   end
 
+  def landing_logo_path
+    template = Marketing::LandingTemplate.current
+    case template
+    when "neon"
+      "neon/images/logo_snipe_oficial.png"
+    else
+      "/docs/sniper_advanced_panel/Dark_SAP_logo.png"
+    end
+  end
+
+  def landing_logo_alt
+    template = Marketing::LandingTemplate.current
+    I18n.t("landing.#{template}.brand.logo_alt", default: app_name)
+  end
+
   def loading_label(label, loading_text: t("loading.default", default: "Processing..."))
     content_tag(:span, label, data: { loading_label: true }) +
       content_tag(:span, class: "inline-flex items-center justify-center gap-2", data: { loading_spinner: true }, role: "status", "aria-live": "polite", hidden: true) do
