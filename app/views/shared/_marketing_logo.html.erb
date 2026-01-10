@@ -1,2 +1,4 @@
 <% logo_class = local_assigns.fetch(:logo_class, "h-8 w-auto") %>
-<%= image_tag "/docs/sniper_advanced_panel/Dark_SAP_logo.png", class: logo_class, alt: app_name %>
+<% logo_width = local_assigns.fetch(:logo_width, nil) %>
+<% logo_height = local_assigns.fetch(:logo_height, nil) %>
+<%= image_tag landing_logo_path, class: logo_class, alt: landing_logo_alt, width: logo_width, height: logo_height %>
