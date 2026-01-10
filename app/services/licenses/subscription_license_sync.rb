@@ -14,12 +14,16 @@ module Licenses
       return unless user.is_a?(User)
 
       price_key = Billing::PriceKeyResolver.key_for_price_id(subscription.processor_plan)
-      tier, interval = parse_price_key(price_key)
+      plan = BillingPlan.for_price_id(subscription.processor_plan) || BillingPlan.for_key(price_key)
+      tier = plan&.tier
+      interval = plan&.interval_key
+      tier, interval = parse_price_key(price_key) if tier.blank? || interval.blank?
       return unless tier && interval
 
       Rails.logger.info("[Licenses::SubscriptionLicenseSync] syncing subscription_id=#{subscription.id} user_id=#{user.id} price_key=#{price_key} tier=#{tier} interval=#{interval}")
 
-      allowed_eas = ExpertAdvisor.active.select { |ea| ea.allowed_for_tier?(tier) }
+      allowed_eas = ExpertAdvisor.active.includes(:billing_plan_entitlements, :billing_plans)
+                                 .select { |ea| ea.allowed_for_tier?(tier) }
       allowed_ids = allowed_eas.map(&:id)
 
       mark_referral_completed(user:, subscription:) if subscription_active?(subscription)
@@ -39,7 +43,9 @@ module Licenses
       parts = price_key.to_s.split("_")
       return if parts.size < 2
 
-      [parts.first, parts.last]
+      tier = parts.shift
+      interval_key = parts.join("_")
+      [tier, interval_key]
     end
 
     def sync_license_for(user:, expert_advisor:, interval:, subscription:)

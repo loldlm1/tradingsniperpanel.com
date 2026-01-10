@@ -101,4 +101,99 @@ module Seeds
       content
     end
   end
+
+  module BillingPlans
+    module_function
+
+    DEFAULT_CURRENCY = "usd"
+    TIER_DEFINITIONS = [
+      { tier: "basic", sort_order: 1, monthly_cents: 2000 },
+      { tier: "hft", sort_order: 2, monthly_cents: 4000 },
+      { tier: "pro", sort_order: 3, monthly_cents: 6000 },
+      { tier: "elite", sort_order: 4, monthly_cents: 8000 },
+      { tier: "enterprise", sort_order: 5, monthly_cents: 10_000 }
+    ].freeze
+    INTERVAL_DEFINITIONS = [
+      { interval: "day", interval_count: 1, multiplier: (12.0 / 365) },
+      { interval: "week", interval_count: 1, multiplier: (12.0 / 52) },
+      { interval: "month", interval_count: 1, multiplier: 1.0 },
+      { interval: "year", interval_count: 1, multiplier: 9.0 }
+    ].freeze
+
+    def definitions
+      TIER_DEFINITIONS.flat_map do |tier_def|
+        INTERVAL_DEFINITIONS.map do |interval_def|
+          amount = interval_amount(
+            base_cents: tier_def[:monthly_cents],
+            multiplier: interval_def[:multiplier]
+          )
+          plan_definition(
+            tier: tier_def[:tier],
+            interval: interval_def[:interval],
+            interval_count: interval_def[:interval_count],
+            amount_cents: amount,
+            sort_order: tier_def[:sort_order]
+          )
+        end
+      end
+    end
+
+    def seed_plans!
+      return unless stripe_configured?
+      return unless defined?(Billing::PlanCreator)
+
+      definitions.each do |attrs|
+        Billing::PlanCreator.new(attrs).call
+      end
+    end
+
+    def seed_entitlements!
+      return unless defined?(BillingPlanEntitlement)
+
+      plans = BillingPlan.subscription.active
+      return if plans.empty?
+
+      plans_by_tier = plans.group_by(&:tier)
+
+      ExpertAdvisor.active.find_each do |expert_advisor|
+        tiers = Array(expert_advisor.allowed_subscription_tiers).presence || plans_by_tier.keys
+        tiers.each do |tier|
+          Array(plans_by_tier[tier]).each do |plan|
+            BillingPlanEntitlement.find_or_create_by!(
+              billing_plan: plan,
+              expert_advisor: expert_advisor
+            )
+          end
+        end
+      end
+    end
+
+    def plan_definition(tier:, interval:, interval_count:, amount_cents:, sort_order:)
+      interval_key = Billing::IntervalLabeler.interval_key(interval: interval, interval_count: interval_count)
+      {
+        key: "#{tier}_#{interval_key}",
+        name: "#{tier.to_s.humanize} #{Billing::IntervalLabeler.label(interval: interval, interval_count: interval_count)}",
+        kind: "subscription",
+        tier: tier,
+        interval: interval,
+        interval_count: interval_count,
+        amount_cents: amount_cents,
+        currency: DEFAULT_CURRENCY,
+        active: true,
+        sort_order: sort_order
+      }
+    end
+
+    def interval_amount(base_cents:, multiplier:)
+      amount = (base_cents * multiplier).round
+      amount.positive? ? amount : 1
+    end
+
+    def stripe_configured?
+      return true if ENV["STRIPE_PRIVATE_KEY"].present?
+
+      Rails.logger.warn("Skipping billing plan seed because STRIPE_PRIVATE_KEY is not set.")
+      false
+    end
+  end
 end

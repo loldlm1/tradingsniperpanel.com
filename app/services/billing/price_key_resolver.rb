@@ -1,23 +1,27 @@
 module Billing
   class PriceKeyResolver
     def self.key_for_price_id(price_id)
-      return nil if price_id.blank?
+      plan = BillingPlan.for_price_id(price_id)
+      return plan.key if plan
 
-      ConfiguredPrices::PRICE_KEYS.each do |key, env_key|
-        env_val = ENV[env_key]
-        resolved = Billing::ConfiguredPrices.resolve_price_id(env_val)
-        return key.to_s if env_val == price_id || resolved == price_id
-      end
-
-      nil
+      legacy_key_for_value(price_id)
     end
 
     def self.key_for_product_id(product_id)
-      return nil if product_id.blank?
+      plan = BillingPlan.for_product_id(product_id)
+      return plan.key if plan
 
-      ConfiguredPrices::PRICE_KEYS.each do |key, env_key|
-        env_val = ENV[env_key]
-        return key.to_s if env_val == product_id
+      legacy_key_for_value(product_id)
+    end
+
+    def self.legacy_key_for_value(value)
+      return nil if value.blank?
+
+      ENV.each do |env_key, env_value|
+        next unless env_key.start_with?("STRIPE_PRICE_")
+        next unless env_value == value
+
+        return env_key.delete_prefix("STRIPE_PRICE_").downcase
       end
 
       nil

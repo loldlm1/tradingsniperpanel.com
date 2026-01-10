@@ -5,8 +5,7 @@
 <% pm_last4 = default_pm&.last4 %>
 <% plan = @plan_context || {} %>
 <% plan_name = plan[:current_tier] ? t("dashboard.plans.tiers.#{plan[:current_tier]}.name", default: plan[:current_tier].to_s.humanize) : nil %>
-<% interval_key = plan[:current_interval] == "annual" ? "annually" : plan[:current_interval] %>
-<% interval_label = interval_key.present? ? t("dashboard.plans.toggle.#{interval_key}", default: interval_key.to_s.humanize) : nil %>
+<% interval_label = plan[:current_interval_label].presence || Billing::IntervalLabeler.legacy_label(plan[:current_interval_key]) %>
 <% summary_text = if plan_name.present? && interval_label.present?
                     t("dashboard.billing.summary", plan_name: plan_name, interval: interval_label)
                   else

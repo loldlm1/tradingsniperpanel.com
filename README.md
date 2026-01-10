@@ -373,7 +373,8 @@ See `.envrc.example` for the full list. Key server variables:
 - Staging: `STAGING_ALLOWLIST` (space-separated IPs, wrap in quotes if multiple).
 - Branding: `APP_NAME`, `APP_SHORT_NAME`, `LANDING_TEMPLATE`.
 - OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_HD`.
-- Stripe (Pay): `STRIPE_PRIVATE_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_SIGNING_SECRET`, plus all plan price IDs.
+- Stripe (Pay): `STRIPE_PRIVATE_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_SIGNING_SECRET`.
+- Billing plans: stored in `billing_plans` and created via `Billing::PlanCreator` (see `db/seeds`).
 - Licensing: `EA_LICENSE_PRIMARY_KEY`, `EA_LICENSE_SECRET_KEY`, `EA_LICENSE_SOURCE_ID`.
 - Referrals: `REFER_DEFAULT_DISCOUNT_PERCENT`.
 - MaxMind: `MAXMIND_LICENSE_KEY`, `MAXMIND_DB_PATH`.

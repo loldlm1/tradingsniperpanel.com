@@ -197,9 +197,54 @@ es:
       toggle:
         monthly: "Mensual"
         annually: "Anual"
+        weekly: "Semanal"
+        daily: "Diario"
         pay_annually: "Pagar anualmente"
         save_up_to: "Ahorra %{percent}%"
         billed_annually: "Facturado anualmente"
+      interval:
+        toggle:
+          month:
+            one: "Mensual"
+            other: "Cada %{count} meses"
+          year:
+            one: "Anual"
+            other: "Cada %{count} años"
+          week:
+            one: "Semanal"
+            other: "Cada %{count} semanas"
+          day:
+            one: "Diario"
+            other: "Cada %{count} días"
+        billed:
+          month:
+            one: "Facturado mensualmente"
+            other: "Facturado cada %{count} meses"
+          year:
+            one: "Facturado anualmente"
+            other: "Facturado cada %{count} años"
+          week:
+            one: "Facturado semanalmente"
+            other: "Facturado cada %{count} semanas"
+          day:
+            one: "Facturado diariamente"
+            other: "Facturado cada %{count} días"
+        short_unit:
+          month:
+            one: "mes"
+            other: "meses"
+          year:
+            one: "año"
+            other: "años"
+          week:
+            one: "sem"
+            other: "sem"
+          day:
+            one: "día"
+            other: "días"
+        per_label:
+          one: "/%{unit}"
+          other: "/%{count} %{unit}"
       tiers:
         basic:
           name: "Basic"
@@ -225,6 +270,22 @@ es:
             - "Kit completo y ajustes avanzados"
             - "Flujos de trabajo para equipos"
             - "Soporte prioritario"
+        elite:
+          name: "Elite"
+          description: "Acceso ampliado y límites más altos para mesas con múltiples estrategias."
+          features:
+            - "Todo lo de Pro"
+            - "Acceso ampliado a Asesores Expertos"
+            - "Límites de cuenta más altos"
+            - "Onboarding prioritario"
+        enterprise:
+          name: "Enterprise"
+          description: "Acceso personalizado para equipos con soporte dedicado y gobernanza."
+          features:
+            - "Todo lo de Elite"
+            - "Canal de soporte dedicado"
+            - "Onboarding y revisiones personalizadas"
+            - "Asistencia de facturación"
       popular: "Más popular"
       requested_plan: "Plan seleccionado"
       whats_included: "Qué incluye"
@@ -778,6 +839,24 @@ es:
               - "Flujos avanzados de ejecución"
               - "Soporte prioritario"
               - "Actualizaciones premium"
+          elite:
+            name: "Elite"
+            description: "Para flujos de alto volumen con acceso ampliado a EAs y límites más altos."
+            features_title: "Todo en Pro, más:"
+            features:
+              - "Acceso ampliado a EAs y estrategias"
+              - "Límites de trading y cuentas más altos"
+              - "Onboarding con revisiones dedicadas"
+              - "Tiempos de respuesta prioritarios"
+          enterprise:
+            name: "Enterprise"
+            description: "Para equipos que buscan acceso personalizado, gobernanza y soporte dedicado."
+            features_title: "Todo en Elite, más:"
+            features:
+              - "Acceso y gobernanza personalizados"
+              - "Canal de soporte dedicado"
+              - "Asistencia de facturación y reportes"
+              - "Revisiones trimestrales de enablement"
       testimonials:
         title: "TRADERS REALES"
         avatar_alt: "Avatar del testimonio %{index}"

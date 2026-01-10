@@ -2,11 +2,15 @@ require "rails_helper"
 require "ostruct"
 
 RSpec.describe Billing::InvoicePlanLabeler do
+  let!(:basic_plan) do
+    create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, amount_cents: 1000, stripe_price_id: "price_basic_monthly", stripe_product_id: "prod_basic")
+  end
+  let!(:hft_plan) do
+    create(:billing_plan, tier: "hft", key: "hft_monthly", interval: "month", interval_count: 1, amount_cents: 2000, stripe_price_id: "price_hft_monthly")
+  end
+
   around do |example|
     original_env = ENV.to_hash
-    ENV["STRIPE_PRICE_BASIC_MONTHLY"] = "price_basic_monthly"
-    ENV["STRIPE_PRICE_HFT_MONTHLY"] = "price_hft_monthly"
-    ENV["STRIPE_PRICE_PRO_MONTHLY"] = "price_pro_monthly"
     ENV["STRIPE_PRIVATE_KEY"] = "sk_test_123"
     example.run
   ensure
@@ -128,8 +132,6 @@ RSpec.describe Billing::InvoicePlanLabeler do
   end
 
   it "uses product ids when price ids do not map" do
-    ENV["STRIPE_PRICE_BASIC_MONTHLY"] = "prod_basic"
-
     invoice = build_charge(
       lines: [pricing_line(amount: 1200, price_id: "price_unknown", product_id: "prod_basic")]
     )

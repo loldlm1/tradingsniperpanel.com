@@ -4,6 +4,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 ## Domain map
 - Users authenticate via Devise and can originate from OAuth (`provider`, `uid`, `oauth_data`). `role` enum: `trader`, `partner`, `admin`.
 - ExpertAdvisors describe each EA/tool (`ea_type`, `doc_guide_en/es`, `ea_files` attachment, `allowed_subscription_tiers`, `trial_enabled`); referenced by Licenses and UserExpertAdvisors.
+- BillingPlans store subscription and one-time products with Stripe IDs and display attributes; BillingPlanEntitlements join plans to ExpertAdvisors.
 - Licenses tie a User to an ExpertAdvisor with status (`trial`, `active`, `expired`, `revoked`), expiry fields, and an `encrypted_key`. BrokerAccounts hang off Licenses and record daily PnL snapshots.
 - UserExpertAdvisors is a soft-deletable join for entitlement tracking (`subscription_tier`, `pay_subscription_id`, `expires_at`, `deleted_at`).
 - Referrals via the `refer` gem: referral_codes/visits/referrals tables connect referrers/referees; PartnerProfile leverages this.
@@ -13,6 +14,8 @@ Short, API-flavored map of the persisted data model so agents and developers can
 ## Tables and key fields
 - `users`: `email` (uniq), `encrypted_password`, `name`, `preferred_locale`, `time_zone`, `provider`/`uid`, `oauth_data` JSON, `terms_accepted_at`, `role` enum. Associations: `pay_customers`, `licenses`, `user_expert_advisors`, `partner_profile`, refer gem (`referrer`, `referral_codes`, `referrals`).
 - `expert_advisors`: `name`, `description`, `ea_type` enum (`ea_robot`, `ea_tool`), `doc_guide_en`/`doc_guide_es` (markdown text), `allowed_subscription_tiers` JSON array, `ea_id` (immutable slug/id), `trial_enabled`, `deleted_at`, `ea_files` (Active Storage attachment for the EA bundle).
+- `billing_plans`: `key` (uniq), `name` (uniq), `kind` (`subscription`, `one_time`), `tier`, `interval`, `interval_count`, `amount_cents`, `currency`, `stripe_product_id`, `stripe_price_id` (uniq), `active`, `sort_order`, `metadata`.
+- `billing_plan_entitlements`: `billing_plan_id`, `expert_advisor_id`, timestamps. Unique `billing_plan_id + expert_advisor_id`.
 - `licenses`: `user_id`, `expert_advisor_id`, `status` (`trial`, `active`, `expired`, `revoked`), `plan_interval`, `expires_at`, `trial_ends_at`, `encrypted_key`, `source`, `last_synced_at`. Unique `user_id + expert_advisor_id`. Scopes: `active_or_trial`.
 - `broker_accounts`: `license_id`, `company`, `account_number`, `account_type` enum (`real`, `demo`), optional `name`. Uniqueness: `company + account_number + account_type`.
 - `broker_account_daily_results`: `broker_account_id`, `result_timestamp` (unix seconds), `result_value` (decimal). Uniqueness: one result per UTC day per broker account (expression index on `result_timestamp`).
@@ -27,6 +30,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 ## Common queries and services
 - License access map: `Licenses::AccessibleExpertAdvisors` preloads `ExpertAdvisor.active.includes(:licenses)` and the user’s licenses/broker_accounts, returning per-EA entries with status, key, expiry, and allowed tiers.
 - License verification API: `Licenses::LicenseVerifier` checks source, user/email, EA, license record, status, secure compares `encrypted_key`, and validates with `LicenseKeyEncoder`.
+- Billing setup: `Billing::PlanCreator` creates or updates Stripe products/prices and persists them in `billing_plans`; `Billing::PricingCatalog` builds the plan/interval data used by pricing views.
 - Subscription sync: `Licenses::SubscriptionLicenseSync` resolves tier/interval from the Stripe price, generates/updates licenses per allowed EA, marks referral completed, and expires disallowed licenses.
 - Trial provisioning: `Licenses::TrialProvisioner` (via `Licenses::CreateTrialLicensesJob`) issues `trial` licenses for trial-enabled EAs when keys are configured.
 - Referrals: `Referrals::AttachReferrer` links a user by referral code, ensures their own code, and assigns partner membership; `Referrals::MarkCompleted` marks referral complete on successful subscription.

@@ -19,14 +19,14 @@ module Dashboard
       price_key = plan_context[:current_price_key].presence || plan_hint_key
       hint_tier, hint_interval = parse_price_key(price_key)
       tier = plan_context[:current_tier].presence || hint_tier
-      interval = plan_context[:current_interval].presence || hint_interval
+      interval_key = plan_context[:current_interval_key].presence || hint_interval
       scheduled_change = scheduled_plan_change
       {
         tier: tier,
-        interval: interval,
+        interval: interval_key,
         price_key: price_key,
         status: plan_status(price_key),
-        label: plan_label(tier, interval),
+        label: plan_label(price_key, tier:, interval_key: interval_key),
         renews_at: subscription&.respond_to?(:current_period_end) ? subscription.current_period_end : nil,
         scheduled_change: scheduled_change
       }
@@ -138,7 +138,7 @@ module Dashboard
       parts = price_key.to_s.split("_")
       return [nil, nil] if parts.size < 2
 
-      [parts.first, parts.last]
+      [parts.shift, parts.join("_")]
     end
 
     def plan_status(price_key)
@@ -156,9 +156,9 @@ module Dashboard
       {
         price_key: change[:price_key],
         tier: change[:tier],
-        interval: change[:interval],
+        interval: change[:interval_key],
         effective_at: change[:effective_at],
-        label: plan_label(change[:tier], change[:interval])
+        label: plan_label(change[:price_key], tier: change[:tier], interval_key: change[:interval_key])
       }
     end
 
@@ -168,21 +168,41 @@ module Dashboard
       subscription.past_due? || subscription.unpaid? || subscription.status == "incomplete_expired"
     end
 
-    def plan_label(tier, interval)
+    def plan_label(price_key, tier:, interval_key:)
+      plan = BillingPlan.for_key(price_key)
+      if plan
+        return plan.name if plan.one_time?
+
+        interval_label = plan.interval_label
+        return I18n.t("dashboard.plan_card.plan_label_tier_only", tier: tier_label(plan.tier)) if interval_label.blank?
+
+        return I18n.t("dashboard.plan_card.plan_label", tier: tier_label(plan.tier), interval: interval_label)
+      end
+
       return nil if tier.blank?
 
-      tier_label = I18n.t("dashboard.plans.tiers.#{tier}.name", default: tier.to_s.humanize)
-      interval_label = interval_label(interval)
-      return I18n.t("dashboard.plan_card.plan_label_tier_only", tier: tier_label) if interval_label.blank?
+      interval_label = interval_label_from_key(interval_key)
+      return I18n.t("dashboard.plan_card.plan_label_tier_only", tier: tier_label(tier)) if interval_label.blank?
 
-      I18n.t("dashboard.plan_card.plan_label", tier: tier_label, interval: interval_label)
+      I18n.t("dashboard.plan_card.plan_label", tier: tier_label(tier), interval: interval_label)
     end
 
-    def interval_label(interval)
-      return nil if interval.blank?
+    def interval_label_from_key(interval_key)
+      return nil if interval_key.blank?
 
-      key = interval.to_s == "annual" ? "annually" : interval
-      I18n.t("dashboard.plans.toggle.#{key}", default: interval.to_s.humanize)
+      return Billing::IntervalLabeler.label(interval: "month", interval_count: 1) if interval_key == "monthly"
+      return Billing::IntervalLabeler.label(interval: "year", interval_count: 1) if interval_key == "annual"
+
+      parts = interval_key.to_s.split("_")
+      count = parts.shift.to_i
+      interval = parts.join("_")
+      return Billing::IntervalLabeler.label(interval: interval, interval_count: count) if count.positive? && interval.present?
+
+      Billing::IntervalLabeler.legacy_label(interval_key)
+    end
+
+    def tier_label(tier)
+      I18n.t("dashboard.plans.tiers.#{tier}.name", default: tier.to_s.humanize)
     end
 
     def charge_subtitle(charge)

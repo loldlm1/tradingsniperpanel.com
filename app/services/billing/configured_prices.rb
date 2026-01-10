@@ -1,40 +1,40 @@
 module Billing
   class ConfiguredPrices
-    PRICE_KEYS = {
-      basic_monthly: "STRIPE_PRICE_BASIC_MONTHLY",
-      basic_annual: "STRIPE_PRICE_BASIC_ANNUAL",
-      hft_monthly: "STRIPE_PRICE_HFT_MONTHLY",
-      hft_annual: "STRIPE_PRICE_HFT_ANNUAL",
-      pro_monthly: "STRIPE_PRICE_PRO_MONTHLY",
-      pro_annual: "STRIPE_PRICE_PRO_ANNUAL"
-    }.freeze
-
     def self.price_id_for(key)
       return if key.blank?
 
-      env_key = PRICE_KEYS[key.to_s.to_sym]
-      raw_value = env_key ? ENV[env_key] : nil
-      resolve_price_id(raw_value)
+      plan = BillingPlan.active.find_by(key: key)
+      return plan.stripe_price_id if plan&.stripe_price_id.present?
+
+      resolve_price_id(legacy_env_price_id(key))
     end
 
-    def self.price_id_for_tier(tier, interval)
-      price_id_for("#{tier}_#{interval}")
+    def self.price_id_for_tier(tier, interval_key)
+      return if tier.blank? || interval_key.blank?
+
+      plan = BillingPlan.subscription.active.find_by(tier: tier.to_s, key: "#{tier}_#{interval_key}")
+      return plan.stripe_price_id if plan&.stripe_price_id.present?
+
+      price_id_for("#{tier}_#{interval_key}")
     end
 
     def self.all_price_ids
-      PRICE_KEYS.values.filter_map { |env_key| ENV[env_key].presence }
+      plan_ids = BillingPlan.where.not(stripe_price_id: nil).pluck(:stripe_price_id)
+      (plan_ids + legacy_env_price_ids).uniq
     end
 
     def self.resolve_price_id(value)
       return if value.blank?
-      return value unless product_id?(value)
+      return value if BillingPlan.for_price_id(value).present?
 
-      Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
-      product = Stripe::Product.retrieve(value)
-      default_price_id = product&.respond_to?(:default_price) ? product.default_price : nil
-      return default_price_id if default_price_id.present?
+      if product_id?(value)
+        plan = BillingPlan.for_product_id(value)
+        return plan.stripe_price_id if plan&.stripe_price_id.present?
 
-      Stripe::Price.retrieve(value)&.id
+        return resolve_price_id_from_stripe(value) if stripe_enabled?
+      end
+
+      Stripe::Price.retrieve(value)&.id if stripe_enabled?
     rescue StandardError => e
       Rails.logger.warn("ConfiguredPrices.resolve_price_id failed for #{value}: #{e.class} - #{e.message}")
       nil
@@ -42,6 +42,30 @@ module Billing
 
     def self.product_id?(value)
       value.to_s.start_with?("prod_")
+    end
+
+    def self.stripe_enabled?
+      ENV["STRIPE_PRIVATE_KEY"].present?
+    end
+
+    def self.resolve_price_id_from_stripe(product_id)
+      Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
+      product = Stripe::Product.retrieve(product_id)
+      default_price = product&.respond_to?(:default_price) ? product.default_price : nil
+      default_price_id = default_price.respond_to?(:id) ? default_price.id : default_price
+      return default_price_id if default_price_id.present?
+
+      prices = Stripe::Price.list(product: product_id, limit: 1)
+      prices.data.first&.id
+    end
+
+    def self.legacy_env_price_id(key)
+      env_key = "STRIPE_PRICE_#{key.to_s.upcase}"
+      ENV[env_key].presence
+    end
+
+    def self.legacy_env_price_ids
+      ENV.keys.grep(/\ASTRIPE_PRICE_/).map { |env_key| ENV[env_key].presence }.compact
     end
   end
 end

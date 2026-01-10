@@ -5,6 +5,8 @@ class ExpertAdvisor < ApplicationRecord
 
   has_many :user_expert_advisors, dependent: :destroy
   has_many :licenses, dependent: :destroy
+  has_many :billing_plan_entitlements, dependent: :destroy
+  has_many :billing_plans, through: :billing_plan_entitlements
   has_one_attached :ea_files
 
   default_scope { where(deleted_at: nil) }
@@ -29,9 +31,22 @@ class ExpertAdvisor < ApplicationRecord
   end
 
   def allowed_for_tier?(tier)
-    return true if allowed_subscription_tiers.blank?
+    allowed = subscription_tiers
+    return true if allowed.blank?
 
-    Array(allowed_subscription_tiers).map(&:to_s).include?(tier.to_s)
+    allowed.map(&:to_s).include?(tier.to_s)
+  end
+
+  def subscription_tiers
+    if billing_plan_entitlements.loaded? || billing_plans.loaded?
+      tiers = billing_plans.select(&:subscription?).map(&:tier)
+      return tiers.compact.uniq if tiers.present?
+    end
+
+    tiers = billing_plans.subscription.distinct.pluck(:tier)
+    return tiers.compact.uniq if tiers.present?
+
+    Array(allowed_subscription_tiers).presence
   end
 
   def bundle_filename

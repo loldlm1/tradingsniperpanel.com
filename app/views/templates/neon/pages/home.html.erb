@@ -179,8 +179,12 @@
   </div>
 </section>
 
-<% requested_interval = [params[:price_key], params[:plan], params[:desired_plan]].compact.map { |key| key.to_s.split('_').last }.find { |interval| interval.in?(%w[monthly annual]) } %>
-<% initial_period = requested_interval || "monthly" %>
+<% pricing = @landing_pricing || {} %>
+<% tiers = pricing[:tiers] || [] %>
+<% intervals = pricing[:intervals] || [] %>
+<% interval_keys = intervals.map { |interval| interval[:key] } %>
+<% requested_interval = [params[:price_key], params[:plan], params[:desired_plan]].compact.map { |key| key.to_s.split('_').drop(1).join('_') }.find { |interval| interval.in?(interval_keys) } %>
+<% initial_period = requested_interval || interval_keys.first || "monthly" %>
 
 <!-- Pricing -->
 <section id="pricing" class="relative" x-data="{ period: '<%= initial_period %>' }">
@@ -198,145 +202,95 @@
 
         <div class="mt-8 flex items-center justify-center">
           <div class="inline-flex bg-gray-800 rounded-full p-1 border border-gray-700">
-            <button class="px-4 py-2 rounded-full text-sm font-medium transition" :class="period === 'monthly' ? 'bg-gray-900 text-gray-100' : 'text-gray-400 hover:text-gray-100'" @click="period = 'monthly'"><%= t("dashboard.plans.toggle.monthly") %></button>
-            <button class="px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-2" :class="period === 'annual' ? 'bg-gray-900 text-gray-100' : 'text-gray-400 hover:text-gray-100'" @click="period = 'annual'">
-              <span><%= t("dashboard.plans.toggle.annually") %></span>
-              <% if @landing_pricing&.dig(:annual, :discount_percent).present? %>
-                <span class="inline-flex items-center text-xs font-semibold py-0.5 px-2 text-emerald-600 bg-emerald-200 rounded-full"><%= t("dashboard.plans.toggle.save_up_to", percent: @landing_pricing.dig(:annual, :discount_percent)) %></span>
-              <% end %>
-            </button>
+            <% intervals.each do |interval| %>
+              <button class="px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-2"
+                      :class="period === '<%= interval[:key] %>' ? 'bg-gray-900 text-gray-100' : 'text-gray-400 hover:text-gray-100'"
+                      @click="period = '<%= interval[:key] %>'">
+                <span><%= interval[:label] %></span>
+                <% if interval[:key] == "annual" && pricing[:discount_percent].present? %>
+                  <span class="inline-flex items-center text-xs font-semibold py-0.5 px-2 text-emerald-600 bg-emerald-200 rounded-full"><%= t("dashboard.plans.toggle.save_up_to", percent: pricing[:discount_percent]) %></span>
+                <% end %>
+              </button>
+            <% end %>
           </div>
         </div>
       </div>
 
       <div class="max-w-sm mx-auto grid gap-8 lg:grid-cols-3 lg:gap-6 items-start lg:max-w-none pt-4">
-        <% pricing = @landing_pricing || {} %>
-        <% per_month_label = t("landing.neon.pricing.per_month") %>
+        <% prices = pricing[:prices] || {} %>
 
-        <div class="relative flex flex-col h-full p-6" data-aos="zoom-out">
-          <div class="mb-6">
-            <div class="text-lg font-semibold mb-1"><%= t("landing.neon.pricing.tiers.basic.name") %></div>
-            <div class="font-uncut-sans inline-flex items-baseline mb-2">
-              <span class="text-3xl font-medium text-gray-400">$</span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'monthly'" x-cloak><%= pricing.dig(:monthly, :basic, :display) || t("dashboard.plans.placeholder") %></span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'annual'" x-cloak><%= pricing.dig(:annual, :basic, :effective_monthly_display) || t("dashboard.plans.placeholder") %></span>
-              <span class="font-medium text-gray-400"><%= per_month_label %></span>
+        <% tiers.each_with_index do |tier, index| %>
+          <% tier_key = tier[:key].to_s %>
+          <% featured = tier[:featured] %>
+          <% features = Array(tier[:features]) %>
+          <% featured_class = featured ? "bg-gray-800" : "" %>
+          <div class="relative flex flex-col h-full p-6 <%= featured_class %>" data-aos="zoom-out" <%= %(data-aos-delay="#{index * 100}") if index.positive? %>>
+            <% if featured %>
+              <div class="absolute top-0 right-0 mr-6 -mt-4">
+                <div class="inline-flex items-center text-sm font-semibold py-1 px-3 text-emerald-600 bg-emerald-200 rounded-full">
+                  <svg class="fill-emerald-500 mr-2" width="12" height="14" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5.315.068a.5.5 0 0 0-.745.347A7.31 7.31 0 0 1 3.182 3.6a7.924 7.924 0 0 1-.8.83A6.081 6.081 0 0 0 0 9.035a5.642 5.642 0 0 0 2.865 4.9.5.5 0 0 0 .746-.4 2.267 2.267 0 0 1 .912-1.67 4.067 4.067 0 0 0 1.316-1.4 4.662 4.662 0 0 1 1.819 3.1.5.5 0 0 0 .742.371c1.767-.999 2.86-2.87 2.865-4.9-.001-3.589-2.058-6.688-5.95-8.968Z" />
+                  </svg>
+                  <span><%= t("landing.neon.pricing.most_popular") %></span>
+                </div>
+              </div>
+            <% end %>
+            <div class="mb-6">
+              <div class="text-lg font-semibold mb-1"><%= tier[:name] %></div>
+              <div class="font-uncut-sans inline-flex items-baseline mb-2">
+                <span class="text-3xl font-medium text-gray-400">$</span>
+                <% intervals.each do |interval| %>
+                  <% interval_key = interval[:key] %>
+                  <% details = prices.dig(interval_key, tier_key) %>
+                  <% display = if details.present?
+                                 interval[:uses_effective_monthly] ? details[:effective_monthly_display] : details[:display]
+                               end %>
+                  <span class="text-4xl font-bold leading-7" x-show="period === '<%= interval_key %>'" x-cloak><%= display || t("dashboard.plans.placeholder") %></span>
+                <% end %>
+                <% intervals.each do |interval| %>
+                  <span class="font-medium text-gray-400" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:per_label] %></span>
+                <% end %>
+              </div>
+              <div class="text-gray-400 mb-6"><%= tier[:description] %></div>
+              <% interval_paths = intervals.each_with_object({}) do |interval, memo| %>
+                <% plan_key = prices.dig(interval[:key], tier_key, :plan_key) %>
+                <% next if plan_key.blank? %>
+                <% memo[interval[:key]] = user_signed_in? ? dashboard_plans_path(price_key: plan_key) : new_user_registration_path(price_key: plan_key) %>
+              <% end %>
+              <% default_path = interval_paths.values.compact.first || "#" %>
+              <% interval_paths_json = interval_paths.to_json %>
+              <%= link_to default_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "(#{interval_paths_json})[period] || '#{default_path}'" do %>
+                <span data-loading-label>
+                  <%= t("landing.neon.pricing.cta") %>
+                  <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
+                </span>
+                <span class="items-center gap-2" data-loading-spinner hidden>
+                  <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
+                  <span><%= t("loading.default") %></span>
+                </span>
+              <% end %>
+              <% intervals.each do |interval| %>
+                <% next if interval[:billed_label].blank? %>
+                <div class="text-xs text-gray-500 mt-3" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:billed_label] %></div>
+              <% end %>
             </div>
-            <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.tiers.basic.description") %></div>
-            <% monthly_key = "basic_monthly" %>
-            <% annual_key = "basic_annual" %>
-            <% monthly_path = user_signed_in? ? dashboard_plans_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
-            <% annual_path = user_signed_in? ? dashboard_plans_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
-            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
-              <span data-loading-label>
-                <%= t("landing.neon.pricing.cta") %>
-                <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
-              </span>
-              <span class="items-center gap-2" data-loading-spinner hidden>
-                <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
-                <span><%= t("loading.default") %></span>
-              </span>
+            <% if tier[:features_title].present? %>
+              <div class="font-medium mb-4"><%= tier[:features_title] %></div>
             <% end %>
-            <div class="text-xs text-gray-500 mt-3" x-show="period === 'annual'" x-cloak><%= t("dashboard.plans.toggle.billed_annually") %></div>
+            <% if features.present? %>
+              <ul class="text-gray-400 space-y-3 grow">
+                <% features.each do |feature| %>
+                  <li class="flex items-center">
+                    <svg class="w-3 h-3 fill-current text-emerald-500 mr-3 shrink-0" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
+                    </svg>
+                    <span><%= feature %></span>
+                  </li>
+                <% end %>
+              </ul>
+            <% end %>
           </div>
-          <div class="font-medium mb-4"><%= t("landing.neon.pricing.tiers.basic.features_title") %></div>
-          <ul class="text-gray-400 space-y-3 grow">
-            <% t("landing.neon.pricing.tiers.basic.features").each do |feature| %>
-              <li class="flex items-center">
-                <svg class="w-3 h-3 fill-current text-emerald-500 mr-3 shrink-0" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
-                </svg>
-                <span><%= feature %></span>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-
-        <div class="relative flex flex-col h-full p-6 bg-gray-800" data-aos="zoom-out" data-aos-delay="100">
-          <div class="absolute top-0 right-0 mr-6 -mt-4">
-            <div class="inline-flex items-center text-sm font-semibold py-1 px-3 text-emerald-600 bg-emerald-200 rounded-full">
-              <svg class="fill-emerald-500 mr-2" width="12" height="14" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5.315.068a.5.5 0 0 0-.745.347A7.31 7.31 0 0 1 3.182 3.6a7.924 7.924 0 0 1-.8.83A6.081 6.081 0 0 0 0 9.035a5.642 5.642 0 0 0 2.865 4.9.5.5 0 0 0 .746-.4 2.267 2.267 0 0 1 .912-1.67 4.067 4.067 0 0 0 1.316-1.4 4.662 4.662 0 0 1 1.819 3.1.5.5 0 0 0 .742.371c1.767-.999 2.86-2.87 2.865-4.9-.001-3.589-2.058-6.688-5.95-8.968Z" />
-              </svg>
-              <span><%= t("landing.neon.pricing.most_popular") %></span>
-            </div>
-          </div>
-          <div class="mb-6">
-            <div class="text-lg font-semibold mb-1"><%= t("landing.neon.pricing.tiers.hft.name") %></div>
-            <div class="font-uncut-sans inline-flex items-baseline mb-2">
-              <span class="text-3xl font-medium text-gray-400">$</span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'monthly'" x-cloak><%= pricing.dig(:monthly, :hft, :display) || t("dashboard.plans.placeholder") %></span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'annual'" x-cloak><%= pricing.dig(:annual, :hft, :effective_monthly_display) || t("dashboard.plans.placeholder") %></span>
-              <span class="font-medium text-gray-400"><%= per_month_label %></span>
-            </div>
-            <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.tiers.hft.description") %></div>
-            <% monthly_key = "hft_monthly" %>
-            <% annual_key = "hft_annual" %>
-            <% monthly_path = user_signed_in? ? dashboard_plans_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
-            <% annual_path = user_signed_in? ? dashboard_plans_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
-            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
-              <span data-loading-label>
-                <%= t("landing.neon.pricing.cta") %>
-                <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
-              </span>
-              <span class="items-center gap-2" data-loading-spinner hidden>
-                <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
-                <span><%= t("loading.default") %></span>
-              </span>
-            <% end %>
-            <div class="text-xs text-gray-500 mt-3" x-show="period === 'annual'" x-cloak><%= t("dashboard.plans.toggle.billed_annually") %></div>
-          </div>
-          <div class="font-medium mb-4"><%= t("landing.neon.pricing.tiers.hft.features_title") %></div>
-          <ul class="text-gray-400 space-y-3 grow">
-            <% t("landing.neon.pricing.tiers.hft.features").each do |feature| %>
-              <li class="flex items-center">
-                <svg class="w-3 h-3 fill-current text-emerald-500 mr-3 shrink-0" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
-                </svg>
-                <span><%= feature %></span>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-
-        <div class="relative flex flex-col h-full p-6" data-aos="zoom-out" data-aos-delay="200">
-          <div class="mb-6">
-            <div class="text-lg font-semibold mb-1"><%= t("landing.neon.pricing.tiers.pro.name") %></div>
-            <div class="font-uncut-sans inline-flex items-baseline mb-2">
-              <span class="text-3xl font-medium text-gray-400">$</span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'monthly'" x-cloak><%= pricing.dig(:monthly, :pro, :display) || t("dashboard.plans.placeholder") %></span>
-              <span class="text-4xl font-bold leading-7" x-show="period === 'annual'" x-cloak><%= pricing.dig(:annual, :pro, :effective_monthly_display) || t("dashboard.plans.placeholder") %></span>
-              <span class="font-medium text-gray-400"><%= per_month_label %></span>
-            </div>
-            <div class="text-gray-400 mb-6"><%= t("landing.neon.pricing.tiers.pro.description") %></div>
-            <% monthly_key = "pro_monthly" %>
-            <% annual_key = "pro_annual" %>
-            <% monthly_path = user_signed_in? ? dashboard_plans_path(price_key: monthly_key) : new_user_registration_path(price_key: monthly_key) %>
-            <% annual_path = user_signed_in? ? dashboard_plans_path(price_key: annual_key) : new_user_registration_path(price_key: annual_key) %>
-            <%= link_to monthly_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "period === 'annual' ? '#{annual_path}' : '#{monthly_path}'" do %>
-              <span data-loading-label>
-                <%= t("landing.neon.pricing.cta") %>
-                <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
-              </span>
-              <span class="items-center gap-2" data-loading-spinner hidden>
-                <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
-                <span><%= t("loading.default") %></span>
-              </span>
-            <% end %>
-            <div class="text-xs text-gray-500 mt-3" x-show="period === 'annual'" x-cloak><%= t("dashboard.plans.toggle.billed_annually") %></div>
-          </div>
-          <div class="font-medium mb-4"><%= t("landing.neon.pricing.tiers.pro.features_title") %></div>
-          <ul class="text-gray-400 space-y-3 grow">
-            <% t("landing.neon.pricing.tiers.pro.features").each do |feature| %>
-              <li class="flex items-center">
-                <svg class="w-3 h-3 fill-current text-emerald-500 mr-3 shrink-0" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
-                </svg>
-                <span><%= feature %></span>
-              </li>
-            <% end %>
-          </ul>
-        </div>
+        <% end %>
       </div>
     </div>
   </div>

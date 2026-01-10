@@ -11,6 +11,9 @@ module Billing
     def amount_cents_for(price_key)
       return if price_key.blank?
 
+      plan = BillingPlan.for_key(price_key)
+      return plan.amount_cents if plan&.amount_cents.present?
+
       return @amount_cache[price_key] if @amount_cache.key?(price_key)
 
       from_catalog = amount_from_catalog(price_key)
@@ -42,14 +45,13 @@ module Billing
     def amount_from_catalog(price_key)
       return if pricing_catalog.blank?
 
-      tier, interval = parse_price_key(price_key)
-      return if tier.blank? || interval.blank?
+      plan = BillingPlan.for_key(price_key)
+      return if plan.blank?
 
-      if interval == "annual"
-        pricing_catalog.dig(:annual, tier, :amount_cents)
-      else
-        pricing_catalog.dig(:monthly, tier, :amount_cents)
-      end
+      interval_key = plan.interval_key
+      return if interval_key.blank?
+
+      pricing_catalog.dig(:prices, interval_key, plan.tier, :amount_cents)
     end
 
     def amount_from_stripe(price_id)
@@ -67,7 +69,7 @@ module Billing
       parts = price_key.to_s.split("_")
       return [nil, nil] if parts.size < 2
 
-      [parts.first.to_sym, parts.last]
+      [parts.shift.to_sym, parts.join("_")]
     end
   end
 end

@@ -10,6 +10,11 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
   let!(:basic_ea) { create(:expert_advisor, ea_id: "basic-ea", allowed_subscription_tiers: %w[basic pro]) }
   let!(:all_ea) { create(:expert_advisor, ea_id: "all-ea", allowed_subscription_tiers: []) }
   let!(:pro_only_ea) { create(:expert_advisor, ea_id: "pro-ea", allowed_subscription_tiers: %w[pro]) }
+  let!(:basic_plan) { create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_basic_monthly") }
+  let!(:pro_plan) { create(:billing_plan, tier: "pro", key: "pro_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_pro_monthly") }
+  let!(:basic_entitlement) { create(:billing_plan_entitlement, billing_plan: basic_plan, expert_advisor: basic_ea) }
+  let!(:pro_entitlement) { create(:billing_plan_entitlement, billing_plan: pro_plan, expert_advisor: pro_only_ea) }
+  let!(:basic_pro_entitlement) { create(:billing_plan_entitlement, billing_plan: pro_plan, expert_advisor: basic_ea) }
   let!(:disallowed_license) do
     create(
       :license,
@@ -26,18 +31,16 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
   before do
     clear_enqueued_jobs
     allow(encoder).to receive(:generate).and_return("ENCODED")
-    stub_price_mapping
   end
 
   after do
     clear_enqueued_jobs
-    restore_price_mapping
   end
 
   it "activates licenses for allowed EAs and expires those not in the plan" do
     travel_to Time.current do
       subscription = create_subscription(
-        processor_plan: ENV["STRIPE_PRICE_BASIC_MONTHLY"],
+        processor_plan: basic_plan.stripe_price_id,
         current_period_end: 2.weeks.from_now
       )
 
@@ -64,7 +67,7 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
   it "marks licenses as expired when the subscription period is over" do
     past_end = 1.day.ago
     subscription = create_subscription(
-      processor_plan: ENV["STRIPE_PRICE_BASIC_MONTHLY"],
+      processor_plan: basic_plan.stripe_price_id,
       current_period_end: past_end,
       ends_at: past_end
     )
@@ -88,7 +91,7 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
 
   it "activates pro-only EAs when on a pro plan" do
     subscription = create_subscription(
-      processor_plan: ENV["STRIPE_PRICE_PRO_MONTHLY"],
+      processor_plan: pro_plan.stripe_price_id,
       current_period_end: 1.month.from_now
     )
 
@@ -118,21 +121,4 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
     )
   end
 
-  def stub_price_mapping
-    @original_env = {}
-    Billing::ConfiguredPrices::PRICE_KEYS.each do |key, env_key|
-      @original_env[env_key] = ENV[env_key]
-      ENV[env_key] = "price_#{key}"
-    end
-
-    allow(Billing::ConfiguredPrices).to receive(:resolve_price_id) { |value| value }
-  end
-
-  def restore_price_mapping
-    return unless defined?(@original_env)
-
-    @original_env.each do |env_key, value|
-      value.nil? ? ENV.delete(env_key) : ENV[env_key] = value
-    end
-  end
 end

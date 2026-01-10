@@ -19,7 +19,8 @@ module Licenses
       return [] unless user
       return [] unless user.respond_to?(:licenses)
 
-      eas = ExpertAdvisor.active.includes(:licenses, ea_files_attachment: :blob).ordered_by_rank
+      eas = ExpertAdvisor.active.includes(:licenses, :billing_plan_entitlements, :billing_plans, ea_files_attachment: :blob)
+                          .ordered_by_rank
       license_map = licenses_indexed
 
       eas.map do |ea|
@@ -33,7 +34,7 @@ module Licenses
           accessible: accessible,
           expires_at: expires_at,
           license_key: license_key,
-          allowed_tiers: Array(ea.allowed_subscription_tiers).presence || Billing::DashboardPlan::TIERS
+          allowed_tiers: allowed_tiers_for(ea)
         )
       end
     end
@@ -57,6 +58,13 @@ module Licenses
       else
         [:active, true, license.effective_expires_at, key]
       end
+    end
+
+    def allowed_tiers_for(expert_advisor)
+      tiers = expert_advisor.subscription_tiers
+      return tiers if tiers.present?
+
+      BillingPlan.subscription_tiers.map(&:tier)
     end
   end
 end

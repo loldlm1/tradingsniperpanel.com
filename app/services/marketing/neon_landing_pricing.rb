@@ -1,119 +1,74 @@
-require "digest"
-
 module Marketing
   class NeonLandingPricing
-    CACHE_VERSION = 1
+    MAX_TIERS = 3
 
     def call
-      return {} if Rails.env.test?
+      catalog = Billing::PricingCatalog.new.call
+      return {} if catalog.blank?
 
-      return {} unless ENV["STRIPE_PRIVATE_KEY"].present?
+      tiers = build_tiers(catalog)
+      return {} if tiers.empty?
 
-      price_ids = configured_price_ids
-      return {} if price_ids.empty?
+      intervals = Billing::PricingCatalog.filter_intervals(
+        intervals: catalog[:intervals],
+        prices: catalog[:prices],
+        tiers: tiers.map { |tier| tier[:key] }
+      )
+      return {} if intervals.empty?
 
-      cache_key = "marketing/neon_landing_pricing/v#{CACHE_VERSION}/#{Digest::SHA256.hexdigest(price_ids.join(':'))}"
-      Rails.cache.fetch(cache_key, expires_in: 12.hours) do
-        build_catalog
-      end
+      prices = Billing::PricingCatalog.filter_prices(
+        prices: catalog[:prices],
+        intervals: intervals,
+        tiers: tiers.map { |tier| tier[:key] }
+      )
+
+      {
+        intervals: intervals,
+        prices: prices,
+        tiers: tiers,
+        discount_percent: catalog[:discount_percent]
+      }
     end
 
     private
 
-    def configured_price_ids
-      [
-        ENV["STRIPE_PRICE_BASIC_MONTHLY"],
-        ENV["STRIPE_PRICE_HFT_MONTHLY"],
-        ENV["STRIPE_PRICE_PRO_MONTHLY"],
-        ENV["STRIPE_PRICE_BASIC_ANNUAL"],
-        ENV["STRIPE_PRICE_HFT_ANNUAL"],
-        ENV["STRIPE_PRICE_PRO_ANNUAL"]
-      ].compact_blank
-    end
+    def build_tiers(catalog)
+      tier_keys = Array(catalog[:tiers]).map(&:to_s).first(MAX_TIERS)
+      return [] if tier_keys.empty?
 
-    def build_catalog
-      monthly = {
-        basic: price_details(ENV["STRIPE_PRICE_BASIC_MONTHLY"]),
-        hft: price_details(ENV["STRIPE_PRICE_HFT_MONTHLY"]),
-        pro: price_details(ENV["STRIPE_PRICE_PRO_MONTHLY"])
-      }.compact_blank
+      plans = BillingPlan.subscription.active.where(tier: tier_keys)
+      plans_by_tier = plans.group_by(&:tier)
 
-      annual_raw = {
-        basic: price_details(ENV["STRIPE_PRICE_BASIC_ANNUAL"]),
-        hft: price_details(ENV["STRIPE_PRICE_HFT_ANNUAL"]),
-        pro: price_details(ENV["STRIPE_PRICE_PRO_ANNUAL"])
-      }.compact_blank
-
-      annual = annual_raw.transform_values do |details|
-        effective_monthly_cents = details[:amount_cents] ? (details[:amount_cents] / 12.0) : nil
-        details.merge(
-          effective_monthly_cents:,
-          effective_monthly_display: format_amount(effective_monthly_cents)
-        )
+      tier_keys.map.with_index do |tier, index|
+        plan = plans_by_tier[tier]&.min_by { |record| [record.sort_order.to_i, record.amount_cents.to_i] }
+        {
+          key: tier,
+          name: tier_name(tier),
+          description: tier_description(tier, plan),
+          features_title: tier_features_title(tier),
+          features: tier_features(tier),
+          featured: index == 1
+        }
       end
-
-      {
-        monthly:,
-        annual: annual.merge(discount_percent: discount_percent(monthly:, annual:))
-      }
-    rescue StandardError => e
-      Rails.logger.error("NeonLandingPricing failed: #{e.class} - #{e.message}")
-      {}
     end
 
-    def price_details(price_or_product_id)
-      return if price_or_product_id.blank?
-
-      stripe_price = retrieve_stripe_price(price_or_product_id)
-      return unless stripe_price&.unit_amount
-
-      amount_cents = stripe_price.unit_amount.to_i
-      {
-        amount_cents:,
-        currency: stripe_price.currency,
-        display: format_amount(amount_cents)
-      }
+    def tier_name(tier)
+      I18n.t("landing.neon.pricing.tiers.#{tier}.name", default: tier.to_s.humanize)
     end
 
-    def retrieve_stripe_price(price_or_product_id)
-      Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
+    def tier_description(tier, plan)
+      from_i18n = I18n.t("landing.neon.pricing.tiers.#{tier}.description", default: nil)
+      return from_i18n if from_i18n.present?
 
-      if product_id?(price_or_product_id)
-        product = Stripe::Product.retrieve(price_or_product_id)
-        default_price_id = product&.respond_to?(:default_price) ? product.default_price : nil
-        return Stripe::Price.retrieve(default_price_id) if default_price_id.present?
-      end
-
-      Stripe::Price.retrieve(price_or_product_id)
-    rescue StandardError => e
-      Rails.logger.warn("Stripe price lookup failed: #{price_or_product_id} (#{e.class}: #{e.message})")
-      nil
+      plan&.description
     end
 
-    def product_id?(value)
-      value.to_s.start_with?("prod_")
+    def tier_features_title(tier)
+      I18n.t("landing.neon.pricing.tiers.#{tier}.features_title", default: nil)
     end
 
-    def discount_percent(monthly:, annual:)
-      percents = %i[basic hft pro].filter_map do |tier|
-        monthly_cents = monthly.dig(tier, :amount_cents)
-        annual_cents = annual.dig(tier, :amount_cents)
-        next unless monthly_cents && annual_cents && monthly_cents.positive?
-
-        effective_monthly = annual_cents / 12.0
-        discount = 1 - (effective_monthly / monthly_cents)
-        (discount * 100).round
-      end
-
-      percents.max
-    end
-
-    def format_amount(amount_cents_or_float)
-      return nil if amount_cents_or_float.blank?
-
-      dollars = amount_cents_or_float.to_f / 100.0
-      formatted = format("%.2f", dollars).sub(/\.?0+$/, "")
-      formatted
+    def tier_features(tier)
+      Array(I18n.t("landing.neon.pricing.tiers.#{tier}.features", default: []))
     end
   end
 end
