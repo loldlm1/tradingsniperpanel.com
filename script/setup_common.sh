@@ -285,6 +285,13 @@ ensure_postgres_db() {
   psql_as_postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${db_name} OWNER ${owner};"
 }
 
+drop_postgres_db() {
+  local db_name="$1"
+
+  log "Dropping database ${db_name}"
+  psql_as_postgres -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS ${db_name};"
+}
+
 check_service_active() {
   local service="$1"
 

@@ -31,16 +31,28 @@ fi
 chown root:"${APP_USER}" "${ENV_FILE}"
 chmod 0640 "${ENV_FILE}"
 
+db_user="$(get_env_value DB_USERNAME "${ENV_FILE}")"
+db_password="$(get_env_value DB_PASSWORD "${ENV_FILE}")"
+db_primary="$(get_env_value DB_NAME_STAGING "${ENV_FILE}")"
+db_cache="$(get_env_value DB_NAME_STAGING_CACHE "${ENV_FILE}")"
+db_queue="$(get_env_value DB_NAME_STAGING_QUEUE "${ENV_FILE}")"
+db_cable="$(get_env_value DB_NAME_STAGING_CABLE "${ENV_FILE}")"
+
 log "Stopping staging services"
 systemctl stop tradingsniperpanel-staging.service tradingsniperpanel-sidekiq-staging.service
 
 log "Resetting staging databases"
-set -a
-# shellcheck disable=SC1090
-source "${ENV_FILE}"
-set +a
+ensure_postgres_role "${db_user}" "${db_password}"
+drop_postgres_db "${db_cable}"
+drop_postgres_db "${db_queue}"
+drop_postgres_db "${db_cache}"
+drop_postgres_db "${db_primary}"
+ensure_postgres_db "${db_primary}" "${db_user}"
+ensure_postgres_db "${db_cache}" "${db_user}"
+ensure_postgres_db "${db_queue}" "${db_user}"
+ensure_postgres_db "${db_cable}" "${db_user}"
 
-run_as_app_user "set -a && source '${ENV_FILE}' && set +a && cd '${APP_DIR}' && '${BUNDLE_BIN}' exec rails db:drop:all db:prepare db:seed"
+run_as_app_user "set -a && source '${ENV_FILE}' && set +a && cd '${APP_DIR}' && '${BUNDLE_BIN}' exec rails db:prepare db:seed"
 
 log "Starting staging services"
 systemctl start tradingsniperpanel-staging.service tradingsniperpanel-sidekiq-staging.service
