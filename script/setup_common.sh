@@ -240,6 +240,11 @@ render_env_file() {
     log "Wrote ${dest}"
   fi
 
+  if [[ -f "${dest}" && -n "${APP_USER:-}" ]]; then
+    chown root:"${APP_USER}" "${dest}"
+    chmod 0640 "${dest}"
+  fi
+
   rm -f "${tmp}" "${filtered}"
 }
 

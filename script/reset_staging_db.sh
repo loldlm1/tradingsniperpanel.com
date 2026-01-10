@@ -33,7 +33,7 @@ set -a
 source "${ENV_FILE}"
 set +a
 
-sudo -E -u "${APP_USER}" bash -lc "cd '${APP_DIR}' && '${BUNDLE_BIN}' exec rails db:drop:all db:prepare db:seed"
+run_as_app_user "set -a && source '${ENV_FILE}' && set +a && cd '${APP_DIR}' && '${BUNDLE_BIN}' exec rails db:drop:all db:prepare db:seed"
 
 log "Starting staging services"
 systemctl start tradingsniperpanel-staging.service tradingsniperpanel-sidekiq-staging.service
