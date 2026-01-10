@@ -114,13 +114,33 @@ ensure_redis_version() {
   fi
 }
 
+install_redis() {
+  local candidate
+
+  candidate="$(apt-cache policy redis-server | awk '/Candidate:/ {print $2}')"
+  if [[ -n "${candidate}" && "${candidate}" != "(none)" ]] && dpkg --compare-versions "${candidate}" ge "7.0"; then
+    apt-get install -y redis-server
+    return
+  fi
+
+  candidate="$(apt-cache policy redis | awk '/Candidate:/ {print $2}')"
+  if [[ -n "${candidate}" && "${candidate}" != "(none)" ]] && dpkg --compare-versions "${candidate}" ge "7.0"; then
+    apt-get install -y redis
+    return
+  fi
+
+  warn "Redis 7+ package not available in APT. Attempting redis-server install."
+  apt-get install -y redis-server
+}
+
 ensure_packages() {
   log "Installing system packages"
   apt-get update
   if ensure_redis_repo; then
     apt-get update
   fi
-  apt-get install -y build-essential ca-certificates git curl gnupg libssl-dev libreadline-dev zlib1g-dev libyaml-dev libffi-dev libgdbm-dev libncurses5-dev libpq-dev postgresql postgresql-contrib redis-server nginx unzip
+  apt-get install -y build-essential ca-certificates git curl gnupg libssl-dev libreadline-dev zlib1g-dev libyaml-dev libffi-dev libgdbm-dev libncurses5-dev libpq-dev postgresql postgresql-contrib nginx unzip
+  install_redis
   ensure_redis_version
 }
 
