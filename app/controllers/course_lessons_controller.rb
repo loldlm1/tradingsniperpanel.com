@@ -28,12 +28,23 @@ class CourseLessonsController < ApplicationController
 
   def set_course_entry
     @course_entry = (@accessible_courses || []).find { |entry| entry.course.slug == params[:course_id] }
-    @course = @course_entry&.course || Course.published.find_by!(slug: params[:course_id])
+    @course = @course_entry&.course || Course.published.find_by(slug: params[:course_id])
+    return if @course.present?
+
+    redirect_to dashboard_courses_path(locale: I18n.locale), alert: t("dashboard.courses.access_locked")
+    return
   end
 
   def set_course_lesson
+    return unless @course
+
     @lesson = CourseLesson.joins(:course_module).includes(:course_module)
-                          .find_by!(id: params[:id], course_modules: { course_id: @course.id })
+                          .find_by(id: params[:id], course_modules: { course_id: @course.id })
+    if @lesson.blank?
+      redirect_to dashboard_course_path(@course, locale: I18n.locale), alert: t("dashboard.courses.access_locked")
+      return
+    end
+
     @course_module = @lesson.course_module
   end
 

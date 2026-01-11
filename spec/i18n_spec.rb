@@ -9,6 +9,9 @@ RSpec.describe "I18n translations" do
     %i[en es].each do |locale|
       expect { I18n.t!("app.name", locale:) }.not_to raise_error
       expect { I18n.t!("hero.title", locale:) }.not_to raise_error
+      expect { I18n.t!("dashboard.courses.index.title", locale:) }.not_to raise_error
+      expect { I18n.t!("dashboard.courses.unlock_cta", locale:) }.not_to raise_error
+      expect { I18n.t!("dashboard.nav.courses", locale:) }.not_to raise_error
     end
   end
 end
