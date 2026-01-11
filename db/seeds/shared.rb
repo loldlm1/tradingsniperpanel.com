@@ -102,6 +102,333 @@ module Seeds
     end
   end
 
+  module Courses
+    module_function
+
+    def definitions
+      [
+        {
+          slug: "trading-foundations",
+          position: 1,
+          status: "published",
+          category: "introduction",
+          title_en: "Trading Foundations",
+          title_es: "Fundamentos de Trading",
+          summary_en: "Start here for platform setup, risk basics, and market structure.",
+          summary_es: "Empieza con configuracion, riesgo basico y estructura de mercado.",
+          description_en: "A quick start course for new traders to align on the workflow.",
+          description_es: "Curso rapido para alinear el flujo de trabajo.",
+          tiers: [],
+          modules: [
+            {
+              title_en: "Welcome and Setup",
+              title_es: "Bienvenida y Configuracion",
+              summary_en: "Get ready to trade with the right defaults.",
+              summary_es: "Prepara la plataforma con valores base.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Platform Tour",
+                  title_es: "Recorrido de la plataforma",
+                  duration_seconds: 480,
+                  stream_uid: "demo_stream_uid_1"
+                ),
+                lesson_attrs(
+                  title_en: "Risk Basics",
+                  title_es: "Riesgo basico",
+                  duration_seconds: 540,
+                  stream_uid: "demo_stream_uid_2"
+                )
+              ]
+            },
+            {
+              title_en: "Market Basics",
+              title_es: "Bases del mercado",
+              summary_en: "Key concepts for reading structure.",
+              summary_es: "Conceptos clave para leer estructura.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Candlesticks 101",
+                  title_es: "Velas 101",
+                  duration_seconds: 600,
+                  stream_uid: "demo_stream_uid_3"
+                ),
+                lesson_attrs(
+                  title_en: "Trends and Structure",
+                  title_es: "Tendencias y estructura",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_4"
+                )
+              ]
+            }
+          ]
+        },
+        {
+          slug: "beginner-momentum",
+          position: 2,
+          status: "published",
+          category: "beginner",
+          title_en: "Beginner Momentum",
+          title_es: "Momentum para principiantes",
+          summary_en: "Build reliable entries with momentum rules.",
+          summary_es: "Construye entradas confiables con reglas de momentum.",
+          description_en: "Step-by-step drills for clean, repeatable momentum setups.",
+          description_es: "Ejercicios para crear setups de momentum repetibles.",
+          tiers: %w[basic],
+          modules: [
+            {
+              title_en: "Momentum Essentials",
+              title_es: "Esenciales de momentum",
+              summary_en: "Understand momentum vs mean reversion.",
+              summary_es: "Entiende momentum vs reversa.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Momentum vs Mean Reversion",
+                  title_es: "Momentum vs reversa",
+                  duration_seconds: 660,
+                  stream_uid: "demo_stream_uid_5"
+                ),
+                lesson_attrs(
+                  title_en: "Entry Rules",
+                  title_es: "Reglas de entrada",
+                  duration_seconds: 540,
+                  stream_uid: "demo_stream_uid_6"
+                )
+              ]
+            },
+            {
+              title_en: "Execution",
+              title_es: "Ejecucion",
+              summary_en: "Convert signals into clean orders.",
+              summary_es: "Convierte senales en ordenes limpias.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Order Types",
+                  title_es: "Tipos de orden",
+                  duration_seconds: 480,
+                  stream_uid: "demo_stream_uid_7"
+                ),
+                lesson_attrs(
+                  title_en: "Position Sizing",
+                  title_es: "Tamano de posicion",
+                  duration_seconds: 600,
+                  stream_uid: "demo_stream_uid_8"
+                )
+              ]
+            }
+          ]
+        },
+        {
+          slug: "intermediate-systems",
+          position: 3,
+          status: "published",
+          category: "intermediate",
+          title_en: "Intermediate Systems",
+          title_es: "Sistemas intermedios",
+          summary_en: "Design and test structured trading systems.",
+          summary_es: "Disena y prueba sistemas de trading.",
+          description_en: "Refine strategies with filters, regimes, and testing.",
+          description_es: "Refina estrategias con filtros y pruebas.",
+          tiers: %w[hft],
+          modules: [
+            {
+              title_en: "System Design",
+              title_es: "Diseno de sistema",
+              summary_en: "Build a consistent trading framework.",
+              summary_es: "Construye un marco consistente.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Strategy Filters",
+                  title_es: "Filtros de estrategia",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_9"
+                ),
+                lesson_attrs(
+                  title_en: "Regime Detection",
+                  title_es: "Deteccion de regimen",
+                  duration_seconds: 780,
+                  stream_uid: "demo_stream_uid_10"
+                )
+              ]
+            },
+            {
+              title_en: "Optimization",
+              title_es: "Optimizacion",
+              summary_en: "Tune for stability before live trading.",
+              summary_es: "Ajusta para estabilidad antes de operar.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Parameter Tuning",
+                  title_es: "Ajuste de parametros",
+                  duration_seconds: 660,
+                  stream_uid: "demo_stream_uid_11"
+                ),
+                lesson_attrs(
+                  title_en: "Walk Forward",
+                  title_es: "Walk forward",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_12"
+                )
+              ]
+            }
+          ]
+        },
+        {
+          slug: "advanced-risk-scaling",
+          position: 4,
+          status: "published",
+          category: "advanced",
+          title_en: "Advanced Risk and Scaling",
+          title_es: "Riesgo avanzado y escalamiento",
+          summary_en: "Scale safely with portfolio-level risk controls.",
+          summary_es: "Escala de forma segura con control de riesgo.",
+          description_en: "Advanced techniques for multi-account growth.",
+          description_es: "Tecnicas avanzadas para crecimiento multi cuenta.",
+          tiers: %w[pro],
+          modules: [
+            {
+              title_en: "Portfolio Risk",
+              title_es: "Riesgo de portafolio",
+              summary_en: "Manage exposure across systems.",
+              summary_es: "Administra exposicion entre sistemas.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Correlation Control",
+                  title_es: "Control de correlacion",
+                  duration_seconds: 840,
+                  stream_uid: "demo_stream_uid_13"
+                ),
+                lesson_attrs(
+                  title_en: "Drawdown Rules",
+                  title_es: "Reglas de drawdown",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_14"
+                )
+              ]
+            },
+            {
+              title_en: "Scaling",
+              title_es: "Escalamiento",
+              summary_en: "Grow carefully with automation.",
+              summary_es: "Crece con cuidado y automatizacion.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Multi-Account Scaling",
+                  title_es: "Escalamiento multi cuenta",
+                  duration_seconds: 780,
+                  stream_uid: "demo_stream_uid_15"
+                ),
+                lesson_attrs(
+                  title_en: "Automation Safety",
+                  title_es: "Seguridad de automatizacion",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_16"
+                )
+              ]
+            }
+          ]
+        }
+      ]
+    end
+
+    def seed_courses!
+      return unless defined?(Course)
+
+      definitions.each do |attrs|
+        upsert_course(attrs.dup)
+      end
+    end
+
+    def upsert_course(attrs)
+      module_defs = attrs.delete(:modules) || []
+      tiers = attrs.delete(:tiers) || []
+
+      record = Course.find_or_initialize_by(slug: attrs[:slug])
+      record.assign_attributes(attrs)
+      record.published_at ||= Time.current if record.status == "published"
+      record.save!
+
+      upsert_modules(record, module_defs)
+      attach_entitlements(record, tiers)
+      record
+    end
+
+    def lesson_attrs(title_en:, title_es:, duration_seconds:, stream_uid: nil)
+      {
+        title_en: title_en,
+        title_es: title_es,
+        duration_seconds: duration_seconds,
+        stream_uid: stream_uid,
+        summary_en: "",
+        summary_es: "",
+        body_markdown_en: "# #{title_en}\n\n- Key idea\n- Checklist",
+        body_markdown_es: "# #{title_es}\n\n- Idea clave\n- Checklist"
+      }
+    end
+
+    def upsert_modules(course, module_defs)
+      module_defs.each_with_index do |mod_attrs, index|
+        lesson_defs = mod_attrs.delete(:lessons) || []
+        module_record = course.course_modules.find_or_initialize_by(title_en: mod_attrs[:title_en])
+        module_record.assign_attributes(mod_attrs)
+        module_record.position = index
+        module_record.save!
+
+        upsert_lessons(module_record, lesson_defs)
+      end
+    end
+
+    def upsert_lessons(course_module, lesson_defs)
+      lesson_defs.each_with_index do |lesson_attrs, index|
+        lesson_record = course_module.course_lessons.find_or_initialize_by(title_en: lesson_attrs[:title_en])
+        lesson_record.assign_attributes(lesson_attrs)
+        lesson_record.position = index
+        lesson_record.save!
+      end
+    end
+
+    def attach_entitlements(course, tiers)
+      return if tiers.blank?
+      return unless defined?(BillingPlan)
+
+      plans = BillingPlan.subscription.active
+      return if plans.empty?
+
+      plans_by_tier = plans.group_by(&:tier)
+      Array(tiers).each do |tier|
+        Array(plans_by_tier[tier]).each do |plan|
+          CoursePlanEntitlement.find_or_create_by!(course: course, billing_plan: plan)
+        end
+      end
+    end
+
+    def seed_progress_for(user:)
+      return unless user
+      return unless defined?(Courses::ProgressTracker)
+
+      intro_course = Course.find_by(slug: "trading-foundations")
+      intro_lesson = intro_course&.course_lessons&.first
+      if intro_lesson
+        Courses::ProgressTracker.new(
+          user: user,
+          lesson: intro_lesson,
+          progress_seconds: (intro_lesson.duration_seconds.to_i * 0.5).to_i,
+          completed: false
+        ).call
+      end
+
+      basic_course = Course.find_by(slug: "beginner-momentum")
+      completed_lessons = basic_course&.course_lessons&.first(2) || []
+      completed_lessons.each do |lesson|
+        Courses::ProgressTracker.new(
+          user: user,
+          lesson: lesson,
+          progress_seconds: lesson.duration_seconds.to_i,
+          completed: true
+        ).call
+      end
+    end
+  end
+
   module BillingPlans
     module_function
 

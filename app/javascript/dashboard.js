@@ -104,11 +104,52 @@ const setupGuideScrollSpy = () => {
   onScroll();
 };
 
+const setupCourseProgressTracking = () => {
+  const video = document.querySelector("[data-course-progress]");
+  if (!video || video.dataset.progressBound === "true") return;
+
+  const progressUrl = video.dataset.courseProgressUrl;
+  if (!progressUrl) return;
+
+  const throttleMs = parseInt(video.dataset.courseProgressThrottle || "15000", 10);
+  const csrfToken = document.querySelector("meta[name='csrf-token']")?.getAttribute("content");
+  let lastSentAt = 0;
+
+  const sendProgress = (force = false) => {
+    const now = Date.now();
+    if (!force && now - lastSentAt < throttleMs) return;
+    lastSentAt = now;
+
+    const payload = { progress_seconds: Math.floor(video.currentTime || 0) };
+    if (force) payload.completed = video.ended;
+
+    fetch(progressUrl, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-CSRF-Token": csrfToken
+      },
+      credentials: "same-origin",
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+  };
+
+  video.dataset.progressBound = "true";
+  video.addEventListener("timeupdate", () => sendProgress(false));
+  video.addEventListener("ended", () => sendProgress(true));
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") sendProgress(true);
+  });
+  window.addEventListener("beforeunload", () => sendProgress(true));
+};
+
 const bootstrapDashboardLayout = () => {
   applySidebarState();
   setupCopyHelper();
   setupGuideCodeCopy();
   setupGuideScrollSpy();
+  setupCourseProgressTracking();
 };
 
 bootstrapDashboardLayout();

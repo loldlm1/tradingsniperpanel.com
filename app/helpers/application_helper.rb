@@ -31,6 +31,20 @@ module ApplicationHelper
     I18n.t("landing.#{template}.brand.logo_alt", default: app_name)
   end
 
+  def format_duration(seconds)
+    total = seconds.to_i
+    return "0:00" if total <= 0
+
+    minutes, secs = total.divmod(60)
+    hours, minutes = minutes.divmod(60)
+
+    if hours.positive?
+      format("%d:%02d:%02d", hours, minutes, secs)
+    else
+      format("%d:%02d", minutes, secs)
+    end
+  end
+
   def loading_label(label, loading_text: t("loading.default", default: "Processing..."))
     content_tag(:span, label, data: { loading_label: true }) +
       content_tag(:span, class: "inline-flex items-center justify-center gap-2", data: { loading_spinner: true }, role: "status", "aria-live": "polite", hidden: true) do

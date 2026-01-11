@@ -9,6 +9,7 @@ class ApplicationController < ActionController::Base
   before_action :capture_desired_plan, if: -> { request.format.html? }
   before_action :ensure_terms_accepted, if: :user_signed_in?
   before_action :set_accessible_expert_advisors, if: :user_signed_in?
+  before_action :set_accessible_courses, if: :user_signed_in?
 
   def after_sign_in_path_for(_resource)
     desired_plan = stored_desired_plan
@@ -111,6 +112,10 @@ class ApplicationController < ActionController::Base
 
   def set_accessible_expert_advisors
     @accessible_eas ||= Licenses::AccessibleExpertAdvisors.new(user: current_user).call
+  end
+
+  def set_accessible_courses
+    @accessible_courses ||= Courses::AccessibleCourses.new(user: current_user).call
   end
 
   def ensure_terms_accepted
