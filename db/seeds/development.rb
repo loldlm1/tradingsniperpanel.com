@@ -80,6 +80,7 @@ qa_records = qa_definitions.map do |attrs|
 end
 
 Seeds::BillingPlans.seed_entitlements!
+Seeds::Courses.seed_courses!
 
 qa_user = User.find_or_initialize_by(email: "qa@example.com")
 qa_user.name ||= "QA User"
@@ -90,6 +91,7 @@ if qa_user.new_record?
   qa_user.password_confirmation = "Password123!"
 end
 qa_user.save!
+Seeds::Courses.seed_progress_for(user: qa_user)
 
 encoder = Licenses::LicenseKeyEncoder.new
 unless encoder.configured?

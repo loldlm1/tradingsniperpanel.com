@@ -1,6 +1,7 @@
 class TermsAcceptancesController < ApplicationController
   before_action :authenticate_user!
   skip_before_action :set_accessible_expert_advisors
+  skip_before_action :set_accessible_courses
   before_action :redirect_if_accepted
 
   def new
