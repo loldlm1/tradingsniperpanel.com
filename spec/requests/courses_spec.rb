@@ -29,6 +29,28 @@ RSpec.describe "Courses", type: :request do
     get dashboard_course_lesson_path(paid_course, lesson, locale: :en)
 
     expect(response).to have_http_status(:found)
+    expect(response.headers["Location"]).to include("/dashboard/courses/paid-course")
+  end
+
+  it "redirects when the lesson does not belong to the course" do
+    course = create(:course, slug: "course-a")
+    other_course = create(:course, slug: "course-b")
+    module_record = create(:course_module, course: other_course)
+    lesson = create(:course_lesson, course_module: module_record)
+    sign_in user, scope: :user
+
+    get dashboard_course_lesson_path(course, lesson, locale: :en)
+
+    expect(response).to have_http_status(:found)
+    expect(response.headers["Location"]).to include("/dashboard/courses/course-a")
+  end
+
+  it "redirects when the course is missing" do
+    sign_in user, scope: :user
+
+    get dashboard_course_lesson_path("missing-course", 123, locale: :en)
+
+    expect(response).to have_http_status(:found)
     expect(response.headers["Location"]).to include("/dashboard/courses")
   end
 
