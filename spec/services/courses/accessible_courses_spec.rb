@@ -32,4 +32,13 @@ RSpec.describe Courses::AccessibleCourses do
 
     expect(entry.accessible).to be(true)
   end
+
+  it "unlocks paid courses with one-time enrollment access" do
+    create(:course_enrollment, :one_time, user: user, course: paid_course)
+
+    entries = described_class.new(user: user, tier: nil).call
+    entry = entries.find { |e| e.course == paid_course }
+
+    expect(entry.accessible).to be(true)
+  end
 end

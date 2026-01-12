@@ -81,6 +81,7 @@ end
 
 Seeds::BillingPlans.seed_entitlements!
 Seeds::Courses.seed_courses!
+Seeds::Marketplace.seed_products!
 
 qa_user = User.find_or_initialize_by(email: "qa@example.com")
 qa_user.name ||= "QA User"

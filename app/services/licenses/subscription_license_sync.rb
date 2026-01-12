@@ -51,6 +51,9 @@ module Licenses
     def sync_license_for(user:, expert_advisor:, interval:, subscription:)
       license = License.find_or_initialize_by(user:, expert_advisor:)
       license.with_lock do
+        return if license.access_source_one_time?
+
+        license.access_source = "subscription"
         license.plan_interval = interval
         license.source = "stripe_subscription"
         license.last_synced_at = Time.current
@@ -86,6 +89,7 @@ module Licenses
       disallowed_scope = disallowed_scope.where.not(expert_advisor_id: allowed_ids) if allowed_ids.present?
 
       disallowed_scope.find_each do |license|
+        next if license.access_source_one_time?
         next if license.trial? && !license.trial_expired?
         next if license.expired? || license.revoked?
 

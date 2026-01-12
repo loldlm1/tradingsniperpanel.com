@@ -25,9 +25,11 @@ module Courses
 
       courses.map do |course|
         enrollment = enrollment_map[course.id]
+        purchased_access = enrollment&.access_source_one_time?
+        tier_access = course.allowed_for_tier?(current_tier)
         Entry.new(
           course: course,
-          accessible: course.allowed_for_tier?(current_tier),
+          accessible: purchased_access || tier_access,
           allowed_tiers: course.subscription_tiers,
           cta_plan: cta_plan_for(course),
           progress_percent: enrollment&.progress_percent

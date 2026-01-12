@@ -99,6 +99,7 @@ es:
       expert_advisors_all: "Todos los Expert Advisors"
       courses: "Cursos"
       courses_all: "Todos los cursos"
+      marketplace: "Marketplace"
       pricing: "Planes"
       plans: "Planes"
       billing: "Billing"
@@ -108,6 +109,39 @@ es:
       docs: "Docs"
       settings: "Ajustes"
       my_account: "Mi cuenta"
+    marketplace:
+      index:
+        title: "Marketplace"
+        subtitle: "Bundles de compra única con acceso de por vida."
+        link: "Marketplace"
+        empty_title: "El Marketplace está en preparación"
+        empty_copy: "Estamos preparando bundles de compra única para tu cuenta."
+        empty_cta: "Contactar soporte"
+      card:
+        purchased_badge: "Comprado"
+        includes_eas: "%{count} Expert Advisors"
+        includes_courses: "%{count} Cursos"
+        lifetime_access: "Acceso de por vida"
+        placeholder_alt: "Producto del marketplace"
+      cta:
+        view_details: "Ver detalles"
+        buy_now: "Comprar ahora"
+        purchased: "Comprado"
+      detail:
+        back: "Volver al Marketplace"
+        overview_title: "Resumen"
+        includes_title: "Qué incluye"
+        included_eas: "Expert Advisors"
+        included_courses: "Cursos"
+        already_have_title: "Ya tienes"
+        you_will_get_title: "Recibirás"
+        already_have_empty: "Aún no hay compras previas aplicadas."
+        you_will_get_empty: "Ya tienes todo este bundle."
+        purchased_on: "Comprado el %{date}"
+        lifetime_badge: "Acceso de por vida"
+        price_label: "Compra única"
+      errors:
+        already_purchased: "Ya compraste este producto."
     settings:
       page_title: "Ajustes de la cuenta"
       updated: "Cuenta actualizada."

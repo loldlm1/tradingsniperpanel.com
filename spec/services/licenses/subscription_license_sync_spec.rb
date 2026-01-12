@@ -48,6 +48,7 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
 
       basic_license = License.find_by(user:, expert_advisor: basic_ea)
       expect(basic_license).to be_active
+      expect(basic_license.access_source).to eq("subscription")
       expect(basic_license.plan_interval).to eq("monthly")
       expect(basic_license.encrypted_key).to eq("ENCODED")
       expect(basic_license.expires_at.to_i).to eq(subscription.current_period_end.to_i)
@@ -62,6 +63,27 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
       expect(disallowed_license).to be_expired
       expect(disallowed_license.last_synced_at).to be_present
     end
+  end
+
+  it "keeps one-time licenses active when syncing subscriptions" do
+    subscription = create_subscription(
+      processor_plan: basic_plan.stripe_price_id,
+      current_period_end: 1.month.from_now
+    )
+    lifetime_license = create(
+      :license,
+      :one_time,
+      user: user,
+      expert_advisor: pro_only_ea,
+      source: "stripe_charge"
+    )
+
+    described_class.new(subscription_id: subscription.id, encoder: encoder).call
+
+    lifetime_license.reload
+    expect(lifetime_license).to be_active
+    expect(lifetime_license.expires_at).to be_nil
+    expect(lifetime_license.plan_interval).to be_nil
   end
 
   it "marks licenses as expired when the subscription period is over" do
