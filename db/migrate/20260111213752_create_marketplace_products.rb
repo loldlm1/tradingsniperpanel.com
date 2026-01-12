@@ -11,7 +11,7 @@ class CreateMarketplaceProducts < ActiveRecord::Migration[7.1]
       t.text :summary_es
       t.text :description_en
       t.text :description_es
-      t.references :billing_plan, null: false, foreign_key: true
+      t.references :billing_plan, null: false, foreign_key: true, index: false
 
       t.timestamps
     end

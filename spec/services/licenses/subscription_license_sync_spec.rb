@@ -70,13 +70,8 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
       processor_plan: basic_plan.stripe_price_id,
       current_period_end: 1.month.from_now
     )
-    lifetime_license = create(
-      :license,
-      :one_time,
-      user: user,
-      expert_advisor: pro_only_ea,
-      source: "stripe_charge"
-    )
+    lifetime_license = disallowed_license
+    lifetime_license.update!(access_source: "one_time", source: "stripe_charge")
 
     described_class.new(subscription_id: subscription.id, encoder: encoder).call
 

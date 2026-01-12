@@ -5,6 +5,7 @@ class License < ApplicationRecord
     expired: "expired",
     revoked: "revoked"
   }.freeze
+  LIFETIME_EXPIRES_AT = Time.utc(2099, 12, 31, 23, 59, 59)
 
   belongs_to :user
   belongs_to :expert_advisor
@@ -35,6 +36,14 @@ class License < ApplicationRecord
 
   def effective_expires_at
     trial? ? trial_ends_at : expires_at
+  end
+
+  def key_expires_at
+    return trial_ends_at if trial?
+    return expires_at if expires_at.present?
+    return LIFETIME_EXPIRES_AT if access_source_one_time?
+
+    nil
   end
 
   def period_expired?

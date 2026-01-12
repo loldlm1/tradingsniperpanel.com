@@ -12,16 +12,5 @@ FactoryBot.define do
     description_en { "Lifetime access to curated Expert Advisors and courses." }
     description_es { "Acceso de por vida a Expert Advisors y cursos." }
 
-    after(:build) do |product|
-      plan = product.billing_plan
-      next unless plan
-
-      plan.key = product.key
-      plan.name = product.title_en
-      plan.kind = "one_time"
-      plan.tier = nil
-      plan.interval = nil
-      plan.interval_count = nil
-    end
   end
 end

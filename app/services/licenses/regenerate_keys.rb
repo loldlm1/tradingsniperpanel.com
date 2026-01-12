@@ -15,7 +15,7 @@ module Licenses
       skipped = 0
 
       License.active_or_trial.includes(:user, :expert_advisor).find_each do |license|
-        expires_at = license.effective_expires_at
+        expires_at = license.key_expires_at
         if expires_at.blank?
           skipped += 1
           logger.warn("[Licenses::RegenerateKeys] skipped license_id=#{license.id} missing expires_at")
