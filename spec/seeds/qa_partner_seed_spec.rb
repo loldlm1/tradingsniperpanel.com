@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe "QA partner seeds" do
   before do
-    load Rails.root.join("db", "seeds", "shared.rb")
+    load Rails.root.join("db", "seeds", "shared.rb") unless defined?(Seeds::QaUsers)
   end
 
   it "creates partner memberships and commissions idempotently" do

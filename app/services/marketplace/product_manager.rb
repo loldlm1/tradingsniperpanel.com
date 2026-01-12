@@ -21,8 +21,7 @@ module Marketplace
     def create!(product_attributes:, plan_attributes:)
       attrs = normalize_hash(product_attributes)
       product = MarketplaceProduct.new(attrs)
-      product.valid?
-      raise ActiveRecord::RecordInvalid, product if product.invalid?
+      validate_product_attributes!(product)
 
       plan_attrs = build_plan_attributes(product, plan_attributes)
       plan = create_plan(plan_attrs)
@@ -75,6 +74,13 @@ module Marketplace
       return Billing::PlanCreator.new(plan_attrs, logger: logger).call.plan if stripe_required
 
       BillingPlan.create!(plan_attrs)
+    end
+
+    def validate_product_attributes!(product)
+      product.valid?
+      product.errors.delete(:billing_plan)
+      product.errors.delete(:billing_plan_id)
+      raise ActiveRecord::RecordInvalid, product if product.errors.any?
     end
 
     def build_plan_attributes(product, plan_attributes)

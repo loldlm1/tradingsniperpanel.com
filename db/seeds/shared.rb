@@ -524,7 +524,7 @@ module Seeds
     end
   end
 
-  module Marketplace
+  module MarketplaceProducts
     module_function
 
     def definitions
@@ -578,11 +578,11 @@ module Seeds
       return unless defined?(MarketplaceProduct)
       return unless defined?(BillingPlan)
       unless ENV["STRIPE_PRIVATE_KEY"].present?
-        Rails.logger.warn("[Seeds::Marketplace] skipped: STRIPE_PRIVATE_KEY is not set")
+        Rails.logger.warn("[Seeds::MarketplaceProducts] skipped: STRIPE_PRIVATE_KEY is not set")
         return
       end
 
-      manager = ::Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
+      manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
 
       definitions.each do |attrs|
         upsert_product(manager, attrs)
