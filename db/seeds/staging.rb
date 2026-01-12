@@ -6,3 +6,4 @@ Seeds::BillingPlans.seed_plans!
 Seeds::BillingPlans.seed_entitlements!
 Seeds::Courses.seed_courses!
 Seeds::Marketplace.seed_products!
+Seeds::QaUsers.seed!

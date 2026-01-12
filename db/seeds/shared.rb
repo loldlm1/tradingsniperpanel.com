@@ -647,4 +647,34 @@ module Seeds
       end
     end
   end
+
+  module QaUsers
+    module_function
+
+    DEFAULT_PASSWORD = "Password123!"
+    DEFAULT_TRADER_EMAIL = "qa@example.com"
+    DEFAULT_PARTNER_EMAIL = "qa.partner@example.com"
+
+    def seed!(trader_email: DEFAULT_TRADER_EMAIL, partner_email: DEFAULT_PARTNER_EMAIL, password: DEFAULT_PASSWORD)
+      return {} unless defined?(User)
+
+      {
+        trader: upsert_user(email: trader_email, name: "QA User", role: :trader, password: password),
+        partner: upsert_user(email: partner_email, name: "QA Partner", role: :partner, password: password)
+      }
+    end
+
+    def upsert_user(email:, name:, role:, password:)
+      user = User.find_or_initialize_by(email: email)
+      user.name = name if user.name.blank?
+      user.role = role if user.role.to_s != role.to_s
+      user.terms_accepted_at ||= Time.current
+      if user.new_record?
+        user.password = password
+        user.password_confirmation = password
+      end
+      user.save!
+      user
+    end
+  end
 end
