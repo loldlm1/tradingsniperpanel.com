@@ -1,18 +1,21 @@
 module Marketplace
   class PlanSync
-    def initialize(product:, logger: Rails.logger)
+    def initialize(product:, logger: Rails.logger, sync_stripe: ENV["STRIPE_PRIVATE_KEY"].present?)
       @product = product
       @logger = logger
+      @sync_stripe = sync_stripe
     end
 
     def call
       plan = product.billing_plan
       return unless plan
 
-      update_plan(plan)
-      return plan unless ENV["STRIPE_PRIVATE_KEY"].present?
-
-      Billing::PlanCreator.new(plan_attributes(plan), logger: logger).call
+      assign_plan_attributes(plan)
+      if sync_stripe
+        Billing::PlanCreator.new(plan_attributes(plan), logger: logger).call
+      else
+        plan.save!
+      end
       plan
     rescue StandardError => e
       logger.error("[Marketplace::PlanSync] failed marketplace_product_id=#{product.id} billing_plan_id=#{plan&.id}: #{e.class} - #{e.message}")
@@ -21,9 +24,9 @@ module Marketplace
 
     private
 
-    attr_reader :product, :logger
+    attr_reader :product, :logger, :sync_stripe
 
-    def update_plan(plan)
+    def assign_plan_attributes(plan)
       plan.assign_attributes(
         key: product.key,
         name: product.title_for(:en),
@@ -36,7 +39,6 @@ module Marketplace
         sort_order: product.sort_order,
         metadata: updated_metadata(plan.metadata)
       )
-      plan.save!
     end
 
     def updated_metadata(existing)

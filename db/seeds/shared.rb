@@ -577,45 +577,39 @@ module Seeds
     def seed_products!
       return unless defined?(MarketplaceProduct)
       return unless defined?(BillingPlan)
+      unless ENV["STRIPE_PRIVATE_KEY"].present?
+        Rails.logger.warn("[Seeds::Marketplace] skipped: STRIPE_PRIVATE_KEY is not set")
+        return
+      end
+
+      manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
 
       definitions.each do |attrs|
-        upsert_product(attrs)
+        upsert_product(manager, attrs)
       end
     end
 
-    def upsert_product(attrs)
-      plan = BillingPlan.find_or_initialize_by(key: "marketplace_#{attrs[:slug]}")
-      plan.assign_attributes(
-        name: attrs[:title_en],
-        description: attrs[:summary_en],
-        kind: "one_time",
-        tier: nil,
-        interval: nil,
-        interval_count: nil,
-        amount_cents: attrs[:amount_cents],
-        currency: BillingPlans::DEFAULT_CURRENCY,
-        active: true,
-        sort_order: attrs[:sort_order]
+    def upsert_product(manager, attrs)
+      product = manager.upsert!(
+        product_attributes: {
+          slug: attrs[:slug],
+          status: "active",
+          sort_order: attrs[:sort_order],
+          title_en: attrs[:title_en],
+          title_es: attrs[:title_es],
+          summary_en: attrs[:summary_en],
+          summary_es: attrs[:summary_es],
+          description_en: attrs[:description_en],
+          description_es: attrs[:description_es]
+        },
+        plan_attributes: {
+          amount_cents: attrs[:amount_cents],
+          currency: BillingPlans::DEFAULT_CURRENCY
+        }
       )
-      plan.save!
-
-      product = MarketplaceProduct.find_or_initialize_by(slug: attrs[:slug])
-      product.assign_attributes(
-        key: plan.key,
-        status: "active",
-        sort_order: attrs[:sort_order],
-        title_en: attrs[:title_en],
-        title_es: attrs[:title_es],
-        summary_en: attrs[:summary_en],
-        summary_es: attrs[:summary_es],
-        description_en: attrs[:description_en],
-        description_es: attrs[:description_es],
-        billing_plan: plan
-      )
-      product.save!
 
       attach_image(product, attrs[:image])
-      attach_entitlements(plan, attrs[:ea_ids], attrs[:course_slugs])
+      attach_entitlements(product.billing_plan, attrs[:ea_ids], attrs[:course_slugs])
     end
 
     def attach_image(product, image_path)

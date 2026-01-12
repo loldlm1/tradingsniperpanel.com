@@ -14,10 +14,9 @@ class MarketplaceProduct < ApplicationRecord
 
   validate :key_matches_slug
   validate :billing_plan_is_one_time
+  validate :billing_plan_has_stripe_ids
   validate :slug_immutable, on: :update
   validate :key_immutable, on: :update
-
-  after_commit :enqueue_plan_sync, on: %i[create update]
 
   validates :slug, presence: true, uniqueness: true
   validates :key, presence: true, uniqueness: true
@@ -69,6 +68,13 @@ class MarketplaceProduct < ApplicationRecord
     errors.add(:billing_plan, :invalid)
   end
 
+  def billing_plan_has_stripe_ids
+    return unless billing_plan
+    return if billing_plan.stripe_product_id.present? && billing_plan.stripe_price_id.present?
+
+    errors.add(:billing_plan, :invalid)
+  end
+
   def slug_immutable
     return unless slug_changed?
 
@@ -79,12 +85,6 @@ class MarketplaceProduct < ApplicationRecord
     return unless key_changed?
 
     errors.add(:key, :immutable)
-  end
-
-  def enqueue_plan_sync
-    return unless billing_plan
-
-    Marketplace::SyncBillingPlanJob.perform_later(id)
   end
 
   def localized_value(prefix, locale)
