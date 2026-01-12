@@ -113,7 +113,7 @@ es:
       index:
         title: "Marketplace"
         subtitle: "Bundles de compra única con acceso de por vida."
-        link: "Marketplace"
+        link: "Todos los productos"
         empty_title: "El Marketplace está en preparación"
         empty_copy: "Estamos preparando bundles de compra única para tu cuenta."
         empty_cta: "Contactar soporte"
