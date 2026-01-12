@@ -42,6 +42,18 @@ RSpec.describe "Marketplace seeds" do
     end.not_to change(MarketplaceProduct, :count)
   end
 
+  it "does not create duplicate Stripe products or prices when seeding twice" do
+    Seeds::MarketplaceProducts.seed_products!
+
+    expect(Stripe::Product.counter.to_i).to eq(3)
+    expect(Stripe::Price.counter.to_i).to eq(3)
+
+    Seeds::MarketplaceProducts.seed_products!
+
+    expect(Stripe::Product.counter.to_i).to eq(3)
+    expect(Stripe::Price.counter.to_i).to eq(3)
+  end
+
   def stub_stripe
     stub_const("Stripe", Module.new) unless defined?(Stripe)
     Stripe.singleton_class.attr_accessor :api_key unless Stripe.respond_to?(:api_key=)
