@@ -11,6 +11,7 @@ class ApplicationController < ActionController::Base
   before_action :set_accessible_expert_advisors, if: :user_signed_in?
   before_action :set_accessible_courses, if: :user_signed_in?
   before_action :set_marketplace_availability, if: :user_signed_in?
+  before_action :set_marketplace_nav_products, if: :user_signed_in?
 
   def after_sign_in_path_for(_resource)
     desired_plan = stored_desired_plan
@@ -121,6 +122,12 @@ class ApplicationController < ActionController::Base
 
   def set_marketplace_availability
     @marketplace_available ||= Marketplace::Availability.new.call
+  end
+
+  def set_marketplace_nav_products
+    return unless @marketplace_available
+
+    @marketplace_nav_products ||= Marketplace::SidebarProducts.new(limit: 5).call
   end
 
   def ensure_terms_accepted

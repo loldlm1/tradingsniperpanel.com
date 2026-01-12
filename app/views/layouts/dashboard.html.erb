@@ -212,9 +212,20 @@
                       <ul class="pl-8 mt-1 hidden" :class="open ? 'block!' : 'hidden'">
                         <li class="mb-1 last:mb-0">
                           <%= link_to dashboard_marketplace_path, class: mosaic_sidebar_child_link_classes(active: marketplace_group_active) do %>
-                            <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.marketplace.index.link", default: "Marketplace") %></span>
+                            <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.marketplace.index.link", default: "All Products") %></span>
                           <% end %>
                         </li>
+                        <% (@marketplace_nav_products || []).each_with_index do |product, idx| %>
+                          <li class="mb-1 last:mb-0">
+                            <% show_path = dashboard_marketplace_product_path(product, locale: I18n.locale) %>
+                            <%= link_to show_path, class: mosaic_sidebar_child_link_classes(active: current_page?(show_path)) do %>
+                              <span class="<%= mosaic_sidebar_child_span_classes %> flex items-center gap-2">
+                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= idx + 1 %></span>
+                                <span class="truncate"><%= product.title_for(I18n.locale) %></span>
+                              </span>
+                            <% end %>
+                          </li>
+                        <% end %>
                       </ul>
                     </div>
                   </li>

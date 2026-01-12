@@ -113,7 +113,7 @@ en:
       index:
         title: "Marketplace"
         subtitle: "One-time bundles with lifetime access."
-        link: "Marketplace"
+        link: "All Products"
         empty_title: "Marketplace is warming up"
         empty_copy: "We're preparing one-time bundles for your account."
         empty_cta: "Contact Support"
