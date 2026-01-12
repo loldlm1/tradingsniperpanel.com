@@ -99,6 +99,7 @@ en:
       expert_advisors_all: "All Expert Advisors"
       courses: "Courses"
       courses_all: "All Courses"
+      marketplace: "Marketplace"
       pricing: "Plans"
       plans: "Plans"
       billing: "Billing"
@@ -108,6 +109,39 @@ en:
       docs: "Docs"
       settings: "Settings"
       my_account: "My Account"
+    marketplace:
+      index:
+        title: "Marketplace"
+        subtitle: "One-time bundles with lifetime access."
+        link: "Marketplace"
+        empty_title: "Marketplace is warming up"
+        empty_copy: "We're preparing one-time bundles for your account."
+        empty_cta: "Contact Support"
+      card:
+        purchased_badge: "Purchased"
+        includes_eas: "%{count} Expert Advisors"
+        includes_courses: "%{count} Courses"
+        lifetime_access: "Lifetime access"
+        placeholder_alt: "Marketplace product"
+      cta:
+        view_details: "View details"
+        buy_now: "Buy now"
+        purchased: "Purchased"
+      detail:
+        back: "Back to Marketplace"
+        overview_title: "Overview"
+        includes_title: "What's included"
+        included_eas: "Expert Advisors"
+        included_courses: "Courses"
+        already_have_title: "Already have"
+        you_will_get_title: "You'll get"
+        already_have_empty: "No previous purchases applied yet."
+        you_will_get_empty: "You're already set with this bundle."
+        purchased_on: "Purchased on %{date}"
+        lifetime_badge: "Lifetime access"
+        price_label: "One-time purchase"
+      errors:
+        already_purchased: "You already purchased this product."
     settings:
       page_title: "Account Settings"
       updated: "Account updated."

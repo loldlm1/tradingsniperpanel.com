@@ -11,6 +11,7 @@ class License < ApplicationRecord
   has_many :broker_accounts, dependent: :destroy
 
   enum :status, STATUSES
+  enum :access_source, { subscription: "subscription", one_time: "one_time" }, prefix: true
 
   validates :encrypted_key, presence: true
   validates :status, inclusion: { in: STATUSES.values }

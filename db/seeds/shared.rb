@@ -523,4 +523,134 @@ module Seeds
       false
     end
   end
+
+  module Marketplace
+    module_function
+
+    def definitions
+      [
+        {
+          slug: "ea_starter_bundle",
+          sort_order: 1,
+          title_en: "EA Starter Bundle",
+          title_es: "Bundle inicial de EAs",
+          summary_en: "Own the core EAs with lifetime access for your trading workflows.",
+          summary_es: "Acceso de por vida a los EAs principales para tus flujos de trading.",
+          description_en: "A one-time bundle that includes the flagship Expert Advisors and lifetime access.",
+          description_es: "Bundle de compra unica con los Expert Advisors principales y acceso de por vida.",
+          amount_cents: 12_900,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-01.jpg"),
+          ea_ids: %w[sniper_advanced_panel pandora_box],
+          course_slugs: []
+        },
+        {
+          slug: "course_essentials",
+          sort_order: 2,
+          title_en: "Course Essentials Bundle",
+          title_es: "Bundle esencial de cursos",
+          summary_en: "Build your trading foundation with lifetime access to core courses.",
+          summary_es: "Refuerza tu base de trading con acceso de por vida a cursos clave.",
+          description_en: "One-time access to the foundational courses plus future updates in this bundle.",
+          description_es: "Acceso unico a los cursos fundamentales con actualizaciones futuras del bundle.",
+          amount_cents: 8_900,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-09.jpg"),
+          ea_ids: [],
+          course_slugs: %w[trading-foundations beginner-momentum]
+        },
+        {
+          slug: "pro_trader_bundle",
+          sort_order: 3,
+          title_en: "Pro Trader Bundle",
+          title_es: "Bundle Pro Trader",
+          summary_en: "Combine premium EAs and courses for a full-stack trading kit.",
+          summary_es: "Combina EAs premium y cursos para un kit completo de trading.",
+          description_en: "A mixed bundle for traders who want both automation tools and advanced training.",
+          description_es: "Bundle mixto para traders que buscan automatizacion y entrenamiento avanzado.",
+          amount_cents: 17_900,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-17.jpg"),
+          ea_ids: %w[sniper_advanced_panel],
+          course_slugs: %w[intermediate-systems]
+        }
+      ]
+    end
+
+    def seed_products!
+      return unless defined?(MarketplaceProduct)
+      return unless defined?(BillingPlan)
+
+      definitions.each do |attrs|
+        upsert_product(attrs)
+      end
+    end
+
+    def upsert_product(attrs)
+      plan = BillingPlan.find_or_initialize_by(key: "marketplace_#{attrs[:slug]}")
+      plan.assign_attributes(
+        name: attrs[:title_en],
+        description: attrs[:summary_en],
+        kind: "one_time",
+        tier: nil,
+        interval: nil,
+        interval_count: nil,
+        amount_cents: attrs[:amount_cents],
+        currency: BillingPlans::DEFAULT_CURRENCY,
+        active: true,
+        sort_order: attrs[:sort_order]
+      )
+      plan.save!
+
+      product = MarketplaceProduct.find_or_initialize_by(slug: attrs[:slug])
+      product.assign_attributes(
+        key: plan.key,
+        status: "active",
+        sort_order: attrs[:sort_order],
+        title_en: attrs[:title_en],
+        title_es: attrs[:title_es],
+        summary_en: attrs[:summary_en],
+        summary_es: attrs[:summary_es],
+        description_en: attrs[:description_en],
+        description_es: attrs[:description_es],
+        billing_plan: plan
+      )
+      product.save!
+
+      attach_image(product, attrs[:image])
+      attach_entitlements(plan, attrs[:ea_ids], attrs[:course_slugs])
+    end
+
+    def attach_image(product, image_path)
+      return unless image_path&.exist?
+      return if product.image.attached?
+
+      File.open(image_path) do |file|
+        product.image.attach(
+          io: file,
+          filename: File.basename(image_path),
+          content_type: "image/jpeg"
+        )
+      end
+    end
+
+    def attach_entitlements(plan, ea_ids, course_slugs)
+      Array(ea_ids).each do |ea_id|
+        expert_advisor = ExpertAdvisor.find_by(ea_id: ea_id)
+        next unless expert_advisor
+
+        BillingPlanEntitlement.find_or_create_by!(
+          billing_plan: plan,
+          expert_advisor: expert_advisor
+        )
+      end
+
+      Array(course_slugs).each do |slug|
+        course = Course.find_by(slug: slug)
+        next unless course
+
+        CoursePlanEntitlement.find_or_create_by!(
+          billing_plan: plan,
+          course: course
+        )
+      end
+    end
+  end
 end
