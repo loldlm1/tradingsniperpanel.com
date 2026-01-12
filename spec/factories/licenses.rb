@@ -9,7 +9,14 @@ FactoryBot.define do
     source { "spec" }
     access_source { "subscription" }
     encrypted_key do
-      key_expires_at = status.to_s == "trial" ? trial_ends_at : expires_at
+      key_expires_at =
+        if status.to_s == "trial"
+          trial_ends_at
+        elsif access_source.to_s == "one_time" && expires_at.blank?
+          License::LIFETIME_EXPIRES_AT
+        else
+          expires_at
+        end
       Licenses::LicenseKeyEncoder.new(
         primary_key: ENV.fetch("EA_LICENSE_PRIMARY_KEY", "PRIMARY_KEY"),
         secondary_key: ENV.fetch("EA_LICENSE_SECRET_KEY", "SECONDARY_KEY")

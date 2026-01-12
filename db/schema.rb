@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_24_000005) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_11_213755) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -111,8 +111,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_24_000005) do
     t.integer "progress_percent", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "access_source"
+    t.datetime "purchased_at"
+    t.bigint "pay_charge_id"
+    t.index ["access_source"], name: "index_course_enrollments_on_access_source"
     t.index ["course_id"], name: "index_course_enrollments_on_course_id"
     t.index ["last_lesson_id"], name: "index_course_enrollments_on_last_lesson_id"
+    t.index ["pay_charge_id"], name: "index_course_enrollments_on_pay_charge_id"
     t.index ["user_id", "course_id"], name: "index_course_enrollments_on_user_id_and_course_id", unique: true
     t.index ["user_id"], name: "index_course_enrollments_on_user_id"
   end
@@ -222,12 +227,47 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_24_000005) do
     t.datetime "last_synced_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "access_source"
+    t.index ["access_source"], name: "index_licenses_on_access_source"
     t.index ["expert_advisor_id"], name: "index_licenses_on_expert_advisor_id"
     t.index ["expires_at"], name: "index_licenses_on_expires_at"
     t.index ["status"], name: "index_licenses_on_status"
     t.index ["trial_ends_at"], name: "index_licenses_on_trial_ends_at"
     t.index ["user_id", "expert_advisor_id"], name: "index_licenses_on_user_id_and_expert_advisor_id", unique: true
     t.index ["user_id"], name: "index_licenses_on_user_id"
+  end
+
+  create_table "marketplace_products", force: :cascade do |t|
+    t.string "slug", null: false
+    t.string "key", null: false
+    t.string "status", default: "draft", null: false
+    t.integer "sort_order", default: 0, null: false
+    t.string "title_en", null: false
+    t.string "title_es", null: false
+    t.text "summary_en"
+    t.text "summary_es"
+    t.text "description_en"
+    t.text "description_es"
+    t.bigint "billing_plan_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["billing_plan_id"], name: "index_marketplace_products_on_billing_plan_id", unique: true
+    t.index ["key"], name: "index_marketplace_products_on_key", unique: true
+    t.index ["slug"], name: "index_marketplace_products_on_slug", unique: true
+    t.index ["status"], name: "index_marketplace_products_on_status"
+  end
+
+  create_table "marketplace_purchases", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "billing_plan_id", null: false
+    t.bigint "pay_charge_id"
+    t.datetime "purchased_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["billing_plan_id"], name: "index_marketplace_purchases_on_billing_plan_id"
+    t.index ["pay_charge_id"], name: "index_marketplace_purchases_on_pay_charge_id"
+    t.index ["user_id", "billing_plan_id"], name: "index_marketplace_purchases_on_user_id_and_billing_plan_id", unique: true
+    t.index ["user_id"], name: "index_marketplace_purchases_on_user_id"
   end
 
   create_table "partner_commissions", force: :cascade do |t|
@@ -478,6 +518,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_24_000005) do
   add_foreign_key "broker_accounts", "licenses"
   add_foreign_key "course_enrollments", "course_lessons", column: "last_lesson_id"
   add_foreign_key "course_enrollments", "courses"
+  add_foreign_key "course_enrollments", "pay_charges"
   add_foreign_key "course_enrollments", "users"
   add_foreign_key "course_lesson_progresses", "course_lessons"
   add_foreign_key "course_lesson_progresses", "users"
@@ -487,6 +528,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_24_000005) do
   add_foreign_key "course_plan_entitlements", "courses"
   add_foreign_key "licenses", "expert_advisors"
   add_foreign_key "licenses", "users"
+  add_foreign_key "marketplace_products", "billing_plans"
+  add_foreign_key "marketplace_purchases", "billing_plans"
+  add_foreign_key "marketplace_purchases", "pay_charges"
+  add_foreign_key "marketplace_purchases", "users"
   add_foreign_key "partner_commissions", "partner_memberships"
   add_foreign_key "partner_commissions", "partner_payout_requests", column: "payout_request_id"
   add_foreign_key "partner_commissions", "partner_profiles"
