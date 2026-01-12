@@ -582,7 +582,7 @@ module Seeds
         return
       end
 
-      manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
+      manager = ::Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
 
       definitions.each do |attrs|
         upsert_product(manager, attrs)
@@ -675,6 +675,211 @@ module Seeds
       end
       user.save!
       user
+    end
+  end
+
+  module Partners
+    module_function
+
+    DEFAULT_REFERRED_EMAILS = [
+      "qa.referral1@example.com",
+      "qa.referral2@example.com",
+      "qa.referral3@example.com"
+    ].freeze
+    DEFAULT_PASSWORD = QaUsers::DEFAULT_PASSWORD
+    DEFAULT_DISCOUNT_PERCENT = 15
+
+    def seed_qa!(partner:, referred_emails: DEFAULT_REFERRED_EMAILS, password: DEFAULT_PASSWORD)
+      return [] unless partner&.partner?
+      return [] unless defined?(PartnerProfile) && defined?(PartnerMembership)
+      return [] unless defined?(PartnerCommission) && defined?(PartnerPayoutRequest)
+      return [] unless defined?(Refer)
+
+      partner.ensure_referral_code
+      partner.ensure_partner_profile_for_partner
+      profile = partner.partner_profile
+      return [] unless profile
+
+      if profile.discount_percent.nil? || profile.discount_percent.zero?
+        profile.update!(discount_percent: DEFAULT_DISCOUNT_PERCENT)
+      end
+
+      requested_commissions = []
+      paid_commissions = []
+      referred_users = []
+
+      referred_emails.each_with_index do |email, idx|
+        user = QaUsers.upsert_user(
+          email: email,
+          name: "QA Referral #{idx + 1}",
+          role: :trader,
+          password: password
+        )
+        referred_users << user
+
+        attach_referral(partner, user)
+        membership = upsert_membership(profile, user, depth: idx + 1)
+        seed_commissions(
+          profile: profile,
+          membership: membership,
+          user: user,
+          index: idx,
+          requested_commissions: requested_commissions,
+          paid_commissions: paid_commissions
+        )
+      end
+
+      seed_subscription_for(referred_users.first)
+      attach_payout_request(
+        profile,
+        key: "seed:qa_partner_requested",
+        status: :pending,
+        requested_at: 5.days.ago,
+        commissions: requested_commissions,
+        commission_status: :requested
+      )
+      attach_payout_request(
+        profile,
+        key: "seed:qa_partner_paid",
+        status: :paid,
+        paid_at: 1.month.ago,
+        commissions: paid_commissions,
+        commission_status: :paid
+      )
+
+      referred_users
+    end
+
+    def attach_referral(partner, user)
+      return unless user.respond_to?(:referrer)
+      return if user.referrer == partner
+      return if user.referrer.present? && user.referrer != partner
+
+      code = partner.referral_codes.first&.code
+      return if code.blank?
+
+      Refer.refer(code: code, referee: user)
+      user.reload
+      user.ensure_referral_code_if_referred!
+    end
+
+    def upsert_membership(profile, user, depth:)
+      membership = PartnerMembership.active.find_or_initialize_by(user: user)
+      membership.partner_profile = profile
+      membership.referral = user.referral if user.respond_to?(:referral)
+      membership.depth = depth if membership.depth.to_i <= 0
+      membership.started_at ||= Time.current
+      membership.save!
+      membership
+    end
+
+    def seed_commissions(profile:, membership:, user:, index:, requested_commissions:, paid_commissions:)
+      now = Time.current
+      base_key = "seed:qa_partner_#{user.id || user.email}"
+
+      upsert_commission(
+        profile: profile,
+        membership: membership,
+        user: user,
+        seed_key: "#{base_key}:pending",
+        status: :pending,
+        commission_kind: :initial,
+        amount_cents: 1200 + (index * 200),
+        occurred_at: now - (index + 2).days
+      )
+
+      if index.zero?
+        requested_commissions << upsert_commission(
+          profile: profile,
+          membership: membership,
+          user: user,
+          seed_key: "#{base_key}:requested",
+          status: :requested,
+          commission_kind: :renewal,
+          amount_cents: 900,
+          occurred_at: now - 10.days
+        )
+      elsif index == 1
+        paid_commissions << upsert_commission(
+          profile: profile,
+          membership: membership,
+          user: user,
+          seed_key: "#{base_key}:paid",
+          status: :paid,
+          commission_kind: :renewal,
+          amount_cents: 1500,
+          occurred_at: now - 2.months
+        )
+      end
+    end
+
+    def upsert_commission(profile:, membership:, user:, seed_key:, status:, commission_kind:, amount_cents:, occurred_at:)
+      commission = PartnerCommission.find_by("metadata ->> 'seed_key' = ?", seed_key)
+      attrs = {
+        partner_profile: profile,
+        partner_membership: membership,
+        referred_user: user,
+        referral: user.respond_to?(:referral) ? user.referral : nil,
+        commission_kind: commission_kind,
+        amount_cents: amount_cents,
+        currency: "usd",
+        percent_applied: profile.discount_percent_or_default,
+        status: status,
+        occurred_at: occurred_at,
+        metadata: seed_metadata(seed_key)
+      }
+
+      if commission
+        commission.update!(attrs)
+      else
+        commission = PartnerCommission.create!(attrs)
+      end
+
+      commission
+    end
+
+    def seed_metadata(seed_key)
+      { "seed_key" => seed_key, "seed_source" => "qa" }
+    end
+
+    def attach_payout_request(profile, key:, status:, commissions:, commission_status:, requested_at: nil, paid_at: nil)
+      return if commissions.blank?
+
+      request = PartnerPayoutRequest.find_or_initialize_by(
+        partner_profile: profile,
+        payment_reference: key
+      )
+      request.status = status
+      request.note ||= "Seed data"
+      request.requested_at ||= requested_at if requested_at
+      request.paid_at = paid_at if paid_at
+      request.total_cents = commissions.sum(&:amount_cents)
+      request.save!
+
+      commissions.each do |commission|
+        commission.update!(payout_request: request, status: commission_status)
+      end
+
+      request
+    end
+
+    def seed_subscription_for(user)
+      return unless user
+      return unless defined?(Pay::Customer) && defined?(Pay::Subscription)
+
+      customer = user.pay_customers.find_or_initialize_by(processor: "stripe")
+      customer.processor_id ||= "cus_seed_#{user.id}"
+      customer.default = true if customer.default.nil?
+      customer.save!
+
+      subscription = customer.subscriptions.find_or_initialize_by(processor_id: "sub_seed_#{user.id}")
+      subscription.name ||= "default"
+      subscription.processor_plan ||= "seed_basic_monthly"
+      subscription.status = "active"
+      subscription.quantity ||= 1
+      subscription.current_period_start ||= 15.days.ago
+      subscription.current_period_end ||= 15.days.from_now
+      subscription.save!
     end
   end
 end

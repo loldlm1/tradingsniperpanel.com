@@ -86,6 +86,7 @@ Seeds::Marketplace.seed_products!
 qa_users = Seeds::QaUsers.seed!
 qa_user = qa_users[:trader]
 Seeds::Courses.seed_progress_for(user: qa_user) if qa_user
+Seeds::Partners.seed_qa!(partner: qa_users[:partner])
 
 encoder = Licenses::LicenseKeyEncoder.new
 unless encoder.configured?
