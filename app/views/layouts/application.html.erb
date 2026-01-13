@@ -13,8 +13,19 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%= stylesheet_link_tag "neon/css/vendors/aos" %>
-    <%= stylesheet_link_tag "neon/style" %>
+    <% assets_template = marketing_assets_template %>
+    <% default_body_class = if assets_template == "mosaic"
+         "font-inter antialiased bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400"
+       else
+         "font-inter antialiased bg-gray-900 text-gray-100 tracking-tight"
+       end %>
+
+    <% if assets_template == "mosaic" %>
+      <%= stylesheet_link_tag "mosaic/style" %>
+    <% else %>
+      <%= stylesheet_link_tag "neon/css/vendors/aos" %>
+      <%= stylesheet_link_tag "neon/style" %>
+    <% end %>
     <style>[x-cloak]{display:none !important}</style>
     <style>
       @keyframes loading-spin { to { transform: rotate(360deg); } }
@@ -24,7 +35,11 @@
     <%= yield :head %>
   </head>
 
-  <body class="<%= content_for?(:body_class) ? yield(:body_class) : "font-inter antialiased bg-gray-900 text-gray-100 tracking-tight" %>">
+  <% if assets_template == "mosaic" %>
+    <%= javascript_include_tag "theme" %>
+  <% end %>
+
+  <body class="<%= content_for?(:body_class) ? yield(:body_class) : default_body_class %>">
     <% show_alerts = flash.any? && !(controller_name == "pages" && action_name == "home") %>
     <% flash_partial = devise_controller? ? "devise/shared/flash" : "shared/alert" %>
     <% if content_for?(:full_bleed) %>
@@ -52,9 +67,14 @@
     <% end %>
 
     <%= javascript_importmap_tags %>
-    <%= javascript_include_tag "neon/js/vendors/alpinejs.min", defer: true %>
-    <%= javascript_include_tag "neon/js/vendors/aos" %>
-    <%= javascript_include_tag "neon/js/main" %>
+    <% if assets_template == "mosaic" %>
+      <%= javascript_include_tag "mosaic/js/vendors/alpinejs.min", defer: true %>
+      <%= javascript_include_tag "mosaic/js/main" %>
+    <% else %>
+      <%= javascript_include_tag "neon/js/vendors/alpinejs.min", defer: true %>
+      <%= javascript_include_tag "neon/js/vendors/aos" %>
+      <%= javascript_include_tag "neon/js/main" %>
+    <% end %>
     <%= yield :scripts if content_for?(:scripts) %>
   </body>
 </html>

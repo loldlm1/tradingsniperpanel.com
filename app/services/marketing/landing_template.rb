@@ -1,7 +1,13 @@
 module Marketing
   class LandingTemplate
     DEFAULT_TEMPLATE = "neon"
-    ALLOWED_TEMPLATES = %w[neon].freeze
+    AUTH_FALLBACK_TEMPLATE = "mosaic"
+    ALLOWED_TEMPLATES = %w[neon fintech].freeze
+    AUTH_ACTIONS = {
+      "sessions" => %w[new],
+      "registrations" => %w[new],
+      "passwords" => %w[new edit]
+    }.freeze
 
     def self.current(env: ENV, logger: Rails.logger)
       @current ||= resolve(env: env, logger: logger)
@@ -18,6 +24,25 @@ module Marketing
 
     def self.view_path(template = current)
       Rails.root.join("app/views/templates", template)
+    end
+
+    def self.auth_request?(controller_name:, action_name:)
+      AUTH_ACTIONS.fetch(controller_name, []).include?(action_name)
+    end
+
+    def self.auth_view_paths(template: current)
+      [view_path(template), view_path(AUTH_FALLBACK_TEMPLATE)].select(&:exist?)
+    end
+
+    def self.auth_template_for(controller_name:, action_name:, env: ENV, logger: Rails.logger)
+      template = current(env: env, logger: logger)
+      return template unless auth_request?(controller_name:, action_name:)
+
+      auth_view_path(template, controller_name, action_name).exist? ? template : AUTH_FALLBACK_TEMPLATE
+    end
+
+    def self.auth_view_path(template, controller_name, action_name)
+      Rails.root.join("app/views/templates", template, "devise", controller_name, "#{action_name}.html.erb")
     end
 
     def self.reset!
