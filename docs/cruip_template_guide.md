@@ -1,7 +1,7 @@
-# Cruip Template Guide (Neon + Mosaic)
-This project is a SaaS product for trading tools and EAs with subscription/licensing. Marketing/auth templates are selected per deployment via `LANDING_TEMPLATE` (default `neon`); dashboards stay on Mosaic. Pricing/docs live inside the landing page sections, so `/pricing` and `/docs` routes are intentionally removed.
+# Cruip Template Guide (Neon + Mosaic + Fintech)
+This project is a SaaS product for trading tools and EAs with subscription/licensing. Marketing/auth templates are selected per deployment via `LANDING_TEMPLATE` (default `neon`, `fintech` available); dashboards stay on Mosaic. Auth views fall back to Mosaic when the landing template doesn't provide them. Pricing/docs live inside the landing page sections, so `/pricing` and `/docs` routes are intentionally removed.
 
-How to reuse Cruip HTML templates (not our Rails views) to assemble new pages quickly. Always start from the source HTML in `neon-html/`, `mosaic-html/`, or `cruip-docs-html/`, then adapt into `.erb` while keeping class names, JS hooks, and assets intact.
+How to reuse Cruip HTML templates (not our Rails views) to assemble new pages quickly. Always start from the source HTML in `neon-html/`, `mosaic-html/`, `fintech-html/`, or `cruip-docs-html/`, then adapt into `.erb` while keeping class names, JS hooks, and assets intact.
 
 ## Docs/Guides template (Cruip Docs HTML)
 - Source: `cruip-docs-html/` at repo root is the canonical docs/guide design.
@@ -10,8 +10,8 @@ How to reuse Cruip HTML templates (not our Rails views) to assemble new pages qu
 - Usage: lift the **Page container** section from `cruip-docs-html/guides.html` into Rails views (e.g., `app/views/expert_advisors/guides.html.erb`) and keep data attributes (`data-scrollspy-*`) intact.
 
 ## Asset layout & adaptation
-- Source: `neon-html/` and `mosaic-html/` at repo root contain the canonical HTML, CSS, JS, and assets.
-- Rails copies: `app/assets/templates/neon` and `app/assets/templates/mosaic` hold the imported CSS/JS/images/fonts. Do not edit vendor files; add overrides via Tailwind (`app/assets/tailwind/application.css`) or per-view classes.
+- Source: `neon-html/`, `mosaic-html/`, and `fintech-html/` at repo root contain the canonical HTML, CSS, JS, and assets.
+- Rails copies: `app/assets/templates/neon`, `app/assets/templates/mosaic`, and `app/assets/templates/fintech` hold the imported CSS/JS/images/fonts. Do not edit vendor files; add overrides via Tailwind (`app/assets/tailwind/application.css`) or per-view classes.
 - Importing flow: copy the HTML snippet you need, wrap in ERB as required, and keep:
   - Classes/utilities as-is (Tailwind utility stack from Cruip).
   - Data/JS hooks (`data-aos`, Alpine `x-*`, IDs used by Chart.js or Flatpickr).
@@ -36,6 +36,15 @@ How to reuse Cruip HTML templates (not our Rails views) to assemble new pages qu
   - `js/vendors/alpinejs.min.js` for lightweight interactivity (tabs, toggles).
   - `js/vendors/aos.js` + `js/main.js` for scroll animations (AOS init: `once`, `disable: 'phone'`, `duration: 500`, `easing: 'ease-out-cubic'`).
   - Hooks to respect: `data-aos` attributes on sections, Alpine toggles on tabs/pricing buttons.
+
+## Fintech HTML catalogue (marketing)
+- Pages: `index.html` (landing/home). `apply.html` and `support.html` are reference-only for future use.
+- Auth pages: none in source HTML; Rails uses Mosaic auth views as fallback for sign-in/up/reset.
+- Assets: `fintech-html/images`, `fonts`, `css/style.css`, `css/vendors/*`, and `js/*`.
+- JS:
+  - `js/vendors/aos.js` + `js/main.js` for scroll animations (AOS init: `once`, `disable: 'phone'`, `duration: 700`, `easing: 'ease-out-cubic'`).
+  - `js/vendors/swiper-bundle.min.js` + `js/main.js` for testimonial carousel (`.testimonial-carousel` with `.testimonial-carousel-pagination`).
+  - Hooks to respect: `data-aos` attributes, Swiper class names, and pagination container.
 
 ## Mosaic HTML catalogue (dashboard UI kit)
 - Pages (grouped):
