@@ -997,6 +997,193 @@ en:
         features2_image_alt: "Features"
         pricing_illustration_alt: "Pricing Illustration"
         cta_illustration_alt: "Illustration"
+    fintech:
+      brand:
+        name: "Trader Sintético"
+        logo_alt: "Trader Sintético"
+      nav:
+        sign_in: "Iniciar sesion"
+      meta:
+        title: "Trader Sintético — Ecosistema para Índices Sintéticos"
+      hero:
+        title_prefix: "Trader Sintético, operan con un ecosistema"
+        title_highlight: "completo"
+        subtitle_line1: "Cursos, plantillas, bots y un canal de señales premium"
+        subtitle_line2: "para ejecutar con reglas, gestión de riesgo y consistencia en MT5."
+      cta:
+        primary: "Comenzar ahora"
+        subtitle: "¿Listo para operar con estructura?"
+        title: "Únete a Trader Sintético hoy"
+        support: "Hablar con soporte"
+      media:
+        hero_image_alt: "Panel/Señales (Índices Sintéticos)"
+        footer_illustration_alt: "Ilustración del pie de página"
+      section1:
+        items:
+          signals:
+            title: "Señales premium"
+            body: "Canal pago con entradas, SL/TP y sesiones enfocadas en sintéticos. Ejecuta rápido y sin dudas."
+          academy:
+            title: "Academia"
+            body: "Ruta de aprendizaje clara: estrategia, psicología y gestión de riesgo aplicada a índices sintéticos."
+          tools:
+            title: "Herramientas y bots"
+            body: "Plantillas MT5, utilidades y EAs para automatizar tareas y mantener una operativa disciplinada."
+      section2:
+        title: "Construye tu operativa en sintéticos con reglas claras"
+        body: "Aprende a leer el contexto, definir escenarios y ejecutar un plan. Nuestro enfoque une educación, señales y herramientas para que operes con estructura."
+        quote:
+          text: "“ Dejé de improvisar. Con el ecosistema de Trader Sintético tengo plan, ejecución y seguimiento. Ahora opero sintéticos con más calma y precisión. ”"
+          author_alt: "Autor testimonio 01"
+        image_alt: "Features 01"
+      section3:
+        title: "Ejecuta con plantillas y gestión de riesgo en MT5"
+        body: "Optimiza tu flujo: entradas, parciales, Break Even y control del riesgo. Configura tu entorno y repite un proceso que reduce errores."
+        quote:
+          text: "“ Las plantillas y reglas me dieron consistencia. Sigo el mismo proceso en cada sesión y eso se nota en mis resultados. ”"
+          author_alt: "Autor testimonio 02"
+        image_alt: "Features 03"
+      section4:
+        title: "Todo el ecosistema para operar sintéticos con confianza"
+        body: "No es solo un curso o un canal: es un portafolio de recursos para aprender, ejecutar y mejorar. Elige lo que necesitas y escala a tu ritmo."
+        lists:
+          include:
+            title: "Incluye"
+            items:
+              - "Señales"
+              - "Cursos"
+              - "Sesiones"
+              - "Comunidad"
+              - "Soporte"
+              - "Guías"
+              - "Checklist"
+              - "Actualizaciones"
+          tools:
+            title: "Herramientas"
+            items:
+              - "Plantillas MT5"
+              - "Indicadores"
+              - "Alertas"
+              - "Diario"
+              - "Gestión riesgo"
+              - "Backtesting"
+              - "Bots"
+              - "Setups"
+        image_alt: "Features 04"
+      section5:
+        title: "Empieza en minutos y opera con estructura en sintéticos"
+        body: "Te guiamos paso a paso para que tengas un proceso claro: desde la configuración en MT5 hasta la ejecución con señales y reglas."
+        image_alt: "Logos"
+        steps:
+          - title: "Accede al ecosistema"
+            body: "Elige tu plan y recibe el onboarding con recursos, enlaces y guía de instalación."
+          - title: "Configura MT5 y plantillas"
+            body: "Instala plantillas e indicadores, ajusta tu riesgo y prepara tus setups."
+          - title: "Recibe señales y ejecuta"
+            body: "Sigue el canal premium con SL/TP claros y opera con disciplina."
+      section6:
+        title: "Disciplina, riesgo y consistencia para traders de sintéticos"
+        body: "Priorizamos reglas y gestión del riesgo. Las herramientas están diseñadas para ayudarte a tomar decisiones simples y repetibles."
+        principles:
+          - "Gestión de riesgo con reglas"
+          - "Setups definidos y repetibles"
+          - "Acompañamiento y soporte"
+          - "Recursos en actualización constante"
+        testimonials:
+          - image: "fintech/images/testimonios_genera.png"
+            image_alt: "Testimonial 01"
+            logo_alt: "Testimonial sign 01"
+            logo_width: 100
+            logo_height: 71
+            quote: "“ Estamos construyendo una comunidad seria y activa. Si quieres aprender, mejorar tu sistema y avanzar con acompañamiento, súmate a Trader Sintético ”"
+            author: "Camilo Trader"
+            role: "CEO & Co-Founder"
+          - image: "fintech/images/logo_cian.png"
+            image_alt: "Testimonial 02"
+            logo_alt: "Testimonial sign 02"
+            logo_width: 100
+            logo_height: 46
+            quote: "“ Te invito a unirte a la comunidad de Trader Sintético: aquí compartimos herramientas, guía y experiencia para operar índices sintéticos con más claridad. ”"
+            author: "Andres Trader"
+            role: "CEO & Co-Founder"
+      section7:
+        title: "Elige tu plan y accede al ecosistema"
+        body: "Planes pensados para tu etapa: aprende, ejecuta y escala con señales, herramientas y automatización."
+        subscribe_cta: "Subcribirse"
+        plans:
+          - name: "Básico"
+            image: "fintech/images/package_basic.png"
+            image_alt: "Básico"
+            price: "$29/mes"
+            cta_class: "btn-sm w-full inline-flex items-center text-blue-50 bg-blue-500 hover:bg-blue-600 shadow-xs"
+            container_class: ""
+            badge: ""
+            features_title: "Features include"
+            features:
+              - "Acceso al canal de señales"
+              - "Curso base de sintéticos"
+              - "Plantillas esenciales MT5"
+              - "Guía de instalación"
+              - "Soporte estándar"
+          - name: "Pro"
+            image: "fintech/images/package_elite.png"
+            image_alt: "Pro"
+            price: "$59/mes"
+            cta_class: "btn-sm w-full inline-flex items-center text-slate-100 bg-slate-800 hover:bg-slate-900 shadow-xs"
+            container_class: "bg-linear-to-b from-blue-100 to-blue-50"
+            badge: "Popular"
+            features_title: "Everything in Starter, plus"
+            features:
+              - "Todo en Básico"
+              - "Curso completo + actualizaciones"
+              - "Plantillas Pro y checklist"
+              - "Sesiones en vivo semanales"
+              - "Comunidad privada"
+              - "Chatbot and in-app support"
+              - "Discounted domestic transfers"
+          - name: "Elite"
+            image: "fintech/images/package_pro.png"
+            image_alt: "Elite"
+            price: "$99/mes"
+            cta_class: "btn-sm w-full inline-flex items-center text-blue-50 bg-blue-500 hover:bg-blue-600 shadow-xs"
+            container_class: ""
+            badge: ""
+            features_title: "Everything in Starter, plus"
+            features:
+              - "Todo en Pro"
+              - "Bots base y automatizaciones"
+              - "Backtesting y optimización"
+              - "Alertas y recursos avanzados"
+              - "Soporte prioritario"
+          - name: "VIP"
+            image: "fintech/images/package_vip.png"
+            image_alt: "VIP"
+            price: "$149/mes"
+            cta_class: "btn-sm w-full inline-flex items-center text-blue-50 bg-blue-500 hover:bg-blue-600 shadow-xs"
+            container_class: ""
+            badge: ""
+            features_title: "Everything in You, plus"
+            features:
+              - "Todo en Elite"
+              - "Bots premium y setups exclusivos"
+              - "Mentorías / seguimiento"
+              - "Acceso VIP a sesiones"
+              - "Soporte 1:1"
+      faq:
+        title: "Preguntas frecuentes"
+        items:
+          - question: "¿Qué son los índices sintéticos y dónde se operan?"
+            answer: "Resolvemos las dudas más comunes antes de que empieces. Si necesitas ayuda, contacta a soporte."
+          - question: "¿Qué incluye la suscripción al canal de señales?"
+            answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
+          - question: "¿Necesito experiencia previa para entrar a los cursos?"
+            answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
+          - question: "¿Qué necesito para empezar (MT5, cuenta demo/real)?"
+            answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
+          - question: "¿Incluye plantillas y bots? ¿Cómo se instalan?"
+            answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
+          - question: "¿Tienen soporte y comunidad?"
+            answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
 
   date:
     formats:

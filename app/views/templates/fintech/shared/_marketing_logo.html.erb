@@ -1,0 +1,5 @@
+<% logo_class = local_assigns.fetch(:logo_class, "w-[30px] h-[30px] object-contain") %>
+<% logo_width = local_assigns.fetch(:logo_width, 30) %>
+<% logo_height = local_assigns.fetch(:logo_height, 30) %>
+
+<%= image_tag "fintech/images/logo_transparente.png", class: logo_class, width: logo_width, height: logo_height, alt: landing_logo_alt %>

@@ -1,0 +1,19 @@
+<header class="absolute w-full z-30">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="flex items-center justify-between h-16 md:h-20">
+      <div class="shrink-0 mr-4">
+        <%= link_to root_path, class: "block", "aria-label": t("landing.fintech.brand.name") do %>
+          <%= render "shared/marketing_logo", logo_class: "w-[30px] h-[30px] object-contain", logo_width: 30, logo_height: 30 %>
+        <% end %>
+      </div>
+
+      <nav class="flex grow">
+        <ul class="flex grow justify-end flex-wrap items-center">
+          <li class="ml-3">
+            <%= link_to t("landing.fintech.nav.sign_in"), new_user_session_path, class: "btn-sm w-full inline-flex items-center text-white bg-linear-to-tr from-blue-400 hover:bg-blue-500 shadow-xs relative before:absolute before:inset-0 before:bg-blue-400/60 before:-z-10 before:rounded-full" %>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>

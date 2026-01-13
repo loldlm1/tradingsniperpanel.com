@@ -14,14 +14,21 @@
     <link rel="apple-touch-icon" href="/icon.png">
 
     <% assets_template = marketing_assets_template %>
-    <% default_body_class = if assets_template == "mosaic"
+    <% default_body_class = case assets_template
+       when "mosaic"
          "font-inter antialiased bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400"
+       when "fintech"
+         "font-aspekta antialiased bg-white text-slate-800 font-[350]"
        else
          "font-inter antialiased bg-gray-900 text-gray-100 tracking-tight"
        end %>
 
     <% if assets_template == "mosaic" %>
       <%= stylesheet_link_tag "mosaic/style" %>
+    <% elsif assets_template == "fintech" %>
+      <%= stylesheet_link_tag "fintech/css/vendors/aos" %>
+      <%= stylesheet_link_tag "fintech/css/vendors/swiper-bundle.min" %>
+      <%= stylesheet_link_tag "fintech/style" %>
     <% else %>
       <%= stylesheet_link_tag "neon/css/vendors/aos" %>
       <%= stylesheet_link_tag "neon/style" %>
@@ -70,6 +77,11 @@
     <% if assets_template == "mosaic" %>
       <%= javascript_include_tag "mosaic/js/vendors/alpinejs.min", defer: true %>
       <%= javascript_include_tag "mosaic/js/main" %>
+    <% elsif assets_template == "fintech" %>
+      <%= javascript_include_tag "fintech/js/vendors/alpinejs.min", defer: true %>
+      <%= javascript_include_tag "fintech/js/vendors/aos" %>
+      <%= javascript_include_tag "fintech/js/vendors/swiper-bundle.min" %>
+      <%= javascript_include_tag "fintech/js/main" %>
     <% else %>
       <%= javascript_include_tag "neon/js/vendors/alpinejs.min", defer: true %>
       <%= javascript_include_tag "neon/js/vendors/aos" %>
