@@ -1,6 +1,17 @@
 require "rails_helper"
 
 RSpec.describe "Home pricing CTAs", type: :request do
+  around do |example|
+    original_template = ENV["LANDING_TEMPLATE"]
+    Marketing::LandingTemplate.reset!
+    ENV["LANDING_TEMPLATE"] = "neon"
+
+    example.run
+  ensure
+    ENV["LANDING_TEMPLATE"] = original_template
+    Marketing::LandingTemplate.reset!
+  end
+
   it "includes both monthly and annual price keys so selections persist" do
     %w[basic hft pro].each do |tier|
       create(:billing_plan, tier: tier, key: "#{tier}_monthly", interval: "month", interval_count: 1)
