@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_23_000006) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_11_213755) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -102,6 +102,100 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_23_000006) do
     t.index ["license_id"], name: "index_broker_accounts_on_license_id"
   end
 
+  create_table "course_enrollments", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "course_id", null: false
+    t.bigint "last_lesson_id"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.integer "progress_percent", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "access_source"
+    t.datetime "purchased_at"
+    t.bigint "pay_charge_id"
+    t.index ["access_source"], name: "index_course_enrollments_on_access_source"
+    t.index ["course_id"], name: "index_course_enrollments_on_course_id"
+    t.index ["last_lesson_id"], name: "index_course_enrollments_on_last_lesson_id"
+    t.index ["pay_charge_id"], name: "index_course_enrollments_on_pay_charge_id"
+    t.index ["user_id", "course_id"], name: "index_course_enrollments_on_user_id_and_course_id", unique: true
+    t.index ["user_id"], name: "index_course_enrollments_on_user_id"
+  end
+
+  create_table "course_lesson_progresses", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "course_lesson_id", null: false
+    t.string "status", default: "started", null: false
+    t.integer "progress_seconds", default: 0, null: false
+    t.datetime "completed_at"
+    t.datetime "last_watched_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["course_lesson_id"], name: "index_course_lesson_progresses_on_course_lesson_id"
+    t.index ["user_id", "course_lesson_id"], name: "index_course_lesson_progress_unique", unique: true
+    t.index ["user_id"], name: "index_course_lesson_progresses_on_user_id"
+  end
+
+  create_table "course_lessons", force: :cascade do |t|
+    t.bigint "course_module_id", null: false
+    t.integer "position", default: 0, null: false
+    t.string "title_en", null: false
+    t.string "title_es", null: false
+    t.string "summary_en"
+    t.string "summary_es"
+    t.text "body_markdown_en"
+    t.text "body_markdown_es"
+    t.string "stream_uid"
+    t.integer "duration_seconds", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["course_module_id", "position"], name: "index_course_lessons_on_course_module_id_and_position"
+    t.index ["course_module_id"], name: "index_course_lessons_on_course_module_id"
+    t.index ["stream_uid"], name: "index_course_lessons_on_stream_uid"
+  end
+
+  create_table "course_modules", force: :cascade do |t|
+    t.bigint "course_id", null: false
+    t.integer "position", default: 0, null: false
+    t.string "title_en", null: false
+    t.string "title_es", null: false
+    t.string "summary_en"
+    t.string "summary_es"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["course_id", "position"], name: "index_course_modules_on_course_id_and_position"
+    t.index ["course_id"], name: "index_course_modules_on_course_id"
+  end
+
+  create_table "course_plan_entitlements", force: :cascade do |t|
+    t.bigint "course_id", null: false
+    t.bigint "billing_plan_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["billing_plan_id"], name: "index_course_plan_entitlements_on_billing_plan_id"
+    t.index ["course_id", "billing_plan_id"], name: "index_course_entitlements_unique", unique: true
+    t.index ["course_id"], name: "index_course_plan_entitlements_on_course_id"
+  end
+
+  create_table "courses", force: :cascade do |t|
+    t.string "slug", null: false
+    t.string "status", default: "draft", null: false
+    t.string "category", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "published_at"
+    t.string "title_en", null: false
+    t.string "title_es", null: false
+    t.string "summary_en"
+    t.string "summary_es"
+    t.text "description_en"
+    t.text "description_es"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category"], name: "index_courses_on_category"
+    t.index ["slug"], name: "index_courses_on_slug", unique: true
+    t.index ["status"], name: "index_courses_on_status"
+  end
+
   create_table "expert_advisors", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
@@ -133,12 +227,47 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_23_000006) do
     t.datetime "last_synced_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "access_source"
+    t.index ["access_source"], name: "index_licenses_on_access_source"
     t.index ["expert_advisor_id"], name: "index_licenses_on_expert_advisor_id"
     t.index ["expires_at"], name: "index_licenses_on_expires_at"
     t.index ["status"], name: "index_licenses_on_status"
     t.index ["trial_ends_at"], name: "index_licenses_on_trial_ends_at"
     t.index ["user_id", "expert_advisor_id"], name: "index_licenses_on_user_id_and_expert_advisor_id", unique: true
     t.index ["user_id"], name: "index_licenses_on_user_id"
+  end
+
+  create_table "marketplace_products", force: :cascade do |t|
+    t.string "slug", null: false
+    t.string "key", null: false
+    t.string "status", default: "draft", null: false
+    t.integer "sort_order", default: 0, null: false
+    t.string "title_en", null: false
+    t.string "title_es", null: false
+    t.text "summary_en"
+    t.text "summary_es"
+    t.text "description_en"
+    t.text "description_es"
+    t.bigint "billing_plan_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["billing_plan_id"], name: "index_marketplace_products_on_billing_plan_id", unique: true
+    t.index ["key"], name: "index_marketplace_products_on_key", unique: true
+    t.index ["slug"], name: "index_marketplace_products_on_slug", unique: true
+    t.index ["status"], name: "index_marketplace_products_on_status"
+  end
+
+  create_table "marketplace_purchases", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "billing_plan_id", null: false
+    t.bigint "pay_charge_id"
+    t.datetime "purchased_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["billing_plan_id"], name: "index_marketplace_purchases_on_billing_plan_id"
+    t.index ["pay_charge_id"], name: "index_marketplace_purchases_on_pay_charge_id"
+    t.index ["user_id", "billing_plan_id"], name: "index_marketplace_purchases_on_user_id_and_billing_plan_id", unique: true
+    t.index ["user_id"], name: "index_marketplace_purchases_on_user_id"
   end
 
   create_table "partner_commissions", force: :cascade do |t|
@@ -387,8 +516,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_23_000006) do
   add_foreign_key "billing_plan_entitlements", "expert_advisors"
   add_foreign_key "broker_account_daily_results", "broker_accounts"
   add_foreign_key "broker_accounts", "licenses"
+  add_foreign_key "course_enrollments", "course_lessons", column: "last_lesson_id"
+  add_foreign_key "course_enrollments", "courses"
+  add_foreign_key "course_enrollments", "pay_charges"
+  add_foreign_key "course_enrollments", "users"
+  add_foreign_key "course_lesson_progresses", "course_lessons"
+  add_foreign_key "course_lesson_progresses", "users"
+  add_foreign_key "course_lessons", "course_modules"
+  add_foreign_key "course_modules", "courses"
+  add_foreign_key "course_plan_entitlements", "billing_plans"
+  add_foreign_key "course_plan_entitlements", "courses"
   add_foreign_key "licenses", "expert_advisors"
   add_foreign_key "licenses", "users"
+  add_foreign_key "marketplace_products", "billing_plans"
+  add_foreign_key "marketplace_purchases", "billing_plans"
+  add_foreign_key "marketplace_purchases", "pay_charges"
+  add_foreign_key "marketplace_purchases", "users"
   add_foreign_key "partner_commissions", "partner_memberships"
   add_foreign_key "partner_commissions", "partner_payout_requests", column: "payout_request_id"
   add_foreign_key "partner_commissions", "partner_profiles"

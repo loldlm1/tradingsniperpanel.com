@@ -4,6 +4,10 @@ class User < ApplicationRecord
   has_many :user_expert_advisors, dependent: :destroy
   has_many :expert_advisors, through: :user_expert_advisors
   has_many :licenses, dependent: :destroy
+  has_many :marketplace_purchases, dependent: :destroy
+  has_many :course_enrollments, dependent: :destroy
+  has_many :courses, through: :course_enrollments
+  has_many :course_lesson_progresses, dependent: :destroy
   has_one :partner_profile, dependent: :destroy
 
   # Include default devise modules. Others available are:

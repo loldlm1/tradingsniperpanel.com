@@ -2,7 +2,11 @@ class BillingPlan < ApplicationRecord
   INTERVALS = %w[day week month year].freeze
 
   has_many :billing_plan_entitlements, dependent: :destroy
+  has_many :course_plan_entitlements, dependent: :destroy
   has_many :expert_advisors, through: :billing_plan_entitlements
+  has_many :courses, through: :course_plan_entitlements
+  has_one :marketplace_product, dependent: :nullify
+  has_many :marketplace_purchases, dependent: :restrict_with_exception
 
   enum :kind, { subscription: "subscription", one_time: "one_time" }
 

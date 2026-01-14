@@ -69,8 +69,10 @@ module Billing
       return if metadata.blank?
 
       params[:metadata] = (params[:metadata] || {}).merge(metadata)
-      params[:subscription_data] ||= {}
-      params[:subscription_data][:metadata] = (params[:subscription_data][:metadata] || {}).merge(metadata)
+      if params[:mode].to_s == "subscription" || params[:subscription_data].present?
+        params[:subscription_data] ||= {}
+        params[:subscription_data][:metadata] = (params[:subscription_data][:metadata] || {}).merge(metadata)
+      end
     end
   end
 end

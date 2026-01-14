@@ -1,0 +1,22 @@
+<footer class="relative">
+  <div class="absolute inset-0 bg-slate-800 -z-10" aria-hidden="true"></div>
+
+  <div class="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none -z-10" aria-hidden="true">
+    <%= image_tag "fintech/images/footer-illustration.svg", class: "max-w-none", width: 1940, height: 381, alt: t("landing.fintech.media.footer_illustration_alt") %>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="grid sm:grid-cols-12 lg:grid-cols-10 gap-8 py-8 border-t border-slate-700">
+      <div class="sm:col-span-12 lg:col-span-2 lg:max-w-xs">
+        <%= link_to root_path, class: "block", "aria-label": t("landing.fintech.brand.name") do %>
+          <%= render "shared/marketing_logo", logo_class: "w-[30px] h-[30px] object-contain", logo_width: 30, logo_height: 30 %>
+        <% end %>
+        <div class="text-sm text-gray-600">
+          <%= link_to t("footer.terms"), terms_path, class: "text-slate-400 hover:text-blue-500 transition duration-150 ease-in-out" %>
+          <span class="text-slate-400"> - </span>
+          <%= link_to t("footer.privacy"), privacy_path, class: "text-slate-400 hover:text-blue-500 transition duration-150 ease-in-out" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

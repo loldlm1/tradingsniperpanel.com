@@ -32,7 +32,7 @@ module Licenses
         license_key:,
         email: user.email,
         ea_id: expert_advisor.ea_id,
-        expires_at: license.effective_expires_at
+        expires_at: license.key_expires_at
       )
 
       success(license)

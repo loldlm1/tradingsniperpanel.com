@@ -30,8 +30,8 @@ module Licenses
       license.plan_interval ||= nil
       license.source = "trial"
       license.last_synced_at = now
-      expires_at = license.effective_expires_at
-      license.encrypted_key = encoder.generate(email: user.email, ea_id: expert_advisor.ea_id, expires_at:)
+      expires_at = license.key_expires_at
+      license.encrypted_key = encoder.generate(email: user.email, ea_id: expert_advisor.ea_id, expires_at: expires_at)
       license.save!
     end
   end

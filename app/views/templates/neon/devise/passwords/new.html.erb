@@ -1,0 +1,48 @@
+<% content_for :title, "#{t('devise.forgot_password')} | #{app_name}" %>
+<% content_for :full_bleed, true %>
+
+<div class="flex flex-col min-h-screen overflow-hidden">
+  <header class="absolute w-full z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="flex items-center justify-between h-16 md:h-20">
+        <div class="shrink-0 mr-4">
+          <%= link_to root_path, class: "block", "aria-label": app_name do %>
+            <%= render "shared/marketing_logo", logo_class: "w-12 h-12 object-contain" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="relative grow flex">
+    <div class="w-full bg-gray-900">
+      <div class="h-full flex flex-col justify-center before:min-h-[4rem] md:before:min-h-[5rem] before:flex-1 after:flex-1">
+        <div class="px-4 sm:px-6">
+          <div class="w-full max-w-sm mx-auto">
+            <div class="py-16 md:py-20">
+              <div class="mb-8">
+                <h1 class="h2 font-uncut-sans mb-4"><%= t("devise.forgot_password") %></h1>
+                <p class="text-gray-400"><%= t("devise.reset_instructions") %></p>
+              </div>
+
+              <%= render "devise/shared/flash" %>
+
+              <%= form_with model: resource, scope: resource_name, url: password_path(resource_name), method: :post, class: "space-y-4" do |f| %>
+                <%= render "devise/shared/error_messages", resource: resource %>
+                <div>
+                  <%= f.label :email, class: "block text-sm text-gray-400 font-medium mb-1" %>
+                  <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input py-2 w-full" %>
+                </div>
+                <div class="mt-6">
+                  <%= f.submit t("devise.reset_password_cta"), class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2" %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%= render "templates/neon/devise/shared/auth_right_side" %>
+  </main>
+</div>

@@ -1,0 +1,74 @@
+<% content_for :title, "#{t('devise.sign_in_title')} | #{app_name}" %>
+<% content_for :full_bleed, true %>
+
+<main class="bg-white dark:bg-gray-900">
+  <div class="relative flex">
+    <div class="w-full md:w-1/2">
+      <div class="min-h-[100dvh] h-full flex flex-col after:flex-1">
+        <div class="flex-1">
+          <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+            <%= link_to root_path, class: "block", "aria-label": app_name do %>
+              <%= render "shared/marketing_logo", logo_class: "w-8 h-8 object-contain", logo_width: 32, logo_height: 32 %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="max-w-sm mx-auto w-full px-4 py-8">
+          <h1 class="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-6"><%= t("devise.sign_in_heading") %></h1>
+
+          <%= render "devise/shared/flash" %>
+
+          <%= form_with model: resource, scope: resource_name, url: session_path(resource_name) do |f| %>
+            <%= render "devise/shared/error_messages", resource: resource %>
+
+            <div class="space-y-4">
+              <div>
+                <%= f.label :email, class: "block text-sm font-medium mb-1" %>
+                <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input w-full", required: true, "aria-required": true %>
+              </div>
+              <div>
+                <%= f.label :password, class: "block text-sm font-medium mb-1" %>
+                <%= f.password_field :password, autocomplete: "current-password", class: "form-input w-full", required: true, "aria-required": true %>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between mt-6">
+              <div class="mr-1">
+                <%= link_to t("devise.forgot_password"), new_password_path(resource_name), class: "text-sm underline hover:no-underline" %>
+              </div>
+              <%= f.submit t("devise.sign_in_title"), class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white ml-3" %>
+            </div>
+          <% end %>
+
+          <div class="pt-5 mt-6 border-t border-gray-100 dark:border-gray-700/60">
+            <div class="text-sm">
+              <%= t("devise.no_account") %>
+              <%= link_to t("nav.sign_up"), new_user_registration_path, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
+            </div>
+
+            <div class="mt-5">
+              <div class="flex items-center gap-3">
+                <div class="h-px bg-gray-200 dark:bg-gray-700 grow"></div>
+                <span class="text-xs uppercase tracking-wide text-gray-400"><%= t("devise.or") %></span>
+                <div class="h-px bg-gray-200 dark:bg-gray-700 grow"></div>
+              </div>
+
+              <%= button_to user_google_oauth2_omniauth_authorize_path(locale: I18n.locale),
+                            method: :post,
+                            class: "mt-4 w-full btn border-gray-200 dark:border-gray-700/60 text-gray-700 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-500/60 flex items-center justify-center gap-2" do %>
+                <svg class="w-4 h-4 fill-current text-gray-500 dark:text-gray-300" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15.679 6.545H8.043v3.273h4.328c-.692 2.182-2.401 2.91-4.363 2.91a4.727 4.727 0 1 1 3.035-8.347l2.378-2.265A8 8 0 1 0 8.008 16c4.41 0 8.4-2.909 7.67-9.455Z" />
+                </svg>
+                <span><%= t("devise.continue_with_google") %></span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hidden md:block absolute top-0 bottom-0 right-0 md:w-1/2" aria-hidden="true">
+      <%= image_tag "mosaic/images/auth-image.jpg", class: "object-cover object-center w-full h-full", width: 760, height: 1024, alt: t("devise.auth_image_alt") %>
+    </div>
+  </div>
+</main>

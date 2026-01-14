@@ -97,6 +97,9 @@ en:
       analytics: "Analytics"
       expert_advisors: "Expert Advisors"
       expert_advisors_all: "All Expert Advisors"
+      courses: "Courses"
+      courses_all: "All Courses"
+      marketplace: "Marketplace"
       pricing: "Plans"
       plans: "Plans"
       billing: "Billing"
@@ -106,6 +109,39 @@ en:
       docs: "Docs"
       settings: "Settings"
       my_account: "My Account"
+    marketplace:
+      index:
+        title: "Marketplace"
+        subtitle: "One-time bundles with lifetime access."
+        link: "All Products"
+        empty_title: "Marketplace is warming up"
+        empty_copy: "We're preparing one-time bundles for your account."
+        empty_cta: "Contact Support"
+      card:
+        purchased_badge: "Purchased"
+        includes_eas: "%{count} Expert Advisors"
+        includes_courses: "%{count} Courses"
+        lifetime_access: "Lifetime access"
+        placeholder_alt: "Marketplace product"
+      cta:
+        view_details: "View details"
+        buy_now: "Buy now"
+        purchased: "Purchased"
+      detail:
+        back: "Back to Marketplace"
+        overview_title: "Overview"
+        includes_title: "What's included"
+        included_eas: "Expert Advisors"
+        included_courses: "Courses"
+        already_have_title: "Already have"
+        you_will_get_title: "You'll get"
+        already_have_empty: "No previous purchases applied yet."
+        you_will_get_empty: "You're already set with this bundle."
+        purchased_on: "Purchased on %{date}"
+        lifetime_badge: "Lifetime access"
+        price_label: "One-time purchase"
+      errors:
+        already_purchased: "You already purchased this product."
     settings:
       page_title: "Account Settings"
       updated: "Account updated."
@@ -363,6 +399,44 @@ en:
       performance_placeholder: "Live stats will sync from broker accounts once the feature ships."
       copy_code: "Copy"
       copied: "Copied"
+    courses:
+      index:
+        title: "Courses"
+        subtitle: "Learn trading strategies through structured lessons."
+        empty_title: "Courses are on the way"
+        empty_copy: "We are preparing new lessons for you. Check back soon or reach out for updates."
+        empty_cta: "Contact support"
+      show_page_title: "%{course} course"
+      lesson_page_title: "%{lesson} · %{course}"
+      modules_title: "Course modules"
+      modules_copy: "Follow the lessons in order or jump to what you need."
+      modules_empty: "No modules published yet."
+      details_title: "Course details"
+      module_label: "Module %{number}"
+      locked_teaser: "Preview the lesson titles and durations. Subscribe to unlock the full content."
+      access_locked: "Upgrade to unlock this course."
+      access_granted: "You have access to this course."
+      unlock_cta: "Unlock course"
+      view_cta: "View course"
+      progress_label: "Progress: %{percent}%"
+      back_to_course: "Back to course"
+      lesson_video_title: "Lesson video"
+      video_unavailable: "Video is not available yet."
+      video_fallback: "Your browser does not support embedded videos."
+      lesson_body_missing: "Lesson notes are coming soon."
+      badges:
+        free: "Free"
+        unlocked: "Unlocked"
+        locked: "Locked"
+      meta:
+        modules: "%{count} modules"
+        lessons: "%{count} lessons"
+        duration: "%{duration} total"
+      categories:
+        introduction: "Introduction"
+        beginner: "Beginner"
+        intermediate: "Intermediate"
+        advanced: "Advanced"
     plan_card:
       title: "Subscription"
       status_active: "Active"
@@ -616,6 +690,16 @@ en:
     continue_with_google: "Continue With Google"
     consent_copy: "By filling out this form, I consent to the collection and use of my personal data."
     reset_instructions: "Enter your email address. If an account exists, you’ll receive an email with a password reset link soon."
+    reset_password_cta: "Send reset link"
+    update_password_title: "Set a new password"
+    update_password_copy: "Choose a strong password to keep your account secure."
+    new_password_label: "New password"
+    confirm_password_label: "Confirm new password"
+    password_minimum_hint: "%{count} characters minimum"
+    change_password_cta: "Update password"
+    auth_image_alt: "Authentication image"
+    hero_illustration_alt: "Hero illustration"
+    auth_illustration_alt: "Authentication illustration"
     sign_in_notice: "To support you during the launch, pro features are available while we roll out billing."
   footer:
     tagline: "Built for disciplined MQL5 traders."
@@ -913,6 +997,193 @@ en:
         features2_image_alt: "Features"
         pricing_illustration_alt: "Pricing Illustration"
         cta_illustration_alt: "Illustration"
+    fintech:
+      brand:
+        name: "Trader Sintético"
+        logo_alt: "Trader Sintético logo"
+      nav:
+        sign_in: "Sign in"
+      meta:
+        title: "Trader Sintético — Ecosystem for Synthetic Indices"
+      hero:
+        title_prefix: "Trader Sintético, trade with a complete forex "
+        title_highlight: "ecosystem"
+        subtitle_line1: "Courses, templates, bots, and a premium signals channel"
+        subtitle_line2: "to execute with rules, risk management, and consistency in MT5."
+      cta:
+        primary: "Get started now"
+        subtitle: "Ready to trade with structure?"
+        title: "Join Trader Sintético today"
+        support: "Talk to support"
+      media:
+        hero_image_alt: "Panel/Signals (Synthetic Indices)"
+        footer_illustration_alt: "Footer illustration"
+      section1:
+        items:
+          signals:
+            title: "Premium signals"
+            body: "Paid channel with entries, SL/TP, and sessions focused on synthetics. Execute quickly and with confidence."
+          academy:
+            title: "Academy"
+            body: "A clear learning path: strategy, psychology, and risk management applied to synthetic indices."
+          tools:
+            title: "Tools and bots"
+            body: "MT5 templates, utilities, and EAs to automate tasks and maintain disciplined trading."
+      section2:
+        title: "Build your synthetic indices trading with clear rules"
+        body: "Learn to read context, define scenarios, and execute a plan. Our approach blends education, signals, and tools so you trade with structure."
+        quote:
+          text: '"I stopped improvising. With Trader Sintético''s ecosystem I have a plan, execution, and follow-up. Now I trade synthetics more calmly and precisely."'
+          author_alt: "Testimonial author 01"
+        image_alt: "Feature 01"
+      section3:
+        title: "Execute with templates and risk management in MT5"
+        body: "Optimize your flow: entries, partials, break-even, and risk control. Configure your environment and repeat a process that reduces errors."
+        quote:
+          text: '"The templates and rules gave me consistency. I follow the same process every session and it shows in my results."'
+          author_alt: "Testimonial author 02"
+        image_alt: "Feature 03"
+      section4:
+        title: "The full ecosystem to trade synthetics with confidence"
+        body: "It is not just a course or a channel: it is a portfolio of resources to learn, execute, and improve. Choose what you need and scale at your pace."
+        lists:
+          include:
+            title: "Includes"
+            items:
+              - "Signals"
+              - "Courses"
+              - "Sessions"
+              - "Community"
+              - "Support"
+              - "Guides"
+              - "Checklist"
+              - "Updates"
+          tools:
+            title: "Tools"
+            items:
+              - "MT5 templates"
+              - "Indicators"
+              - "Alerts"
+              - "Journal"
+              - "Risk management"
+              - "Backtesting"
+              - "Bots"
+              - "Setups"
+        image_alt: "Feature 04"
+      section5:
+        title: "Get started in minutes and trade synthetics with structure"
+        body: "We guide you step by step so you have a clear process: from MT5 setup to executing with signals and rules."
+        image_alt: "Logos"
+        steps:
+          - title: "Access the ecosystem"
+            body: "Choose your plan and receive onboarding with resources, links, and an installation guide."
+          - title: "Set up MT5 and templates"
+            body: "Install templates and indicators, set your risk, and prepare your setups."
+          - title: "Receive signals and execute"
+            body: "Follow the premium channel with clear SL/TP and trade with discipline."
+      section6:
+        title: "Discipline, risk, and consistency for synthetic traders"
+        body: "We prioritize rules and risk management. The tools are designed to help you make simple, repeatable decisions."
+        principles:
+          - "Rules-based risk management"
+          - "Defined, repeatable setups"
+          - "Guidance and support"
+          - "Resources updated continuously"
+        testimonials:
+          - image: "fintech/images/testimonios_genera.png"
+            image_alt: "Testimonial 01"
+            logo_alt: "Testimonial sign 01"
+            logo_width: 100
+            logo_height: 71
+            quote: '"We are building a serious, active community. If you want to learn, improve your system, and move forward with support, join Trader Sintético."'
+            author: "Camilo Trader"
+            role: "CEO & Co-Founder"
+          - image: "fintech/images/logo_cian.png"
+            image_alt: "Testimonial 02"
+            logo_alt: "Testimonial sign 02"
+            logo_width: 100
+            logo_height: 46
+            quote: '"I invite you to join the Trader Sintético community: here we share tools, guidance, and experience to trade synthetic indices with more clarity."'
+            author: "Andres Trader"
+            role: "CEO & Co-Founder"
+      section7:
+        title: "Choose your plan and access the ecosystem"
+        body: "Plans designed for your stage: learn, execute, and scale with signals, tools, and automation."
+        subscribe_cta: "Subscribe"
+        plans:
+          - name: "Basic"
+            image: "fintech/images/package_basic.png"
+            image_alt: "Basic"
+            price: "$29/mo"
+            cta_class: "btn-sm w-full inline-flex items-center text-blue-50 bg-blue-500 hover:bg-blue-600 shadow-xs"
+            container_class: ""
+            badge: ""
+            features_title: "Includes"
+            features:
+              - "Access to the signals channel"
+              - "Base synthetic indices course"
+              - "Essential MT5 templates"
+              - "Installation guide"
+              - "Standard support"
+          - name: "Pro"
+            image: "fintech/images/package_elite.png"
+            image_alt: "Pro"
+            price: "$59/mo"
+            cta_class: "btn-sm w-full inline-flex items-center text-slate-100 bg-slate-800 hover:bg-slate-900 shadow-xs"
+            container_class: "bg-linear-to-b from-blue-100 to-blue-50"
+            badge: "Popular"
+            features_title: "Everything in Basic, plus"
+            features:
+              - "Everything in Basic"
+              - "Full course + updates"
+              - "Pro templates and checklist"
+              - "Weekly live sessions"
+              - "Private community"
+              - "Chatbot and in-app support"
+              - "Discounted domestic transfers"
+          - name: "Elite"
+            image: "fintech/images/package_pro.png"
+            image_alt: "Elite"
+            price: "$99/mo"
+            cta_class: "btn-sm w-full inline-flex items-center text-blue-50 bg-blue-500 hover:bg-blue-600 shadow-xs"
+            container_class: ""
+            badge: ""
+            features_title: "Everything in Pro, plus"
+            features:
+              - "Everything in Pro"
+              - "Base bots and automations"
+              - "Backtesting and optimization"
+              - "Advanced alerts and resources"
+              - "Priority support"
+          - name: "VIP"
+            image: "fintech/images/package_vip.png"
+            image_alt: "VIP"
+            price: "$149/mo"
+            cta_class: "btn-sm w-full inline-flex items-center text-blue-50 bg-blue-500 hover:bg-blue-600 shadow-xs"
+            container_class: ""
+            badge: ""
+            features_title: "Everything in Elite, plus"
+            features:
+              - "Everything in Elite"
+              - "Premium bots and exclusive setups"
+              - "Mentorship / follow-up"
+              - "VIP access to sessions"
+              - "1:1 support"
+      faq:
+        title: "Frequently asked questions"
+        items:
+          - question: "What are synthetic indices and where do you trade them?"
+            answer: "We answer the most common questions before you get started. If you need help, contact support."
+          - question: "What is included in the signals channel subscription?"
+            answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
+          - question: "Do I need prior experience to join the courses?"
+            answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
+          - question: "What do I need to get started (MT5, demo/live account)?"
+            answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
+          - question: "Are templates and bots included? How are they installed?"
+            answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
+          - question: "Do you offer support and community?"
+            answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
 
   date:
     formats:

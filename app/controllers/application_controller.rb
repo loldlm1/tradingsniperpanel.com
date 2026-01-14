@@ -4,11 +4,15 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
 
   before_action :set_locale
+  before_action :apply_auth_template, if: :devise_auth_request?
   before_action :apply_landing_template, if: :marketing_request?
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :capture_desired_plan, if: -> { request.format.html? }
   before_action :ensure_terms_accepted, if: :user_signed_in?
   before_action :set_accessible_expert_advisors, if: :user_signed_in?
+  before_action :set_accessible_courses, if: :user_signed_in?
+  before_action :set_marketplace_availability, if: :user_signed_in?
+  before_action :set_marketplace_nav_products, if: :user_signed_in?
 
   def after_sign_in_path_for(_resource)
     desired_plan = stored_desired_plan
@@ -47,14 +51,30 @@ class ApplicationController < ActionController::Base
   end
 
   def apply_landing_template
+    return if devise_auth_request?
+
     view_path = Marketing::LandingTemplate.view_path
     prepend_view_path(view_path) if view_path.exist?
+  end
+
+  def apply_auth_template
+    view_paths = Marketing::LandingTemplate.auth_view_paths
+    return if view_paths.empty?
+
+    view_paths.reverse_each { |path| prepend_view_path(path) }
   end
 
   def marketing_request?
     return false unless request.format.html?
 
     devise_controller? || controller_path.in?(%w[pages legal terms_acceptances])
+  end
+
+  def devise_auth_request?
+    return false unless request.format.html?
+    return false unless devise_controller?
+
+    Marketing::LandingTemplate.auth_request?(controller_name: controller_name, action_name: action_name)
   end
 
   def persist_user_locale(resolver)
@@ -111,6 +131,20 @@ class ApplicationController < ActionController::Base
 
   def set_accessible_expert_advisors
     @accessible_eas ||= Licenses::AccessibleExpertAdvisors.new(user: current_user).call
+  end
+
+  def set_accessible_courses
+    @accessible_courses ||= Courses::AccessibleCourses.new(user: current_user).call
+  end
+
+  def set_marketplace_availability
+    @marketplace_available ||= Marketplace::Availability.new.call
+  end
+
+  def set_marketplace_nav_products
+    return unless @marketplace_available
+
+    @marketplace_nav_products ||= Marketplace::SidebarProducts.new(limit: 5).call
   end
 
   def ensure_terms_accepted

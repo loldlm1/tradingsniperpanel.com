@@ -11,6 +11,10 @@ module ApplicationHelper
     Rails.configuration.x.branding.short_name
   end
 
+  def marketing_assets_template
+    Marketing::LandingTemplate.auth_template_for(controller_name: controller_name, action_name: action_name)
+  end
+
   def locale_link_class(locale)
     base = "px-2 py-1 rounded-full text-xs font-semibold transition"
     I18n.locale.to_s == locale.to_s ? "#{base} bg-blue-500 text-white" : "#{base} text-gray-300 hover:text-white bg-gray-800/60"
@@ -29,6 +33,20 @@ module ApplicationHelper
   def landing_logo_alt
     template = Marketing::LandingTemplate.current
     I18n.t("landing.#{template}.brand.logo_alt", default: app_name)
+  end
+
+  def format_duration(seconds)
+    total = seconds.to_i
+    return "0:00" if total <= 0
+
+    minutes, secs = total.divmod(60)
+    hours, minutes = minutes.divmod(60)
+
+    if hours.positive?
+      format("%d:%02d:%02d", hours, minutes, secs)
+    else
+      format("%d:%02d", minutes, secs)
+    end
   end
 
   def loading_label(label, loading_text: t("loading.default", default: "Processing..."))

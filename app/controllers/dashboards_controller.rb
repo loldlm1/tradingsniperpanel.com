@@ -52,19 +52,36 @@ class DashboardsController < ApplicationController
     end
 
     if plan&.one_time?
+      guard = Marketplace::PurchaseGuard.new(user: current_user, billing_plan: plan).call
+      unless guard.allowed
+        redirect_to marketplace_redirect_path(plan), alert: t("dashboard.marketplace.errors.already_purchased") and return
+      end
+
       success_url = price_key.present? ? dashboard_url(price_key: price_key) : dashboard_url
+      marketplace_product = MarketplaceProduct.find_by(billing_plan_id: plan.id)
+      payment_metadata = {
+        billing_plan_key: price_key
+      }
+      if marketplace_product
+        payment_metadata[:marketplace_product_key] = marketplace_product.key
+        payment_metadata[:marketplace_product_id] = marketplace_product.id.to_s
+      end
       checkout_params = {
         mode: "payment",
         line_items: [{ price: price_id, quantity: 1 }],
         success_url: success_url,
         cancel_url: dashboard_plans_url,
+        allow_promotion_codes: true,
         client_reference_id: current_user.id,
         payment_intent_data: {
-          metadata: {
-            billing_plan_key: price_key
-          }
+          metadata: payment_metadata
         }
       }
+
+      checkout_params = Billing::ApplyReferralDiscount.new(
+        user: current_user,
+        checkout_params: checkout_params
+      ).call
 
       session = current_user.payment_processor.checkout(**checkout_params)
       redirect_to session.url, allow_other_host: true and return
@@ -238,5 +255,12 @@ class DashboardsController < ApplicationController
     else
       t("dashboard.billing.#{key}_no_date")
     end
+  end
+
+  def marketplace_redirect_path(plan)
+    product = MarketplaceProduct.find_by(billing_plan_id: plan.id)
+    return dashboard_marketplace_path(locale: I18n.locale) unless product
+
+    dashboard_marketplace_product_path(product, locale: I18n.locale)
   end
 end

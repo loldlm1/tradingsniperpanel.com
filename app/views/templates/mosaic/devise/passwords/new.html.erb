@@ -1,0 +1,44 @@
+<% content_for :title, "#{t('devise.forgot_password')} | #{app_name}" %>
+<% content_for :full_bleed, true %>
+
+<main class="bg-white dark:bg-gray-900">
+  <div class="relative flex">
+    <div class="w-full md:w-1/2">
+      <div class="min-h-[100dvh] h-full flex flex-col after:flex-1">
+        <div class="flex-1">
+          <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+            <%= link_to root_path, class: "block", "aria-label": app_name do %>
+              <%= render "shared/marketing_logo", logo_class: "w-8 h-8 object-contain", logo_width: 32, logo_height: 32 %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="max-w-sm mx-auto w-full px-4 py-8">
+          <h1 class="text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2"><%= t("devise.forgot_password") %></h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-6"><%= t("devise.reset_instructions") %></p>
+
+          <%= render "devise/shared/flash" %>
+
+          <%= form_with model: resource, scope: resource_name, url: password_path(resource_name), method: :post do |f| %>
+            <%= render "devise/shared/error_messages", resource: resource %>
+
+            <div class="space-y-4">
+              <div>
+                <%= f.label :email, class: "block text-sm font-medium mb-1" %>
+                <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-input w-full" %>
+              </div>
+            </div>
+
+            <div class="flex justify-end mt-6">
+              <%= f.submit t("devise.reset_password_cta"), class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white whitespace-nowrap" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="hidden md:block absolute top-0 bottom-0 right-0 md:w-1/2" aria-hidden="true">
+      <%= image_tag "mosaic/images/auth-image.jpg", class: "object-cover object-center w-full h-full", width: 760, height: 1024, alt: t("devise.auth_image_alt") %>
+    </div>
+  </div>
+</main>

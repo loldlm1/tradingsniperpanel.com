@@ -80,16 +80,13 @@ qa_records = qa_definitions.map do |attrs|
 end
 
 Seeds::BillingPlans.seed_entitlements!
+Seeds::Courses.seed_courses!
+Seeds::MarketplaceProducts.seed_products!
 
-qa_user = User.find_or_initialize_by(email: "qa@example.com")
-qa_user.name ||= "QA User"
-qa_user.role ||= :trader
-qa_user.terms_accepted_at ||= Time.current
-if qa_user.new_record?
-  qa_user.password = "Password123!"
-  qa_user.password_confirmation = "Password123!"
-end
-qa_user.save!
+qa_users = Seeds::QaUsers.seed!
+qa_user = qa_users[:trader]
+Seeds::Courses.seed_progress_for(user: qa_user) if qa_user
+Seeds::Partners.seed_qa!(partner: qa_users[:partner])
 
 encoder = Licenses::LicenseKeyEncoder.new
 unless encoder.configured?

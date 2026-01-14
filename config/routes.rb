@@ -16,6 +16,9 @@ Rails.application.routes.draw do
     get "dashboard", to: "dashboards#show", as: :dashboard
     get "dashboard/analytics", to: "dashboards#analytics", as: :dashboard_analytics
     get "dashboard/expert_advisors", to: "expert_advisors#index", as: :dashboard_expert_advisors
+    get "dashboard/courses", to: "courses#index", as: :dashboard_courses
+    get "dashboard/marketplace", to: "marketplace#index", as: :dashboard_marketplace
+    get "dashboard/marketplace/:id", to: "marketplace#show", as: :dashboard_marketplace_product
     get "dashboard/plans", to: "dashboards#plans", as: :dashboard_plans
     get "dashboard/billing", to: "dashboards#billing", as: :dashboard_billing
     get "dashboard/support", to: "dashboards#support", as: :dashboard_support
@@ -24,6 +27,9 @@ Rails.application.routes.draw do
     get "dashboard/expert_advisors/:id", to: "expert_advisors#show", as: :dashboard_expert_advisor
     get "dashboard/expert_advisors/:id/guides", to: "expert_advisors#guides", as: :dashboard_expert_advisor_guides
     get "dashboard/expert_advisors/:id/download", to: "expert_advisors#download", as: :dashboard_expert_advisor_download
+    get "dashboard/courses/:id", to: "courses#show", as: :dashboard_course
+    get "dashboard/courses/:course_id/lessons/:id", to: "course_lessons#show", as: :dashboard_course_lesson
+    patch "dashboard/courses/:course_id/lessons/:id/progress", to: "course_lessons#update_progress", as: :dashboard_course_lesson_progress
     post "dashboard/checkout", to: "dashboards#checkout", as: :dashboard_checkout
     post "dashboard/plans/cancel", to: "dashboards#cancel_scheduled_downgrade", as: :dashboard_cancel_scheduled_downgrade
     post "dashboard/billing/cancel", to: "dashboards#cancel_subscription", as: :dashboard_cancel_subscription
