@@ -1,4 +1,4 @@
-<% content_for :title, t("landing.fintech.meta.title") %>
+<% content_for :title, app_name %>
 <% primary_cta_path = user_signed_in? ? dashboard_path : new_user_registration_path %>
 <% support_cta_url = "mailto:#{support_email}" %>
 
