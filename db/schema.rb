@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_11_213755) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_15_140355) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_11_213755) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "addons", force: :cascade do |t|
+    t.string "key", null: false
+    t.bigint "billing_plan_id", null: false
+    t.string "addonable_type", null: false
+    t.bigint "addonable_id", null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["addonable_type", "addonable_id"], name: "index_addons_on_addonable"
+    t.index ["billing_plan_id"], name: "index_addons_on_billing_plan_id", unique: true
+    t.index ["key"], name: "index_addons_on_key", unique: true
+    t.check_constraint "addonable_type::text = ANY (ARRAY['ExpertAdvisor'::character varying, 'Course'::character varying]::text[])", name: "addons_addonable_type_check"
   end
 
   create_table "billing_plan_entitlements", force: :cascade do |t|
@@ -512,6 +526,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_11_213755) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "addons", "billing_plans"
   add_foreign_key "billing_plan_entitlements", "billing_plans"
   add_foreign_key "billing_plan_entitlements", "expert_advisors"
   add_foreign_key "broker_account_daily_results", "broker_accounts"

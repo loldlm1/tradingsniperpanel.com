@@ -12,6 +12,6 @@ class MarketplaceController < ApplicationController
   private
 
   def set_marketplace_entry
-    @entry = Marketplace::Catalog.new(user: current_user).entry_for!(slug: params[:id])
+    @entry = Marketplace::Catalog.new(user: current_user, include_eligibility: true).entry_for!(slug: params[:id])
   end
 end

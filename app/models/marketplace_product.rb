@@ -4,6 +4,7 @@ class MarketplaceProduct < ApplicationRecord
   belongs_to :billing_plan
   has_many :expert_advisors, through: :billing_plan
   has_many :courses, through: :billing_plan
+  has_one :addon, through: :billing_plan
 
   enum :status, { draft: "draft", active: "active" }
 

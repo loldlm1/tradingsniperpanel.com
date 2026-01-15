@@ -12,12 +12,21 @@ module Marketplace
       :owned_courses,
       :remaining_expert_advisors,
       :remaining_courses,
+      :addon,
+      :addonable,
+      :eligible,
+      :eligibility_reason,
       keyword_init: true
-    )
+    ) do
+      def addon?
+        addon.present?
+      end
+    end
 
-    def initialize(user:, scope: MarketplaceProduct)
+    def initialize(user:, scope: MarketplaceProduct, include_eligibility: false)
       @user = user
       @scope = scope
+      @include_eligibility = include_eligibility
     end
 
     def call
@@ -37,14 +46,14 @@ module Marketplace
 
     private
 
-    attr_reader :user, :scope
+    attr_reader :user, :scope, :include_eligibility
 
     def product_scope
       scope.active
            .joins(:billing_plan)
            .merge(BillingPlan.active)
            .ordered
-           .includes(:billing_plan, image_attachment: :blob, billing_plan: [:expert_advisors, :courses])
+           .includes(image_attachment: :blob, billing_plan: [:expert_advisors, :courses, { addon: :addonable }])
     end
 
     def purchase_context
@@ -73,6 +82,9 @@ module Marketplace
       courses = sorted_courses(product.courses)
       owned_expert_advisors = expert_advisors.select { |ea| purchased_ea_ids.include?(ea.id) }
       owned_courses = courses.select { |course| purchased_course_ids.include?(course.id) }
+      addon = plan&.addon
+      addonable = addon&.addonable
+      eligibility = addon && include_eligibility ? Addons::Eligibility.new(user: user, addon: addon).call : nil
 
       Entry.new(
         product: product,
@@ -85,7 +97,11 @@ module Marketplace
         owned_expert_advisors: owned_expert_advisors,
         owned_courses: owned_courses,
         remaining_expert_advisors: expert_advisors - owned_expert_advisors,
-        remaining_courses: courses - owned_courses
+        remaining_courses: courses - owned_courses,
+        addon: addon,
+        addonable: addonable,
+        eligible: eligibility&.allowed?,
+        eligibility_reason: eligibility&.reason
       )
     end
 

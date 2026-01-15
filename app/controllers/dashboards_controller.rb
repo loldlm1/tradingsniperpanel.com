@@ -54,7 +54,9 @@ class DashboardsController < ApplicationController
     if plan&.one_time?
       guard = Marketplace::PurchaseGuard.new(user: current_user, billing_plan: plan).call
       unless guard.allowed
-        redirect_to marketplace_redirect_path(plan), alert: t("dashboard.marketplace.errors.already_purchased") and return
+        alert_key = guard.reason == :already_purchased ? "dashboard.marketplace.errors.already_purchased" : "dashboard.marketplace.errors.addon_requires_base"
+        base_label = addonable_label(guard.addonable) || t("dashboard.marketplace.errors.addon_base_default")
+        redirect_to marketplace_redirect_path(plan), alert: t(alert_key, base: base_label) and return
       end
 
       success_url = price_key.present? ? dashboard_url(price_key: price_key) : dashboard_url
@@ -262,5 +264,13 @@ class DashboardsController < ApplicationController
     return dashboard_marketplace_path(locale: I18n.locale) unless product
 
     dashboard_marketplace_product_path(product, locale: I18n.locale)
+  end
+
+  def addonable_label(addonable)
+    return nil unless addonable
+    return addonable.name if addonable.is_a?(ExpertAdvisor)
+    return addonable.title_for(I18n.locale) if addonable.respond_to?(:title_for)
+
+    addonable.to_s
   end
 end

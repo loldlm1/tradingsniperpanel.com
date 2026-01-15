@@ -5,7 +5,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 - Users authenticate via Devise and can originate from OAuth (`provider`, `uid`, `oauth_data`). `role` enum: `trader`, `partner`, `admin`.
 - ExpertAdvisors describe each EA/tool (`ea_type`, `doc_guide_en/es`, `ea_files` attachment, `allowed_subscription_tiers`, `trial_enabled`); referenced by Licenses and UserExpertAdvisors.
 - Courses provide premium learning content with localized titles/descriptions, module/lesson structure, and Stream-backed videos; entitlements connect Courses to BillingPlans for tier access, with enrollments tracking user progress.
-- BillingPlans store subscription and one-time products with Stripe IDs and display attributes; BillingPlanEntitlements join plans to ExpertAdvisors.
+- BillingPlans store subscription and one-time products with Stripe IDs and display attributes; BillingPlanEntitlements join plans to ExpertAdvisors, and Addons tie one-time plans to a specific ExpertAdvisor or Course.
 - Licenses tie a User to an ExpertAdvisor with status (`trial`, `active`, `expired`, `revoked`), expiry fields, and an `encrypted_key`. BrokerAccounts hang off Licenses and record daily PnL snapshots.
 - UserExpertAdvisors is a soft-deletable join for entitlement tracking (`subscription_tier`, `pay_subscription_id`, `expires_at`, `deleted_at`).
 - Referrals via the `refer` gem: referral_codes/visits/referrals tables connect referrers/referees; PartnerProfile leverages this.
@@ -23,6 +23,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 - `course_lesson_progresses`: `user_id`, `course_lesson_id`, `status` (`started`, `completed`), `progress_seconds`, `completed_at`, `last_watched_at`.
 - `billing_plans`: `key` (uniq), `name` (uniq), `kind` (`subscription`, `one_time`), `tier`, `interval`, `interval_count`, `amount_cents`, `currency`, `stripe_product_id`, `stripe_price_id` (uniq), `active`, `sort_order`, `metadata`.
 - `billing_plan_entitlements`: `billing_plan_id`, `expert_advisor_id`, timestamps. Unique `billing_plan_id + expert_advisor_id`.
+- `addons`: `key` (uniq), `billing_plan_id` (uniq), `addonable_type/id` (ExpertAdvisor/Course), `metadata` JSON. One add-on per BillingPlan.
 - `licenses`: `user_id`, `expert_advisor_id`, `status` (`trial`, `active`, `expired`, `revoked`), `plan_interval`, `expires_at`, `trial_ends_at`, `encrypted_key`, `source`, `last_synced_at`. Unique `user_id + expert_advisor_id`. Scopes: `active_or_trial`.
 - `broker_accounts`: `license_id`, `company`, `account_number`, `account_type` enum (`real`, `demo`), optional `name`. Uniqueness: `company + account_number + account_type`.
 - `broker_account_daily_results`: `broker_account_id`, `result_timestamp` (unix seconds), `result_value` (decimal). Uniqueness: one result per UTC day per broker account (expression index on `result_timestamp`).
@@ -37,6 +38,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 ## Common queries and services
 - License access map: `Licenses::AccessibleExpertAdvisors` preloads `ExpertAdvisor.active.includes(:licenses)` and the user’s licenses/broker_accounts, returning per-EA entries with status, key, expiry, and allowed tiers.
 - License verification API: `Licenses::LicenseVerifier` checks source, user/email, EA, license record, status, secure compares `encrypted_key`, and validates with `LicenseKeyEncoder`.
+- Add-on gating: `Addons::Eligibility` validates paid base access before one-time add-on purchases; `Licenses::AddonAccess` checks add-on ownership during `licenses/verify`.
 - Billing setup: `Billing::PlanCreator` creates or updates Stripe products/prices and persists them in `billing_plans`; `Billing::PricingCatalog` builds the plan/interval data used by pricing views.
 - Subscription sync: `Licenses::SubscriptionLicenseSync` resolves tier/interval from the Stripe price, generates/updates licenses per allowed EA, marks referral completed, and expires disallowed licenses.
 - Trial provisioning: `Licenses::TrialProvisioner` (via `Licenses::CreateTrialLicensesJob`) issues `trial` licenses for trial-enabled EAs when keys are configured.
@@ -46,7 +48,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 - API rate limit: `Api::V1::LicensesController#verify` caches per-email hits (60/min) and upserts BrokerAccounts (retrying on uniqueness conflicts).
 
 ## API surface
-- `POST /api/v1/licenses/verify` (JSON only): params `source`, `email`, `ea_id`, `license_key`, optional `broker_account` payload (`name`, `company`, `account_number`, `account_type`). Success returns `ok`, `plan_interval`, `trial`, `expires_at` (unix timestamp), optional `broker_account`. Errors: `user_not_found`, `ea_not_found`, `license_not_found`, `invalid_key`, `expired`, `trial_disabled`, `invalid_source`, `invalid_payload`, or `rate_limited`.
+- `POST /api/v1/licenses/verify` (JSON only): params `source`, `email`, `ea_id`, `license_key`, optional `addons` (comma-separated add-on keys), optional `broker_account` payload (`name`, `company`, `account_number`, `account_type`). Success returns `ok`, `plan_interval`, `trial`, `expires_at` (unix timestamp), optional `broker_account`. Errors: `user_not_found`, `ea_not_found`, `license_not_found`, `invalid_key`, `expired`, `trial_disabled`, `addons_required` (includes `required_addons` and `missing_addons` CSVs), `invalid_source`, `invalid_payload`, or `rate_limited`.
 - `POST /api/v1/broker_accounts/daily_results` (JSON only): params `source`, `email`, `ea_id`, `license_key`, `broker_account` (`company`, `account_number`, `account_type`), `result_timestamp` (unix seconds), `result_value`. Success returns `ok`, `result_on` (ISO date), and stored values. Errors: `broker_account_not_found`, `already_recorded`, `invalid_payload`, `invalid_key`, or `invalid_source`.
 
 ## Data flow highlights
