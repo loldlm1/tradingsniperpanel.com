@@ -17,6 +17,16 @@ RSpec.describe "Expert advisor guides", type: :request do
     end
   end
 
+  def attach_ea_bundle(bundle, filename:)
+    File.open(bundle_path) do |file|
+      bundle.bundle_file.attach(
+        io: file,
+        filename: filename,
+        content_type: "application/x-rar-compressed"
+      )
+    end
+  end
+
   it "renders the Expert Advisors index page with guide preview" do
     create(:user_expert_advisor, user:, expert_advisor:)
     sign_in user, scope: :user
@@ -70,6 +80,32 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(location).to include("/rails/active_storage/blobs/")
     expect(location).to include("/#{expert_advisor.ea_id}.rar")
     expect(location).not_to include("ea_bundle")
+  end
+
+  it "redirects to the matching expert advisor bundle when bundles exist" do
+    create(:license, user:, expert_advisor:)
+    bundle = create(:expert_advisor_bundle, expert_advisor: expert_advisor, bundle_key: "base", required_addon_keys: "")
+    attach_ea_bundle(bundle, filename: "#{expert_advisor.ea_id}__base.rar")
+    sign_in user, scope: :user
+
+    get dashboard_expert_advisor_download_path(expert_advisor, locale: :en)
+
+    expect(response).to have_http_status(:found)
+    location = response.headers["Location"]
+    expect(location).to include("/rails/active_storage/blobs/")
+    expect(location).to include("#{expert_advisor.ea_id}__base.rar")
+  end
+
+  it "blocks bundle downloads when the matching bundle is missing" do
+    create(:license, user:, expert_advisor:)
+    create(:expert_advisor_bundle, expert_advisor: expert_advisor, bundle_key: "base", required_addon_keys: "")
+    sign_in user, scope: :user
+
+    get dashboard_expert_advisor_download_path(expert_advisor, locale: :en)
+
+    expect(response).to have_http_status(:found)
+    expect(response.headers["Location"]).to include("/dashboard/expert_advisors")
+    expect(flash[:alert]).to eq(I18n.t("dashboard.expert_advisors.bundle_missing"))
   end
 
   it "blocks bundle download when locked" do

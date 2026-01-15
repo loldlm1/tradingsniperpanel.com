@@ -76,4 +76,40 @@ RSpec.describe "Licenses API", type: :request do
 
     expect(BrokerAccount.first.name).to eq("Account A")
   end
+
+  it "rejects missing addon access" do
+    addon = create(:addon, key: "news_filter", addonable: expert_advisor)
+
+    post "/api/v1/licenses/verify", params: {
+      source: source_id,
+      email: user.email,
+      ea_id: expert_advisor.ea_id,
+      license_key: license_key,
+      addons: addon.key
+    }
+
+    expect(response).to have_http_status(:unauthorized)
+    body = JSON.parse(response.body)
+    expect(body["ok"]).to eq(false)
+    expect(body["error"]).to eq("addons_required")
+    expect(body["required_addons"]).to eq(addon.key)
+    expect(body["missing_addons"]).to eq(addon.key)
+  end
+
+  it "allows access when required addons are purchased" do
+    addon = create(:addon, key: "news_filter", addonable: expert_advisor)
+    create(:marketplace_purchase, user: user, billing_plan: addon.billing_plan)
+
+    post "/api/v1/licenses/verify", params: {
+      source: source_id,
+      email: user.email,
+      ea_id: expert_advisor.ea_id,
+      license_key: license_key,
+      addons: addon.key
+    }
+
+    expect(response).to have_http_status(:ok)
+    body = JSON.parse(response.body)
+    expect(body["ok"]).to eq(true)
+  end
 end

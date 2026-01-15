@@ -40,4 +40,20 @@ RSpec.describe "Marketplace", type: :request do
     expect(response.headers["Location"]).to include("/dashboard/marketplace")
     expect(flash[:alert]).to eq(I18n.t("dashboard.marketplace.errors.already_purchased"))
   end
+
+  it "blocks add-on purchases without base access" do
+    expert_advisor = create(:expert_advisor, name: "Addon Base EA")
+    addon = create(:addon, addonable: expert_advisor)
+    create(:marketplace_product, billing_plan: addon.billing_plan, title_en: "Addon Pack")
+    user.pay_customers.create!(processor: "stripe", processor_id: "cus_addon_guard", default: true)
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path(locale: :en, price_key: addon.billing_plan.key)
+
+    expect(response).to have_http_status(:found)
+    expect(response.headers["Location"]).to include("/dashboard/marketplace")
+    expect(flash[:alert]).to eq(
+      I18n.t("dashboard.marketplace.errors.addon_requires_base", base: expert_advisor.name)
+    )
+  end
 end
