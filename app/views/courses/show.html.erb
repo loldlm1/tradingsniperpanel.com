@@ -31,7 +31,10 @@
                     else
                       "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200"
                     end %>
-    <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= badge_label %></span>
+    <%= render "dashboard/shared/badge",
+               label: badge_label,
+               padding_class: "px-2 py-1",
+               class_name: badge_class %>
     <% if !accessible && cta_plan.present? %>
       <%= link_to t("dashboard.courses.unlock_cta"), dashboard_plans_path(price_key: cta_plan.key), class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
     <% end %>
@@ -97,10 +100,11 @@
   <aside class="space-y-6">
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
       <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.courses.details_title") %></div>
-      <div class="flex flex-wrap gap-2 text-xs text-gray-600 dark:text-gray-300">
-        <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700"><%= t("dashboard.courses.meta.modules", count: @course_modules.size) %></span>
-        <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700"><%= t("dashboard.courses.meta.lessons", count: lessons.size) %></span>
-        <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700"><%= t("dashboard.courses.meta.duration", duration: format_duration(lessons.sum { |lesson| lesson.duration_seconds.to_i })) %></span>
+      <div class="flex flex-wrap gap-2">
+        <%= render "dashboard/shared/filter_chip", label: t("dashboard.courses.meta.modules", count: @course_modules.size) %>
+        <%= render "dashboard/shared/filter_chip", label: t("dashboard.courses.meta.lessons", count: lessons.size) %>
+        <%= render "dashboard/shared/filter_chip",
+                   label: t("dashboard.courses.meta.duration", duration: format_duration(lessons.sum { |lesson| lesson.duration_seconds.to_i })) %>
       </div>
       <% if accessible %>
         <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.access_granted") %></div>

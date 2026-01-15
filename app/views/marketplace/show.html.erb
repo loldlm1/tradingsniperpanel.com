@@ -13,7 +13,9 @@
     <% end %>
   </div>
   <div>
-    <%= link_to t("dashboard.marketplace.detail.back"), dashboard_marketplace_path(locale: I18n.locale), class: "btn-sm bg-white border border-gray-200 text-gray-700 hover:text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200" %>
+    <%= render "dashboard/shared/secondary_button",
+               label: t("dashboard.marketplace.detail.back"),
+               href: dashboard_marketplace_path(locale: I18n.locale) %>
   </div>
 </div>
 
