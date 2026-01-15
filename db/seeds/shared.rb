@@ -764,6 +764,65 @@ module Seeds
     end
   end
 
+  module ExpertAdvisorBundles
+    module_function
+
+    def seed_bundles!
+      return unless defined?(ExpertAdvisorBundle)
+      return unless defined?(ExpertAdvisor)
+
+      bundle_path = Rails.root.join("db", "seeds", "fixtures", "ea_bundle.rar")
+      unless bundle_path.exist?
+        Rails.logger.warn("[Seeds::ExpertAdvisorBundles] skipped: bundle fixture missing")
+        return
+      end
+
+      ExpertAdvisor.find_each do |expert_advisor|
+        seed_base_bundle(expert_advisor, bundle_path)
+        seed_addon_bundles(expert_advisor, bundle_path)
+      end
+    end
+
+    def seed_base_bundle(expert_advisor, bundle_path)
+      bundle = ExpertAdvisorBundle.find_or_initialize_by(expert_advisor: expert_advisor, bundle_key: "base")
+      bundle.required_addon_keys = ""
+      bundle.active = true if bundle.active.nil?
+      bundle.save!
+
+      attach_bundle(bundle, bundle_path, "#{expert_advisor.ea_id}__base.rar")
+    end
+
+    def seed_addon_bundles(expert_advisor, bundle_path)
+      addon_keys = expert_advisor.addons.order(:key).pluck(:key)
+      addon_combinations(addon_keys).each do |combo|
+        bundle_key = combo.join("__")
+        bundle = ExpertAdvisorBundle.find_or_initialize_by(expert_advisor: expert_advisor, bundle_key: bundle_key)
+        bundle.required_addon_keys = combo.join(",")
+        bundle.active = true if bundle.active.nil?
+        bundle.save!
+
+        attach_bundle(bundle, bundle_path, "#{expert_advisor.ea_id}__#{bundle_key}.rar")
+      end
+    end
+
+    def attach_bundle(bundle, bundle_path, filename)
+      return if bundle.bundle_file.attached?
+
+      File.open(bundle_path) do |file|
+        bundle.bundle_file.attach(
+          io: file,
+          filename: filename,
+          content_type: "application/x-rar-compressed"
+        )
+      end
+    end
+
+    def addon_combinations(addon_keys)
+      keys = addon_keys.sort
+      (1..keys.size).flat_map { |size| keys.combination(size).to_a }
+    end
+  end
+
   module QaUsers
     module_function
 
