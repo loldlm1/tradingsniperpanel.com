@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_15_140355) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_15_151405) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -53,7 +53,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_140355) do
     t.index ["addonable_type", "addonable_id"], name: "index_addons_on_addonable"
     t.index ["billing_plan_id"], name: "index_addons_on_billing_plan_id", unique: true
     t.index ["key"], name: "index_addons_on_key", unique: true
-    t.check_constraint "addonable_type::text = ANY (ARRAY['ExpertAdvisor'::character varying, 'Course'::character varying]::text[])", name: "addons_addonable_type_check"
+    t.check_constraint "addonable_type::text = ANY (ARRAY['ExpertAdvisor'::character varying::text, 'Course'::character varying::text])", name: "addons_addonable_type_check"
   end
 
   create_table "billing_plan_entitlements", force: :cascade do |t|
@@ -208,6 +208,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_140355) do
     t.index ["category"], name: "index_courses_on_category"
     t.index ["slug"], name: "index_courses_on_slug", unique: true
     t.index ["status"], name: "index_courses_on_status"
+  end
+
+  create_table "expert_advisor_bundles", force: :cascade do |t|
+    t.bigint "expert_advisor_id", null: false
+    t.string "bundle_key", null: false
+    t.string "required_addon_keys", default: "", null: false
+    t.boolean "active", default: true, null: false
+    t.integer "sort_order", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expert_advisor_id", "bundle_key"], name: "index_ea_bundles_on_ea_and_key", unique: true
+    t.index ["expert_advisor_id"], name: "index_expert_advisor_bundles_on_expert_advisor_id"
   end
 
   create_table "expert_advisors", force: :cascade do |t|
@@ -541,6 +553,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_140355) do
   add_foreign_key "course_modules", "courses"
   add_foreign_key "course_plan_entitlements", "billing_plans"
   add_foreign_key "course_plan_entitlements", "courses"
+  add_foreign_key "expert_advisor_bundles", "expert_advisors"
   add_foreign_key "licenses", "expert_advisors"
   add_foreign_key "licenses", "users"
   add_foreign_key "marketplace_products", "billing_plans"

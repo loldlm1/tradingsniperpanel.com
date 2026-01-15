@@ -317,6 +317,7 @@ en:
       access_title: "Access"
       download_bundle: "Download bundle"
       download_missing: "Download not found."
+      bundle_missing: "Bundle not available yet."
       download_locked: "Upgrade to download this EA bundle."
       download_unavailable: "Bundle upload pending."
       locked: "Subscribe to unlock this EA and receive your license."

@@ -317,6 +317,7 @@ es:
       access_title: "Acceso"
       download_bundle: "Descargar paquete"
       download_missing: "Descarga no encontrada."
+      bundle_missing: "El paquete aún no está disponible."
       download_locked: "Actualiza para descargar este paquete."
       download_unavailable: "Carga del paquete pendiente."
       locked: "Suscríbete para desbloquear este EA y recibir tu licencia."

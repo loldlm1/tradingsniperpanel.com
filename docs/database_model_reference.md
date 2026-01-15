@@ -4,6 +4,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 ## Domain map
 - Users authenticate via Devise and can originate from OAuth (`provider`, `uid`, `oauth_data`). `role` enum: `trader`, `partner`, `admin`.
 - ExpertAdvisors describe each EA/tool (`ea_type`, `doc_guide_en/es`, `ea_files` attachment, `allowed_subscription_tiers`, `trial_enabled`); referenced by Licenses and UserExpertAdvisors.
+- ExpertAdvisorBundles map an EA plus a sorted add-on key set to a downloadable bundle file for base/combination binaries.
 - Courses provide premium learning content with localized titles/descriptions, module/lesson structure, and Stream-backed videos; entitlements connect Courses to BillingPlans for tier access, with enrollments tracking user progress.
 - BillingPlans store subscription and one-time products with Stripe IDs and display attributes; BillingPlanEntitlements join plans to ExpertAdvisors, and Addons tie one-time plans to a specific ExpertAdvisor or Course.
 - Licenses tie a User to an ExpertAdvisor with status (`trial`, `active`, `expired`, `revoked`), expiry fields, and an `encrypted_key`. BrokerAccounts hang off Licenses and record daily PnL snapshots.
@@ -24,6 +25,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 - `billing_plans`: `key` (uniq), `name` (uniq), `kind` (`subscription`, `one_time`), `tier`, `interval`, `interval_count`, `amount_cents`, `currency`, `stripe_product_id`, `stripe_price_id` (uniq), `active`, `sort_order`, `metadata`.
 - `billing_plan_entitlements`: `billing_plan_id`, `expert_advisor_id`, timestamps. Unique `billing_plan_id + expert_advisor_id`.
 - `addons`: `key` (uniq), `billing_plan_id` (uniq), `addonable_type/id` (ExpertAdvisor/Course), `metadata` JSON. One add-on per BillingPlan.
+- `expert_advisor_bundles`: `expert_advisor_id`, `bundle_key` (sorted add-on key set), `required_addon_keys` (CSV), `active`, `sort_order`, `bundle_file` attachment. One bundle per key set.
 - `licenses`: `user_id`, `expert_advisor_id`, `status` (`trial`, `active`, `expired`, `revoked`), `plan_interval`, `expires_at`, `trial_ends_at`, `encrypted_key`, `source`, `last_synced_at`. Unique `user_id + expert_advisor_id`. Scopes: `active_or_trial`.
 - `broker_accounts`: `license_id`, `company`, `account_number`, `account_type` enum (`real`, `demo`), optional `name`. Uniqueness: `company + account_number + account_type`.
 - `broker_account_daily_results`: `broker_account_id`, `result_timestamp` (unix seconds), `result_value` (decimal). Uniqueness: one result per UTC day per broker account (expression index on `result_timestamp`).

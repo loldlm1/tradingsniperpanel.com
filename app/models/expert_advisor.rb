@@ -8,6 +8,7 @@ class ExpertAdvisor < ApplicationRecord
   has_many :billing_plan_entitlements, dependent: :destroy
   has_many :billing_plans, through: :billing_plan_entitlements
   has_many :addons, as: :addonable, dependent: :destroy
+  has_many :expert_advisor_bundles, dependent: :destroy
   has_one_attached :ea_files
 
   default_scope { where(deleted_at: nil) }
