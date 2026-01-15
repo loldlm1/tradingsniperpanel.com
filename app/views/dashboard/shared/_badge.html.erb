@@ -1,0 +1,7 @@
+<% label = local_assigns.fetch(:label) %>
+<% size_class = local_assigns.fetch(:size_class, "text-xs") %>
+<% padding_class = local_assigns.fetch(:padding_class, "px-2 py-0.5") %>
+<% class_name = local_assigns.fetch(:class_name, "") %>
+<% base_class = "inline-flex items-center rounded-full font-semibold" %>
+
+<span class="<%= [base_class, size_class, padding_class, class_name].reject(&:blank?).join(" ") %>"><%= label %></span>

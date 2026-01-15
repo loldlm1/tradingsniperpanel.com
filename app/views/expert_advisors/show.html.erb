@@ -16,7 +16,10 @@
     <p class="text-gray-600 dark:text-gray-300"><%= @expert_advisor.description %></p>
   </div>
   <div class="flex items-center gap-2">
-    <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= status.to_s.humanize %></span>
+    <%= render "dashboard/shared/badge",
+               label: status.to_s.humanize,
+               padding_class: "px-2 py-1",
+               class_name: badge_class %>
     <% unless entry&.accessible %>
       <%= link_to t("dashboard.plans.cta.subscribe"), dashboard_plans_path(price_key: cta_key), class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
     <% end %>
@@ -26,7 +29,7 @@
 <div class="grid gap-6 lg:grid-cols-3">
   <div class="lg:col-span-2 space-y-6">
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-      <div class="flex items-center justify-between mb-3">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-3">
         <div>
           <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.expert_advisors.guides_label") %></div>
           <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.preview_copy") %></p>
@@ -58,7 +61,10 @@
     <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
       <div class="flex items-center justify-between">
         <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.expert_advisors.access_title") %></div>
-        <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= status.to_s.humanize %></span>
+        <%= render "dashboard/shared/badge",
+                   label: status.to_s.humanize,
+                   padding_class: "px-2 py-1",
+                   class_name: badge_class %>
       </div>
 
       <% if entry&.expires_at.present? %>

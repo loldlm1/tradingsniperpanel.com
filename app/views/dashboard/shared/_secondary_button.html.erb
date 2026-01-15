@@ -1,0 +1,10 @@
+<% label = local_assigns.fetch(:label) %>
+<% href = local_assigns.fetch(:href) %>
+<% size_class = local_assigns.fetch(:size_class, "btn-sm") %>
+<% class_name = local_assigns.fetch(:class_name, "") %>
+<% data_attrs = local_assigns.fetch(:data, {}) %>
+<% base_class = "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300" %>
+<% html_options = { class: [size_class, base_class, class_name].reject(&:blank?).join(" ") } %>
+<% html_options[:data] = data_attrs if data_attrs.present? %>
+
+<%= link_to label, href, html_options %>
