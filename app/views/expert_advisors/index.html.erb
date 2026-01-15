@@ -11,11 +11,11 @@
   <div class="flex flex-wrap items-center gap-3">
     <span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.expert_advisors.filters.status") %></span>
     <% %w[all active trial expired].each do |status| %>
-      <button type="button" class="px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/30"><%= status.capitalize %></button>
+      <%= render "dashboard/shared/filter_chip", label: status.capitalize %>
     <% end %>
     <span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold ml-3"><%= t("dashboard.expert_advisors.filters.type") %></span>
     <% [[t("dashboard.expert_advisors.filters.all_types"), nil], ["EA Robot", "robot"], ["EA Tool", "tool"]].each do |label, _value| %>
-      <button type="button" class="px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-900/30"><%= label %></button>
+      <%= render "dashboard/shared/filter_chip", label: label %>
     <% end %>
   </div>
   <p class="text-xs text-gray-500 dark:text-gray-400 mt-3"><%= t("dashboard.expert_advisors.filters.note") %></p>
@@ -32,7 +32,7 @@
     <% broker_count = entry.license&.broker_accounts&.size.to_i %>
     <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between">
       <div class="space-y-3">
-        <div class="flex items-center justify-between gap-2">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div class="flex items-center gap-2">
             <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-xs font-semibold"><%= idx + 1 %></span>
             <div>
@@ -40,9 +40,16 @@
               <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= ea.ea_type %></div>
             </div>
           </div>
-          <div class="flex flex-col items-end gap-1">
-            <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= entry.status.to_s.humanize %></span>
-            <span class="px-2 py-1 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200"><%= t("dashboard.expert_advisors.pnl_soon") %></span>
+          <div class="flex flex-col items-start gap-1 sm:items-end">
+            <%= render "dashboard/shared/badge",
+                       label: entry.status.to_s.humanize,
+                       padding_class: "px-2 py-1",
+                       class_name: badge_class %>
+            <%= render "dashboard/shared/badge",
+                       label: t("dashboard.expert_advisors.pnl_soon"),
+                       size_class: "text-[11px]",
+                       padding_class: "px-2 py-1",
+                       class_name: "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200" %>
           </div>
         </div>
         <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed"><%= ea.description %></p>
@@ -59,11 +66,15 @@
           <% end %>
         </div>
         <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-          <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700"><%= t("dashboard.broker_accounts.title") %>: <%= broker_count %></span>
+          <%= render "dashboard/shared/badge",
+                     label: "#{t("dashboard.broker_accounts.title")}: #{broker_count}",
+                     padding_class: "px-2 py-1",
+                     class_name: "bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200" %>
           <% if entry.status == :trial && entry.expires_at.present? %>
-            <span class="inline-flex items-center px-2 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-100 border border-amber-200/80 dark:border-amber-500/40">
-              <%= t("dashboard.expert_advisors.trial_countdown", date: l(entry.expires_at.to_date, format: :short_with_year)) %>
-            </span>
+            <%= render "dashboard/shared/badge",
+                       label: t("dashboard.expert_advisors.trial_countdown", date: l(entry.expires_at.to_date, format: :short_with_year)),
+                       padding_class: "px-2 py-1",
+                       class_name: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-100 border border-amber-200/80 dark:border-amber-500/40" %>
           <% end %>
         </div>
         <% if entry.accessible && entry.license_key.present? %>

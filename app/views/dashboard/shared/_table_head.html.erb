@@ -1,0 +1,6 @@
+<% class_name = local_assigns.fetch(:class_name, "") %>
+<% base_class = "text-xs uppercase text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700/50 rounded-xs" %>
+
+<thead class="<%= [base_class, class_name].reject(&:blank?).join(" ") %>">
+  <%= yield %>
+</thead>

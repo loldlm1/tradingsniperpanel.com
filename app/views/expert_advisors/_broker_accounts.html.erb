@@ -4,7 +4,7 @@
   <% if accounts.present? %>
     <div class="space-y-2">
       <% accounts.each do |account| %>
-        <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
           <div>
             <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= account.name.presence || t("dashboard.broker_accounts.unnamed") %></div>
             <div class="text-xs text-gray-500 dark:text-gray-400"><%= account.company %> · <%= account.account_number %></div>

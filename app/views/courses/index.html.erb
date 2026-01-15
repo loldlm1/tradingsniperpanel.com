@@ -36,16 +36,19 @@
               <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= course.title_for(I18n.locale) %></h2>
               <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.courses.categories.#{course.category}", default: course.category.to_s.humanize) %></div>
             </div>
-            <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= badge_label %></span>
+            <%= render "dashboard/shared/badge",
+                       label: badge_label,
+                       padding_class: "px-2 py-1",
+                       class_name: badge_class %>
           </div>
           <% summary = course.summary_for(I18n.locale).presence || course.description_for(I18n.locale) %>
           <% if summary.present? %>
             <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed"><%= truncate(summary, length: 140) %></p>
           <% end %>
-          <div class="flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-            <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700"><%= t("dashboard.courses.meta.modules", count: modules_count) %></span>
-            <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700"><%= t("dashboard.courses.meta.lessons", count: lessons_count) %></span>
-            <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700"><%= t("dashboard.courses.meta.duration", duration: format_duration(duration_seconds)) %></span>
+          <div class="flex flex-wrap items-center gap-2">
+            <%= render "dashboard/shared/filter_chip", label: t("dashboard.courses.meta.modules", count: modules_count) %>
+            <%= render "dashboard/shared/filter_chip", label: t("dashboard.courses.meta.lessons", count: lessons_count) %>
+            <%= render "dashboard/shared/filter_chip", label: t("dashboard.courses.meta.duration", duration: format_duration(duration_seconds)) %>
           </div>
           <% if entry.progress_percent.present? && entry.progress_percent.positive? %>
             <div class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.progress_label", percent: entry.progress_percent) %></div>

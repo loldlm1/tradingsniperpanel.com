@@ -60,15 +60,15 @@
 
       <% initial_interval = requested_interval.presence || interval_keys.first || "monthly" %>
       <div x-data="{ period: '<%= initial_interval %>' }">
-        <div class="flex items-center mb-6">
-          <div class="inline-flex bg-gray-100 dark:bg-gray-700/60 rounded-full p-1 border border-gray-200 dark:border-gray-600">
+        <div class="flex flex-wrap items-center gap-2 mb-6">
+          <div class="inline-flex flex-wrap w-full sm:w-auto bg-gray-100 dark:bg-gray-700/60 rounded-full p-1 border border-gray-200 dark:border-gray-600 gap-1">
             <% intervals.each do |interval| %>
               <button class="px-4 py-2 rounded-full text-sm font-medium transition"
                       :class="period === '<%= interval[:key] %>' ? 'bg-gray-900 text-gray-100 dark:bg-gray-100 dark:text-gray-800' : 'text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
                       @click="period = '<%= interval[:key] %>'">
                 <span><%= interval[:label] %></span>
                 <% if interval[:key] == "annual" && discount_percent.present? %>
-                  <span class="ml-2 text-xs font-semibold text-green-600 dark:text-green-400"><%= t("dashboard.plans.toggle.save_up_to", percent: discount_percent) %></span>
+                  <span class="block sm:inline sm:ml-2 text-xs font-semibold text-green-600 dark:text-green-400"><%= t("dashboard.plans.toggle.save_up_to", percent: discount_percent) %></span>
                 <% end %>
               </button>
             <% end %>

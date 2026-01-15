@@ -127,7 +127,7 @@
 
 <div class="grid gap-6 mt-6 lg:grid-cols-3">
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-4">
       <div>
         <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.pnl_title") %></div>
         <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.pnl_copy") %></p>
@@ -140,24 +140,27 @@
   </div>
 
   <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-4">
       <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.activity.title") %></div>
       <span class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.activity.subhead") %></span>
     </div>
     <ul class="space-y-3">
       <% activities.each do |activity| %>
-        <li class="flex items-start justify-between">
+        <li class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= activity.title %></div>
             <div class="text-xs text-gray-500 dark:text-gray-400"><%= activity.subtitle %></div>
           </div>
-          <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
+          <div class="text-xs text-gray-500 dark:text-gray-400 sm:text-right">
             <% if activity.occurred_at.present? %>
               <div><%= l(activity.occurred_at.to_date, format: :short_with_year) %></div>
             <% else %>
               <div><%= t("dashboard.activity.recently", default: "Recently") %></div>
             <% end %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded-full <%= activity.tone == :success ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100' : 'bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200' %>"><%= activity.tone.to_s.humanize %></span>
+            <% tone_class = activity.tone == :success ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100" : "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200" %>
+            <%= render "dashboard/shared/badge",
+                       label: activity.tone.to_s.humanize,
+                       class_name: tone_class %>
           </div>
         </li>
       <% end %>

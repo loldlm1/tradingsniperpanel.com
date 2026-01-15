@@ -10,8 +10,8 @@
 <% cta_key = cta_plan&.key || (allowed_tier ? "#{allowed_tier}_monthly" : nil) %>
 <% status = entry&.status || :locked %>
 <% badge_class = case status
-                when :active then "bg-emerald-100 text-emerald-700"
-                when :trial then "bg-amber-100 text-amber-700"
+                when :active then "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
+                when :trial then "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
                 else "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 end %>
 
@@ -32,7 +32,10 @@
                 <p class="text-lg text-slate-600 dark:text-slate-400"><%= @expert_advisor.description %></p>
               </div>
               <div class="flex items-center gap-2">
-                <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= status.to_s.humanize %></span>
+                <%= render "dashboard/shared/badge",
+                           label: status.to_s.humanize,
+                           padding_class: "px-2 py-1",
+                           class_name: badge_class %>
                 <% unless entry&.accessible %>
                   <%= link_to t("dashboard.plans.cta.subscribe"), dashboard_plans_path(price_key: cta_key), class: "btn-sm inline-flex items-center text-slate-100 bg-blue-600 hover:bg-blue-700 shadow-xs" %>
                 <% end %>
