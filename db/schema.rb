@@ -53,7 +53,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_151405) do
     t.index ["addonable_type", "addonable_id"], name: "index_addons_on_addonable"
     t.index ["billing_plan_id"], name: "index_addons_on_billing_plan_id", unique: true
     t.index ["key"], name: "index_addons_on_key", unique: true
-    t.check_constraint "addonable_type::text = ANY (ARRAY['ExpertAdvisor'::character varying::text, 'Course'::character varying::text])", name: "addons_addonable_type_check"
+    t.check_constraint "addonable_type::text = ANY (ARRAY['ExpertAdvisor'::character varying, 'Course'::character varying]::text[])", name: "addons_addonable_type_check"
   end
 
   create_table "billing_plan_entitlements", force: :cascade do |t|
