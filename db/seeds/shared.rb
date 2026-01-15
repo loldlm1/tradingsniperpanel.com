@@ -648,6 +648,181 @@ module Seeds
     end
   end
 
+  module Addons
+    module_function
+
+    def definitions
+      [
+        {
+          key: "sniper_panel_news_filter",
+          slug: "addon_sniper_news_filter",
+          sort_order: 10,
+          title_en: "News Filter Add-on",
+          title_es: "Add-on Filtro de Noticias",
+          summary_en: "Block EA entries during high-impact news windows.",
+          summary_es: "Bloquea entradas del EA durante noticias de alto impacto.",
+          description_en: "A paid add-on for the Sniper Advanced Panel that adds a configurable news filter.",
+          description_es: "Add-on de pago para Sniper Advanced Panel con filtro de noticias configurable.",
+          amount_cents: 2900,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-02.jpg"),
+          addonable_type: "ExpertAdvisor",
+          addonable_key: "sniper_advanced_panel"
+        },
+        {
+          key: "pandora_risk_guard",
+          slug: "addon_pandora_risk_guard",
+          sort_order: 11,
+          title_en: "Risk Guard Add-on",
+          title_es: "Add-on Guardia de Riesgo",
+          summary_en: "Adds drawdown and volatility safeguards to Pandora Box.",
+          summary_es: "Agrega protecciones de drawdown y volatilidad a Pandora Box.",
+          description_en: "A paid add-on for Pandora Box that introduces dynamic risk guardrails.",
+          description_es: "Add-on de pago para Pandora Box con protecciones dinámicas de riesgo.",
+          amount_cents: 3900,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-06.jpg"),
+          addonable_type: "ExpertAdvisor",
+          addonable_key: "pandora_box"
+        },
+        {
+          key: "foundations_workbook",
+          slug: "addon_foundations_workbook",
+          sort_order: 12,
+          title_en: "Foundations Workbook",
+          title_es: "Workbook Fundamentos",
+          summary_en: "Downloadable worksheets for the Trading Foundations course.",
+          summary_es: "Hojas descargables para el curso Fundamentos de Trading.",
+          description_en: "A paid add-on with printable exercises and checklists.",
+          description_es: "Add-on de pago con ejercicios y listas imprimibles.",
+          amount_cents: 1900,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-12.jpg"),
+          addonable_type: "Course",
+          addonable_key: "trading-foundations"
+        }
+      ]
+    end
+
+    def seed_addons!
+      return unless defined?(Addon)
+      return unless defined?(MarketplaceProduct)
+      return unless defined?(BillingPlan)
+      unless ENV["STRIPE_PRIVATE_KEY"].present?
+        Rails.logger.warn("[Seeds::Addons] skipped: STRIPE_PRIVATE_KEY is not set")
+        return
+      end
+
+      manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
+
+      definitions.each do |attrs|
+        addonable = resolve_addonable(attrs)
+        next unless addonable
+
+        product = manager.upsert!(
+          product_attributes: {
+            slug: attrs[:slug],
+            status: "active",
+            sort_order: attrs[:sort_order],
+            title_en: attrs[:title_en],
+            title_es: attrs[:title_es],
+            summary_en: attrs[:summary_en],
+            summary_es: attrs[:summary_es],
+            description_en: attrs[:description_en],
+            description_es: attrs[:description_es]
+          },
+          plan_attributes: {
+            amount_cents: attrs[:amount_cents],
+            currency: BillingPlans::DEFAULT_CURRENCY
+          }
+        )
+
+        MarketplaceProducts.attach_image(product, attrs[:image])
+        upsert_addon(attrs, product.billing_plan, addonable)
+      end
+    end
+
+    def resolve_addonable(attrs)
+      case attrs[:addonable_type]
+      when "ExpertAdvisor"
+        ExpertAdvisor.find_by(ea_id: attrs[:addonable_key])
+      when "Course"
+        Course.find_by(slug: attrs[:addonable_key])
+      end
+    end
+
+    def upsert_addon(attrs, plan, addonable)
+      addon = Addon.find_or_initialize_by(key: attrs[:key])
+      addon.billing_plan = plan
+      addon.addonable = addonable
+      addon.metadata = (addon.metadata || {}).to_h.merge("seed_key" => attrs[:key])
+      addon.save!
+
+      plan.metadata = (plan.metadata || {}).to_h.merge(
+        "addon_key" => addon.key,
+        "addonable_type" => addonable.class.name,
+        "addonable_id" => addonable.id
+      )
+      plan.save!
+    end
+  end
+
+  module ExpertAdvisorBundles
+    module_function
+
+    def seed_bundles!
+      return unless defined?(ExpertAdvisorBundle)
+      return unless defined?(ExpertAdvisor)
+
+      bundle_path = Rails.root.join("db", "seeds", "fixtures", "ea_bundle.rar")
+      unless bundle_path.exist?
+        Rails.logger.warn("[Seeds::ExpertAdvisorBundles] skipped: bundle fixture missing")
+        return
+      end
+
+      ExpertAdvisor.find_each do |expert_advisor|
+        seed_base_bundle(expert_advisor, bundle_path)
+        seed_addon_bundles(expert_advisor, bundle_path)
+      end
+    end
+
+    def seed_base_bundle(expert_advisor, bundle_path)
+      bundle = ExpertAdvisorBundle.find_or_initialize_by(expert_advisor: expert_advisor, bundle_key: "base")
+      bundle.required_addon_keys = ""
+      bundle.active = true if bundle.active.nil?
+      bundle.save!
+
+      attach_bundle(bundle, bundle_path, "#{expert_advisor.ea_id}__base.rar")
+    end
+
+    def seed_addon_bundles(expert_advisor, bundle_path)
+      addon_keys = expert_advisor.addons.order(:key).pluck(:key)
+      addon_combinations(addon_keys).each do |combo|
+        bundle_key = combo.join("__")
+        bundle = ExpertAdvisorBundle.find_or_initialize_by(expert_advisor: expert_advisor, bundle_key: bundle_key)
+        bundle.required_addon_keys = combo.join(",")
+        bundle.active = true if bundle.active.nil?
+        bundle.save!
+
+        attach_bundle(bundle, bundle_path, "#{expert_advisor.ea_id}__#{bundle_key}.rar")
+      end
+    end
+
+    def attach_bundle(bundle, bundle_path, filename)
+      return if bundle.bundle_file.attached?
+
+      File.open(bundle_path) do |file|
+        bundle.bundle_file.attach(
+          io: file,
+          filename: filename,
+          content_type: "application/x-rar-compressed"
+        )
+      end
+    end
+
+    def addon_combinations(addon_keys)
+      keys = addon_keys.sort
+      (1..keys.size).flat_map { |size| keys.combination(size).to_a }
+    end
+  end
+
   module QaUsers
     module_function
 

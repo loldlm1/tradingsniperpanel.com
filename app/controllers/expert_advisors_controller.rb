@@ -17,6 +17,17 @@ class ExpertAdvisorsController < ApplicationController
   def guides; end
 
   def download
+    if @expert_advisor.expert_advisor_bundles.exists?
+      result = ExpertAdvisors::BundleResolver.new(user: current_user, expert_advisor: @expert_advisor).call
+      unless result.found?
+        redirect_back fallback_location: dashboard_expert_advisors_path, alert: t("dashboard.expert_advisors.bundle_missing")
+        return
+      end
+
+      redirect_to rails_blob_path(result.bundle.bundle_file, disposition: "attachment")
+      return
+    end
+
     unless @expert_advisor.ea_files.attached?
       redirect_back fallback_location: dashboard_expert_advisors_path, alert: t("dashboard.expert_advisors.download_missing")
       return

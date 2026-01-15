@@ -12,10 +12,25 @@ module Api
           license_key: params[:license_key]
         )
 
-        if result.ok?
-          broker_account = upsert_broker_account(result.license)
+      if result.ok?
+        addon_access = Licenses::AddonAccess.new(
+          user: result.license.user,
+          expert_advisor: result.license.expert_advisor,
+          addon_keys: params[:addons]
+        ).call
+
+        unless addon_access.allowed?
           render json: {
-            ok: true,
+            ok: false,
+            error: :addons_required,
+            required_addons: addon_access.required.join(","),
+            missing_addons: addon_access.missing.join(",")
+          }, status: :unauthorized and return
+        end
+
+        broker_account = upsert_broker_account(result.license)
+        render json: {
+          ok: true,
             plan_interval: result.plan_interval,
             trial: result.trial,
             expires_at: result.expires_at&.to_i,

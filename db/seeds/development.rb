@@ -82,6 +82,8 @@ end
 Seeds::BillingPlans.seed_entitlements!
 Seeds::Courses.seed_courses!
 Seeds::MarketplaceProducts.seed_products!
+Seeds::Addons.seed_addons!
+Seeds::ExpertAdvisorBundles.seed_bundles!
 
 qa_users = Seeds::QaUsers.seed!
 qa_user = qa_users[:trader]

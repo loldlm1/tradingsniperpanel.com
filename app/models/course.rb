@@ -4,6 +4,7 @@ class Course < ApplicationRecord
   has_many :course_plan_entitlements, dependent: :destroy
   has_many :billing_plans, through: :course_plan_entitlements
   has_many :course_enrollments, dependent: :destroy
+  has_many :addons, as: :addonable, dependent: :destroy
 
   scope :published, -> { where(status: "published") }
   scope :ordered, -> { order(:position, :title_en) }
