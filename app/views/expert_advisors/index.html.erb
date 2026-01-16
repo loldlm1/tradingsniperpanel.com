@@ -54,13 +54,13 @@
         </div>
         <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed"><%= ea.description %></p>
         <% preview = @guide_previews&.dig(ea.id) %>
-        <div class="rounded-lg bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 p-3 text-xs space-y-1">
+        <div class="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 p-3 text-xs space-y-1">
           <div class="text-[11px] uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.expert_advisors.guides_label") %></div>
           <% if preview&.heading.present? %>
-            <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= preview.heading %></div>
+            <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 break-words"><%= preview.heading %></div>
           <% end %>
           <% if preview&.paragraph.present? %>
-            <p class="text-xs text-gray-500 dark:text-gray-400"><%= truncate(preview.paragraph, length: 140) %></p>
+            <p class="text-xs text-gray-600 dark:text-gray-300 break-words"><%= truncate(preview.paragraph, length: 140) %></p>
           <% else %>
             <p class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.preview_missing") %></p>
           <% end %>

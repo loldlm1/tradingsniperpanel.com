@@ -38,10 +38,10 @@
       </div>
       <% if @guide_preview&.heading.present? || @guide_preview&.paragraph.present? %>
         <% if @guide_preview&.heading.present? %>
-          <div class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= @guide_preview.heading %></div>
+          <div class="text-lg font-semibold text-gray-800 dark:text-gray-100 break-words"><%= @guide_preview.heading %></div>
         <% end %>
         <% if @guide_preview&.paragraph.present? %>
-          <p class="text-sm text-gray-600 dark:text-gray-300 mt-2"><%= truncate(@guide_preview.paragraph, length: 240) %></p>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mt-2 break-words"><%= truncate(@guide_preview.paragraph, length: 240) %></p>
         <% end %>
       <% else %>
         <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.preview_missing") %></p>

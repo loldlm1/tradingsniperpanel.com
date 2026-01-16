@@ -134,8 +134,8 @@
       </div>
       <%= link_to t("dashboard.analytics.cta", default: "View analytics"), dashboard_analytics_path, class: "text-sm font-semibold text-violet-600 dark:text-violet-300 hover:text-violet-800 dark:hover:text-violet-100" %>
     </div>
-    <div class="relative">
-      <canvas id="dashboard-card-01" width="800" height="320"></canvas>
+    <div class="relative overflow-hidden">
+      <canvas id="dashboard-card-01" width="800" height="320" class="w-full"></canvas>
     </div>
   </div>
 
@@ -157,7 +157,7 @@
             <% else %>
               <div><%= t("dashboard.activity.recently", default: "Recently") %></div>
             <% end %>
-            <% tone_class = activity.tone == :success ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100" : "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200" %>
+            <% tone_class = activity.tone == :success ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100" : "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100" %>
             <%= render "dashboard/shared/badge",
                        label: activity.tone.to_s.humanize,
                        class_name: tone_class %>
