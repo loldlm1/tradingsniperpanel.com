@@ -25,6 +25,19 @@ class ApplicationController < ActionController::Base
     dashboard_path
   end
 
+  def authenticate_admin_user!
+    authenticate_user!
+    return if current_user&.admin? || current_user&.master_admin?
+
+    redirect_to root_path, alert: t("active_admin.unauthorized")
+  end
+
+  def current_admin_user
+    return unless current_user&.admin? || current_user&.master_admin?
+
+    current_user
+  end
+
   private
 
   def redirect_signed_in_users

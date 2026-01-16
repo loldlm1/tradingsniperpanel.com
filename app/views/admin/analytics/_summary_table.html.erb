@@ -1,0 +1,58 @@
+<table class="index_table">
+  <tbody>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.subscribed_users") %></th>
+      <td><%= stats.subscribed_users_count %></td>
+    </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.marketplace_purchases") %></th>
+      <td><%= stats.marketplace_purchases_count %></td>
+    </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.unique_buyers") %></th>
+      <td><%= stats.unique_buyers_count %></td>
+    </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.stripe_revenue") %></th>
+      <td><%= admin_currency_from_cents(stats.stripe_gross_cents) %></td>
+    </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.manual_revenue") %></th>
+      <td><%= admin_currency_from_cents(stats.manual_gross_cents) %></td>
+    </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.gross_revenue") %></th>
+      <td><%= admin_currency_from_cents(stats.gross_cents) %></td>
+    </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.refunds") %></th>
+      <td><%= admin_currency_from_cents(stats.stripe_refunds_cents) %></td>
+    </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.partner_commissions") %></th>
+      <td><%= admin_currency_from_cents(stats.partner_commissions_cents) %></td>
+    </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.net_revenue") %></th>
+      <td><%= admin_currency_from_cents(stats.net_cents) %></td>
+    </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.split") %></th>
+      <td>
+        <% if split.missing_rule %>
+          <%= t("active_admin.dashboard.metrics.split_missing") %>
+        <% else %>
+          <%= "#{split.us_percent}% / #{split.client_percent}%" %>
+        <% end %>
+      </td>
+    </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.company_share") %></th>
+      <td><%= admin_currency_from_cents(split.us_cents) %></td>
+    </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.client_share") %></th>
+      <td><%= admin_currency_from_cents(split.client_cents) %></td>
+    </tr>
+  </tbody>
+</table>

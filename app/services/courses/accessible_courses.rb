@@ -49,19 +49,9 @@ module Courses
 
     def resolved_tier
       return tier.to_s if tier.present?
-      return nil unless user.respond_to?(:pay_customers)
-      return nil unless Pay::Customer.table_exists?
 
-      customer = user.pay_customers.first
-      subscription = customer&.subscriptions&.active&.order(created_at: :desc)&.first
-      price_id = subscription&.processor_plan
-      return nil if price_id.blank?
-
-      plan = BillingPlan.for_price_id(price_id)
-      return plan.tier if plan&.tier.present?
-
-      price_key = Billing::PriceKeyResolver.key_for_price_id(price_id)
-      price_key.to_s.split("_").first
+      subscription = Billing::ActiveSubscriptionFinder.new(user: user).call.subscription
+      Billing::SubscriptionPlanResolver.new(subscription: subscription).tier
     end
 
     def cta_plan_for(course)

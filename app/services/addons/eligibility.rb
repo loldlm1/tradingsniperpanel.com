@@ -64,20 +64,11 @@ module Addons
     end
 
     def active_subscription
-      @active_subscription ||= Billing::ActiveSubscriptionFinder.new(user: user).call
+      @active_subscription ||= Billing::ActiveSubscriptionFinder.new(user: user).call.subscription
     end
 
     def subscription_tier(subscription)
-      return nil unless subscription
-
-      price_id = subscription.processor_plan
-      return nil if price_id.blank?
-
-      plan = BillingPlan.for_price_id(price_id)
-      return plan.tier if plan&.tier.present?
-
-      price_key = Billing::PriceKeyResolver.key_for_price_id(price_id)
-      price_key.to_s.split("_").first
+      Billing::SubscriptionPlanResolver.new(subscription: subscription).tier
     end
   end
 end

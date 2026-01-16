@@ -5,6 +5,8 @@ class User < ApplicationRecord
   has_many :expert_advisors, through: :user_expert_advisors
   has_many :licenses, dependent: :destroy
   has_many :marketplace_purchases, dependent: :destroy
+  has_many :manual_transactions, dependent: :destroy
+  has_many :manual_subscriptions, dependent: :destroy
   has_many :course_enrollments, dependent: :destroy
   has_many :courses, through: :course_enrollments
   has_many :course_lesson_progresses, dependent: :destroy
@@ -16,7 +18,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable,
          :omniauthable, omniauth_providers: [:google_oauth2]
 
-  enum :role, { trader: 0, partner: 1, admin: 2 }
+  enum :role, { trader: 0, partner: 1, admin: 2, master_admin: 3 }
 
   attr_accessor :terms_of_service
 

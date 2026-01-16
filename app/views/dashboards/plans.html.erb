@@ -9,6 +9,7 @@
 <% visible_tiers = plan[:visible_tiers] || pricing[:tiers] || [] %>
 <% discount_percent = pricing[:discount_percent] %>
 <% subscribed = @subscription.present? %>
+<% manual_subscription = @subscription.is_a?(ManualSubscription) %>
 <% scheduled_change = plan[:scheduled_change] || {} %>
 <% scheduled_price_key = scheduled_change[:price_key] %>
 <% requested_price_key = @requested_price_key.to_s.presence %>
@@ -46,6 +47,9 @@
       <div class="mb-8">
         <h2 class="text-2xl text-gray-800 dark:text-gray-100 font-bold mb-4"><%= t("dashboard.plans.page_title") %></h2>
         <div class="text-sm"><%= summary_text %></div>
+        <% if manual_subscription %>
+          <div class="mt-3 text-sm text-amber-600 dark:text-amber-300"><%= t("dashboard.plans.manual_unavailable") %></div>
+        <% end %>
         <% if scheduled_label.present? && scheduled_change[:effective_at].present? %>
           <div class="mt-2 flex flex-col gap-2 text-sm text-amber-600 dark:text-amber-300 sm:flex-row sm:items-center sm:justify-between">
             <div>
