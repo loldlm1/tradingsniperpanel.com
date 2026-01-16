@@ -1,0 +1,25 @@
+en:
+  active_admin:
+    unauthorized: "You are not authorized to access the admin panel."
+    dashboard:
+      title: "Admin Overview"
+      periods:
+        weekly: "Weekly"
+        biweekly: "Bi-weekly"
+        monthly: "Monthly"
+      metrics:
+        subscribed_users: "Active subscribers"
+        marketplace_purchases: "Marketplace purchases"
+        unique_buyers: "Unique buyers"
+        stripe_revenue: "Stripe revenue"
+        manual_revenue: "Manual revenue"
+        gross_revenue: "Gross revenue"
+        refunds: "Stripe refunds"
+        partner_commissions: "Partner commissions"
+        net_revenue: "Net revenue"
+        split: "Split"
+        company_share: "Company share"
+        client_share: "Client share"
+        split_missing: "No revenue split rule configured."
+      labels:
+        period_range: "Period range"

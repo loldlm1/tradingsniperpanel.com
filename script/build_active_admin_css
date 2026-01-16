@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SASS_BIN="${SASS_BIN:-./node_modules/.bin/sass}"
+if [ ! -x "$SASS_BIN" ]; then
+  echo "sass not found at ${SASS_BIN}" >&2
+  exit 1
+fi
+
+ACTIVEADMIN_PATH=$(bundle exec ruby -e 'print Gem::Specification.find_by_name("activeadmin").full_gem_path')
+JQUERY_RAILS_PATH=$(bundle exec ruby -e 'print Gem::Specification.find_by_name("jquery-rails").full_gem_path')
+
+"$SASS_BIN" \
+  --load-path="$ACTIVEADMIN_PATH/app/assets/stylesheets" \
+  --load-path="./app/assets/stylesheets" \
+  app/assets/stylesheets/active_admin.scss \
+  app/assets/builds/active_admin.css
+
+cp "$ACTIVEADMIN_PATH/app/assets/javascripts/active_admin/base.js" app/assets/builds/active_admin.js
+cp "$JQUERY_RAILS_PATH/vendor/assets/javascripts/jquery_ujs.js" app/assets/builds/jquery_ujs.js

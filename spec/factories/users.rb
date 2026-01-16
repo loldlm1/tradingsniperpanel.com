@@ -18,5 +18,9 @@ FactoryBot.define do
     trait :partner do
       role { :partner }
     end
+
+    trait :master_admin do
+      role { :master_admin }
+    end
   end
 end

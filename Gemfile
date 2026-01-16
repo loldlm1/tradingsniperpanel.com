@@ -21,6 +21,7 @@ gem "jbuilder"
 # gem "bcrypt", "~> 3.1.7"
 
 gem "devise"
+gem "activeadmin", "~> 3.2"
 gem "pay"
 gem "commonmarker"
 gem "stripe", "~> 18.0"

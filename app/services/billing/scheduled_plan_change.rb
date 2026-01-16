@@ -9,6 +9,7 @@ module Billing
 
     def fetch(current_price_key: nil)
       return nil unless subscription
+      return nil if subscription.is_a?(ManualSubscription)
 
       result = fetch_from_metadata
       result ||= fetch_from_stripe if result.blank?

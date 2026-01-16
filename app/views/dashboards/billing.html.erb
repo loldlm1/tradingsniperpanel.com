@@ -1,6 +1,7 @@
 <% content_for :title, "#{t('dashboard.nav.billing')} | #{app_short_name}" %>
 
 <% default_pm = @pay_customer&.default_payment_method %>
+<% manual_subscription = @subscription.is_a?(ManualSubscription) %>
 <% pm_brand = default_pm&.brand || default_pm&.card_type || default_pm&.type %>
 <% pm_last4 = default_pm&.last4 %>
 <% plan = @plan_context || {} %>
@@ -27,14 +28,18 @@
         <li class="md:flex md:justify-between md:items-center py-3 border-b border-gray-200 dark:border-gray-700/60">
           <div class="text-sm text-gray-800 dark:text-gray-100 font-medium"><%= t("dashboard.billing.payment_method_label") %></div>
           <div class="text-sm text-gray-600 dark:text-gray-400 ml-4">
-            <% payment_method_text = if default_pm.present?
-                                      t("dashboard.billing.card_ending", brand: pm_brand&.upcase || t("dashboard.billing.card"), last4: pm_last4 || t("dashboard.billing.last4_placeholder"))
-                                    else
-                                      t("dashboard.billing.no_payment_method")
-                                    end %>
-            <span class="mr-3"><%= payment_method_text %></span>
-            <%= button_to dashboard_billing_portal_path, method: :post, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400", data: { loading_target: true }, form: { class: "inline" } do %>
-              <%= loading_label(t("dashboard.billing.edit_action"), loading_text: t("loading.default")) %>
+            <% if manual_subscription %>
+              <span class="mr-3"><%= t("dashboard.billing.manual_payment") %></span>
+            <% else %>
+              <% payment_method_text = if default_pm.present?
+                                        t("dashboard.billing.card_ending", brand: pm_brand&.upcase || t("dashboard.billing.card"), last4: pm_last4 || t("dashboard.billing.last4_placeholder"))
+                                      else
+                                        t("dashboard.billing.no_payment_method")
+                                      end %>
+              <span class="mr-3"><%= payment_method_text %></span>
+              <%= button_to dashboard_billing_portal_path, method: :post, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400", data: { loading_target: true }, form: { class: "inline" } do %>
+                <%= loading_label(t("dashboard.billing.edit_action"), loading_text: t("loading.default")) %>
+              <% end %>
             <% end %>
           </div>
         </li>
@@ -42,17 +47,26 @@
           <div class="text-sm text-gray-800 dark:text-gray-100 font-medium"><%= t("dashboard.billing.billing_interval_label") %></div>
           <div class="text-sm text-gray-600 dark:text-gray-400 ml-4">
             <span class="mr-3"><%= interval_label || t("dashboard.billing.placeholder") %></span>
-            <%= link_to dashboard_plans_path, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400", data: { loading_target: true } do %>
-              <%= loading_label(t("dashboard.billing.edit_action"), loading_text: t("loading.default")) %>
+            <% unless manual_subscription %>
+              <%= link_to dashboard_plans_path, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400", data: { loading_target: true } do %>
+                <%= loading_label(t("dashboard.billing.edit_action"), loading_text: t("loading.default")) %>
+              <% end %>
             <% end %>
           </div>
         </li>
         <li class="md:flex md:justify-between md:items-center py-3 border-b border-gray-200 dark:border-gray-700/60">
           <div class="text-sm text-gray-800 dark:text-gray-100 font-medium"><%= t("dashboard.plan_card.plan_key") %></div>
           <div class="text-sm text-gray-600 dark:text-gray-400 ml-4">
-            <span class="mr-3"><%= @subscription&.processor_plan.presence || t("dashboard.billing.placeholder") %></span>
-            <%= link_to dashboard_plans_path, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400", data: { loading_target: true } do %>
-              <%= loading_label(t("dashboard.billing.edit_action"), loading_text: t("loading.default")) %>
+            <% plan_key = if manual_subscription
+                            @subscription&.billing_plan&.key
+                          else
+                            @subscription&.processor_plan
+                          end %>
+            <span class="mr-3"><%= plan_key.presence || t("dashboard.billing.placeholder") %></span>
+            <% unless manual_subscription %>
+              <%= link_to dashboard_plans_path, class: "font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400", data: { loading_target: true } do %>
+                <%= loading_label(t("dashboard.billing.edit_action"), loading_text: t("loading.default")) %>
+              <% end %>
             <% end %>
           </div>
         </li>
@@ -82,7 +96,9 @@
     <section>
       <h3 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-1"><%= t("dashboard.billing.cancel_title") %></h3>
       <div class="text-sm mb-3"><%= t("dashboard.billing.cancel_copy") %></div>
-      <% if @subscription.present? %>
+      <% if manual_subscription %>
+        <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.billing.manual_unavailable") %></div>
+      <% elsif @subscription.present? %>
         <% if @subscription.ends_at.present? %>
           <div class="text-sm text-amber-600 dark:text-amber-300 mb-3">
             <%= t("dashboard.billing.cancel_scheduled", date: l(@subscription.ends_at.to_date)) %>

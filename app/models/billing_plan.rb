@@ -8,6 +8,8 @@ class BillingPlan < ApplicationRecord
   has_one :addon, dependent: :destroy
   has_one :marketplace_product, dependent: :nullify
   has_many :marketplace_purchases, dependent: :restrict_with_exception
+  has_many :manual_transactions, dependent: :restrict_with_exception
+  has_many :manual_subscriptions, dependent: :restrict_with_exception
 
   enum :kind, { subscription: "subscription", one_time: "one_time" }
 

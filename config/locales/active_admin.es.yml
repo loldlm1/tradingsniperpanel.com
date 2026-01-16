@@ -1,0 +1,25 @@
+es:
+  active_admin:
+    unauthorized: "No tienes permisos para acceder al panel de administración."
+    dashboard:
+      title: "Panel administrativo"
+      periods:
+        weekly: "Semanal"
+        biweekly: "Quincenal"
+        monthly: "Mensual"
+      metrics:
+        subscribed_users: "Suscriptores activos"
+        marketplace_purchases: "Compras en marketplace"
+        unique_buyers: "Compradores únicos"
+        stripe_revenue: "Ingresos de Stripe"
+        manual_revenue: "Ingresos manuales"
+        gross_revenue: "Ingresos brutos"
+        refunds: "Reembolsos de Stripe"
+        partner_commissions: "Comisiones de socios"
+        net_revenue: "Ingresos netos"
+        split: "División"
+        company_share: "Parte de la empresa"
+        client_share: "Parte del cliente"
+        split_missing: "No hay una regla de división configurada."
+      labels:
+        period_range: "Rango del período"

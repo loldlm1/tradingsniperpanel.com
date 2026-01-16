@@ -90,6 +90,10 @@ class DashboardsController < ApplicationController
     end
 
     if @subscription.present?
+      if manual_subscription?
+        redirect_to dashboard_plans_path, alert: t("dashboard.plans.manual_unavailable") and return
+      end
+
       result = Billing::PlanChange.new(
         subscription: @subscription,
         price_key: price_key,
@@ -154,6 +158,10 @@ class DashboardsController < ApplicationController
   end
 
   def cancel_scheduled_downgrade
+    if manual_subscription?
+      redirect_to dashboard_plans_path, alert: t("dashboard.plans.manual_unavailable") and return
+    end
+
     unless @subscription
       redirect_to dashboard_plans_path, alert: t("dashboard.plans.cancel_unavailable") and return
     end
@@ -171,6 +179,10 @@ class DashboardsController < ApplicationController
   end
 
   def cancel_subscription
+    if manual_subscription?
+      redirect_to dashboard_billing_path, alert: t("dashboard.billing.manual_unavailable") and return
+    end
+
     unless @subscription
       redirect_to dashboard_billing_path, alert: t("dashboard.billing.cancel_unavailable") and return
     end
@@ -190,6 +202,10 @@ class DashboardsController < ApplicationController
   end
 
   def resume_subscription
+    if manual_subscription?
+      redirect_to dashboard_billing_path, alert: t("dashboard.billing.manual_unavailable") and return
+    end
+
     unless @subscription
       redirect_to dashboard_billing_path, alert: t("dashboard.billing.resume_unavailable") and return
     end
@@ -209,10 +225,9 @@ class DashboardsController < ApplicationController
   private
 
   def set_subscription
-    return unless current_user.respond_to?(:pay_customers)
-
-    @pay_customer = Pay::Customer.table_exists? ? current_user.pay_customers.first : nil
-    @subscription = @pay_customer&.subscriptions&.active&.order(created_at: :desc)&.first
+    result = Billing::ActiveSubscriptionFinder.new(user: current_user).call
+    @subscription = result.subscription
+    @pay_customer = result.customer if result.stripe?
   end
 
   def set_plan_context
@@ -225,6 +240,10 @@ class DashboardsController < ApplicationController
 
   def ensure_payment_processor
     current_user.set_payment_processor(:stripe) unless current_user.payment_processor
+  end
+
+  def manual_subscription?
+    @subscription.is_a?(ManualSubscription)
   end
 
   def plan_label_for(price_key)
