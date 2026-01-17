@@ -23,3 +23,6 @@ es:
         split_missing: "No hay una regla de división configurada."
       labels:
         period_range: "Rango del período"
+    users:
+      role_forbidden: "No tienes permisos para cambiar roles de usuarios."
+      master_admin_hidden: "Esta cuenta está restringida."
