@@ -23,3 +23,6 @@ en:
         split_missing: "No revenue split rule configured."
       labels:
         period_range: "Period range"
+    users:
+      role_forbidden: "You are not allowed to change user roles."
+      master_admin_hidden: "This account is restricted."
