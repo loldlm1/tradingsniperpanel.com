@@ -89,4 +89,13 @@ RSpec.describe User, type: :model do
       expect(user.errors[:terms_of_service]).to be_present
     end
   end
+
+  describe "ransack allowlists" do
+    it "limits ransackable attributes and associations" do
+      expect(described_class.ransackable_associations).to eq([])
+      expect(described_class.ransackable_attributes).to match_array(
+        %w[created_at email id name preferred_locale role]
+      )
+    end
+  end
 end

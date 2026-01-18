@@ -54,5 +54,9 @@
       <th><%= t("active_admin.dashboard.metrics.client_share") %></th>
       <td><%= admin_currency_from_cents(split.client_cents) %></td>
     </tr>
+    <tr>
+      <th><%= t("active_admin.dashboard.metrics.payout_status") %></th>
+      <td><%= admin_payout_status_label(payout) %></td>
+    </tr>
   </tbody>
 </table>

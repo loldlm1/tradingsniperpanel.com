@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_16_210002) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_17_140300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -557,6 +557,23 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_16_210002) do
     t.index ["referral_code_id"], name: "index_refer_visits_on_referral_code_id"
   end
 
+  create_table "revenue_split_payouts", force: :cascade do |t|
+    t.string "period_key", null: false
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.integer "net_cents", null: false
+    t.integer "us_cents", null: false
+    t.integer "client_cents", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "paid_at"
+    t.bigint "paid_by_admin_id"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["paid_by_admin_id"], name: "index_revenue_split_payouts_on_paid_by_admin_id"
+    t.index ["period_key", "starts_at", "ends_at"], name: "index_revenue_split_payouts_on_period", unique: true
+  end
+
   create_table "revenue_split_rules", force: :cascade do |t|
     t.datetime "effective_at", null: false
     t.integer "us_percent", null: false
@@ -649,6 +666,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_16_210002) do
   add_foreign_key "pay_payment_methods", "pay_customers", column: "customer_id"
   add_foreign_key "pay_subscriptions", "pay_customers", column: "customer_id"
   add_foreign_key "refer_visits", "refer_referral_codes", column: "referral_code_id"
+  add_foreign_key "revenue_split_payouts", "users", column: "paid_by_admin_id"
   add_foreign_key "user_expert_advisors", "expert_advisors"
   add_foreign_key "user_expert_advisors", "users"
 end

@@ -24,6 +24,14 @@ class ManualSubscription < ApplicationRecord
   scope :active, -> { where("ends_at > ?", Time.current).where.not(status: STATUSES[:cancelled]) }
   scope :active_at, ->(time) { where("starts_at <= ? AND ends_at >= ?", time, time).where.not(status: STATUSES[:cancelled]) }
 
+  def self.ransackable_associations(_auth_object = nil)
+    %w[billing_plan recorded_by_admin user]
+  end
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[billing_plan_id created_at ends_at id paid_at recorded_by_admin_id status user_id]
+  end
+
   def processor_plan
     billing_plan&.stripe_price_id || billing_plan&.key
   end

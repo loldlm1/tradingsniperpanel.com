@@ -17,4 +17,11 @@ RSpec.describe ManualTransaction, type: :model do
 
     expect(duplicate).not_to be_valid
   end
+
+  it "allowlists ransack associations and attributes" do
+    expect(described_class.ransackable_associations).to match_array(%w[billing_plan recorded_by_admin user])
+    expect(described_class.ransackable_attributes).to match_array(
+      %w[billing_plan_id created_at id paid_at recorded_by_admin_id user_id]
+    )
+  end
 end
