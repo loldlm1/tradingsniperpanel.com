@@ -3,6 +3,8 @@ module Admin
     Period = Struct.new(:key, :label, :starts_at, :ends_at, keyword_init: true)
 
     class PeriodResolver
+      PERIOD_KEYS = %w[first_half second_half monthly].freeze
+
       def initialize(key:, as_of: Time.current, time_zone: "UTC")
         @key = key.to_s
         @as_of = as_of
@@ -14,10 +16,10 @@ module Admin
           as_of = @as_of.in_time_zone(Time.zone)
 
           starts_at, ends_at = case key
-                               when "weekly"
-                                 [as_of.beginning_of_week(:monday), as_of.end_of_week(:sunday)]
-                               when "biweekly"
-                                 biweekly_range(as_of)
+                               when "first_half"
+                                 first_half_range(as_of)
+                               when "second_half"
+                                 second_half_range(as_of)
                                when "monthly"
                                  [as_of.beginning_of_month, as_of.end_of_month]
                                else
@@ -37,13 +39,14 @@ module Admin
 
       attr_reader :key, :time_zone
 
-      def biweekly_range(as_of)
+      def first_half_range(as_of)
         month_start = as_of.beginning_of_month
-        if as_of.day <= 15
-          [month_start, month_start + 14.days]
-        else
-          [month_start + 15.days, as_of.end_of_month]
-        end
+        [month_start, month_start + 14.days]
+      end
+
+      def second_half_range(as_of)
+        month_start = as_of.beginning_of_month
+        [month_start + 15.days, as_of.end_of_month]
       end
     end
   end

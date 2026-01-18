@@ -11,6 +11,14 @@ class ManualTransaction < ApplicationRecord
 
   after_commit :enqueue_fulfillment, on: :create
 
+  def self.ransackable_associations(_auth_object = nil)
+    %w[billing_plan recorded_by_admin user]
+  end
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[billing_plan_id created_at id paid_at recorded_by_admin_id user_id]
+  end
+
   private
 
   def billing_plan_is_one_time

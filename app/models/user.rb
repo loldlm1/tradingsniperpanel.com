@@ -75,6 +75,14 @@ class User < ApplicationRecord
     preferred_locale.presence || I18n.default_locale
   end
 
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[created_at email id name preferred_locale role]
+  end
+
   private
 
   def set_terms_accepted_at_from_checkbox

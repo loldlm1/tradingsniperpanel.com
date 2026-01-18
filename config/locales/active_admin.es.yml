@@ -4,8 +4,8 @@ es:
     dashboard:
       title: "Panel administrativo"
       periods:
-        weekly: "Semanal"
-        biweekly: "Quincenal"
+        first_half: "1-15"
+        second_half: "16-Fin"
         monthly: "Mensual"
       metrics:
         subscribed_users: "Suscriptores activos"
@@ -20,9 +20,15 @@ es:
         split: "División"
         company_share: "Parte de la empresa"
         client_share: "Parte del cliente"
+        payout_status: "Estado del pago"
+        payout_unpaid: "No pagado"
+        payout_paid_on: "Pagado el %{date}"
         split_missing: "No hay una regla de división configurada."
       labels:
         period_range: "Rango del período"
     users:
       role_forbidden: "No tienes permisos para cambiar roles de usuarios."
       master_admin_hidden: "Esta cuenta está restringida."
+    payouts:
+      created: "Pago marcado como pagado."
+      updated: "Pago actualizado."
