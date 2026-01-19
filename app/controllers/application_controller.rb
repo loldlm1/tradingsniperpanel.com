@@ -3,6 +3,8 @@ class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
+  helper_method :admin_user?, :master_admin?
+
   before_action :set_locale
   before_action :apply_auth_template, if: :devise_auth_request?
   before_action :apply_landing_template, if: :marketing_request?
@@ -27,15 +29,17 @@ class ApplicationController < ActionController::Base
 
   def authenticate_admin_user!
     authenticate_user!
-    return if current_user&.admin? || current_user&.master_admin?
+    return if admin_user?
 
     redirect_to root_path, alert: t("active_admin.unauthorized")
   end
 
-  def current_admin_user
-    return unless current_user&.admin? || current_user&.master_admin?
+  def admin_user?
+    current_user&.admin? || current_user&.master_admin?
+  end
 
-    current_user
+  def master_admin?
+    current_user&.master_admin?
   end
 
   private

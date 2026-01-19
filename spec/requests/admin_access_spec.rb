@@ -29,4 +29,22 @@ RSpec.describe "ActiveAdmin access", type: :request do
 
     expect(response).to have_http_status(:not_found)
   end
+
+  it "renders revenue split payouts for admins" do
+    admin = create(:user, :admin)
+    sign_in admin, scope: :user
+
+    get admin_revenue_split_payouts_path
+
+    expect(response).to have_http_status(:ok)
+  end
+
+  it "renders revenue split payouts for master admins" do
+    master_admin = create(:user, :master_admin)
+    sign_in master_admin, scope: :user
+
+    get admin_revenue_split_payouts_path
+
+    expect(response).to have_http_status(:ok)
+  end
 end
