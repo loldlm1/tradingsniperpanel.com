@@ -3,6 +3,7 @@ ActiveAdmin.register User do
 
   controller do
     before_action :restrict_master_admin_access, only: %i[show edit update destroy]
+    before_action :clear_blank_passwords, only: :update
 
     def scoped_collection
       role_guard.visible_scope(super)
@@ -37,6 +38,15 @@ ActiveAdmin.register User do
 
       redirect_to admin_users_path, alert: t("active_admin.users.master_admin_hidden")
     end
+
+    def clear_blank_passwords
+      return unless params[:user].is_a?(ActionController::Parameters)
+
+      if params[:user][:password].blank? && params[:user][:password_confirmation].blank?
+        params[:user].delete(:password)
+        params[:user].delete(:password_confirmation)
+      end
+    end
   end
 
   index do
@@ -68,8 +78,10 @@ ActiveAdmin.register User do
       end
       f.input :preferred_locale, as: :select, collection: I18n.available_locales.map(&:to_s)
       f.input :time_zone
-      f.input :password
-      f.input :password_confirmation
+      if f.object.new_record?
+        f.input :password
+        f.input :password_confirmation
+      end
     end
     f.actions
   end

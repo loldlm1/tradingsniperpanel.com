@@ -30,6 +30,17 @@ RSpec.describe "ActiveAdmin access", type: :request do
     expect(response).to have_http_status(:not_found)
   end
 
+  it "updates roles without requiring a password" do
+    admin = create(:user, :admin)
+    user = create(:user, role: :trader)
+    sign_in admin, scope: :user
+
+    patch admin_user_path(user), params: { user: { role: "partner" } }
+
+    expect(response).to have_http_status(:found)
+    expect(user.reload.role).to eq("partner")
+  end
+
   it "renders revenue split payouts for admins" do
     admin = create(:user, :admin)
     sign_in admin, scope: :user
