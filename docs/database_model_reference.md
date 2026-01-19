@@ -2,7 +2,7 @@
 Short, API-flavored map of the persisted data model so agents and developers can reason about queries and payloads without digging through migrations.
 
 ## Domain map
-- Users authenticate via Devise and can originate from OAuth (`provider`, `uid`, `oauth_data`). `role` enum: `trader`, `partner`, `admin`.
+- Users authenticate via Devise and can originate from OAuth (`provider`, `uid`, `oauth_data`). `role` enum: `trader`, `partner`, `admin`, `master_admin`.
 - ExpertAdvisors describe each EA/tool (`ea_type`, `doc_guide_en/es`, `ea_files` attachment, `allowed_subscription_tiers`, `trial_enabled`); referenced by Licenses and UserExpertAdvisors.
 - ExpertAdvisorBundles map an EA plus a sorted add-on key set to a downloadable bundle file for base/combination binaries.
 - Courses provide premium learning content with localized titles/descriptions, module/lesson structure, and Stream-backed videos; entitlements connect Courses to BillingPlans for tier access, with enrollments tracking user progress.
@@ -11,6 +11,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 - UserExpertAdvisors is a soft-deletable join for entitlement tracking (`subscription_tier`, `pay_subscription_id`, `expires_at`, `deleted_at`).
 - Referrals via the `refer` gem: referral_codes/visits/referrals tables connect referrers/referees; PartnerProfile leverages this.
 - Partner program: PartnerProfile (one per partner User) → PartnerMembership (downline users, with `depth` and optional `referral_id`) → PartnerCommission rows (per charge/subscription, status, amounts, `commission_kind`) → optional PartnerPayoutRequest.
+- Manual billing: ManualTransactions capture one-time off-Stripe purchases; ManualSubscriptions capture fixed-period manual subscription renewals. RevenueSplitRule stores global profit split percentages for admin analytics.
 - Billing (Stripe via Pay gem): Pay::Customer, Pay::Subscription, Pay::Charge, Pay::PaymentMethod, Pay::Webhook keep processor state; `customer.owner_type` is `User`.
 
 ## Tables and key fields
@@ -34,6 +35,9 @@ Short, API-flavored map of the persisted data model so agents and developers can
 - `partner_memberships`: `partner_profile_id`, `user_id` (one active at a time), optional `referral_id`, `depth`, `started_at`, `ended_at`. Scope: `active`.
 - `partner_commissions`: `partner_profile_id`, `partner_membership_id`, `referred_user_id`, optional `referral_id`, `pay_charge_id`, `pay_subscription_id`, `payout_request_id`, `commission_kind` enum (`initial`, `renewal`), `status` enum (`pending`, `requested`, `paid`, `cancelled`), `amount_cents`, `currency`, `percent_applied`, `occurred_at`, `metadata` JSON. Scope: `pending_or_requested`.
 - `partner_payout_requests`: `partner_profile_id`, `status` enum (`pending`, `paid`, `cancelled`), `total_cents`, `requested_at`, `paid_at`, `payment_reference`, `note`.
+- `manual_transactions`: `user_id`, `billing_plan_id`, `amount_cents`, `currency`, `paid_at`, `payment_method`, `reference`, `recorded_by_admin_id`, `notes`. One-time only; unique `user_id + billing_plan_id`.
+- `manual_subscriptions`: `user_id`, `billing_plan_id`, `amount_cents`, `currency`, `paid_at`, `starts_at`, `ends_at`, `status`, `payment_method`, `reference`, `recorded_by_admin_id`, `notes`.
+- `revenue_split_rules`: `effective_at`, `us_percent`, `client_percent`, optional `note`.
 - `refer_referral_codes`: `referrer_type/id`, `code` (uniq), counters; `refer_referrals`: `referrer_type/id`, `referee_type/id`, optional `referral_code_id`, `completed_at`; `refer_visits`: `referral_code_id`, `ip`, `user_agent`, `referrer`, `referring_domain`.
 - Pay tables (from `pay` gem): `pay_customers` (owner polymorphic, `processor`, `processor_id`, `default`, `data`), `pay_subscriptions` (status, current/trial periods, `processor_plan`, `ends_at`, `metadata`), `pay_charges` (amount, currency, `processor_id`, `subscription_id`, `application_fee_amount`, `metadata`), `pay_payment_methods`, `pay_merchants`, `pay_webhooks`.
 

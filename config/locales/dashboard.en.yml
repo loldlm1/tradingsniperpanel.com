@@ -161,6 +161,7 @@ en:
       cancel_error: "Unable to cancel the scheduled downgrade right now."
       downgrade_scheduled: "Downgrade scheduled to %{plan} on %{date}."
       downgrade_unavailable: "We couldn't schedule that downgrade. Try again or contact support."
+      manual_unavailable: "This subscription is managed manually. Contact support to change plans."
       scheduled_badge: "Scheduled"
       placeholder: "—"
       toggle:
@@ -520,6 +521,8 @@ en:
       no_invoices: "No invoices yet."
       payment_method: "Payment method"
       no_payment_method: "No payment method on file yet."
+      manual_payment: "Manual payment"
+      manual_unavailable: "This subscription is managed manually. Contact support to change or cancel."
       cancel_title: "Cancel subscription"
       cancel_copy: "Cancel at the end of the current billing period. Scheduled plan changes will be removed."
       cancel_disclaimer: "Payments are non-refundable."

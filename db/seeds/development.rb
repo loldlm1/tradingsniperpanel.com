@@ -1,6 +1,3 @@
-return unless defined?(ExpertAdvisor)
-return unless defined?(User)
-
 sniper_bundle_path = Rails.root.join("docs_eas", "sniper_advanced_panel", "SniperAdvancedPanel.rar")
 pandora_bundle_path = Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_ea.rar")
 qa_bundle_path = Rails.root.join("db", "seeds", "fixtures", "ea_bundle.rar")

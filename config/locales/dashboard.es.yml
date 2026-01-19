@@ -161,6 +161,7 @@ es:
       cancel_error: "No se pudo cancelar la baja programada en este momento."
       downgrade_scheduled: "Baja programada a %{plan} el %{date}."
       downgrade_unavailable: "No pudimos programar esa baja. Intenta de nuevo o contacta soporte."
+      manual_unavailable: "Esta suscripción se gestiona manualmente. Contacta soporte para cambiar de plan."
       scheduled_badge: "Programado"
       placeholder: "—"
       toggle:
@@ -520,6 +521,8 @@ es:
       no_invoices: "Aún no hay facturas."
       payment_method: "Método de pago"
       no_payment_method: "Aún no tienes un método de pago."
+      manual_payment: "Pago manual"
+      manual_unavailable: "Esta suscripción se gestiona manualmente. Contacta soporte para cambiarla o cancelarla."
       cancel_title: "Cancelar suscripción"
       cancel_copy: "Cancela al final del período actual. Se eliminarán los cambios de plan programados."
       cancel_disclaimer: "Los pagos no son reembolsables."

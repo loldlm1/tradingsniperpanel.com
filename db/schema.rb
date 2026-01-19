@@ -10,9 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_15_151405) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_17_140300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "active_admin_comments", force: :cascade do |t|
+    t.string "namespace"
+    t.text "body"
+    t.string "resource_type"
+    t.bigint "resource_id"
+    t.string "author_type"
+    t.bigint "author_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_type", "author_id"], name: "index_active_admin_comments_on_author"
+    t.index ["namespace"], name: "index_active_admin_comments_on_namespace"
+    t.index ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource"
+  end
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -263,6 +277,48 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_151405) do
     t.index ["user_id"], name: "index_licenses_on_user_id"
   end
 
+  create_table "manual_subscriptions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "billing_plan_id", null: false
+    t.integer "amount_cents", null: false
+    t.string "currency", default: "usd", null: false
+    t.datetime "paid_at", null: false
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.string "status", default: "active", null: false
+    t.string "payment_method"
+    t.string "reference"
+    t.text "notes"
+    t.bigint "recorded_by_admin_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["billing_plan_id"], name: "index_manual_subscriptions_on_billing_plan_id"
+    t.index ["ends_at"], name: "index_manual_subscriptions_on_ends_at"
+    t.index ["paid_at"], name: "index_manual_subscriptions_on_paid_at"
+    t.index ["recorded_by_admin_id"], name: "index_manual_subscriptions_on_recorded_by_admin_id"
+    t.index ["user_id", "billing_plan_id"], name: "index_manual_subscriptions_on_user_id_and_billing_plan_id"
+    t.index ["user_id"], name: "index_manual_subscriptions_on_user_id"
+  end
+
+  create_table "manual_transactions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "billing_plan_id", null: false
+    t.integer "amount_cents", null: false
+    t.string "currency", default: "usd", null: false
+    t.datetime "paid_at", null: false
+    t.string "payment_method"
+    t.string "reference"
+    t.text "notes"
+    t.bigint "recorded_by_admin_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["billing_plan_id"], name: "index_manual_transactions_on_billing_plan_id"
+    t.index ["paid_at"], name: "index_manual_transactions_on_paid_at"
+    t.index ["recorded_by_admin_id"], name: "index_manual_transactions_on_recorded_by_admin_id"
+    t.index ["user_id", "billing_plan_id"], name: "index_manual_transactions_on_user_id_and_billing_plan_id", unique: true
+    t.index ["user_id"], name: "index_manual_transactions_on_user_id"
+  end
+
   create_table "marketplace_products", force: :cascade do |t|
     t.string "slug", null: false
     t.string "key", null: false
@@ -501,6 +557,33 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_151405) do
     t.index ["referral_code_id"], name: "index_refer_visits_on_referral_code_id"
   end
 
+  create_table "revenue_split_payouts", force: :cascade do |t|
+    t.string "period_key", null: false
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.integer "net_cents", null: false
+    t.integer "us_cents", null: false
+    t.integer "client_cents", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "paid_at"
+    t.bigint "paid_by_admin_id"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["paid_by_admin_id"], name: "index_revenue_split_payouts_on_paid_by_admin_id"
+    t.index ["period_key", "starts_at", "ends_at"], name: "index_revenue_split_payouts_on_period", unique: true
+  end
+
+  create_table "revenue_split_rules", force: :cascade do |t|
+    t.datetime "effective_at", null: false
+    t.integer "us_percent", null: false
+    t.integer "client_percent", null: false
+    t.text "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["effective_at"], name: "index_revenue_split_rules_on_effective_at"
+  end
+
   create_table "user_expert_advisors", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "expert_advisor_id", null: false
@@ -556,6 +639,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_151405) do
   add_foreign_key "expert_advisor_bundles", "expert_advisors"
   add_foreign_key "licenses", "expert_advisors"
   add_foreign_key "licenses", "users"
+  add_foreign_key "manual_subscriptions", "billing_plans"
+  add_foreign_key "manual_subscriptions", "users"
+  add_foreign_key "manual_subscriptions", "users", column: "recorded_by_admin_id"
+  add_foreign_key "manual_transactions", "billing_plans"
+  add_foreign_key "manual_transactions", "users"
+  add_foreign_key "manual_transactions", "users", column: "recorded_by_admin_id"
   add_foreign_key "marketplace_products", "billing_plans"
   add_foreign_key "marketplace_purchases", "billing_plans"
   add_foreign_key "marketplace_purchases", "pay_charges"
@@ -577,6 +666,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_15_151405) do
   add_foreign_key "pay_payment_methods", "pay_customers", column: "customer_id"
   add_foreign_key "pay_subscriptions", "pay_customers", column: "customer_id"
   add_foreign_key "refer_visits", "refer_referral_codes", column: "referral_code_id"
+  add_foreign_key "revenue_split_payouts", "users", column: "paid_by_admin_id"
   add_foreign_key "user_expert_advisors", "expert_advisors"
   add_foreign_key "user_expert_advisors", "users"
 end

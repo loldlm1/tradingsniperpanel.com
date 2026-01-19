@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  ActiveAdmin.routes(self)
   # Pay Stripe webhooks (outside locale scope)
   post "/webhooks/stripe", to: "pay/webhooks/stripe#create"
 

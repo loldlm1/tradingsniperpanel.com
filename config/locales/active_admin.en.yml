@@ -1,0 +1,34 @@
+en:
+  active_admin:
+    unauthorized: "You are not authorized to access the admin panel."
+    dashboard:
+      title: "Admin Overview"
+      periods:
+        first_half: "1-15"
+        second_half: "16-End"
+        monthly: "Monthly"
+      metrics:
+        subscribed_users: "Active subscribers"
+        marketplace_purchases: "Marketplace purchases"
+        unique_buyers: "Unique buyers"
+        stripe_revenue: "Stripe revenue"
+        manual_revenue: "Manual revenue"
+        gross_revenue: "Gross revenue"
+        refunds: "Stripe refunds"
+        partner_commissions: "Partner commissions"
+        net_revenue: "Net revenue"
+        split: "Split"
+        company_share: "Company share"
+        client_share: "Client share"
+        payout_status: "Payout status"
+        payout_unpaid: "Unpaid"
+        payout_paid_on: "Paid on %{date}"
+        split_missing: "No revenue split rule configured."
+      labels:
+        period_range: "Period range"
+    users:
+      role_forbidden: "You are not allowed to change user roles."
+      master_admin_hidden: "This account is restricted."
+    payouts:
+      created: "Payout marked as paid."
+      updated: "Payout updated."

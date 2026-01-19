@@ -1,5 +1,3 @@
-return unless defined?(ExpertAdvisor)
-
 module Seeds
   module ExpertAdvisors
     module_function
