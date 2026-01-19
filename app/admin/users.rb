@@ -29,7 +29,7 @@ ActiveAdmin.register User do
     private
 
     def role_guard
-      @role_guard ||= Admin::Users::RoleGuard.new(actor: current_admin_user)
+      @role_guard ||= Admin::Users::RoleGuard.new(actor: current_user)
     end
 
     def restrict_master_admin_access
@@ -52,12 +52,12 @@ ActiveAdmin.register User do
 
   filter :email
   filter :name
-  filter :role, as: :select, collection: -> { Admin::Users::RoleGuard.new(actor: current_admin_user).visible_roles }
+  filter :role, as: :select, collection: -> { Admin::Users::RoleGuard.new(actor: current_user).visible_roles }
   filter :preferred_locale
   filter :created_at
 
   form do |f|
-    role_guard = Admin::Users::RoleGuard.new(actor: current_admin_user)
+    role_guard = Admin::Users::RoleGuard.new(actor: current_user)
     assignable_roles = role_guard.assignable_roles_for(record: f.object)
 
     f.inputs do

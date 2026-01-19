@@ -4,13 +4,13 @@ ActiveAdmin.register RevenueSplitPayout do
   config.clear_action_items!
 
   action_item :new, only: :index do
-    if current_admin_user&.master_admin?
+    if master_admin?
       link_to t("active_admin.new_model", model: RevenueSplitPayout.model_name.human), new_admin_revenue_split_payout_path
     end
   end
 
   action_item :edit, only: :show do
-    if current_admin_user&.master_admin?
+    if master_admin?
       link_to t("active_admin.edit_model", model: RevenueSplitPayout.model_name.human), edit_admin_revenue_split_payout_path(resource)
     end
   end
@@ -36,7 +36,7 @@ ActiveAdmin.register RevenueSplitPayout do
     column :created_at
     actions defaults: false do |payout|
       item t("active_admin.view"), admin_revenue_split_payout_path(payout)
-      if current_admin_user&.master_admin?
+      if master_admin?
         item t("active_admin.edit"), edit_admin_revenue_split_payout_path(payout)
       end
     end
@@ -78,7 +78,7 @@ ActiveAdmin.register RevenueSplitPayout do
       result = Admin::Analytics::PayoutRecorder.new(
         period_key: payout_params[:period_key],
         as_of: payout_params[:as_of],
-        actor: current_admin_user,
+        actor: current_user,
         notes: payout_params[:notes]
       ).call
 
@@ -111,7 +111,7 @@ ActiveAdmin.register RevenueSplitPayout do
     end
 
     def require_master_admin!
-      return if current_admin_user&.master_admin?
+      return if master_admin?
 
       redirect_to admin_revenue_split_payouts_path, alert: t("active_admin.users.role_forbidden")
     end
