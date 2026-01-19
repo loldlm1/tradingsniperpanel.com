@@ -6,7 +6,8 @@ Short, API-flavored map of the persisted data model so agents and developers can
 - ExpertAdvisors describe each EA/tool (`ea_type`, `doc_guide_en/es`, `ea_files` attachment, `allowed_subscription_tiers`, `trial_enabled`); referenced by Licenses and UserExpertAdvisors.
 - ExpertAdvisorBundles map an EA plus a sorted add-on key set to a downloadable bundle file for base/combination binaries.
 - Courses provide premium learning content with localized titles/descriptions, module/lesson structure, and Stream-backed videos; entitlements connect Courses to BillingPlans for tier access, with enrollments tracking user progress.
-- BillingPlans store subscription and one-time products with Stripe IDs and display attributes; BillingPlanEntitlements join plans to ExpertAdvisors, and Addons tie one-time plans to a specific ExpertAdvisor or Course.
+- BillingPlans store subscription and one-time products with Stripe IDs and display attributes; BillingPlanEntitlements join plans to ExpertAdvisors, CoursePlanEntitlements join plans to Courses, and AssetPlanEntitlements join plans to MarketplaceAssets. Addons tie one-time plans to a specific ExpertAdvisor, Course, or MarketplaceAsset.
+- MarketplaceAssets store downloadable marketplace content (PDF guides, templates) with localized titles/descriptions and a file attachment; access is driven by plan entitlements + marketplace purchases.
 - Licenses tie a User to an ExpertAdvisor with status (`trial`, `active`, `expired`, `revoked`), expiry fields, and an `encrypted_key`. BrokerAccounts hang off Licenses and record daily PnL snapshots.
 - UserExpertAdvisors is a soft-deletable join for entitlement tracking (`subscription_tier`, `pay_subscription_id`, `expires_at`, `deleted_at`).
 - Referrals via the `refer` gem: referral_codes/visits/referrals tables connect referrers/referees; PartnerProfile leverages this.
@@ -21,6 +22,8 @@ Short, API-flavored map of the persisted data model so agents and developers can
 - `course_modules`: `course_id`, `position`, localized `title_*`, `summary_*`; has many `course_lessons`.
 - `course_lessons`: `course_module_id`, `position`, localized `title_*`, `summary_*`, `body_markdown_*`, `stream_uid`, `duration_seconds`.
 - `course_plan_entitlements`: `course_id`, `billing_plan_id` (unique per pair) connecting paid tiers to courses.
+- `marketplace_assets`: `slug`, `status` (`draft`, `active`), `sort_order`, localized `title_*`, `summary_*`, `description_markdown_*`, `file` attachment.
+- `asset_plan_entitlements`: `billing_plan_id`, `marketplace_asset_id` (unique per pair) connecting plans to marketplace assets.
 - `course_enrollments`: `user_id`, `course_id`, `progress_percent`, `started_at`, `completed_at`, `last_lesson_id`.
 - `course_lesson_progresses`: `user_id`, `course_lesson_id`, `status` (`started`, `completed`), `progress_seconds`, `completed_at`, `last_watched_at`.
 - `billing_plans`: `key` (uniq), `name` (uniq), `kind` (`subscription`, `one_time`), `tier`, `interval`, `interval_count`, `amount_cents`, `currency`, `stripe_product_id`, `stripe_price_id` (uniq), `active`, `sort_order`, `metadata`.

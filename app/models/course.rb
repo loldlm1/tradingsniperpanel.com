@@ -1,4 +1,6 @@
 class Course < ApplicationRecord
+  acts_as_taggable_on :tags
+
   has_many :course_modules, dependent: :destroy
   has_many :course_lessons, through: :course_modules
   has_many :course_plan_entitlements, dependent: :destroy

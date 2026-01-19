@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_17_140300) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_19_183944) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -67,7 +67,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_17_140300) do
     t.index ["addonable_type", "addonable_id"], name: "index_addons_on_addonable"
     t.index ["billing_plan_id"], name: "index_addons_on_billing_plan_id", unique: true
     t.index ["key"], name: "index_addons_on_key", unique: true
-    t.check_constraint "addonable_type::text = ANY (ARRAY['ExpertAdvisor'::character varying, 'Course'::character varying]::text[])", name: "addons_addonable_type_check"
+    t.check_constraint "addonable_type::text = ANY (ARRAY['ExpertAdvisor'::character varying, 'Course'::character varying, 'MarketplaceAsset'::character varying]::text[])", name: "addons_addonable_type_check"
+  end
+
+  create_table "asset_plan_entitlements", force: :cascade do |t|
+    t.bigint "billing_plan_id", null: false
+    t.bigint "marketplace_asset_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["billing_plan_id", "marketplace_asset_id"], name: "index_asset_plan_entitlements_unique", unique: true
+    t.index ["billing_plan_id"], name: "index_asset_plan_entitlements_on_billing_plan_id"
+    t.index ["marketplace_asset_id"], name: "index_asset_plan_entitlements_on_marketplace_asset_id"
   end
 
   create_table "billing_plan_entitlements", force: :cascade do |t|
@@ -317,6 +327,22 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_17_140300) do
     t.index ["recorded_by_admin_id"], name: "index_manual_transactions_on_recorded_by_admin_id"
     t.index ["user_id", "billing_plan_id"], name: "index_manual_transactions_on_user_id_and_billing_plan_id", unique: true
     t.index ["user_id"], name: "index_manual_transactions_on_user_id"
+  end
+
+  create_table "marketplace_assets", force: :cascade do |t|
+    t.string "slug", null: false
+    t.string "status", default: "draft", null: false
+    t.integer "sort_order", default: 0, null: false
+    t.string "title_en", null: false
+    t.string "title_es", null: false
+    t.text "summary_en"
+    t.text "summary_es"
+    t.text "description_markdown_en"
+    t.text "description_markdown_es"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_marketplace_assets_on_slug", unique: true
+    t.index ["status"], name: "index_marketplace_assets_on_status"
   end
 
   create_table "marketplace_products", force: :cascade do |t|
@@ -584,6 +610,37 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_17_140300) do
     t.index ["effective_at"], name: "index_revenue_split_rules_on_effective_at"
   end
 
+  create_table "taggings", force: :cascade do |t|
+    t.bigint "tag_id"
+    t.string "taggable_type"
+    t.bigint "taggable_id"
+    t.string "tagger_type"
+    t.bigint "tagger_id"
+    t.string "context", limit: 128
+    t.datetime "created_at", precision: nil
+    t.string "tenant", limit: 128
+    t.index ["context"], name: "index_taggings_on_context"
+    t.index ["tag_id", "taggable_id", "taggable_type", "context", "tagger_id", "tagger_type"], name: "taggings_idx", unique: true
+    t.index ["tag_id"], name: "index_taggings_on_tag_id"
+    t.index ["taggable_id", "taggable_type", "context"], name: "taggings_taggable_context_idx"
+    t.index ["taggable_id", "taggable_type", "tagger_id", "context"], name: "taggings_idy"
+    t.index ["taggable_id"], name: "index_taggings_on_taggable_id"
+    t.index ["taggable_type", "taggable_id"], name: "index_taggings_on_taggable_type_and_taggable_id"
+    t.index ["taggable_type"], name: "index_taggings_on_taggable_type"
+    t.index ["tagger_id", "tagger_type"], name: "index_taggings_on_tagger_id_and_tagger_type"
+    t.index ["tagger_id"], name: "index_taggings_on_tagger_id"
+    t.index ["tagger_type", "tagger_id"], name: "index_taggings_on_tagger_type_and_tagger_id"
+    t.index ["tenant"], name: "index_taggings_on_tenant"
+  end
+
+  create_table "tags", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "taggings_count", default: 0
+    t.index ["name"], name: "index_tags_on_name", unique: true
+  end
+
   create_table "user_expert_advisors", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "expert_advisor_id", null: false
@@ -622,6 +679,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_17_140300) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "addons", "billing_plans"
+  add_foreign_key "asset_plan_entitlements", "billing_plans"
+  add_foreign_key "asset_plan_entitlements", "marketplace_assets"
   add_foreign_key "billing_plan_entitlements", "billing_plans"
   add_foreign_key "billing_plan_entitlements", "expert_advisors"
   add_foreign_key "broker_account_daily_results", "broker_accounts"
@@ -667,6 +726,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_17_140300) do
   add_foreign_key "pay_subscriptions", "pay_customers", column: "customer_id"
   add_foreign_key "refer_visits", "refer_referral_codes", column: "referral_code_id"
   add_foreign_key "revenue_split_payouts", "users", column: "paid_by_admin_id"
+  add_foreign_key "taggings", "tags"
   add_foreign_key "user_expert_advisors", "expert_advisors"
   add_foreign_key "user_expert_advisors", "users"
 end

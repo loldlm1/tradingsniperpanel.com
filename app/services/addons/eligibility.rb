@@ -20,6 +20,8 @@ module Addons
         eligibility_for_expert_advisor(addonable)
       when Course
         eligibility_for_course(addonable)
+      when MarketplaceAsset
+        eligibility_for_marketplace_asset(addonable)
       else
         Result.new(allowed: false, reason: :invalid_addonable, addon: addon, addonable: addonable)
       end
@@ -61,6 +63,13 @@ module Addons
       return Result.new(allowed: false, reason: :missing_base, addon: addon, addonable: course) unless course.allowed_for_tier?(tier)
 
       Result.new(allowed: true, addon: addon, addonable: course)
+    end
+
+    def eligibility_for_marketplace_asset(asset)
+      access = Marketplace::AssetAccess.new(user: user, asset: asset).call
+      return Result.new(allowed: true, addon: addon, addonable: asset) if access.allowed?
+
+      Result.new(allowed: false, reason: :missing_base, addon: addon, addonable: asset)
     end
 
     def active_subscription

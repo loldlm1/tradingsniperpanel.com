@@ -1,7 +1,9 @@
 require "securerandom"
 
 class ExpertAdvisor < ApplicationRecord
-  enum :ea_type, { ea_robot: 0, ea_tool: 1 }
+  acts_as_taggable_on :tags
+
+  enum :ea_type, { ea_robot: 0, ea_tool: 1, indicator: 2, script: 3 }
 
   has_many :user_expert_advisors, dependent: :destroy
   has_many :licenses, dependent: :destroy

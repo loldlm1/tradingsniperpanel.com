@@ -97,4 +97,29 @@ RSpec.describe Addons::Eligibility do
       expect(result.reason).to eq(:missing_base)
     end
   end
+
+  describe "asset add-ons" do
+    let(:asset) { create(:marketplace_asset, slug: "rules-guide") }
+    let(:asset_addon) { create(:addon, key: "bonus_pack", addonable: asset) }
+
+    it "allows access when the asset is purchased" do
+      base_plan = create(:billing_plan, :one_time)
+      create(:asset_plan_entitlement, marketplace_asset: asset, billing_plan: base_plan)
+      create(:marketplace_purchase, user: user, billing_plan: base_plan)
+
+      result = described_class.new(user: user, addon: asset_addon).call
+
+      expect(result).to be_allowed
+    end
+
+    it "blocks access when the asset is not purchased" do
+      base_plan = create(:billing_plan, :one_time)
+      create(:asset_plan_entitlement, marketplace_asset: asset, billing_plan: base_plan)
+
+      result = described_class.new(user: user, addon: asset_addon).call
+
+      expect(result.allowed?).to be(false)
+      expect(result.reason).to eq(:missing_base)
+    end
+  end
 end
