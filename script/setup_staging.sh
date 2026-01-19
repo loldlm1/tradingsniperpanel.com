@@ -128,7 +128,7 @@ check_service_active "tradingsniperpanel-staging.service" || verify_failed=1
 check_service_active "tradingsniperpanel-sidekiq-staging.service" || verify_failed=1
 check_service_active "nginx" || verify_failed=1
 check_http_status "Staging app (direct)" "http://127.0.0.1:${staging_port}" "^[23][0-9]{2}$" -H "Host: ${staging_domain}" || verify_failed=1
-check_http_status "Staging app (via Nginx allowlist)" "http://127.0.0.1/" "^(200|301|302|403)$" -H "Host: ${staging_domain}" || verify_failed=1
+check_http_status "Staging app (via Nginx allowlist)" "http://127.0.0.1/" "^(200|204|301|302|403)$" -H "Host: ${staging_domain}" || verify_failed=1
 
 log "Rails logs (staging): sudo journalctl -u tradingsniperpanel-staging.service -f"
 log "Sidekiq logs (staging): sudo journalctl -u tradingsniperpanel-sidekiq-staging.service -f"
