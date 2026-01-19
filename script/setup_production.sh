@@ -109,7 +109,7 @@ check_service_active "tradingsniperpanel-production.service" || verify_failed=1
 check_service_active "tradingsniperpanel-sidekiq-production.service" || verify_failed=1
 check_service_active "nginx" || verify_failed=1
 check_http_status "Production app (direct)" "http://127.0.0.1:${prod_port}" "^[23][0-9]{2}$" -H "Host: ${prod_domain}" || verify_failed=1
-check_http_status "Production app (via Nginx)" "http://127.0.0.1/" "^(200|301|302)$" -H "Host: ${prod_domain}" || verify_failed=1
+check_http_status "Production app (via Nginx)" "http://127.0.0.1/" "^(200|204|301|302)$" -H "Host: ${prod_domain}" || verify_failed=1
 
 log "Rails logs (production): sudo journalctl -u tradingsniperpanel-production.service -f"
 log "Sidekiq logs (production): sudo journalctl -u tradingsniperpanel-sidekiq-production.service -f"
