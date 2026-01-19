@@ -78,6 +78,7 @@ end
 
 Seeds::BillingPlans.seed_entitlements!
 Seeds::Courses.seed_courses!
+Seeds::MarketplaceAssets.seed_assets!
 Seeds::MarketplaceProducts.seed_products!
 Seeds::Addons.seed_addons!
 Seeds::ExpertAdvisorBundles.seed_bundles!

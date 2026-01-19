@@ -22,4 +22,16 @@ RSpec.describe Marketplace::AssetAccess do
     expect(result.allowed?).to be(false)
     expect(result.reason).to eq(:not_purchased)
   end
+
+  it "grants access when entitlements are added after purchase" do
+    create(:marketplace_purchase, user: user, billing_plan: billing_plan)
+
+    result = described_class.new(user: user, asset: asset).call
+    expect(result.allowed?).to be(false)
+
+    create(:asset_plan_entitlement, marketplace_asset: asset, billing_plan: billing_plan)
+
+    refreshed = described_class.new(user: user, asset: asset).call
+    expect(refreshed).to be_allowed
+  end
 end

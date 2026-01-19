@@ -23,7 +23,15 @@ class MarketplaceController < ApplicationController
   end
 
   def normalized_tags(value)
-    Array(value).map(&:to_s).map(&:strip).reject(&:blank?).uniq
+    tags =
+      case value
+      when ActionController::Parameters, Hash
+        value.keys
+      else
+        Array(value)
+      end
+
+    tags.map(&:to_s).map(&:strip).reject(&:blank?).uniq
   end
 
   def filter_entries(entries, selected_tags)
