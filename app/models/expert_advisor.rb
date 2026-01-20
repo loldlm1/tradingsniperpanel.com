@@ -24,6 +24,14 @@ class ExpertAdvisor < ApplicationRecord
   # Prevent accidental EA identifier changes once issued
   validate :ea_id_immutable, on: :update
 
+  def self.ransackable_associations(_auth_object = nil)
+    %w[tags]
+  end
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[created_at ea_id ea_type id name tier_rank trial_enabled updated_at]
+  end
+
   def doc_guide_for(locale)
     key = "doc_guide_#{locale}"
     guide = respond_to?(key) ? public_send(key) : nil

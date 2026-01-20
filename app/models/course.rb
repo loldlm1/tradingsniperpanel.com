@@ -17,6 +17,14 @@ class Course < ApplicationRecord
   validates :position, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :title_en, :title_es, presence: true
 
+  def self.ransackable_associations(_auth_object = nil)
+    %w[tags]
+  end
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[category created_at id position slug status title_en title_es updated_at]
+  end
+
   def to_param
     slug
   end
