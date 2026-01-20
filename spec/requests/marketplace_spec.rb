@@ -56,4 +56,26 @@ RSpec.describe "Marketplace", type: :request do
       I18n.t("dashboard.marketplace.errors.addon_requires_base", base: expert_advisor.name)
     )
   end
+
+  it "blocks asset add-on purchases without base access" do
+    asset = create(:marketplace_asset, title_en: "Rulebook", title_es: "Reglamento")
+    base_plan = create(:billing_plan, :one_time)
+    create(:asset_plan_entitlement, marketplace_asset: asset, billing_plan: base_plan)
+    create(:marketplace_product, billing_plan: base_plan, title_en: "Rulebook")
+
+    addon_plan = create(:billing_plan, :one_time)
+    asset_addon = create(:addon, addonable: asset, billing_plan: addon_plan)
+    create(:marketplace_product, billing_plan: addon_plan, title_en: "Rulebook Bonus")
+
+    user.pay_customers.create!(processor: "stripe", processor_id: "cus_asset_addon_guard", default: true)
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path(locale: :en, price_key: asset_addon.billing_plan.key)
+
+    expect(response).to have_http_status(:found)
+    expect(response.headers["Location"]).to include("/dashboard/marketplace")
+    expect(flash[:alert]).to eq(
+      I18n.t("dashboard.marketplace.errors.addon_requires_base", base: asset.title_for(:en))
+    )
+  end
 end

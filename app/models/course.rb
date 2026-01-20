@@ -1,4 +1,6 @@
 class Course < ApplicationRecord
+  acts_as_taggable_on :tags
+
   has_many :course_modules, dependent: :destroy
   has_many :course_lessons, through: :course_modules
   has_many :course_plan_entitlements, dependent: :destroy
@@ -14,6 +16,14 @@ class Course < ApplicationRecord
   validates :category, presence: true
   validates :position, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :title_en, :title_es, presence: true
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[tags]
+  end
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[category created_at id position slug status title_en title_es updated_at]
+  end
 
   def to_param
     slug

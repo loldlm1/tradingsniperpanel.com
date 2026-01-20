@@ -24,7 +24,8 @@ module Seeds
           trial_enabled: true,
           allowed_subscription_tiers: %w[basic hft pro],
           doc_guide_en: manual_en,
-          doc_guide_es: manual_es
+          doc_guide_es: manual_es,
+          tags: %w[panel execution risk]
         },
         {
           name: "PANDORA BOX EA",
@@ -35,17 +36,44 @@ module Seeds
           trial_enabled: true,
           allowed_subscription_tiers: %w[hft pro],
           doc_guide_en: manual_en,
-          doc_guide_es: manual_es
+          doc_guide_es: manual_es,
+          tags: %w[automation filters]
+        },
+        {
+          name: "Momentum Pulse Indicator",
+          tier_rank: 3,
+          ea_id: "momentum_pulse_indicator",
+          description: "Momentum indicator with visual alerts for high-probability setups.",
+          ea_type: :indicator,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[basic hft pro],
+          doc_guide_en: manual_en,
+          doc_guide_es: manual_es,
+          tags: %w[indicator momentum]
+        },
+        {
+          name: "Session Break Script",
+          tier_rank: 4,
+          ea_id: "session_break_script",
+          description: "Session management script with risk and timing controls.",
+          ea_type: :script,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[basic hft pro],
+          doc_guide_en: manual_en,
+          doc_guide_es: manual_es,
+          tags: %w[script session]
         }
       ]
     end
 
     def upsert_expert_advisor(attrs, bundle_path: nil)
       allowed_tiers = attrs.delete(:allowed_subscription_tiers)
+      tags = attrs.delete(:tags)
 
       record = ExpertAdvisor.unscoped.find_or_initialize_by(name: attrs[:name])
       record.assign_attributes(attrs)
       record.allowed_subscription_tiers = allowed_tiers
+      record.tag_list = Array(tags).map(&:to_s) if tags
       record.deleted_at = nil
       record.save!
 
@@ -116,6 +144,7 @@ module Seeds
           summary_es: "Empieza con configuracion, riesgo basico y estructura de mercado.",
           description_en: "A quick start course for new traders to align on the workflow.",
           description_es: "Curso rapido para alinear el flujo de trabajo.",
+          tags: %w[foundations basics],
           tiers: [],
           modules: [
             {
@@ -171,6 +200,7 @@ module Seeds
           summary_es: "Construye entradas confiables con reglas de momentum.",
           description_en: "Step-by-step drills for clean, repeatable momentum setups.",
           description_es: "Ejercicios para crear setups de momentum repetibles.",
+          tags: %w[momentum entries],
           tiers: %w[basic],
           modules: [
             {
@@ -226,6 +256,7 @@ module Seeds
           summary_es: "Disena y prueba sistemas de trading.",
           description_en: "Refine strategies with filters, regimes, and testing.",
           description_es: "Refina estrategias con filtros y pruebas.",
+          tags: %w[systems automation],
           tiers: %w[hft],
           modules: [
             {
@@ -281,6 +312,7 @@ module Seeds
           summary_es: "Escala de forma segura con control de riesgo.",
           description_en: "Advanced techniques for multi-account growth.",
           description_es: "Tecnicas avanzadas para crecimiento multi cuenta.",
+          tags: %w[risk portfolio],
           tiers: %w[pro],
           modules: [
             {
@@ -339,9 +371,11 @@ module Seeds
     def upsert_course(attrs)
       module_defs = attrs.delete(:modules) || []
       tiers = attrs.delete(:tiers) || []
+      tags = attrs.delete(:tags)
 
       record = Course.find_or_initialize_by(slug: attrs[:slug])
       record.assign_attributes(attrs)
+      record.tag_list = Array(tags).map(&:to_s) if tags
       record.published_at ||= Time.current if record.status == "published"
       record.save!
 
@@ -522,6 +556,92 @@ module Seeds
     end
   end
 
+  module MarketplaceAssets
+    module_function
+
+    def fixture_path
+      Rails.root.join("db", "seeds", "fixtures", "marketplace_asset_sample.pdf")
+    end
+
+    def definitions
+      [
+        {
+          slug: "quick_start_guide",
+          sort_order: 1,
+          status: "active",
+          title_en: "Quick Start Guide",
+          title_es: "Guia de inicio rapido",
+          summary_en: "A fast onboarding guide to get you trading in minutes.",
+          summary_es: "Guia rapida para comenzar a operar en minutos.",
+          description_markdown_en: "# Quick Start\n\n- Platform setup\n- First trade checklist",
+          description_markdown_es: "# Inicio rapido\n\n- Configuracion de la plataforma\n- Checklist de primera operacion",
+          tags: %w[quick_start rules],
+          file: fixture_path
+        },
+        {
+          slug: "risk_checklist",
+          sort_order: 2,
+          status: "active",
+          title_en: "Risk Checklist",
+          title_es: "Checklist de riesgo",
+          summary_en: "Daily rules to stay aligned with your risk plan.",
+          summary_es: "Reglas diarias para seguir tu plan de riesgo.",
+          description_markdown_en: "# Risk Checklist\n\n- Max drawdown rules\n- Session limits",
+          description_markdown_es: "# Checklist de riesgo\n\n- Reglas de drawdown maximo\n- Limites de sesion",
+          tags: %w[risk checklist],
+          file: fixture_path
+        },
+        {
+          slug: "session_templates",
+          sort_order: 3,
+          status: "active",
+          title_en: "Session Templates",
+          title_es: "Plantillas de sesion",
+          summary_en: "Printable templates for pre-trade and post-trade routines.",
+          summary_es: "Plantillas imprimibles para rutinas pre y post trade.",
+          description_markdown_en: "# Session Templates\n\n- Pre-trade flow\n- Post-trade review",
+          description_markdown_es: "# Plantillas de sesion\n\n- Flujo pre trade\n- Revision post trade",
+          tags: %w[templates routines],
+          file: fixture_path
+        }
+      ]
+    end
+
+    def seed_assets!
+      return unless defined?(MarketplaceAsset)
+
+      definitions.each do |attrs|
+        upsert_asset(attrs.dup)
+      end
+    end
+
+    def upsert_asset(attrs)
+      file_path = attrs.delete(:file)
+      tags = attrs.delete(:tags)
+
+      asset = MarketplaceAsset.find_or_initialize_by(slug: attrs[:slug])
+      asset.assign_attributes(attrs)
+      asset.tag_list = Array(tags).map(&:to_s) if tags
+      asset.save!
+
+      attach_file(asset, file_path)
+      asset
+    end
+
+    def attach_file(asset, file_path)
+      return unless file_path&.exist?
+      return if asset.file.attached?
+
+      File.open(file_path) do |file|
+        asset.file.attach(
+          io: file,
+          filename: File.basename(file_path),
+          content_type: "application/pdf"
+        )
+      end
+    end
+  end
+
   module MarketplaceProducts
     module_function
 
@@ -539,7 +659,8 @@ module Seeds
           amount_cents: 12_900,
           image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-01.jpg"),
           ea_ids: %w[sniper_advanced_panel pandora_box],
-          course_slugs: []
+          course_slugs: [],
+          asset_slugs: %w[quick_start_guide session_templates]
         },
         {
           slug: "course_essentials",
@@ -553,7 +674,8 @@ module Seeds
           amount_cents: 8_900,
           image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-09.jpg"),
           ea_ids: [],
-          course_slugs: %w[trading-foundations beginner-momentum]
+          course_slugs: %w[trading-foundations beginner-momentum],
+          asset_slugs: %w[risk_checklist]
         },
         {
           slug: "pro_trader_bundle",
@@ -567,7 +689,8 @@ module Seeds
           amount_cents: 17_900,
           image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-17.jpg"),
           ea_ids: %w[sniper_advanced_panel],
-          course_slugs: %w[intermediate-systems]
+          course_slugs: %w[intermediate-systems],
+          asset_slugs: %w[session_templates risk_checklist]
         }
       ]
     end
@@ -607,7 +730,7 @@ module Seeds
       )
 
       attach_image(product, attrs[:image])
-      attach_entitlements(product.billing_plan, attrs[:ea_ids], attrs[:course_slugs])
+      attach_entitlements(product.billing_plan, attrs[:ea_ids], attrs[:course_slugs], attrs[:asset_slugs])
     end
 
     def attach_image(product, image_path)
@@ -623,7 +746,7 @@ module Seeds
       end
     end
 
-    def attach_entitlements(plan, ea_ids, course_slugs)
+    def attach_entitlements(plan, ea_ids, course_slugs, asset_slugs)
       Array(ea_ids).each do |ea_id|
         expert_advisor = ExpertAdvisor.find_by(ea_id: ea_id)
         next unless expert_advisor
@@ -641,6 +764,16 @@ module Seeds
         CoursePlanEntitlement.find_or_create_by!(
           billing_plan: plan,
           course: course
+        )
+      end
+
+      Array(asset_slugs).each do |slug|
+        asset = MarketplaceAsset.find_by(slug: slug)
+        next unless asset
+
+        AssetPlanEntitlement.find_or_create_by!(
+          billing_plan: plan,
+          marketplace_asset: asset
         )
       end
     end
@@ -743,6 +876,8 @@ module Seeds
         ExpertAdvisor.find_by(ea_id: attrs[:addonable_key])
       when "Course"
         Course.find_by(slug: attrs[:addonable_key])
+      when "MarketplaceAsset"
+        MarketplaceAsset.find_by(slug: attrs[:addonable_key])
       end
     end
 

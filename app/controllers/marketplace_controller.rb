@@ -4,7 +4,10 @@ class MarketplaceController < ApplicationController
   before_action :set_marketplace_entry, only: [:show]
 
   def index
-    @entries = Marketplace::Catalog.new(user: current_user).call
+    catalog_entries = Marketplace::Catalog.new(user: current_user).call
+    @available_tags = available_tags_for(catalog_entries)
+    @selected_tags = normalized_tags(params[:tags])
+    @entries = filter_entries(catalog_entries, @selected_tags)
   end
 
   def show; end
@@ -13,5 +16,27 @@ class MarketplaceController < ApplicationController
 
   def set_marketplace_entry
     @entry = Marketplace::Catalog.new(user: current_user, include_eligibility: true).entry_for!(slug: params[:id])
+  end
+
+  def available_tags_for(entries)
+    entries.flat_map(&:tags).uniq.sort_by { |tag| tag.downcase }
+  end
+
+  def normalized_tags(value)
+    tags =
+      case value
+      when ActionController::Parameters, Hash
+        value.keys
+      else
+        Array(value)
+      end
+
+    tags.map(&:to_s).map(&:strip).reject(&:blank?).uniq
+  end
+
+  def filter_entries(entries, selected_tags)
+    return entries if selected_tags.blank?
+
+    entries.select { |entry| (entry.tags & selected_tags).any? }
   end
 end

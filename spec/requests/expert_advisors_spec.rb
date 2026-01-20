@@ -132,4 +132,37 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(positions).to all(be_present)
     expect(positions).to eq(positions.sort)
   end
+
+  it "filters expert advisors by status" do
+    active_ea = create(:expert_advisor, name: "Active EA")
+    trial_ea = create(:expert_advisor, name: "Trial EA")
+    expired_ea = create(:expert_advisor, name: "Expired EA")
+
+    create(:license, user: user, expert_advisor: active_ea, status: "active")
+    create(:license, user: user, expert_advisor: trial_ea, status: "trial")
+    create(:license, user: user, expert_advisor: expired_ea, status: "expired")
+
+    sign_in user, scope: :user
+
+    get dashboard_expert_advisors_path(locale: :en, status: "trial")
+
+    expect(response).to be_successful
+    expect(response.body).to include("Trial EA")
+    expect(response.body).not_to include("Active EA")
+    expect(response.body).not_to include("Expired EA")
+  end
+
+  it "filters expert advisors by type with localized labels" do
+    indicator_ea = create(:expert_advisor, name: "Indicator EA", ea_type: :indicator)
+    script_ea = create(:expert_advisor, name: "Script EA", ea_type: :script)
+
+    sign_in user, scope: :user
+
+    get dashboard_expert_advisors_path(locale: :es, type: "indicator")
+
+    expect(response).to be_successful
+    expect(response.body).to include("Indicator EA")
+    expect(response.body).not_to include("Script EA")
+    expect(response.body).to include(I18n.t("dashboard.expert_advisors.types.indicator", locale: :es))
+  end
 end

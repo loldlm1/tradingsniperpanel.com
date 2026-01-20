@@ -32,3 +32,60 @@ es:
     payouts:
       created: "Pago marcado como pagado."
       updated: "Pago actualizado."
+    marketplace_products:
+      created: "Producto de marketplace creado."
+      updated: "Producto de marketplace actualizado."
+      sections:
+        product: "Producto"
+        pricing: "Precios"
+        entitlements: "Entitlements"
+        addon: "Add-on"
+      labels:
+        plan_amount_cents: "Monto (centavos)"
+        plan_currency: "Moneda"
+        stripe_product_id: "ID de producto Stripe"
+        stripe_price_id: "ID de precio Stripe"
+        expert_advisors: "Expert Advisors"
+        courses: "Cursos"
+        marketplace_assets: "Assets del marketplace"
+        addonable_ref: "Objetivo del add-on"
+        addon_key: "Clave del add-on"
+        addonable_expert_advisors: "Expert Advisors"
+        addonable_courses: "Cursos"
+        addonable_assets: "Assets del marketplace"
+      errors:
+        addonable_missing: "Selecciona un add-on válido."
+        asset_base_missing: "El asset del marketplace debe tener un producto base antes de usarse como add-on."
+        bundle_missing: "El Expert Advisor no tiene bundles para: %{keys}."
+        amount_missing: "El monto es obligatorio para productos del marketplace."
+    marketplace_assets:
+      sections:
+        details: "Detalles"
+        marketplace_products: "Productos del marketplace"
+      labels:
+        create_marketplace_product: "Crear un producto de marketplace"
+        marketplace_products: "Productos del marketplace (compra única)"
+    expert_advisors:
+      sections:
+        details: "Detalles"
+        docs: "Guías"
+        marketplace_products: "Productos del marketplace"
+        bundle_coverage: "Cobertura de bundles"
+      labels:
+        create_marketplace_product: "Crear un producto de marketplace"
+        marketplace_products: "Productos del marketplace (compra única)"
+      bundle_coverage:
+        no_addons: "No hay add-ons configurados."
+        required: "Claves de bundle requeridas"
+        missing: "Claves de bundle faltantes"
+        complete: "Todos los bundles están presentes."
+    courses:
+      sections:
+        details: "Detalles"
+        marketplace_products: "Productos del marketplace"
+      labels:
+        create_marketplace_product: "Crear un producto de marketplace"
+        marketplace_products: "Productos del marketplace (compra única)"
+    expert_advisor_bundles:
+      sections:
+        details: "Detalles"

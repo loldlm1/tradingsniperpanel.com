@@ -15,6 +15,13 @@
     <% if summary.present? %>
       <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= summary %></p>
     <% end %>
+    <% if @entry.tags.any? %>
+      <div class="flex flex-wrap gap-2 mt-3 text-xs text-gray-600 dark:text-gray-300">
+        <% @entry.tags.each do |tag| %>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700/60"><%= tag %></span>
+        <% end %>
+      </div>
+    <% end %>
   </div>
   <div>
     <%= render "dashboard/shared/secondary_button",
@@ -55,7 +62,8 @@
               </ul>
             </div>
           <% else %>
-            <div class="grid gap-6 md:grid-cols-2">
+            <% if @entry.marketplace_assets.any? %>
+              <div class="grid gap-6 md:grid-cols-3">
               <div>
                 <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.detail.included_eas") %></div>
                 <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
@@ -78,7 +86,44 @@
                   <% end %>
                 </ul>
               </div>
+              <div>
+                <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.detail.included_assets") %></div>
+                <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                  <% @entry.marketplace_assets.each do |asset| %>
+                    <li class="flex items-center gap-2">
+                      <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= asset.sort_order.to_i + 1 %></span>
+                      <%= link_to asset.title_for(I18n.locale), dashboard_marketplace_asset_path(asset, locale: I18n.locale), class: "hover:text-violet-600 dark:hover:text-violet-300" %>
+                    </li>
+                  <% end %>
+                </ul>
+              </div>
             </div>
+            <% else %>
+              <div class="grid gap-6 md:grid-cols-2">
+                <div>
+                  <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.detail.included_eas") %></div>
+                  <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    <% @entry.expert_advisors.each do |expert_advisor| %>
+                      <li class="flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= expert_advisor.tier_rank.to_i + 1 %></span>
+                        <span><%= expert_advisor.name %></span>
+                      </li>
+                    <% end %>
+                  </ul>
+                </div>
+                <div>
+                  <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.detail.included_courses") %></div>
+                  <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                    <% @entry.courses.each do |course| %>
+                      <li class="flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= course.position.to_i + 1 %></span>
+                        <span><%= course.title_for(I18n.locale) %></span>
+                      </li>
+                    <% end %>
+                  </ul>
+                </div>
+              </div>
+            <% end %>
           <% end %>
         </div>
       </div>
@@ -116,13 +161,16 @@
       <% else %>
         <div>
           <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.marketplace.detail.already_have_title") %></h3>
-          <% if @entry.owned_expert_advisors.any? || @entry.owned_courses.any? %>
+          <% if @entry.owned_expert_advisors.any? || @entry.owned_courses.any? || @entry.owned_assets.any? %>
             <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300 list-disc list-inside">
               <% @entry.owned_expert_advisors.each do |expert_advisor| %>
                 <li><%= expert_advisor.name %></li>
               <% end %>
               <% @entry.owned_courses.each do |course| %>
                 <li><%= course.title_for(I18n.locale) %></li>
+              <% end %>
+              <% @entry.owned_assets.each do |asset| %>
+                <li><%= asset.title_for(I18n.locale) %></li>
               <% end %>
             </ul>
           <% else %>
@@ -131,13 +179,16 @@
         </div>
         <div>
           <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.marketplace.detail.you_will_get_title") %></h3>
-          <% if @entry.remaining_expert_advisors.any? || @entry.remaining_courses.any? %>
+          <% if @entry.remaining_expert_advisors.any? || @entry.remaining_courses.any? || @entry.remaining_assets.any? %>
             <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300 list-disc list-inside">
               <% @entry.remaining_expert_advisors.each do |expert_advisor| %>
                 <li><%= expert_advisor.name %></li>
               <% end %>
               <% @entry.remaining_courses.each do |course| %>
                 <li><%= course.title_for(I18n.locale) %></li>
+              <% end %>
+              <% @entry.remaining_assets.each do |asset| %>
+                <li><%= asset.title_for(I18n.locale) %></li>
               <% end %>
             </ul>
           <% else %>

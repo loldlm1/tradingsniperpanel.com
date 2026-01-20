@@ -11,11 +11,25 @@
   <div class="flex flex-wrap items-center gap-3">
     <span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.expert_advisors.filters.status") %></span>
     <% %w[all active trial expired].each do |status| %>
-      <%= render "dashboard/shared/filter_chip", label: status.capitalize %>
+      <% active = @selected_status.to_s == status || (@selected_status.blank? && status == "all") %>
+      <% status_param = status == "all" ? nil : status %>
+      <% href = dashboard_expert_advisors_path(locale: I18n.locale, status: status_param, type: @selected_type) %>
+      <% class_name = active ? "bg-gray-900 text-white border-gray-900 hover:border-gray-900 dark:bg-gray-100 dark:text-gray-900 dark:border-gray-100" : "" %>
+      <%= render "dashboard/shared/filter_chip", label: status.capitalize, href: href, class_name: class_name %>
     <% end %>
     <span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold ml-3"><%= t("dashboard.expert_advisors.filters.type") %></span>
-    <% [[t("dashboard.expert_advisors.filters.all_types"), nil], ["EA Robot", "robot"], ["EA Tool", "tool"]].each do |label, _value| %>
-      <%= render "dashboard/shared/filter_chip", label: label %>
+    <% [
+      [t("dashboard.expert_advisors.filters.all_types"), "all"],
+      [t("dashboard.expert_advisors.types.ea_robot"), "ea_robot"],
+      [t("dashboard.expert_advisors.types.ea_tool"), "ea_tool"],
+      [t("dashboard.expert_advisors.types.indicator"), "indicator"],
+      [t("dashboard.expert_advisors.types.script"), "script"]
+    ].each do |label, value| %>
+      <% active = @selected_type.to_s == value || (@selected_type.blank? && value == "all") %>
+      <% type_param = value == "all" ? nil : value %>
+      <% href = dashboard_expert_advisors_path(locale: I18n.locale, status: @selected_status, type: type_param) %>
+      <% class_name = active ? "bg-gray-900 text-white border-gray-900 hover:border-gray-900 dark:bg-gray-100 dark:text-gray-900 dark:border-gray-100" : "" %>
+      <%= render "dashboard/shared/filter_chip", label: label, href: href, class_name: class_name %>
     <% end %>
   </div>
   <p class="text-xs text-gray-500 dark:text-gray-400 mt-3"><%= t("dashboard.expert_advisors.filters.note") %></p>
@@ -37,7 +51,7 @@
             <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-xs font-semibold"><%= idx + 1 %></span>
             <div>
               <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= ea.name %></h2>
-              <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= ea.ea_type %></div>
+              <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.expert_advisors.types.#{ea.ea_type}", default: ea.ea_type.to_s.humanize) %></div>
             </div>
           </div>
           <div class="flex flex-col items-start gap-1 sm:items-end">

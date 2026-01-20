@@ -1,5 +1,5 @@
 class Addon < ApplicationRecord
-  ALLOWED_ADDONABLES = %w[ExpertAdvisor Course].freeze
+  ALLOWED_ADDONABLES = %w[ExpertAdvisor Course MarketplaceAsset].freeze
 
   belongs_to :addonable, polymorphic: true
   belongs_to :billing_plan

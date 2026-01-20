@@ -1,0 +1,66 @@
+<% asset = @marketplace_asset %>
+<% summary = asset.summary_for(I18n.locale) %>
+
+<% content_for :title, "#{app_short_name} - #{asset.title_for(I18n.locale)}" %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "guides" %>
+<% end %>
+
+<div class="sm:flex sm:justify-between sm:items-start mb-6">
+  <div class="mb-4 sm:mb-0">
+    <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.index.title") %></div>
+    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= asset.title_for(I18n.locale) %></h1>
+    <% if summary.present? %>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= summary %></p>
+    <% end %>
+    <% if asset.tag_list.any? %>
+      <div class="flex flex-wrap gap-2 mt-3 text-xs text-gray-600 dark:text-gray-300">
+        <% asset.tag_list.each do |tag| %>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700/60"><%= tag %></span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  <div>
+    <%= render "dashboard/shared/secondary_button",
+               label: t("dashboard.marketplace.assets.back"),
+               href: dashboard_marketplace_path(locale: I18n.locale) %>
+  </div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="lg:col-span-2">
+    <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+      <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-4"><%= t("dashboard.marketplace.assets.description_title") %></h2>
+      <% if @markdown_html.present? %>
+        <div
+          class="ea-guide-content text-slate-600 dark:text-slate-400 space-y-6"
+          data-copy-label="<%= t('dashboard.expert_advisors.copy_code') %>"
+          data-copied-label="<%= t('dashboard.expert_advisors.copied') %>"
+        >
+          <%= @markdown_html %>
+        </div>
+      <% else %>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.marketplace.assets.empty_description") %></p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="space-y-6">
+    <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+      <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.marketplace.assets.download_label") %></h3>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.marketplace.assets.download_help") %></p>
+      <div class="mt-4">
+        <% if asset.file.attached? %>
+          <%= link_to t("dashboard.marketplace.assets.download_cta"),
+                      dashboard_marketplace_asset_download_path(asset, locale: I18n.locale),
+                      class: "btn-sm w-full bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+        <% else %>
+          <button class="btn-sm w-full bg-gray-900 text-white opacity-60 cursor-not-allowed dark:bg-gray-100 dark:text-gray-800" disabled>
+            <%= t("dashboard.marketplace.assets.download_cta") %>
+          </button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

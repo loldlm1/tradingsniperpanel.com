@@ -62,6 +62,14 @@
               </svg>
               <div><%= t("dashboard.marketplace.card.includes_courses", count: entry.courses.size) %></div>
             </li>
+            <% if entry.marketplace_assets.any? %>
+              <li class="flex items-center">
+                <svg class="fill-current text-gray-400 dark:text-gray-500 shrink-0 mr-3" width="16" height="16" viewBox="0 0 16 16">
+                  <path d="M2 2h8a2 2 0 0 1 2 2v1h1a1 1 0 1 1 0 2h-1v1h1a1 1 0 1 1 0 2h-1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 2H2v8h8V4Zm4 1h-2v1h2V5Zm0 3h-2v1h2V8Zm0 3h-2v1h2v-1Z" />
+                </svg>
+                <div><%= t("dashboard.marketplace.card.includes_assets", count: entry.marketplace_assets.size) %></div>
+              </li>
+            <% end %>
             <li class="flex items-center">
               <svg class="fill-current text-gray-400 dark:text-gray-500 shrink-0 mr-3" width="16" height="16" viewBox="0 0 16 16">
                 <path d="M4.17 14H3a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3h1.17A3.001 3.001 0 0 1 7 0h6a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3.001 3.001 0 0 1-2.83-2ZM4 4H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h1V4Zm10 9V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1Z" />
@@ -70,6 +78,13 @@
             </li>
           <% end %>
         </ul>
+        <% if entry.tags.any? %>
+          <div class="flex flex-wrap gap-2 text-[11px] text-gray-600 dark:text-gray-300">
+            <% entry.tags.each do |tag| %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700/60"><%= tag %></span>
+            <% end %>
+          </div>
+        <% end %>
       </div>
       <div>
         <%= link_to t("dashboard.marketplace.cta.view_details"), dashboard_marketplace_product_path(product, locale: I18n.locale), class: "btn-sm w-full bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>

@@ -7,6 +7,28 @@
   </div>
 </div>
 
+<% if @available_tags.present? %>
+  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.filters.title") %></span>
+      <% @available_tags.each do |tag| %>
+        <% active = @selected_tags.include?(tag) %>
+        <% next_tags = active ? (@selected_tags - [tag]) : (@selected_tags + [tag]) %>
+        <% href = next_tags.any? ? dashboard_marketplace_path(locale: I18n.locale, tags: next_tags) : dashboard_marketplace_path(locale: I18n.locale) %>
+        <% class_name = active ? "bg-gray-900 text-white border-gray-900 hover:border-gray-900 dark:bg-gray-100 dark:text-gray-900 dark:border-gray-100" : "" %>
+        <%= render "dashboard/shared/filter_chip", label: tag, href: href, class_name: class_name %>
+      <% end %>
+      <% if @selected_tags.present? %>
+        <%= render "dashboard/shared/filter_chip",
+                   label: t("dashboard.marketplace.filters.clear"),
+                   href: dashboard_marketplace_path(locale: I18n.locale),
+                   class_name: "bg-gray-100 dark:bg-gray-700/60" %>
+      <% end %>
+    </div>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mt-3"><%= t("dashboard.marketplace.filters.note") %></p>
+  </div>
+<% end %>
+
 <% if @entries.present? %>
   <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
     <%= render partial: "marketplace/product_card", collection: @entries, as: :entry %>

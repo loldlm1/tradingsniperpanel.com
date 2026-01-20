@@ -1,7 +1,9 @@
 require "securerandom"
 
 class ExpertAdvisor < ApplicationRecord
-  enum :ea_type, { ea_robot: 0, ea_tool: 1 }
+  acts_as_taggable_on :tags
+
+  enum :ea_type, { ea_robot: 0, ea_tool: 1, indicator: 2, script: 3 }
 
   has_many :user_expert_advisors, dependent: :destroy
   has_many :licenses, dependent: :destroy
@@ -21,6 +23,14 @@ class ExpertAdvisor < ApplicationRecord
   validates :tier_rank, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   # Prevent accidental EA identifier changes once issued
   validate :ea_id_immutable, on: :update
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[tags]
+  end
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[created_at ea_id ea_type id name tier_rank trial_enabled updated_at]
+  end
 
   def doc_guide_for(locale)
     key = "doc_guide_#{locale}"

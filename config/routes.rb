@@ -19,6 +19,8 @@ Rails.application.routes.draw do
     get "dashboard/expert_advisors", to: "expert_advisors#index", as: :dashboard_expert_advisors
     get "dashboard/courses", to: "courses#index", as: :dashboard_courses
     get "dashboard/marketplace", to: "marketplace#index", as: :dashboard_marketplace
+    get "dashboard/marketplace/assets/:id", to: "marketplace_assets#show", as: :dashboard_marketplace_asset
+    get "dashboard/marketplace/assets/:id/download", to: "marketplace_assets#download", as: :dashboard_marketplace_asset_download
     get "dashboard/marketplace/:id", to: "marketplace#show", as: :dashboard_marketplace_product
     get "dashboard/plans", to: "dashboards#plans", as: :dashboard_plans
     get "dashboard/billing", to: "dashboards#billing", as: :dashboard_billing

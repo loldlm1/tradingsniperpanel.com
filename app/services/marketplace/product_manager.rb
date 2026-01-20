@@ -91,7 +91,7 @@ module Marketplace
         "marketplace_slug" => product.slug
       )
 
-      {
+      plan_attrs = {
         key: product.key,
         name: product.title_for(:en),
         description: product.summary_for(:en).presence || product.description_for(:en),
@@ -105,6 +105,9 @@ module Marketplace
         sort_order: product.sort_order,
         metadata: metadata
       }
+      plan_attrs[:stripe_product_id] = attrs[:stripe_product_id] if attrs[:stripe_product_id].present?
+      plan_attrs[:stripe_price_id] = attrs[:stripe_price_id] if attrs[:stripe_price_id].present?
+      plan_attrs
     end
 
     def apply_plan_attributes(plan, plan_attributes)
@@ -113,6 +116,8 @@ module Marketplace
 
       plan.amount_cents = attrs[:amount_cents] if attrs.key?(:amount_cents)
       plan.currency = attrs[:currency] if attrs.key?(:currency)
+      plan.stripe_product_id = attrs[:stripe_product_id] if attrs[:stripe_product_id].present?
+      plan.stripe_price_id = attrs[:stripe_price_id] if attrs[:stripe_price_id].present?
     end
 
     def normalize_hash(value)
