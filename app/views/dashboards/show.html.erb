@@ -188,9 +188,17 @@
         </div>
       </div>
       <div class="mt-auto px-5 pb-4 flex justify-center">
-        <%= link_to t("dashboard.plan_card.manage"),
-                    dashboard_billing_path,
-                    class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full max-w-xs px-8 py-3 text-base" %>
+        <% cta = plan[:cta] %>
+        <% if cta[:type] == :disabled %>
+          <button class="btn bg-gray-900/60 text-gray-100 dark:bg-gray-100/60 dark:text-gray-800 w-full max-w-xs px-8 py-3 text-base cursor-not-allowed" type="button" disabled>
+            <%= cta[:label] %>
+          </button>
+        <% else %>
+          <% cta_path = cta[:type] == :marketplace ? dashboard_marketplace_path : dashboard_plans_path %>
+          <%= link_to cta[:label],
+                      cta_path,
+                      class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full max-w-xs px-8 py-3 text-base" %>
+        <% end %>
       </div>
     </div>
   </div>

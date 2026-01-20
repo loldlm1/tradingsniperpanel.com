@@ -13,7 +13,8 @@ class DashboardsController < ApplicationController
       user: current_user,
       subscription: @subscription,
       plan_context: @plan_context,
-      plan_hint: plan_hint
+      plan_hint: plan_hint,
+      marketplace_available: @marketplace_available
     ).call
 
     clear_desired_plan if @subscription&.active?
