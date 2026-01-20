@@ -61,6 +61,10 @@ es:
         auto_renew_note: "Renovación automática si no se cancela."
         scheduled_change: "Cambio programado a %{plan} el %{date}."
         empty: "No hay un plan activo."
+        cta_get_plan: "Obtener plan"
+        cta_upgrade_plan: "Actualizar plan"
+        cta_marketplace: "Explorar marketplace"
+        cta_unavailable: "No hay upgrades disponibles"
       licenses_card:
         title: "Licencias activas"
         subtitle: "Licencias en uso actualmente"

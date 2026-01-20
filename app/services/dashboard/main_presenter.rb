@@ -20,11 +20,12 @@ module Dashboard
     MINI_LINE_COLOR = "#94A3B8"
     SPARKLINE_COLOR = "#6366F1"
 
-    def initialize(user:, subscription:, plan_context:, plan_hint: nil, now: Time.current)
+    def initialize(user:, subscription:, plan_context:, plan_hint: nil, marketplace_available: false, now: Time.current)
       @user = user
       @subscription = subscription
       @plan_context = plan_context
       @plan_hint = plan_hint
+      @marketplace_available = marketplace_available
       @now = now
     end
 
@@ -64,7 +65,8 @@ module Dashboard
         renews_at: plan[:renews_at],
         scheduled_change: plan[:scheduled_change],
         benefits: benefits,
-        usage: license_usage
+        usage: license_usage,
+        cta: plan_cta
       }
     end
 
@@ -171,7 +173,7 @@ module Dashboard
 
     private
 
-    attr_reader :user, :subscription, :plan_context, :plan_hint, :now
+    attr_reader :user, :subscription, :plan_context, :plan_hint, :marketplace_available, :now
 
     def date_range
       @date_range ||= (from_date..to_date).to_a
@@ -570,6 +572,41 @@ module Dashboard
 
       benefits = I18n.t("dashboard.plans.tiers.#{tier}.features", default: [])
       Array(benefits).first(3)
+    end
+
+    def plan_cta
+      return get_plan_cta unless subscription.present?
+
+      if upgrade_available?
+        upgrade_plan_cta
+      elsif marketplace_available
+        marketplace_cta
+      else
+        unavailable_cta
+      end
+    end
+
+    def upgrade_available?
+      states = plan_context[:states]
+      return false if states.blank?
+
+      states.any? { |_, intervals| intervals.values.any? { |state| state == :upgrade } }
+    end
+
+    def get_plan_cta
+      { type: :plans, label: I18n.t("dashboard.main.plan_card.cta_get_plan") }
+    end
+
+    def upgrade_plan_cta
+      { type: :plans, label: I18n.t("dashboard.main.plan_card.cta_upgrade_plan") }
+    end
+
+    def marketplace_cta
+      { type: :marketplace, label: I18n.t("dashboard.main.plan_card.cta_marketplace") }
+    end
+
+    def unavailable_cta
+      { type: :disabled, label: I18n.t("dashboard.main.plan_card.cta_unavailable") }
     end
 
     def plan_status_label(status)

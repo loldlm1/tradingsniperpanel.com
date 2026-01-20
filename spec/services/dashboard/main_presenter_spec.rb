@@ -91,4 +91,56 @@ RSpec.describe Dashboard::MainPresenter do
       expect(summary_rows.first[:name]).to eq("Alpha")
     end
   end
+
+  it "returns get plan CTA when no subscription is present" do
+    presenter = build_presenter
+
+    expect(presenter.plan_details[:cta]).to eq(
+      type: :plans,
+      label: I18n.t("dashboard.main.plan_card.cta_get_plan")
+    )
+  end
+
+  it "returns upgrade CTA when upgrades are available" do
+    subscription = instance_double(
+      ManualSubscription,
+      active?: true,
+      past_due?: false,
+      unpaid?: false,
+      status: "active",
+      current_period_end: 1.month.from_now
+    )
+    presenter = described_class.new(
+      user: user,
+      subscription: subscription,
+      plan_context: { states: { "basic" => { "monthly" => :current, "annual" => :upgrade } } }
+    ).call
+
+    expect(presenter.plan_details[:cta]).to eq(
+      type: :plans,
+      label: I18n.t("dashboard.main.plan_card.cta_upgrade_plan")
+    )
+  end
+
+  it "returns marketplace CTA when no upgrades are available" do
+    subscription = instance_double(
+      ManualSubscription,
+      active?: true,
+      past_due?: false,
+      unpaid?: false,
+      status: "active",
+      current_period_end: 1.month.from_now
+    )
+    presenter = described_class.new(
+      user: user,
+      subscription: subscription,
+      plan_context: { states: { "basic" => { "monthly" => :current } } },
+      marketplace_available: true
+    ).call
+
+    expect(presenter.plan_details[:cta]).to eq(
+      type: :marketplace,
+      label: I18n.t("dashboard.main.plan_card.cta_marketplace")
+    )
+  end
 end
