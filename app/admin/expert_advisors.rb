@@ -14,11 +14,17 @@ ActiveAdmin.register ExpertAdvisor do
       redirect_to admin_expert_advisors_path, alert: t("active_admin.users.role_forbidden")
     end
 
+    def find_resource
+      scoped_collection.find_by!(ea_id: params[:id])
+    end
+
     def sync_marketplace_products
       return if resource.errors.any?
-      return unless params[:expert_advisor].is_a?(ActionController::Parameters)
 
-      ids = params[:expert_advisor][:marketplace_product_ids]
+      resource_params = params[:expert_advisor]
+      return unless resource_params.is_a?(ActionController::Parameters) || resource_params.is_a?(Hash)
+
+      ids = resource_params[:marketplace_product_ids] || resource_params["marketplace_product_ids"]
       return if ids.nil?
 
       Admin::MarketplaceProductLinker.new(subject: resource, marketplace_product_ids: ids).call

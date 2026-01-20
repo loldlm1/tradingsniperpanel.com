@@ -14,11 +14,17 @@ ActiveAdmin.register MarketplaceAsset do
       redirect_to admin_marketplace_assets_path, alert: t("active_admin.users.role_forbidden")
     end
 
+    def find_resource
+      scoped_collection.find_by!(slug: params[:id])
+    end
+
     def sync_marketplace_products
       return if resource.errors.any?
-      return unless params[:marketplace_asset].is_a?(ActionController::Parameters)
 
-      ids = params[:marketplace_asset][:marketplace_product_ids]
+      resource_params = params[:marketplace_asset]
+      return unless resource_params.is_a?(ActionController::Parameters) || resource_params.is_a?(Hash)
+
+      ids = resource_params[:marketplace_product_ids] || resource_params["marketplace_product_ids"]
       return if ids.nil?
 
       Admin::MarketplaceProductLinker.new(subject: resource, marketplace_product_ids: ids).call

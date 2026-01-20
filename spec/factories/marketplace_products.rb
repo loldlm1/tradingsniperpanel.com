@@ -1,6 +1,5 @@
 FactoryBot.define do
   factory :marketplace_product do
-    association :billing_plan, factory: [:billing_plan, :one_time]
     sequence(:slug) { |n| "marketplace_product_#{n}" }
     key { "marketplace_#{slug}" }
     status { "active" }
@@ -12,5 +11,10 @@ FactoryBot.define do
     description_en { "Lifetime access to curated Expert Advisors and courses." }
     description_es { "Acceso de por vida a Expert Advisors y cursos." }
 
+    after(:build) do |product|
+      next if product.billing_plan.present?
+
+      product.billing_plan = build(:billing_plan, :one_time, key: product.key)
+    end
   end
 end

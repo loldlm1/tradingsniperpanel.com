@@ -50,6 +50,10 @@ ActiveAdmin.register MarketplaceProduct do
       redirect_to admin_marketplace_products_path, alert: t("active_admin.users.role_forbidden")
     end
 
+    def find_resource
+      scoped_collection.find_by!(slug: params[:id])
+    end
+
     def product_params
       params.require(:marketplace_product).permit(
         :slug,
