@@ -67,28 +67,28 @@ ActiveAdmin.register MarketplaceAsset do
     end
 
     f.inputs t("active_admin.marketplace_assets.sections.marketplace_products") do
-      f.template.concat f.template.content_tag(:li, class: "input") {
-        f.template.link_to(
+      li class: "input" do
+        text_node f.template.link_to(
           t("active_admin.marketplace_assets.labels.create_marketplace_product"),
           new_admin_marketplace_product_path
         )
-      }
-      f.template.concat f.template.content_tag(:li, class: "input") {
-        f.template.label_tag(
+      end
+      li class: "input" do
+        text_node f.template.label_tag(
           "marketplace_asset_marketplace_product_ids",
           t("active_admin.marketplace_assets.labels.marketplace_products")
-        ) +
-          f.template.select_tag(
-            "marketplace_asset[marketplace_product_ids][]",
-            f.template.options_from_collection_for_select(
-              MarketplaceProduct.ordered,
-              :id,
-              :title_en,
-              selected_product_ids
-            ),
-            multiple: true
-          )
-      }
+        )
+        text_node f.template.select_tag(
+          "marketplace_asset[marketplace_product_ids][]",
+          f.template.options_from_collection_for_select(
+            MarketplaceProduct.ordered,
+            :id,
+            :title_en,
+            selected_product_ids
+          ),
+          multiple: true
+        )
+      end
     end
 
     f.actions

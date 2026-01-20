@@ -45,7 +45,14 @@ module Admin
       attr_reader :actor
 
       def master_admin?
-        actor&.master_admin?
+        normalized_actor&.master_admin?
+      end
+
+      def normalized_actor
+        return actor if actor.is_a?(User) || actor.nil?
+        return User.find_by(id: actor["id"] || actor[:id]) if actor.is_a?(Hash)
+
+        actor
       end
     end
   end

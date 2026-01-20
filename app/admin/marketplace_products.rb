@@ -153,98 +153,98 @@ ActiveAdmin.register MarketplaceProduct do
     end
 
     f.inputs t("active_admin.marketplace_products.sections.pricing") do
-      f.template.concat f.template.content_tag(:li, class: "input") {
-        f.template.label_tag(
+      li class: "input" do
+        text_node f.template.label_tag(
           "marketplace_product_plan_amount_cents",
           t("active_admin.marketplace_products.labels.plan_amount_cents")
-        ) +
-          f.template.number_field_tag(
-            "marketplace_product[plan_amount_cents]",
-            plan&.amount_cents,
-            min: 0
-          )
-      }
-      f.template.concat f.template.content_tag(:li, class: "input") {
-        f.template.label_tag(
+        )
+        text_node f.template.number_field_tag(
+          "marketplace_product[plan_amount_cents]",
+          plan&.amount_cents,
+          min: 0
+        )
+      end
+      li class: "input" do
+        text_node f.template.label_tag(
           "marketplace_product_plan_currency",
           t("active_admin.marketplace_products.labels.plan_currency")
-        ) +
-          f.template.select_tag(
-            "marketplace_product[plan_currency]",
-            f.template.options_for_select([["USD", "usd"]], plan&.currency || "usd")
-          )
-      }
-      f.template.concat f.template.content_tag(:li, class: "input") {
-        f.template.label_tag(
+        )
+        text_node f.template.select_tag(
+          "marketplace_product[plan_currency]",
+          f.template.options_for_select([["USD", "usd"]], plan&.currency || "usd")
+        )
+      end
+      li class: "input" do
+        text_node f.template.label_tag(
           "marketplace_product_stripe_product_id",
           t("active_admin.marketplace_products.labels.stripe_product_id")
-        ) +
-          f.template.text_field_tag(
-            "marketplace_product[stripe_product_id]",
-            plan&.stripe_product_id
-          )
-      }
-      f.template.concat f.template.content_tag(:li, class: "input") {
-        f.template.label_tag(
+        )
+        text_node f.template.text_field_tag(
+          "marketplace_product[stripe_product_id]",
+          plan&.stripe_product_id
+        )
+      end
+      li class: "input" do
+        text_node f.template.label_tag(
           "marketplace_product_stripe_price_id",
           t("active_admin.marketplace_products.labels.stripe_price_id")
-        ) +
-          f.template.text_field_tag(
-            "marketplace_product[stripe_price_id]",
-            plan&.stripe_price_id
-          )
-      }
+        )
+        text_node f.template.text_field_tag(
+          "marketplace_product[stripe_price_id]",
+          plan&.stripe_price_id
+        )
+      end
     end
 
     f.inputs t("active_admin.marketplace_products.sections.entitlements") do
-      f.template.concat f.template.content_tag(:li, class: "input") {
-        f.template.label_tag(
+      li class: "input" do
+        text_node f.template.label_tag(
           "marketplace_product_expert_advisor_ids",
           t("active_admin.marketplace_products.labels.expert_advisors")
-        ) +
-          f.template.select_tag(
-            "marketplace_product[expert_advisor_ids][]",
-            f.template.options_from_collection_for_select(
-              ExpertAdvisor.ordered_by_rank,
-              :id,
-              :name,
-              plan&.expert_advisors&.pluck(:id)
-            ),
-            multiple: true
-          )
-      }
-      f.template.concat f.template.content_tag(:li, class: "input") {
-        f.template.label_tag(
+        )
+        text_node f.template.select_tag(
+          "marketplace_product[expert_advisor_ids][]",
+          f.template.options_from_collection_for_select(
+            ExpertAdvisor.ordered_by_rank,
+            :id,
+            :name,
+            plan&.expert_advisors&.pluck(:id)
+          ),
+          multiple: true
+        )
+      end
+      li class: "input" do
+        text_node f.template.label_tag(
           "marketplace_product_course_ids",
           t("active_admin.marketplace_products.labels.courses")
-        ) +
-          f.template.select_tag(
-            "marketplace_product[course_ids][]",
-            f.template.options_from_collection_for_select(
-              Course.ordered,
-              :id,
-              :title_en,
-              plan&.courses&.pluck(:id)
-            ),
-            multiple: true
-          )
-      }
-      f.template.concat f.template.content_tag(:li, class: "input") {
-        f.template.label_tag(
+        )
+        text_node f.template.select_tag(
+          "marketplace_product[course_ids][]",
+          f.template.options_from_collection_for_select(
+            Course.ordered,
+            :id,
+            :title_en,
+            plan&.courses&.pluck(:id)
+          ),
+          multiple: true
+        )
+      end
+      li class: "input" do
+        text_node f.template.label_tag(
           "marketplace_product_marketplace_asset_ids",
           t("active_admin.marketplace_products.labels.marketplace_assets")
-        ) +
-          f.template.select_tag(
-            "marketplace_product[marketplace_asset_ids][]",
-            f.template.options_from_collection_for_select(
-              MarketplaceAsset.ordered,
-              :id,
-              :title_en,
-              plan&.marketplace_assets&.pluck(:id)
-            ),
-            multiple: true
-          )
-      }
+        )
+        text_node f.template.select_tag(
+          "marketplace_product[marketplace_asset_ids][]",
+          f.template.options_from_collection_for_select(
+            MarketplaceAsset.ordered,
+            :id,
+            :title_en,
+            plan&.marketplace_assets&.pluck(:id)
+          ),
+          multiple: true
+        )
+      end
     end
 
     f.inputs t("active_admin.marketplace_products.sections.addon") do
@@ -257,27 +257,27 @@ ActiveAdmin.register MarketplaceProduct do
           MarketplaceAsset.ordered.map { |asset| ["#{asset.title_en} (#{asset.slug})", "MarketplaceAsset:#{asset.id}"] }
       }
 
-      f.template.concat f.template.content_tag(:li, class: "input") {
-        f.template.label_tag(
+      li class: "input" do
+        text_node f.template.label_tag(
           "marketplace_product_addonable_ref",
           t("active_admin.marketplace_products.labels.addonable_ref")
-        ) +
-          f.template.select_tag(
-            "marketplace_product[addonable_ref]",
-            f.template.grouped_options_for_select(addonable_options, addonable_ref),
-            include_blank: true
-          )
-      }
-      f.template.concat f.template.content_tag(:li, class: "input") {
-        f.template.label_tag(
+        )
+        text_node f.template.select_tag(
+          "marketplace_product[addonable_ref]",
+          f.template.grouped_options_for_select(addonable_options, addonable_ref),
+          include_blank: true
+        )
+      end
+      li class: "input" do
+        text_node f.template.label_tag(
           "marketplace_product_addon_key",
           t("active_admin.marketplace_products.labels.addon_key")
-        ) +
-          f.template.text_field_tag(
-            "marketplace_product[addon_key]",
-            addon_key
-          )
-      }
+        )
+        text_node f.template.text_field_tag(
+          "marketplace_product[addon_key]",
+          addon_key
+        )
+      end
     end
 
     f.actions
