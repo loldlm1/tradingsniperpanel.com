@@ -34,6 +34,79 @@ en:
       docs: "Docs"
       settings: "Settings"
       my_account: "My Account"
+    main:
+      header:
+        title: "Welcome"
+        manage_licenses: "Manage licenses"
+      intro:
+        greeting: "Hi %{name}, this is your all-time PnL:"
+        subtitle: "Across all broker accounts."
+        add_broker: "Add broker account"
+      unknown_ea: "Unknown EA"
+      pnl_card:
+        title: "Monthly performance (PnL)"
+        average_label: "daily average"
+        empty: "No PnL data yet."
+      plan_card:
+        title: "Current plan"
+        plan_label: "Plan"
+        price_label: "Price"
+        price: "%{amount} %{interval}"
+        usage_label: "Active licenses"
+        usage_value: "%{active} of %{total}"
+        benefits_title: "Included benefits"
+        benefits_empty: "Plan benefits are not available yet."
+        renewal_label: "Renewal"
+        renews_on: "Renews on %{date}"
+        auto_renew_note: "Auto-renews unless canceled."
+        scheduled_change: "Scheduled change to %{plan} on %{date}."
+        empty: "No active plan yet."
+      licenses_card:
+        title: "Active licenses"
+        subtitle: "Licenses in use right now"
+        trials_label: "%{count} trials"
+        renews_on: "Next renewal: %{date}"
+        note: "Licenses can be used on unlimited broker accounts."
+        empty: "No renewal scheduled."
+      course_progress_card:
+        title: "Course progress"
+        subtitle: "Your course in progress"
+        progress_label: "%{percent}% completed"
+        course_label: "Course: %{title}"
+        empty: "No course progress yet."
+      balance_card:
+        title: "Balance distribution"
+        subtitle: "30-day PnL by broker"
+        other: "Other"
+        empty: "No broker PnL data yet."
+      mini_cards:
+        broker_accounts:
+          title: "Broker accounts"
+          change: "%{delta} (%{percent}%) - Today"
+        active_eas:
+          title: "Expert Advisors in use"
+          change: "%{delta} (%{percent}%) - Today"
+        active_licenses:
+          title: "Licenses active"
+          change: "%{delta} (%{percent}%) - Today"
+        courses_in_progress:
+          title: "Courses in progress"
+          change: "%{delta} (%{percent}%) - Today"
+      account_summary:
+        title: "Account summary"
+        empty: "No EA PnL data yet."
+        columns:
+          area: "Area"
+          total: "Total"
+          trend: "Trend"
+          usd: "USD"
+          status: "Status"
+        status:
+          active: "Active"
+          trial: "Trial"
+          expired: "Expired"
+          revoked: "Revoked"
+          unknown: "Unknown"
     marketplace:
       index:
         title: "Marketplace"

@@ -74,6 +74,23 @@ How to reuse Cruip HTML templates (not our Rails views) to assemble new pages qu
     - `js/analytics-charts.js` and `js/fintech-charts.js`: additional chart setups for their respective pages (line/bar/donut mixes; moment adapter required).
   - Keep canvas IDs and supporting DOM nodes intact when porting chart blocks; dark mode relies on the `darkMode` custom event from `main.js`.
 
+## Dashboard Main (custom)
+- Source: `mosaic-html/dashboard_main.html` is the canonical layout for the main dashboard.
+- Keep the HTML comment blocks (e.g., `<!-- Page header -->`, `<!-- Page Intro -->`, `<!-- Line chart (Portfolio Returns) -->`) in Rails views to preserve section boundaries.
+- Chart IDs and legend containers used by the Rails view:
+  - Line/PnL: `fintech-card-01` + legend container `fintech-card-01-legend`
+  - Active licenses: `fintech-card-07`
+  - Course progress: `fintech-card-08`
+  - Balance distribution: `fintech-card-09` + legend container `fintech-card-09-legend`
+  - Mini cards: `fintech-card-10`..`fintech-card-13`
+  - Table sparklines: `fintech-card-14-a`..`fintech-card-14-e`
+- Chart data is passed via `data-*` attributes and rendered by `app/javascript/dashboard_main.js` (no vendor JS edits):
+  - `data-dashboard-chart="true"` on the `canvas`
+  - `data-chart='{"type":"line","labels":[...],"datasets":[...]}'` (JSON payload)
+  - `data-chart-style="main-line|card-line|mini-line|sparkline|doughnut"`
+  - `data-chart-format="currency|count"` for tooltips
+- Legends for `fintech-card-01` and `fintech-card-09` are rendered in the view using the same dataset palette.
+
 ## Using the catalogue to mock screens
 - Pick a source page whose layout matches your need (e.g., `plans.html` for pricing, `tasks-kanban.html` for boards, `component-*` for isolated UI bits).
 - Copy the section HTML verbatim, then wrap in ERB as needed; keep Tailwind classes, `x-data`/`x-show` Alpine bindings, `data-aos`, and element IDs for JS.

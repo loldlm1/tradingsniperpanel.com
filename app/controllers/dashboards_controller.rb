@@ -9,12 +9,10 @@ class DashboardsController < ApplicationController
 
   def show
     plan_hint = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
-    @overview = Dashboard::OverviewPresenter.new(
+    @main = Dashboard::MainPresenter.new(
       user: current_user,
-      pay_customer: @pay_customer,
       subscription: @subscription,
       plan_context: @plan_context,
-      accessible_eas: @accessible_eas,
       plan_hint: plan_hint
     ).call
 
