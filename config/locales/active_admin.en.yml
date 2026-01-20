@@ -32,3 +32,60 @@ en:
     payouts:
       created: "Payout marked as paid."
       updated: "Payout updated."
+    marketplace_products:
+      created: "Marketplace product created."
+      updated: "Marketplace product updated."
+      sections:
+        product: "Product"
+        pricing: "Pricing"
+        entitlements: "Entitlements"
+        addon: "Add-on"
+      labels:
+        plan_amount_cents: "Amount (cents)"
+        plan_currency: "Currency"
+        stripe_product_id: "Stripe product ID"
+        stripe_price_id: "Stripe price ID"
+        expert_advisors: "Expert Advisors"
+        courses: "Courses"
+        marketplace_assets: "Marketplace Assets"
+        addonable_ref: "Add-on target"
+        addon_key: "Add-on key"
+        addonable_expert_advisors: "Expert Advisors"
+        addonable_courses: "Courses"
+        addonable_assets: "Marketplace Assets"
+      errors:
+        addonable_missing: "Select a valid add-on item."
+        asset_base_missing: "Marketplace asset must have a base marketplace product before it can be used as an add-on."
+        bundle_missing: "Expert advisor is missing bundle files for: %{keys}."
+        amount_missing: "Amount is required for marketplace products."
+    marketplace_assets:
+      sections:
+        details: "Details"
+        marketplace_products: "Marketplace Products"
+      labels:
+        create_marketplace_product: "Create a marketplace product"
+        marketplace_products: "Marketplace products (one-time)"
+    expert_advisors:
+      sections:
+        details: "Details"
+        docs: "Guides"
+        marketplace_products: "Marketplace Products"
+        bundle_coverage: "Bundle coverage"
+      labels:
+        create_marketplace_product: "Create a marketplace product"
+        marketplace_products: "Marketplace products (one-time)"
+      bundle_coverage:
+        no_addons: "No add-ons configured."
+        required: "Required bundle keys"
+        missing: "Missing bundle keys"
+        complete: "All bundles present."
+    courses:
+      sections:
+        details: "Details"
+        marketplace_products: "Marketplace Products"
+      labels:
+        create_marketplace_product: "Create a marketplace product"
+        marketplace_products: "Marketplace products (one-time)"
+    expert_advisor_bundles:
+      sections:
+        details: "Details"

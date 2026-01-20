@@ -44,6 +44,8 @@ module Billing
         :sort_order,
         :metadata
       ))
+      plan.stripe_product_id = attributes[:stripe_product_id] if attributes[:stripe_product_id].present?
+      plan.stripe_price_id = attributes[:stripe_price_id] if attributes[:stripe_price_id].present?
       plan.interval_count = 1 if plan.subscription? && plan.interval_count.blank?
       plan.currency = plan.currency.to_s.downcase.presence || "usd"
     end
