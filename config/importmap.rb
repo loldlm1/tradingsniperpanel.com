@@ -2,3 +2,4 @@
 
 pin "application"
 pin "dashboard_analytics"
+pin "dashboard_main"
