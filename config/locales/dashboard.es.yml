@@ -538,7 +538,7 @@ es:
             one: "%{count} EA activo (24h)"
             other: "%{count} EAs activos (24h)"
           empty: "Sin actividad reciente"
-          cta: "Ver actividad ->"
+          cta: "Ver actividad →"
           chart:
             label: "Cuentas activas"
           table:
@@ -554,14 +554,14 @@ es:
         top_eas:
           title: "Top Expert Advisors por ganancia"
           empty: "Sin PnL en este rango"
-          cta: "Ver detalles de Expert Advisor ->"
+          cta: "Ver detalles de Expert Advisor →"
           columns:
             ea: "Expert Advisor"
             pnl: "PnL de 30 días"
         latest_lessons:
           title: "Últimas lecciones vistas"
           empty: "Aún no hay lecciones vistas"
-          cta: "Ver cursos ->"
+          cta: "Ver cursos →"
           minutes_label: "%{minutes} min"
           lesson_label: "%{course} - %{lesson}"
           columns:
@@ -570,7 +570,7 @@ es:
         expiring_licenses:
           title: "Licencias por vencer"
           empty: "Sin vencimientos próximos"
-          cta: "Renovar licencia ->"
+          cta: "Renovar licencia →"
           today: "hoy"
           in_days:
             one: "en %{count} día"
@@ -695,7 +695,7 @@ es:
       invoices_copy: "Cargos recientes y recibos."
       invoice_year: "Año"
       invoice_plan: "Plan"
-      invoice_plan_change: "%{from} -> %{to} (%{change})"
+      invoice_plan_change: "%{from} → %{to} (%{change})"
       invoice_change_upgrade: "upgrade"
       invoice_change_downgrade: "baja"
       invoice_amount: "Monto"
