@@ -34,4 +34,5 @@ Seeds::Subscriptions.seed_manual_subscription_for(
   recorded_by: qa_users[:partner] || qa_user
 )
 Seeds::DashboardMain.seed_for(user: qa_user, core_records: core_records, qa_records: qa_records)
+Seeds::DashboardAnalytics.seed_for(user: qa_user)
 Seeds::DashboardSamples.seed_activity_for(user: qa_user)

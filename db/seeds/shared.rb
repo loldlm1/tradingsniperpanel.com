@@ -860,6 +860,124 @@ module Seeds
     end
   end
 
+  module DashboardAnalytics
+    module_function
+
+    RANGE_DAYS = 30
+    RECENT_HOURS = 24
+    REPORT_LIMIT = 8
+
+    def seed_for(user:)
+      return unless user
+
+      seed_recent_results(user: user)
+      seed_course_enrollments(user: user)
+      seed_lesson_progress(user: user)
+      seed_license_expirations(user: user)
+    end
+
+    def seed_recent_results(user:)
+      return unless defined?(BrokerAccountDailyResult)
+      return unless defined?(BrokerAccount)
+
+      accounts = BrokerAccount.joins(license: :user).where(licenses: { user_id: user.id }).distinct.to_a
+      return if accounts.empty?
+
+      accounts.each do |account|
+        Seeds::DashboardMain.seed_daily_results(account, days: RANGE_DAYS, seed: account.account_number)
+      end
+
+      cutoff = RECENT_HOURS.hours.ago.to_i
+      accounts.each_with_index do |account, idx|
+        next if BrokerAccountDailyResult.where(broker_account: account).where("result_timestamp >= ?", cutoff).exists?
+
+        timestamp = Time.current.utc.to_i - (idx * 3600)
+        value = recent_result_value(account_number: account.account_number, offset: idx)
+        BrokerAccountDailyResult.create!(
+          broker_account: account,
+          result_timestamp: timestamp,
+          result_value: value
+        )
+      end
+    end
+
+    def seed_course_enrollments(user:)
+      return unless defined?(CourseEnrollment)
+      return unless defined?(Course)
+
+      courses = Course.order(:position)
+      return if courses.empty?
+
+      now = Time.current
+      progress_values = [0, 18, 42, 67, 85, 100]
+
+      courses.each_with_index do |course, idx|
+        progress = progress_values[idx % progress_values.length]
+        enrollment = CourseEnrollment.find_or_initialize_by(user: user, course: course)
+        enrollment.progress_percent = progress
+        enrollment.started_at ||= progress.zero? ? nil : (now - (idx + 2).days)
+        enrollment.completed_at = progress >= 100 ? (now - (idx + 1).days) : nil
+        enrollment.last_lesson ||= course.course_lessons.order(:position).last
+        enrollment.save!
+      end
+    end
+
+    def seed_lesson_progress(user:)
+      return unless defined?(CourseLessonProgress)
+      return unless defined?(CourseLesson)
+
+      lessons = CourseLesson.joins(course_module: :course)
+                            .order("courses.position ASC, course_modules.position ASC, course_lessons.position ASC")
+                            .limit(REPORT_LIMIT)
+      return if lessons.empty?
+
+      now = Time.current
+      progress_points = [15, 35, 55, 75, 90, 45, 65, 80]
+
+      lessons.each_with_index do |lesson, idx|
+        percent = progress_points[idx % progress_points.length]
+        duration = lesson.duration_seconds.to_i
+        duration = 600 if duration <= 0
+        progress_seconds = ((duration * percent) / 100.0).round
+        progress_seconds = [progress_seconds, duration].min
+
+        progress = CourseLessonProgress.find_or_initialize_by(user: user, course_lesson: lesson)
+        progress.progress_seconds = progress_seconds
+        progress.last_watched_at = now - idx.days
+        progress.status = percent >= 80 ? "completed" : "started"
+        progress.completed_at = percent >= 80 ? now - idx.days : nil
+        progress.save!
+
+        enrollment = CourseEnrollment.find_or_initialize_by(user: user, course: lesson.course)
+        enrollment.last_lesson = lesson
+        enrollment.started_at ||= progress.last_watched_at
+        enrollment.save!
+      end
+    end
+
+    def seed_license_expirations(user:)
+      return unless defined?(License)
+
+      now = Time.current
+      offsets = [3, 7, 10, 14, 21, 30, 45, 60]
+
+      user.licenses.active_or_trial.order(:id).each_with_index do |license, idx|
+        expires_at = now + offsets[idx % offsets.length].days
+        if license.trial?
+          license.update!(trial_ends_at: expires_at)
+        else
+          license.update!(expires_at: expires_at)
+        end
+      end
+    end
+
+    def recent_result_value(account_number:, offset:)
+      seed = account_number.to_i + (offset * 37)
+      rng = Random.new(seed)
+      rng.rand(-120.0..120.0).round(2)
+    end
+  end
+
   module MarketplaceAssets
     module_function
 
