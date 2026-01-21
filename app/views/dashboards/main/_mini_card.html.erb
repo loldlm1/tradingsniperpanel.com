@@ -1,0 +1,24 @@
+<div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+  <div class="px-5 pt-5">
+    <header>
+      <h3 class="<%= title_size_class.presence || "text-sm" %> font-semibold text-gray-500 uppercase mb-1">
+        <span class="text-gray-800 dark:text-gray-100"><%= title %></span><%= title_suffix %>
+      </h3>
+      <div class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1"><%= value %></div>
+      <div class="text-sm">
+        <span class="font-medium <%= change_class %>"><%= change_text %></span>
+      </div>
+    </header>
+  </div>
+  <div class="grow">
+    <canvas
+      id="<%= chart_id %>"
+      width="286"
+      height="98"
+      data-dashboard-chart="true"
+      data-chart="<%= json_escape(chart_payload.to_json) %>"
+      data-chart-style="mini-line"
+      data-chart-format="count"
+    ></canvas>
+  </div>
+</div>

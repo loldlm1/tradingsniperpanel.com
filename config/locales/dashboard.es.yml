@@ -34,6 +34,88 @@ es:
       docs: "Docs"
       settings: "Ajustes"
       my_account: "Mi cuenta"
+    main:
+      header:
+        title: "Bienvenido"
+        manage_licenses: "Gestionar licencias"
+      intro:
+        greeting: "Hola %{name}, este es tu PnL histórico:"
+        greeting_html: "Hola %{name}, este es tu PnL histórico:"
+        subtitle: "En todas tus cuentas broker."
+        add_broker: "Agregar cuenta broker"
+      unknown_ea: "EA desconocido"
+      pnl_card:
+        title: "Rendimiento mensual (PnL)"
+        average_label: "promedio diario"
+        empty: "Aún no hay datos de PnL."
+      plan_card:
+        title: "Plan actual"
+        plan_label: "Plan"
+        price_label: "Precio"
+        price: "%{amount} %{interval}"
+        usage_label: "Licencias activas"
+        usage_value: "%{active} de %{total} (%{percent}%)"
+        benefits_title: "Beneficios incluidos"
+        benefits_empty: "Los beneficios del plan aún no están disponibles."
+        renewal_label: "Renovación"
+        renews_on: "Renueva el %{date}"
+        auto_renew_note: "Renovación automática si no se cancela."
+        scheduled_change: "Cambio programado a %{plan} el %{date}."
+        empty: "No hay un plan activo."
+        cta_get_plan: "Obtener plan"
+        cta_upgrade_plan: "Actualizar plan"
+        cta_marketplace: "Explorar marketplace"
+        cta_unavailable: "No hay upgrades disponibles"
+      licenses_card:
+        title: "Licencias activas"
+        subtitle: "Licencias en uso actualmente"
+        trials_label: "%{count} pruebas"
+        renews_on: "Próxima renovación: %{date}"
+        note: "Las licencias se pueden usar en cuentas broker ilimitadas."
+        empty: "Sin renovación programada."
+      course_progress_card:
+        title: "Progreso del curso"
+        subtitle: "Tu curso en progreso"
+        progress_label: "%{percent}% completado"
+        course_label: "Curso: %{title}"
+        empty: "Aún no hay progreso de cursos."
+      balance_card:
+        title: "Distribución de balance"
+        subtitle: "PnL de 30 días por broker"
+        other: "Otros"
+        empty: "Aún no hay datos de PnL por broker."
+      mini_cards:
+        broker_accounts:
+          title: "Cuentas broker"
+          suffix: " - vinculadas"
+          change: "%{delta} (%{percent}%) - Hoy"
+        active_eas:
+          title: "EAs"
+          suffix: " - activos"
+          change: "%{delta} (%{percent}%) - Hoy"
+        active_licenses:
+          title: "Licencias"
+          suffix: " - activas"
+          change: "%{delta} (%{percent}%) - Hoy"
+        courses_in_progress:
+          title: "Cursos"
+          suffix: " - en progreso"
+          change: "%{delta} (%{percent}%) - Hoy"
+      account_summary:
+        title: "Resumen de cuenta"
+        empty: "Aún no hay datos de PnL por EA."
+        columns:
+          area: "Área"
+          total: "Total"
+          trend: "Tendencia"
+          usd: "USD"
+          status: "Estado"
+        status:
+          active: "Activo"
+          trial: "Prueba"
+          expired: "Vencido"
+          revoked: "Revocado"
+          unknown: "Desconocido"
     marketplace:
       index:
         title: "Marketplace"
@@ -434,6 +516,88 @@ es:
     analytics_channels_copy: "Atribución por canal (ejemplo)."
     analytics_value: "Valor en tiempo real"
     analytics:
+      date_range: "Seleccionar fechas"
+      other: "Otros"
+      uncategorized: "Sin categoría"
+      cards:
+        daily_performance:
+          title: "Desempeño diario"
+          empty: "No hay suficientes datos"
+          kpis:
+            total_pnl: "PnL de 30 días"
+            cumulative_pnl: "PnL acumulado"
+            positive_days: "Días positivos"
+            max_drawdown: "Máximo drawdown"
+          chart:
+            current: "Actual"
+            previous: "Anterior"
+        active_now:
+          title: "Expert Advisors activos ahora"
+          active_accounts: "Cuentas activas (24h)"
+          active_eas:
+            one: "%{count} EA activo (24h)"
+            other: "%{count} EAs activos (24h)"
+          empty: "Sin actividad reciente"
+          cta: "Ver actividad →"
+          chart:
+            label: "Cuentas activas"
+          table:
+            ea: "Expert Advisor"
+            count: "Cuentas activas"
+        ea_results:
+          title: "Resultados por Expert Advisor"
+          empty: "Sin resultados en este rango"
+        course_progress:
+          title: "Top cursos por progreso"
+          empty: "Sin cursos en progreso"
+          legend: "Progreso (%)"
+        top_eas:
+          title: "Top Expert Advisors por ganancia"
+          empty: "Sin PnL en este rango"
+          cta: "Ver detalles de Expert Advisor →"
+          columns:
+            ea: "Expert Advisor"
+            pnl: "PnL de 30 días"
+        latest_lessons:
+          title: "Últimas lecciones vistas"
+          empty: "Aún no hay lecciones vistas"
+          cta: "Ver cursos →"
+          minutes_label: "%{minutes} min"
+          lesson_label: "%{course} - %{lesson}"
+          columns:
+            lesson: "Lección"
+            progress: "Progreso"
+        expiring_licenses:
+          title: "Licencias por vencer"
+          empty: "Sin vencimientos próximos"
+          cta: "Renovar licencia →"
+          today: "hoy"
+          in_days:
+            one: "en %{count} día"
+            other: "en %{count} días"
+          columns:
+            ea: "Expert Advisor"
+            expires_in: "Vence en"
+        course_status:
+          title: "Estado del curso"
+          empty: "Sin cursos inscritos"
+          labels:
+            not_started: "Sin iniciar"
+            in_progress: "En progreso"
+            completed: "Completado"
+        study_time:
+          title: "Tiempo de estudio por categoría"
+          empty: "Sin tiempo de estudio reciente"
+          other: "Otros"
+          uncategorized: "Sin categoría"
+        ea_types:
+          title: "Tipo de Expert Advisor en uso"
+          empty: "Sin licencias activas"
+          labels:
+            ea_robot: "EA robot"
+            ea_tool: "EA herramienta"
+            indicator: "Indicador"
+            script: "Script"
       pnl_page_copy: "PnL de cuentas de broker y resultados diarios en tus setups de EA."
       filters:
         date_range: "Rango de fechas"
@@ -531,7 +695,7 @@ es:
       invoices_copy: "Cargos recientes y recibos."
       invoice_year: "Año"
       invoice_plan: "Plan"
-      invoice_plan_change: "%{from} -> %{to} (%{change})"
+      invoice_plan_change: "%{from} → %{to} (%{change})"
       invoice_change_upgrade: "upgrade"
       invoice_change_downgrade: "baja"
       invoice_amount: "Monto"

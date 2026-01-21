@@ -1,186 +1,447 @@
 <% content_for :title, "#{t('dashboard.nav.analytics', default: 'Analytics')} | #{app_short_name}" %>
-<% analytics = @broker_analytics %>
-<% totals = analytics.totals %>
-<% summary = analytics.summary %>
-<% filters = analytics.filters %>
+<% analytics = @analytics %>
+<% daily = analytics.daily_performance %>
+<% active = analytics.active_now %>
+<% ea_results = analytics.ea_results %>
+<% course_progress = analytics.course_progress %>
+<% top_eas = analytics.top_eas %>
+<% latest_lessons = analytics.latest_lessons %>
+<% expiring = analytics.expiring_licenses %>
+<% course_status = analytics.course_status %>
+<% study_time = analytics.study_time %>
+<% ea_types = analytics.ea_types %>
 
-<div class="sm:flex sm:justify-between sm:items-start mb-8">
+<!-- Page header -->
+<div class="sm:flex sm:justify-between sm:items-center mb-8">
+  <!-- Left: Title -->
   <div class="mb-4 sm:mb-0">
     <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.nav.analytics", default: "Analytics") %></h1>
-    <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.analytics.pnl_page_copy") %></p>
   </div>
 
-  <%= form_with url: dashboard_analytics_path, method: :get, local: true, scope: nil, html: { class: "flex flex-wrap items-center gap-2", data: { analytics_filters: true } } do %>
-    <div class="relative">
-      <input
-        type="text"
-        name="date_range"
-        class="datepicker form-input pl-9 dark:bg-gray-800 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 font-medium w-[15.5rem]"
-        placeholder="<%= t('dashboard.analytics.filters.date_range') %>"
-        aria-label="<%= t('dashboard.analytics.filters.date_range') %>"
-        data-class="flatpickr-right"
-        data-analytics-datepicker="true"
-        data-from-ts="<%= filters[:from_ts] %>"
-        data-to-ts="<%= filters[:to_ts] %>"
-      />
-      <div class="absolute inset-0 right-auto flex items-center pointer-events-none">
-        <svg class="fill-current text-gray-400 dark:text-gray-500 ml-3" width="16" height="16" viewBox="0 0 16 16">
-          <path d="M5 4a1 1 0 0 0 0 2h6a1 1 0 1 0 0-2H5Z" />
-          <path d="M4 0a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4V4a4 4 0 0 0-4-4H4ZM2 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4Z" />
-        </svg>
-      </div>
-      <%= hidden_field_tag :from_ts, filters[:from_ts], data: { analytics_from: true } %>
-      <%= hidden_field_tag :to_ts, filters[:to_ts], data: { analytics_to: true } %>
-    </div>
-
-    <%= select_tag :ea_id,
-                   options_for_select([[t("dashboard.analytics.filters.all_eas"), ""]] +
-                                      (@accessible_eas || []).map { |entry| [entry.expert_advisor.name, entry.expert_advisor.ea_id] },
-                                      filters[:ea_id]),
-                   class: "form-select w-48",
-                   data: { analytics_filter: true },
-                   aria: { label: t("dashboard.analytics.filters.all_eas") } %>
-
-    <%= select_tag :broker,
-                   options_for_select([[t("dashboard.analytics.filters.all_brokers"), ""]] +
-                                      analytics.available_brokers.map { |broker| [broker, broker] },
-                                      filters[:broker]),
-                   class: "form-select w-40",
-                   data: { analytics_filter: true },
-                   aria: { label: t("dashboard.analytics.filters.all_brokers") } %>
-
-    <%= select_tag :account_type,
-                   options_for_select([[t("dashboard.analytics.filters.all_account_types"), ""]] +
-                                      analytics.available_account_types.map { |key| [t("dashboard.broker_accounts.account_type.#{key}"), key] },
-                                      filters[:account_type]),
-                   class: "form-select w-40",
-                   data: { analytics_filter: true },
-                   aria: { label: t("dashboard.analytics.filters.all_account_types") } %>
-
-    <%= select_tag :compare_by,
-                   options_for_select(analytics.compare_by_options.map { |key| [t("dashboard.analytics.filters.compare_by_options.#{key}"), key] },
-                                      filters[:compare_by]),
-                   class: "form-select w-40",
-                   data: { analytics_filter: true },
-                   aria: { label: t("dashboard.analytics.filters.compare_by") } %>
-  <% end %>
-</div>
-
-<div class="text-xs text-gray-500 dark:text-gray-400 mb-6"><%= t("dashboard.analytics.filters.note") %></div>
-
-<div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4 mb-6">
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="text-sm font-semibold text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.tiles.total_accounts") %></div>
-    <div class="mt-2 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= totals[:total] %></div>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.analytics.tiles.total_hint") %></p>
-  </div>
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="text-sm font-semibold text-gray-500 dark:text-gray-400"><%= t("dashboard.broker_accounts.account_type.real") %></div>
-    <div class="mt-2 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= totals[:real] %></div>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.analytics.tiles.real_hint") %></p>
-  </div>
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="text-sm font-semibold text-gray-500 dark:text-gray-400"><%= t("dashboard.broker_accounts.account_type.demo") %></div>
-    <div class="mt-2 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= totals[:demo] %></div>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.analytics.tiles.demo_hint") %></p>
-  </div>
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="text-sm font-semibold text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.tiles.total_pnl") %></div>
-    <div class="mt-2 text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= number_to_currency(summary[:total_pnl].to_f, unit: "$", precision: 2) %></div>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.analytics.tiles.total_pnl_hint") %></p>
-  </div>
-</div>
-
-<div class="grid grid-cols-12 gap-6">
-  <div class="flex flex-col col-span-full bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
-    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div>
-          <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.pnl_title") %></div>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.pnl_copy") %></p>
+  <!-- Right: Actions -->
+  <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
+    <%= form_with url: dashboard_analytics_path, method: :get, local: true, scope: nil, html: { class: "contents", data: { analytics_filters: true } } do %>
+      <!-- Datepicker built with flatpickr -->
+      <div class="relative">
+        <input
+          type="text"
+          name="date_range"
+          class="datepicker form-input pl-9 dark:bg-gray-800 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 font-medium w-[15.5rem]"
+          placeholder="<%= t('dashboard.analytics.date_range') %>"
+          aria-label="<%= t('dashboard.analytics.date_range') %>"
+          data-class="flatpickr-right"
+          data-analytics-datepicker="true"
+          data-from-date="<%= analytics.datepicker_from %>"
+          data-to-date="<%= analytics.datepicker_to %>"
+        />
+        <div class="absolute inset-0 right-auto flex items-center pointer-events-none">
+          <svg class="fill-current text-gray-400 dark:text-gray-500 ml-3" width="16" height="16" viewBox="0 0 16 16">
+            <path d="M5 4a1 1 0 0 0 0 2h6a1 1 0 1 0 0-2H5Z" />
+            <path d="M4 0a4 4 0 0 0-4 4v8a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4V4a4 4 0 0 0-4-4H4ZM2 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4Z" />
+          </svg>
         </div>
-        <div class="text-xs text-gray-500 dark:text-gray-400">
-          <%= t("dashboard.analytics.summary.range",
-                from: l(filters[:from_date], format: :short),
-                to: l(filters[:to_date], format: :short)) %>
-        </div>
-      </div>
-    </header>
-    <div class="px-5 py-4">
-      <div class="flex flex-wrap gap-6">
-        <div>
-          <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.summary.total_pnl") %></div>
-          <div class="text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= number_to_currency(summary[:total_pnl].to_f, unit: "$", precision: 2) %></div>
-        </div>
-        <div>
-          <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.summary.avg_daily_pnl") %></div>
-          <div class="text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= number_to_currency(summary[:average_daily_pnl].to_f, unit: "$", precision: 2) %></div>
-        </div>
-        <div>
-          <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.summary.days") %></div>
-          <div class="text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= summary[:days] %></div>
-        </div>
-      </div>
-    </div>
-    <div class="grow" data-analytics-chart="true" data-chart="<%= h(analytics.chart_data.to_json) %>">
-      <canvas id="analytics-card-01" width="800" height="320"></canvas>
-    </div>
-  </div>
-
-  <div class="col-span-full bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-4">
-      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.top_accounts") %></div>
-      <span class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.pagination_note") %></span>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="min-w-full text-sm text-gray-800 dark:text-gray-100">
-        <%= render "dashboard/shared/table_head" do %>
-          <tr class="text-left">
-            <th class="px-3 py-2 font-semibold"><%= t("dashboard.analytics.columns.ea") %></th>
-            <th class="px-3 py-2 font-semibold"><%= t("dashboard.analytics.columns.broker") %></th>
-            <th class="px-3 py-2 font-semibold"><%= t("dashboard.analytics.columns.account_type") %></th>
-            <th class="px-3 py-2 font-semibold"><%= t("dashboard.analytics.columns.pnl") %></th>
-            <th class="px-3 py-2 font-semibold"><%= t("dashboard.analytics.columns.days") %></th>
-            <th class="px-3 py-2 font-semibold"><%= t("dashboard.analytics.columns.last_result") %></th>
-          </tr>
-        <% end %>
-        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-          <% analytics.setups.each do |row| %>
-            <tr>
-              <td class="px-3 py-2"><%= row.ea_name %></td>
-              <td class="px-3 py-2"><%= row.broker_name %></td>
-              <td class="px-3 py-2 text-xs uppercase text-gray-500 dark:text-gray-400"><%= t("dashboard.broker_accounts.account_type.#{row.account_type}") %></td>
-              <td class="px-3 py-2 font-semibold <%= row.total_pnl.to_f >= 0 ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300' %>"><%= number_to_currency(row.total_pnl.to_f, unit: "$", precision: 2) %></td>
-              <td class="px-3 py-2"><%= row.days_count %></td>
-              <td class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
-                <%= row.last_result_at.present? ? l(row.last_result_at, format: :short_with_year) : t("dashboard.analytics.no_results") %>
-              </td>
-            </tr>
-          <% end %>
-          <% if analytics.setups.empty? %>
-            <tr>
-              <td colspan="6" class="px-3 py-4 text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.empty") %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-    <% if analytics.pagination[:total_pages] > 1 %>
-      <div class="flex items-center justify-between mt-4 text-xs text-gray-500 dark:text-gray-400">
-        <span><%= t("dashboard.analytics.page", current: analytics.pagination[:current_page], total: analytics.pagination[:total_pages]) %></span>
-        <div class="flex items-center gap-2">
-          <% prev_page = analytics.pagination[:current_page] - 1 %>
-          <% next_page = analytics.pagination[:current_page] + 1 %>
-          <% if analytics.pagination[:current_page] > 1 %>
-            <%= link_to t("dashboard.analytics.prev"), dashboard_analytics_path(page: prev_page, **filters.slice(:from_ts, :to_ts, :ea_id, :broker, :account_type, :compare_by)),
-                        class: "px-3 py-1 rounded border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600" %>
-          <% end %>
-          <% if analytics.pagination[:current_page] < analytics.pagination[:total_pages] %>
-            <%= link_to t("dashboard.analytics.next"), dashboard_analytics_path(page: next_page, **filters.slice(:from_ts, :to_ts, :ea_id, :broker, :account_type, :compare_by)),
-                        class: "px-3 py-1 rounded border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600" %>
-          <% end %>
-        </div>
+        <%= hidden_field_tag :from_date, analytics.datepicker_from, data: { analytics_from: true } %>
+        <%= hidden_field_tag :to_date, analytics.datepicker_to, data: { analytics_to: true } %>
       </div>
     <% end %>
+  </div>
+</div>
+
+<!-- Cards -->
+<div class="grid grid-cols-12 gap-6">
+  <!-- Line chart (Analytics) -->
+  <div class="flex flex-col col-span-full xl:col-span-8 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex items-center">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.cards.daily_performance.title") %></h2>
+    </header>
+    <div class="px-5 py-1">
+      <div class="flex flex-wrap max-sm:*:w-1/2">
+        <% daily[:kpis].each_with_index do |kpi, index| %>
+          <% last_item = index == daily[:kpis].size - 1 %>
+          <div class="flex items-center<%= last_item ? "" : " py-2" %>">
+            <div class="<%= last_item ? "" : "mr-5" %>">
+              <div class="flex items-center">
+                <div class="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2"><%= analytics_value(kpi[:value], kpi[:value_type]) %></div>
+                <% if kpi[:change_percent].present? %>
+                  <div class="text-sm font-medium <%= kpi[:change_class] %>"><%= analytics_change_label(kpi[:change_percent]) %></div>
+                <% end %>
+              </div>
+              <div class="text-sm text-gray-500 dark:text-gray-400"><%= kpi[:label] %></div>
+            </div>
+            <% if index < daily[:kpis].size - 1 %>
+              <div class="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-700 mr-5" aria-hidden="true"></div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <!-- Chart built with Chart.js 3 -->
+    <!-- Check out src/js/analytics-charts.js for config -->
+    <div class="grow">
+      <% if daily[:has_data] %>
+        <!-- Change the height attribute to adjust the chart height -->
+        <canvas
+          id="analytics-card-01"
+          width="800"
+          height="300"
+          data-chart-variant="line-main"
+          data-chart="<%= h(daily[:chart].to_json) %>"
+        ></canvas>
+      <% else %>
+        <div class="h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards.daily_performance.empty") %></div>
+      <% end %>
+    </div>
+  </div>
+
+  <!--  Line chart (Active Users Right Now) -->
+  <div class="flex flex-col col-span-full xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.cards.active_now.title") %></h2>
+    </header>
+    <!-- Card content -->
+    <div class="flex flex-col h-full">
+      <!-- Live visitors number -->
+      <div class="px-5 py-3">
+        <div class="flex items-center">
+          <!-- Red dot -->
+          <div class="relative flex items-center justify-center w-3 h-3 mr-3" aria-hidden="true">
+            <div class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-50"></div>
+            <div class="relative inline-flex rounded-full w-1.5 h-1.5 bg-red-500"></div>
+          </div>
+          <!-- Vistors number -->
+          <div>
+            <div class="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2"><%= active[:active_accounts] %></div>
+            <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards.active_now.active_accounts") %></div>
+            <div class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards.active_now.active_eas", count: active[:active_eas]) %></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart built with Chart.js 3 -->
+      <!-- Check out src/js/analytics-charts.js for config -->
+      <div>
+        <!-- Change the height attribute to adjust the chart height -->
+        <canvas
+          id="analytics-card-02"
+          width="389"
+          height="70"
+          data-chart-variant="line-spark"
+          data-chart="<%= h(active[:chart].to_json) %>"
+        ></canvas>
+      </div>
+
+      <!-- Table -->
+      <div class="grow px-5 pt-3 pb-1">
+        <div class="overflow-x-auto">
+          <table class="table-auto w-full dark:text-gray-300">
+            <!-- Table header -->
+            <thead class="text-xs uppercase text-gray-400 dark:text-gray-500">
+              <tr>
+                <th class="py-2">
+                  <div class="font-semibold text-left"><%= t("dashboard.analytics.cards.active_now.table.ea") %></div>
+                </th>
+                <th class="py-2">
+                  <div class="font-semibold text-right"><%= t("dashboard.analytics.cards.active_now.table.count") %></div>
+                </th>
+              </tr>
+            </thead>
+            <!-- Table body -->
+            <tbody class="text-sm divide-y divide-gray-100 dark:divide-gray-700/60">
+              <% if active[:rows].any? %>
+                <% active[:rows].each do |row| %>
+                  <tr>
+                    <td class="py-2">
+                      <div class="text-left"><%= row[:name] %></div>
+                    </td>
+                    <td class="py-2">
+                      <div class="font-medium text-right text-gray-800 dark:text-gray-100"><%= row[:count] %></div>
+                    </td>
+                  </tr>
+                <% end %>
+              <% else %>
+                <tr>
+                  <td class="py-2 text-gray-500 dark:text-gray-400" colspan="2"><%= t("dashboard.analytics.cards.active_now.empty") %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Card footer -->
+      <div class="text-right px-5 pb-4">
+        <%= link_to t("dashboard.analytics.cards.active_now.cta"), dashboard_expert_advisors_path, class: "text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stacked bar chart (Acquisition Channels) -->
+  <div class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex items-center">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.cards.ea_results.title") %></h2>
+    </header>
+    <div class="px-5 py-4">
+      <div id="analytics-card-03-legend" class="grow mb-1">
+        <ul class="flex flex-wrap gap-x-4"></ul>
+      </div>
+    </div>
+    <!-- Chart built with Chart.js 3 -->
+    <!-- Check out src/js/analytics-charts.js for config -->
+    <div class="grow">
+      <% if ea_results[:has_data] %>
+        <!-- Change the height attribute to adjust the chart height -->
+        <canvas
+          id="analytics-card-03"
+          width="595"
+          height="248"
+          data-chart-variant="bar-stacked"
+          data-chart="<%= h({ labels: ea_results[:labels], datasets: ea_results[:datasets] }.to_json) %>"
+        ></canvas>
+      <% else %>
+        <div class="h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards.ea_results.empty") %></div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Horizontal bar chart (Audience Overview) -->
+  <div class="flex flex-col col-span-full sm:col-span-6 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.cards.course_progress.title") %></h2>
+    </header>
+    <!-- Chart built with Chart.js 3 -->
+    <!-- Check out src/js/analytics-charts.js for config -->
+    <div id="analytics-card-04-legend" class="px-5 py-4">
+      <ul class="flex flex-wrap gap-x-4"></ul>
+    </div>
+    <div class="grow">
+      <% if course_progress[:has_data] %>
+        <!-- Change the height attribute to adjust the chart height -->
+        <canvas
+          id="analytics-card-04"
+          width="595"
+          height="248"
+          data-chart-variant="bar-horizontal"
+          data-chart="<%= h(course_progress[:chart].to_json) %>"
+        ></canvas>
+      <% else %>
+        <div class="h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards.course_progress.empty") %></div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Report card (Top Channels) -->
+  <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.cards.top_eas.title") %></h2>
+    </header>
+    <div class="grow p-3">
+      <div class="flex flex-col h-full">
+        <!-- Card content -->
+        <div class="grow">
+          <ul class="flex justify-between text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold px-2 space-x-2">
+            <li><%= t("dashboard.analytics.cards.top_eas.columns.ea") %></li>
+            <li><%= t("dashboard.analytics.cards.top_eas.columns.pnl") %></li>
+          </ul>
+
+          <ul class="space-y-1 text-sm text-gray-800 dark:text-gray-100 mt-3 mb-4">
+            <% if top_eas[:rows].any? %>
+              <% top_eas[:rows].each do |row| %>
+                <!-- Item -->
+                <li class="relative px-2 py-1">
+                  <div class="absolute inset-0 bg-violet-100 dark:bg-violet-500/20 rounded-r" aria-hidden="true" style="width: <%= row[:bar_width] %>%;"></div>
+                  <div class="relative flex justify-between space-x-2">
+                    <div><%= row[:name] %></div>
+                    <div class="font-medium text-right">
+                      <span><%= number_to_currency(row[:pnl].to_f, unit: "$", precision: 2) %></span>
+                      <span class="text-xs ml-1 <%= row[:trend_class] %>"><%= analytics_change_label(row[:change_percent]) %></span>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            <% else %>
+              <li class="px-2 py-1 text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards.top_eas.empty") %></li>
+            <% end %>
+          </ul>
+        </div>
+        <!-- Card footer -->
+        <div class="text-center pt-4 pb-1 border-t border-gray-100 dark:border-gray-700/60">
+          <%= link_to t("dashboard.analytics.cards.top_eas.cta"), dashboard_expert_advisors_path, class: "text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report card (Top Pages) -->
+  <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.cards.latest_lessons.title") %></h2>
+    </header>
+    <div class="grow p-3">
+      <div class="flex flex-col h-full">
+        <!-- Card content -->
+        <div class="grow">
+          <ul class="flex justify-between text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold px-2 space-x-2">
+            <li><%= t("dashboard.analytics.cards.latest_lessons.columns.lesson") %></li>
+            <li><%= t("dashboard.analytics.cards.latest_lessons.columns.progress") %></li>
+          </ul>
+
+          <ul class="space-y-1 text-sm text-gray-800 dark:text-gray-100 mt-3 mb-4">
+            <% if latest_lessons[:rows].any? %>
+              <% latest_lessons[:rows].each do |row| %>
+                <!-- Item -->
+                <li class="relative px-2 py-1">
+                  <div class="absolute inset-0 bg-green-50 dark:bg-green-400/20 rounded-r" aria-hidden="true" style="width: <%= row[:bar_width] %>%;"></div>
+                  <div class="relative flex justify-between space-x-2">
+                    <div><%= row[:title] %></div>
+                    <div class="font-medium">
+                      <% if row[:progress_percent].present? %>
+                        <%= number_to_percentage(row[:progress_percent], precision: 0) %>
+                      <% else %>
+                        <%= t("dashboard.analytics.cards.latest_lessons.minutes_label", minutes: row[:progress_minutes]) %>
+                      <% end %>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            <% else %>
+              <li class="px-2 py-1 text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards.latest_lessons.empty") %></li>
+            <% end %>
+          </ul>
+        </div>
+        <!-- Card footer -->
+        <div class="text-center pt-4 pb-1 border-t border-gray-100 dark:border-gray-700/60">
+          <%= link_to t("dashboard.analytics.cards.latest_lessons.cta"), dashboard_courses_path, class: "text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report card (Top Countries) -->
+  <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.cards.expiring_licenses.title") %></h2>
+    </header>
+    <div class="grow p-3">
+      <div class="flex flex-col h-full">
+        <!-- Card content -->
+        <div class="grow">
+          <ul class="flex justify-between text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold px-2 space-x-2">
+            <li><%= t("dashboard.analytics.cards.expiring_licenses.columns.ea") %></li>
+            <li><%= t("dashboard.analytics.cards.expiring_licenses.columns.expires_in") %></li>
+          </ul>
+
+          <ul class="space-y-1 text-sm text-gray-800 dark:text-gray-100 mt-3 mb-4">
+            <% if expiring[:rows].any? %>
+              <% expiring[:rows].each do |row| %>
+                <!-- Item -->
+                <li class="relative px-2 py-1">
+                  <div class="absolute inset-0 bg-sky-100 dark:bg-sky-500/20 rounded-r" aria-hidden="true" style="width: <%= row[:bar_width] %>%;"></div>
+                  <div class="relative flex justify-between space-x-2">
+                    <div><%= row[:name] %></div>
+                    <div class="font-medium">
+                      <% if row[:days_remaining].zero? %>
+                        <%= t("dashboard.analytics.cards.expiring_licenses.today") %>
+                      <% else %>
+                        <%= t("dashboard.analytics.cards.expiring_licenses.in_days", count: row[:days_remaining]) %>
+                      <% end %>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            <% else %>
+              <li class="px-2 py-1 text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards.expiring_licenses.empty") %></li>
+            <% end %>
+          </ul>
+        </div>
+        <!-- Card footer -->
+        <div class="text-center pt-4 pb-1 border-t border-gray-100 dark:border-gray-700/60">
+          <%= link_to t("dashboard.analytics.cards.expiring_licenses.cta"), dashboard_plans_path, class: "text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Doughnut chart (Sessions By Device) -->
+  <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.cards.course_status.title") %></h2>
+    </header>
+    <!-- Chart built with Chart.js 3 -->
+    <!-- Check out src/js/analytics-charts.js for config -->
+    <div class="grow flex flex-col justify-center">
+      <% if course_status[:has_data] %>
+        <div>
+          <!-- Change the height attribute to adjust the chart height -->
+          <canvas
+            id="analytics-card-08"
+            width="389"
+            height="260"
+            data-chart-variant="doughnut"
+            data-chart="<%= h(course_status.to_json) %>"
+          ></canvas>
+        </div>
+        <div id="analytics-card-08-legend" class="px-5 pt-2 pb-6">
+          <ul class="flex flex-wrap justify-center -m-1"></ul>
+        </div>
+      <% else %>
+        <div class="h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards.course_status.empty") %></div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Doughnut chart (Visit By Age Category) -->
+  <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.cards.study_time.title") %></h2>
+    </header>
+    <!-- Chart built with Chart.js 3 -->
+    <!-- Check out src/js/analytics-charts.js for config -->
+    <div class="grow flex flex-col justify-center">
+      <% if study_time[:has_data] %>
+        <div>
+          <!-- Change the height attribute to adjust the chart height -->
+          <canvas
+            id="analytics-card-09"
+            width="389"
+            height="260"
+            data-chart-variant="doughnut"
+            data-chart="<%= h(study_time.to_json) %>"
+          ></canvas>
+        </div>
+        <div id="analytics-card-09-legend" class="px-5 pt-2 pb-6">
+          <ul class="flex flex-wrap justify-center -m-1"></ul>
+        </div>
+      <% else %>
+        <div class="h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards.study_time.empty") %></div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Polar chart (Sessions By Gender) -->
+  <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.cards.ea_types.title") %></h2>
+    </header>
+    <!-- Chart built with Chart.js 3 -->
+    <!-- Check out src/js/analytics-charts.js for config -->
+    <div class="grow flex flex-col justify-center">
+      <% if ea_types[:has_data] %>
+        <div>
+          <!-- Change the height attribute to adjust the chart height -->
+          <canvas
+            id="analytics-card-10"
+            width="389"
+            height="260"
+            data-chart-variant="polar"
+            data-chart="<%= h(ea_types.to_json) %>"
+          ></canvas>
+        </div>
+        <div id="analytics-card-10-legend" class="px-5 pt-2 pb-6">
+          <ul class="flex flex-wrap justify-center -m-1"></ul>
+        </div>
+      <% else %>
+        <div class="h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.cards.ea_types.empty") %></div>
+      <% end %>
+    </div>
   </div>
 </div>

@@ -1,245 +1,356 @@
 <% content_for :title, "#{app_short_name} Dashboard" %>
-<% user = current_user.is_a?(User) ? current_user : nil %>
-<% referral_code = user&.referral_codes&.first&.code %>
-<% referrer = user&.referrer %>
-<% referrer_name = referrer&.name %>
-<% accessible_eas = @accessible_eas || [] %>
-<% active_eas = accessible_eas.select(&:accessible) %>
-<% plan = @overview.plan %>
-<% broker_summary = @overview.broker_summary %>
-<% activities = @overview.activity_feed.sort_by(&:occurred_at).reverse %>
+<% main = @main %>
+<% intro = main.intro %>
+<% pnl = main.pnl_summary %>
+<% plan = main.plan_details %>
+<% licenses_card = main.licenses_card %>
+<% course_progress = main.course_progress_card %>
+<% balance = main.balance_distribution %>
+<% mini_cards = main.mini_cards %>
+<% summary_rows = main.account_summary_rows %>
+<% user_label = current_user&.name.presence || current_user&.email %>
 
-<div class="sm:flex sm:justify-between sm:items-start mb-8 gap-4">
-  <div class="space-y-3">
-    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.hero_title") %></h1>
-    <p class="text-gray-600 dark:text-gray-300 max-w-3xl"><%= t("dashboard.hero_subtitle") %></p>
-    <% if plan[:renews_at].present? %>
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        <%= t("dashboard.plan_card.renews_on", default: "Renews on %{date}", date: l(plan[:renews_at].to_date)) %>
-      </p>
-    <% end %>
-    <% if plan[:scheduled_change].present? && plan[:scheduled_change][:effective_at].present? %>
-      <p class="text-sm text-amber-600 dark:text-amber-300">
-        <%= t("dashboard.plan_card.scheduled_change", plan: plan[:scheduled_change][:label], date: l(plan[:scheduled_change][:effective_at].to_date)) %>
-      </p>
-    <% end %>
+<!-- Page header -->
+<div class="sm:flex sm:justify-between sm:items-center mb-5">
+  <div class="mb-4 sm:mb-0">
+    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.main.header.title") %></h1>
   </div>
-  <div class="flex items-center gap-3">
-    <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "btn-sm bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
-    <%= link_to t("dashboard.nav.plans"), dashboard_plans_path, class: "btn-sm bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
+
+  <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
+    <%= link_to dashboard_expert_advisors_path, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" do %>
+      <svg class="fill-current shrink-0 xs:hidden" width="16" height="16" viewBox="0 0 16 16">
+        <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
+      </svg>
+      <span class="max-xs:sr-only"><%= t("dashboard.main.header.manage_licenses") %></span>
+    <% end %>
   </div>
 </div>
 
-<div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-    <div class="flex items-start justify-between">
-      <div>
-        <div class="text-sm text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.plan_card.title") %></div>
-        <div class="mt-3 text-2xl font-semibold text-gray-800 dark:text-gray-100">
-          <% if plan[:tier].present? %>
-            <%= plan[:tier].to_s.upcase %>
-            <% if plan[:interval].present? %>
-              <span class="text-base text-gray-500 dark:text-gray-400 font-normal"><%= plan[:interval].capitalize %></span>
+<!-- Cards -->
+<div class="grid grid-cols-12 gap-6">
+
+  <!-- Page Intro -->
+  <div class="flex flex-col col-span-full bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <div class="px-5 py-6">
+      <div class="md:flex md:justify-between md:items-center">
+        <div class="flex items-center mb-4 md:mb-0">
+          <div class="mr-4">
+            <%= image_tag "mosaic/images/avatar-04.jpg",
+                          class: "inline-flex rounded-full",
+                          width: 64,
+                          height: 64,
+                          alt: t("dashboard.header.user_avatar_alt") %>
+          </div>
+          <div>
+            <div class="mb-2 text-gray-600 dark:text-gray-300">
+              <%= t(
+                    "dashboard.main.intro.greeting_html",
+                    name: content_tag(:strong, user_label, class: "font-medium text-gray-800 dark:text-gray-100")
+                  ).html_safe %>
+            </div>
+            <div class="text-3xl font-bold text-green-500"><%= intro[:total_pnl] %></div>
+          </div>
+        </div>
+        <ul class="shrink-0 flex flex-wrap justify-end md:justify-start -space-x-3 -ml-px">
+          <% intro[:brokers].to_a.compact.each do |broker| %>
+            <li>
+              <a class="block" href="#0">
+                <div class="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700/60 text-xs font-semibold text-gray-700 dark:text-gray-100">
+                  <%= broker.to_s.first(2).upcase %>
+                </div>
+              </a>
+            </li>
+          <% end %>
+          <li>
+            <button class="flex justify-center items-center w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-violet-500 shadow-xs transition">
+              <span class="sr-only"><%= t("dashboard.main.intro.add_broker") %></span>
+              <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
+                <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
+              </svg>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Line chart (Portfolio Returns) -->
+  <div class="flex flex-col col-span-full xl:col-span-8 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex items-center">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.main.pnl_card.title") %></h2>
+    </header>
+    <div class="px-5 py-3">
+      <div class="flex flex-wrap justify-between items-end gap-y-2 gap-x-4">
+        <div class="flex items-center">
+          <div class="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2"><%= pnl[:total] %></div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            <span class="font-medium text-gray-800 dark:text-gray-100"><%= pnl[:average] %></span>
+            <%= t("dashboard.main.pnl_card.average_label") %>
+          </div>
+        </div>
+        <div id="fintech-card-01-legend" class="grow mb-1">
+          <ul class="flex flex-wrap gap-x-4 sm:justify-end"></ul>
+        </div>
+      </div>
+    </div>
+    <div class="grow">
+      <% if pnl[:chart].present? %>
+        <canvas
+          id="fintech-card-01"
+          width="800"
+          height="300"
+          data-dashboard-chart="true"
+          data-chart="<%= json_escape(pnl[:chart].to_json) %>"
+          data-chart-style="main-line"
+          data-chart-format="currency"
+        ></canvas>
+      <% else %>
+        <div class="h-full flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+          <%= t("dashboard.main.pnl_card.empty") %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Plan actual -->
+  <div class="flex flex-col col-span-full xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex items-center justify-between">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.main.plan_card.title") %></h2>
+      <span class="inline-flex items-center rounded-full text-xs font-medium px-2 py-0.5 <%= plan[:status_class] %>">
+        <%= plan[:status_label] %>
+      </span>
+    </header>
+    <div class="flex flex-col h-full">
+      <div class="px-5 py-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.main.plan_card.plan_label") %></div>
+            <div class="text-2xl font-bold text-gray-800 dark:text-gray-100"><%= plan[:label].presence || t("dashboard.plans.placeholder") %></div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.main.plan_card.price_label") %></div>
+            <% price_label = if plan[:price_amount].present? && plan[:price_interval].present?
+              t("dashboard.main.plan_card.price", amount: plan[:price_amount], interval: plan[:price_interval])
+            elsif plan[:price_amount].present?
+              plan[:price_amount]
+            else
+              t("dashboard.plans.placeholder")
+            end %>
+            <div class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= price_label %></div>
+          </div>
+        </div>
+        <div class="mt-4">
+          <div class="flex items-center justify-between text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide">
+            <span><%= t("dashboard.main.plan_card.usage_label") %></span>
+            <span class="normal-case text-gray-500 dark:text-gray-400">
+              <%= t(
+                    "dashboard.main.plan_card.usage_value",
+                    active: plan[:usage][:active],
+                    total: plan[:usage][:total],
+                    percent: plan[:usage][:percent]
+                  ) %>
+            </span>
+          </div>
+          <div class="mt-2 w-full h-2 bg-gray-100 dark:bg-gray-700/60 rounded-full">
+            <div class="h-2 rounded-full bg-violet-500" style="width: <%= plan[:usage][:percent] %>%;"></div>
+          </div>
+        </div>
+        <div class="mt-4">
+          <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.main.plan_card.benefits_title") %></div>
+          <ul class="mt-2 space-y-1 text-sm text-gray-600 dark:text-gray-300">
+            <% if plan[:benefits].present? %>
+              <% plan[:benefits].each do |benefit| %>
+                <li class="flex items-start gap-2">
+                  <span class="mt-1 h-1.5 w-1.5 rounded-full bg-violet-500 shrink-0"></span>
+                  <%= benefit %>
+                </li>
+              <% end %>
+            <% else %>
+              <li class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.main.plan_card.benefits_empty") %></li>
             <% end %>
+          </ul>
+        </div>
+        <div class="mt-4">
+          <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.main.plan_card.renewal_label") %></div>
+          <% if plan[:renews_at].present? %>
+            <div class="flex items-baseline gap-2">
+              <div class="text-lg font-semibold text-amber-600"><%= t("dashboard.main.plan_card.renews_on", date: l(plan[:renews_at].to_date)) %></div>
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.main.plan_card.auto_renew_note") %></div>
           <% else %>
-            —
+            <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.main.plan_card.empty") %></div>
+          <% end %>
+          <% if plan[:scheduled_change].present? && plan[:scheduled_change][:effective_at].present? %>
+            <div class="text-xs text-amber-600 dark:text-amber-300 mt-2">
+              <%= t("dashboard.main.plan_card.scheduled_change", plan: plan[:scheduled_change][:label], date: l(plan[:scheduled_change][:effective_at].to_date)) %>
+            </div>
           <% end %>
         </div>
-        <% if plan[:status] == :pending %>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            <%= plan[:label].present? ? t("dashboard.plan_card.processing_with_plan", plan: plan[:label]) : t("dashboard.plan_card.processing") %>
-          </p>
-        <% elsif plan[:status] == :failed %>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.plan_card.payment_failed") %></p>
-        <% elsif plan[:price_key].present? %>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.plan_card.plan_key", default: "Plan key") %>: <%= plan[:price_key] %></p>
+      </div>
+      <div class="mt-auto px-5 pb-4 flex justify-center">
+        <% cta = plan[:cta] %>
+        <% if cta[:type] == :disabled %>
+          <button class="btn bg-gray-900/60 text-gray-100 dark:bg-gray-100/60 dark:text-gray-800 w-full max-w-xs px-8 py-3 text-base cursor-not-allowed" type="button" disabled>
+            <%= cta[:label] %>
+          </button>
         <% else %>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.plan_card.status_inactive") %></p>
+          <% cta_path = cta[:type] == :marketplace ? dashboard_marketplace_path : dashboard_plans_path %>
+          <%= link_to cta[:label],
+                      cta_path,
+                      class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full max-w-xs px-8 py-3 text-base" %>
         <% end %>
       </div>
-      <% status_label = case plan[:status]
-                       when :active then t("dashboard.plan_card.status_active")
-                       when :pending then t("dashboard.plan_card.status_pending")
-                       when :failed then t("dashboard.plan_card.status_failed")
-                       else t("dashboard.plan_card.status_inactive")
-                       end %>
-      <% status_class = case plan[:status]
-                       when :active
-                         "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
-                       when :pending
-                         "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
-                       when :failed
-                         "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-100"
-                       else
-                         "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
-                       end %>
-      <span class="px-3 py-1 rounded-full text-xs font-semibold <%= status_class %>"><%= status_label %></span>
-    </div>
-    <div class="mt-4 flex flex-wrap gap-2">
-      <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "btn-xs bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
-      <%= link_to t("dashboard.nav.plans"), dashboard_plans_path, class: "btn-xs bg-white border border-gray-200 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-gray-600 text-gray-700 dark:text-gray-200" %>
     </div>
   </div>
 
-  <% @overview.stat_tiles.each do |tile| %>
-    <%= render "dashboards/stat_tile", label: tile[:label], value: tile[:value], hint: tile[:hint] %>
-  <% end %>
-</div>
-
-<div class="grid gap-4 sm:grid-cols-3 mt-6">
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-    <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1"><%= t("dashboard.broker_accounts.title") %></div>
-    <div class="flex items-center justify-between">
-      <div class="text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= broker_summary[:total] %></div>
-      <%= link_to t("dashboard.analytics.cta", default: "View analytics"), dashboard_analytics_path, class: "text-xs font-semibold text-violet-600 dark:text-violet-300 hover:text-violet-800 dark:hover:text-violet-100" %>
-    </div>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.broker_accounts.copy") %></p>
-    <div class="mt-3 flex items-center gap-3 text-xs text-gray-600 dark:text-gray-300">
-      <span class="inline-flex items-center px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-100 font-semibold"><%= t("dashboard.broker_accounts.account_type.real") %>: <%= broker_summary[:real] %></span>
-      <span class="inline-flex items-center px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-100 font-semibold"><%= t("dashboard.broker_accounts.account_type.demo") %>: <%= broker_summary[:demo] %></span>
-    </div>
-  </div>
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-    <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1"><%= t("dashboard.download_card.title") %></div>
-    <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.download_card.label") %></p>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.download_card.copy") %></p>
-    <div class="mt-3 text-sm">
-      <%= link_to t("dashboard.download_card.cta"), dashboard_expert_advisors_path(locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100 font-semibold" %>
-    </div>
-  </div>
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-    <div class="flex items-start justify-between">
-      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.referral_card.title") %></div>
-      <% if referrer_name.present? %>
-        <span class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.referral_card.referrer_label") %> <strong class="text-gray-800 dark:text-gray-100"><%= referrer_name %></strong></span>
-      <% end %>
-    </div>
-    <div class="mt-3 text-xl font-semibold text-gray-800 dark:text-gray-100"><%= referral_code.presence || "—" %></div>
-    <% if referral_code.present? %>
-      <% share_url = root_url(locale: I18n.locale, ref: referral_code) %>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.referral_card.copy") %></p>
-      <div class="mt-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-800 dark:text-gray-100 truncate"><%= share_url %></div>
-    <% else %>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.referral_card.copy") %></p>
-    <% end %>
-  </div>
-</div>
-
-<div class="grid gap-6 mt-6 lg:grid-cols-3">
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2 min-w-0">
-    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-4">
-      <div>
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.analytics.pnl_title") %></div>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.analytics.pnl_copy") %></p>
+  <!-- Line chart (Portfolio Returns) -->
+  <div class="flex flex-col col-span-full sm:col-span-12 xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex items-center">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.main.licenses_card.title") %></h2>
+    </header>
+    <div class="px-5 py-3">
+      <div class="text-sm italic mb-2"><%= t("dashboard.main.licenses_card.subtitle") %></div>
+      <div class="flex items-center">
+        <div class="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2"><%= licenses_card[:active_count] %></div>
+        <div class="text-sm">
+          <span class="font-medium text-yellow-600"><%= t("dashboard.main.licenses_card.trials_label", count: licenses_card[:trial_count]) %></span>
+        </div>
       </div>
-      <%= link_to t("dashboard.analytics.cta", default: "View analytics"), dashboard_analytics_path, class: "text-sm font-semibold text-violet-600 dark:text-violet-300 hover:text-violet-800 dark:hover:text-violet-100" %>
-    </div>
-    <div class="relative overflow-hidden h-80 max-sm:h-40">
-      <canvas id="dashboard-card-01" width="800" height="320" class="w-full h-full"></canvas>
-    </div>
-  </div>
-
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 min-w-0">
-    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-4">
-      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.activity.title") %></div>
-      <span class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.activity.subhead") %></span>
-    </div>
-    <ul class="space-y-3">
-      <% activities.each do |activity| %>
-        <li class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between min-w-0">
-          <div class="min-w-0">
-            <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= activity.title %></div>
-            <div class="text-xs text-gray-500 dark:text-gray-400"><%= activity.subtitle %></div>
-          </div>
-          <div class="text-xs text-gray-500 dark:text-gray-400 sm:text-right">
-            <% if activity.occurred_at.present? %>
-              <div><%= l(activity.occurred_at.to_date, format: :short_with_year) %></div>
-            <% else %>
-              <div><%= t("dashboard.activity.recently", default: "Recently") %></div>
-            <% end %>
-            <% tone_class = activity.tone == :success ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100" : "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100" %>
-            <%= render "dashboard/shared/badge",
-                       label: activity.tone.to_s.humanize,
-                       class_name: tone_class %>
-          </div>
-        </li>
-      <% end %>
-      <% if activities.empty? %>
-        <li class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.activity.empty") %></li>
-      <% end %>
-    </ul>
-  </div>
-</div>
-
-<div class="grid gap-6 mt-6 lg:grid-cols-3">
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2">
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.nav.expert_advisors", default: "Expert Advisors") %></div>
-        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.ea_docs_overview") %></p>
+      <div class="text-sm text-gray-500 dark:text-gray-400">
+        <% if licenses_card[:renewal_at].present? %>
+          <%= t("dashboard.main.licenses_card.renews_on", date: l(licenses_card[:renewal_at].to_date)) %>
+        <% else %>
+          <%= t("dashboard.main.licenses_card.empty") %>
+        <% end %>
       </div>
-      <%= link_to t("dashboard.analytics.cta", default: "View analytics"), dashboard_analytics_path, class: "text-xs font-semibold text-violet-600 dark:text-violet-300 hover:text-violet-800 dark:hover:text-violet-100" %>
     </div>
-    <div class="grid gap-4 md:grid-cols-2">
-      <% active_eas.each do |entry| %>
-        <% ea = entry.expert_advisor %>
-        <% badge_class = case entry.status
-                        when :active then "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
-                        when :trial then "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
-                        else "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200"
-                        end %>
-        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50/60 dark:bg-gray-900/30">
-          <div class="flex items-start justify-between">
-            <div>
-              <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= ea.name %></div>
-              <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.expert_advisors.types.#{ea.ea_type}", default: ea.ea_type.to_s.humanize) %></div>
-            </div>
-            <span class="px-2 py-1 rounded-full text-xs font-semibold <%= badge_class %>"><%= entry.status.to_s.humanize %></span>
-          </div>
-          <% if entry.expires_at.present? %>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.expires_at", default: "Expires") %>: <%= l(entry.expires_at, format: :short_with_year) %></p>
-          <% end %>
-          <div class="mt-3 flex items-center gap-2 text-sm">
-            <%= link_to t("dashboard.expert_advisors.show_cta"), dashboard_expert_advisor_path(ea, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100 font-semibold" %>
-            <% unless entry.accessible %>
-              <% tier = entry.allowed_tiers.first %>
-              <% cta_key = "#{tier}_monthly" %>
-              <%= link_to t("dashboard.plans.cta.subscribe"), dashboard_plans_path(price_key: cta_key), class: "text-xs px-3 py-1 rounded-lg bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
-            <% end %>
-          </div>
+    <div class="grow">
+      <canvas
+        id="fintech-card-07"
+        width="389"
+        height="262"
+        data-dashboard-chart="true"
+        data-chart="<%= json_escape(licenses_card[:chart].to_json) %>"
+        data-chart-style="card-line"
+        data-chart-format="count"
+      ></canvas>
+    </div>
+  </div>
+
+  <!-- Line chart (Growth Portfolio) -->
+  <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex items-center">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.main.course_progress_card.title") %></h2>
+    </header>
+    <div class="px-5 py-3">
+      <div class="text-sm italic mb-2"><%= t("dashboard.main.course_progress_card.subtitle") %></div>
+      <% if course_progress[:progress_percent].present? %>
+        <div class="text-3xl font-bold text-gray-800 dark:text-gray-100">
+          <%= t("dashboard.main.course_progress_card.progress_label", percent: course_progress[:progress_percent]) %>
+        </div>
+        <div class="text-sm text-gray-500 dark:text-gray-400">
+          <%= t("dashboard.main.course_progress_card.course_label", title: course_progress[:course_title]) %>
+        </div>
+      <% else %>
+        <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.main.course_progress_card.empty") %></div>
+      <% end %>
+    </div>
+    <div class="grow">
+      <canvas
+        id="fintech-card-08"
+        width="389"
+        height="262"
+        data-dashboard-chart="true"
+        data-chart="<%= json_escape(course_progress[:chart].to_json) %>"
+        data-chart-style="card-line"
+        data-chart-format="count"
+      ></canvas>
+    </div>
+  </div>
+
+  <!-- Pie chart (Portfolio Value) -->
+  <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60 flex items-center">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.main.balance_card.title") %></h2>
+    </header>
+    <div class="px-5 py-3">
+      <div class="text-sm italic mb-2"><%= t("dashboard.main.balance_card.subtitle") %></div>
+      <div class="text-3xl font-bold text-gray-800 dark:text-gray-100"><%= balance[:total] %></div>
+    </div>
+    <div class="grow flex flex-col justify-center">
+      <% if balance[:chart].present? %>
+        <div>
+          <canvas
+            id="fintech-card-09"
+            width="389"
+            height="220"
+            data-dashboard-chart="true"
+            data-chart="<%= json_escape(balance[:chart].to_json) %>"
+            data-chart-style="pie"
+            data-chart-format="currency"
+          ></canvas>
+        </div>
+        <div id="fintech-card-09-legend" class="px-5 py-4">
+          <ul class="flex flex-wrap justify-center -m-1"></ul>
+        </div>
+      <% else %>
+        <div class="px-5 py-6 text-sm text-gray-500 dark:text-gray-400">
+          <%= t("dashboard.main.balance_card.empty") %>
         </div>
       <% end %>
-      <% if active_eas.empty? %>
-        <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.index.subtitle") %></div>
-      <% end %>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
-    <div>
-      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2"><%= t("dashboard.nav.support", default: "Support") %></div>
-      <ul class="space-y-2 text-sm">
-        <li class="flex items-center justify-between">
-          <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.docs", default: "Docs") %></span>
-          <%= link_to t("nav.docs"), dashboard_expert_advisors_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
-        </li>
-        <li class="flex items-center justify-between">
-          <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.billing", default: "Billing") %></span>
-          <%= link_to t("dashboard.plan_card.manage"), dashboard_billing_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
-        </li>
-        <li class="flex items-center justify-between">
-          <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.support", default: "Support") %></span>
-          <%= link_to t("dashboard.contact_support", default: "Contact"), dashboard_support_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %>
-        </li>
-      </ul>
-    </div>
-    <div class="border border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-300">
-      <div class="font-semibold text-gray-800 dark:text-gray-100 mb-1"><%= t("dashboard.quick_links.title", default: "Quick actions") %></div>
-      <ul class="space-y-1">
-        <li><%= link_to t("dashboard.quick_links.analytics", default: "Open Analytics"), dashboard_analytics_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %></li>
-        <li><%= link_to t("dashboard.nav.expert_advisors", default: "Expert Advisors"), dashboard_expert_advisors_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %></li>
-        <li><%= link_to t("dashboard.nav.plans"), dashboard_plans_path, class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100" %></li>
-      </ul>
+  <!-- Line charts (Stock graphs) -->
+  <% mini_chart_ids = %w[fintech-card-10 fintech-card-11 fintech-card-12 fintech-card-13] %>
+  <% mini_cards.each_with_index do |card, idx| %>
+    <% change_class = card[:change][:delta].negative? ? "text-rose-600" : "text-green-600" %>
+    <% change_text = t("dashboard.main.mini_cards.#{card[:key]}.change", delta: card[:change][:delta_label], percent: card[:change][:percent]) %>
+    <% title_suffix = t("dashboard.main.mini_cards.#{card[:key]}.suffix", default: "") %>
+    <% title_size_class = card[:key] == :active_licenses ? "text-xs" : "text-sm" %>
+    <%= render "dashboards/main/mini_card",
+               title: t("dashboard.main.mini_cards.#{card[:key]}.title"),
+               title_suffix: title_suffix,
+               title_size_class: title_size_class,
+               value: card[:total],
+               change_text: change_text,
+               change_class: change_class,
+               chart_id: mini_chart_ids[idx],
+               chart_payload: card[:chart] %>
+  <% end %>
+
+  <!-- Table (Market Trends) -->
+  <div class="col-span-full bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.main.account_summary.title") %></h2>
+    </header>
+    <div class="p-3">
+      <div class="overflow-x-auto">
+        <table class="table-auto w-full dark:text-gray-300">
+          <thead class="text-xs uppercase text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-700/50 rounded-xs">
+            <tr>
+              <th class="p-2 whitespace-nowrap"><div class="font-semibold text-left"><%= t("dashboard.main.account_summary.columns.area") %></div></th>
+              <th class="p-2 whitespace-nowrap"><div class="font-semibold text-left"><%= t("dashboard.main.account_summary.columns.total") %></div></th>
+              <th class="p-2 whitespace-nowrap"><div class="font-semibold text-left"><%= t("dashboard.main.account_summary.columns.trend") %></div></th>
+              <th class="p-2 whitespace-nowrap"><div class="font-semibold text-left"><%= t("dashboard.main.account_summary.columns.usd") %></div></th>
+              <th class="p-2 whitespace-nowrap"><div class="font-semibold text-left"><%= t("dashboard.main.account_summary.columns.status") %></div></th>
+            </tr>
+          </thead>
+          <tbody class="text-sm font-medium divide-y divide-gray-100 dark:divide-gray-700/60">
+            <% if summary_rows.present? %>
+              <% summary_rows.each do |row| %>
+                <%= render "dashboards/main/summary_row", row: row %>
+              <% end %>
+            <% else %>
+              <tr>
+                <td class="p-4 text-sm text-gray-500 dark:text-gray-400" colspan="5">
+                  <%= t("dashboard.main.account_summary.empty") %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

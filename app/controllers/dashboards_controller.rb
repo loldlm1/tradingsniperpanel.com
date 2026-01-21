@@ -9,23 +9,21 @@ class DashboardsController < ApplicationController
 
   def show
     plan_hint = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
-    @overview = Dashboard::OverviewPresenter.new(
+    @main = Dashboard::MainPresenter.new(
       user: current_user,
-      pay_customer: @pay_customer,
       subscription: @subscription,
       plan_context: @plan_context,
-      accessible_eas: @accessible_eas,
-      plan_hint: plan_hint
+      plan_hint: plan_hint,
+      marketplace_available: @marketplace_available
     ).call
 
     clear_desired_plan if @subscription&.active?
   end
 
   def analytics
-    filters = params.permit(:from_ts, :to_ts, :ea_id, :broker, :account_type, :compare_by).to_h
-    @broker_analytics = Dashboard::BrokerAnalyticsPresenter.new(
+    filters = params.permit(:from_date, :to_date).to_h
+    @analytics = Dashboard::AnalyticsPresenter.new(
       user: current_user,
-      page: params[:page] || 1,
       filters: filters
     ).call
   end

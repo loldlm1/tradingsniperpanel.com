@@ -449,7 +449,12 @@ RSpec.describe "Subscription upgrades", type: :request do
     get dashboard_path
 
     expect(response).to be_successful
-    expect(response.body).to include("Plan key: hft_monthly")
+    plan_label = I18n.t(
+      "dashboard.plan_card.plan_label",
+      tier: I18n.t("dashboard.plans.tiers.hft.name"),
+      interval: I18n.t("dashboard.plans.toggle.monthly")
+    )
+    expect(response.body).to include(plan_label)
   end
 
   it "adds an upgrade confirmation when upgrades are available" do

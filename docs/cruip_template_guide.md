@@ -74,6 +74,12 @@ How to reuse Cruip HTML templates (not our Rails views) to assemble new pages qu
     - `js/analytics-charts.js` and `js/fintech-charts.js`: additional chart setups for their respective pages (line/bar/donut mixes; moment adapter required).
   - Keep canvas IDs and supporting DOM nodes intact when porting chart blocks; dark mode relies on the `darkMode` custom event from `main.js`.
 
+## Front-end rebuild conventions (all templates)
+- Keep the HTML comment blocks from the source templates (e.g., `<!-- Page header -->`, `<!-- Cards -->`, `<!-- Table -->`) to preserve section boundaries and make diffs easier to review.
+- Keep chart IDs and legend container IDs identical to the source HTML so vendor JS or custom chart initializers can hook into them consistently.
+- Pass chart payloads via `data-*` attributes on `canvas` elements and render them in a page-level JS initializer; avoid inline `<script>` in views.
+- Prefer small, explicit assets and helper partials; do not edit vendor template files under `app/assets/templates`.
+
 ## Using the catalogue to mock screens
 - Pick a source page whose layout matches your need (e.g., `plans.html` for pricing, `tasks-kanban.html` for boards, `component-*` for isolated UI bits).
 - Copy the section HTML verbatim, then wrap in ERB as needed; keep Tailwind classes, `x-data`/`x-show` Alpine bindings, `data-aos`, and element IDs for JS.

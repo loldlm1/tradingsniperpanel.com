@@ -66,6 +66,66 @@ module Seeds
       ]
     end
 
+    def qa_definitions
+      [
+        {
+          name: "QA Trial EA",
+          ea_id: "qa_trial_ea",
+          tier_rank: 10,
+          description: "QA-only EA for trial status checks.",
+          ea_type: :ea_robot,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[basic hft pro],
+          doc_guide_en: manual_en,
+          doc_guide_es: manual_es
+        },
+        {
+          name: "QA Active EA",
+          ea_id: "qa_active_ea",
+          tier_rank: 11,
+          description: "QA-only EA for active status checks.",
+          ea_type: :ea_robot,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[basic hft pro],
+          doc_guide_en: manual_en,
+          doc_guide_es: manual_es
+        },
+        {
+          name: "QA Expired EA",
+          ea_id: "qa_expired_ea",
+          tier_rank: 12,
+          description: "QA-only EA for expired status checks.",
+          ea_type: :ea_robot,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[basic hft pro],
+          doc_guide_en: manual_en,
+          doc_guide_es: manual_es
+        },
+        {
+          name: "QA Revoked EA",
+          ea_id: "qa_revoked_ea",
+          tier_rank: 13,
+          description: "QA-only EA for revoked status checks.",
+          ea_type: :ea_robot,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[basic hft pro],
+          doc_guide_en: manual_en,
+          doc_guide_es: manual_es
+        },
+        {
+          name: "QA Locked EA",
+          ea_id: "qa_locked_ea",
+          tier_rank: 14,
+          description: "QA-only EA for locked status checks.",
+          ea_type: :ea_robot,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[basic hft pro],
+          doc_guide_en: manual_en,
+          doc_guide_es: manual_es
+        }
+      ]
+    end
+
     def upsert_expert_advisor(attrs, bundle_path: nil)
       allowed_tiers = attrs.delete(:allowed_subscription_tiers)
       tags = attrs.delete(:tags)
@@ -497,13 +557,35 @@ module Seeds
       end
     end
 
-    def seed_plans!
-      return unless stripe_configured?
-      return unless defined?(Billing::PlanCreator)
+    def seed_plans!(allow_local: false)
+      if stripe_configured?
+        return unless defined?(Billing::PlanCreator)
+
+        definitions.each do |attrs|
+          Billing::PlanCreator.new(attrs).call
+        end
+        return
+      end
+
+      return unless allow_local
+
+      seed_local_plans!
+    end
+
+    def seed_local_plans!
+      return unless defined?(BillingPlan)
 
       definitions.each do |attrs|
-        Billing::PlanCreator.new(attrs).call
+        upsert_local_plan(attrs)
       end
+    end
+
+    def upsert_local_plan(attrs)
+      plan = BillingPlan.find_or_initialize_by(key: attrs[:key])
+      plan.assign_attributes(attrs)
+      plan.stripe_price_id ||= "seed_price_#{attrs[:key]}"
+      plan.stripe_product_id ||= "seed_product_#{attrs[:key]}"
+      plan.save!
     end
 
     def seed_entitlements!
@@ -553,6 +635,346 @@ module Seeds
 
       Rails.logger.warn("Skipping billing plan seed because STRIPE_PRIVATE_KEY is not set.")
       false
+    end
+  end
+
+  module Subscriptions
+    module_function
+
+    def seed_manual_subscription_for(user:, recorded_by: nil, tier: "basic", interval_key: "monthly")
+      return unless user
+      return unless defined?(ManualSubscription) && defined?(BillingPlan)
+      return if ManualSubscription.active.where(user: user).exists?
+
+      plan_key = "#{tier}_#{interval_key}"
+      plan = BillingPlan.subscription.active.find_by(key: plan_key) || BillingPlan.subscription.active.order(:amount_cents).first
+      return unless plan
+
+      admin = recorded_by || user
+      now = Time.current
+      subscription = ManualSubscription.find_or_initialize_by(user: user, billing_plan: plan)
+      subscription.assign_attributes(
+        amount_cents: plan.amount_cents,
+        currency: plan.currency,
+        paid_at: now - 15.days,
+        starts_at: now - 15.days,
+        ends_at: now + 15.days,
+        status: ManualSubscription::STATUSES[:active],
+        recorded_by_admin: admin
+      )
+      subscription.save!
+    end
+  end
+
+  module DashboardMain
+    module_function
+
+    QA_BROKERS = ["Apex FX", "Fusion Markets", "Demo Lab", "BlueRock Markets", "Quantum Trades"].freeze
+    QA_ACCOUNT_TYPES = %i[real demo real].freeze
+    QA_DAYS = 60
+
+    def seed_for(user:, core_records:, qa_records:)
+      return unless user
+
+      encoder = Licenses::LicenseKeyEncoder.new
+      unless encoder.configured?
+        Rails.logger.warn("Skipping QA license seeding because EA license keys are not configured.")
+        return
+      end
+
+      seed_licenses(user: user, core_records: core_records, qa_records: qa_records, encoder: encoder)
+      seed_broker_accounts(user: user)
+    end
+
+    def seed_licenses(user:, core_records:, qa_records:, encoder:)
+      now = Time.current
+
+      Array(core_records).each do |record|
+        upsert_license(
+          user: user,
+          expert_advisor: record,
+          status: "active",
+          plan_interval: "monthly",
+          expires_at: now + 30.days,
+          encoder: encoder
+        )
+      end
+
+      qa_map = Array(qa_records).index_by(&:ea_id)
+
+      upsert_license(
+        user: user,
+        expert_advisor: qa_map["qa_trial_ea"],
+        status: "trial",
+        trial_ends_at: now + 3.days,
+        encoder: encoder
+      )
+
+      upsert_license(
+        user: user,
+        expert_advisor: qa_map["qa_active_ea"],
+        status: "active",
+        plan_interval: "monthly",
+        expires_at: now + 30.days,
+        encoder: encoder
+      )
+
+      upsert_license(
+        user: user,
+        expert_advisor: qa_map["qa_expired_ea"],
+        status: "expired",
+        plan_interval: "monthly",
+        expires_at: now - 2.days,
+        encoder: encoder
+      )
+
+      upsert_license(
+        user: user,
+        expert_advisor: qa_map["qa_revoked_ea"],
+        status: "revoked",
+        plan_interval: "monthly",
+        expires_at: now - 1.day,
+        encoder: encoder
+      )
+    end
+
+    def seed_broker_accounts(user:)
+      return unless defined?(BrokerAccountDailyResult)
+      return unless defined?(BrokerAccount)
+
+      License.includes(:expert_advisor).where(user: user).order(:id).each_with_index do |license, license_idx|
+        3.times do |account_idx|
+          broker_name = QA_BROKERS[(license_idx + account_idx) % QA_BROKERS.size]
+          account_type = QA_ACCOUNT_TYPES[account_idx % QA_ACCOUNT_TYPES.size]
+          account_number = 70_000 + (license_idx * 10) + account_idx
+
+          broker_account = BrokerAccount.find_or_create_by!(
+            company: broker_name,
+            account_number: account_number,
+            account_type: account_type
+          ) do |account|
+            account.name = "QA #{license.expert_advisor.name} #{account_idx + 1}"
+            account.license = license
+          end
+
+          broker_account.update!(license: license) if broker_account.license_id != license.id
+          seed_daily_results(broker_account, days: QA_DAYS, seed: broker_account.account_number)
+        end
+      end
+    end
+
+    def upsert_license(user:, expert_advisor:, status:, encoder:, expires_at: nil, trial_ends_at: nil, plan_interval: nil)
+      return unless expert_advisor
+
+      license = License.find_or_initialize_by(user: user, expert_advisor: expert_advisor)
+      license.status = status
+      license.plan_interval = plan_interval
+      license.expires_at = expires_at
+      license.trial_ends_at = trial_ends_at
+      license.source = "seed"
+      license.last_synced_at = Time.current
+      effective_expires_at = license.effective_expires_at
+      license.encrypted_key = encoder.generate(
+        email: user.email,
+        ea_id: expert_advisor.ea_id,
+        expires_at: effective_expires_at
+      )
+      license.save!
+    end
+
+    def daily_result_exists?(broker_account, date)
+      BrokerAccountDailyResult
+        .where(broker_account_id: broker_account.id)
+        .where("((to_timestamp(result_timestamp) AT TIME ZONE 'UTC')::date) = ?", date)
+        .exists?
+    end
+
+    def seed_daily_results(broker_account, days:, seed:)
+      rng = Random.new(seed)
+      end_date = Time.current.utc.to_date
+      start_date = end_date - (days - 1)
+
+      (0...days).each do |offset|
+        date = start_date + offset
+        next if ((broker_account.account_number + offset) % 13).zero?
+        next if daily_result_exists?(broker_account, date)
+
+        timestamp = Time.utc(date.year, date.month, date.day, 12, 0, 0).to_i
+        volatility = broker_account.account_type == "real" ? 40.0 : 25.0
+        trend = (offset - (days / 2.0)) * (broker_account.account_type == "real" ? 0.4 : 0.2)
+        value = (rng.rand(-volatility..volatility) + trend).round(2)
+
+        BrokerAccountDailyResult.create!(
+          broker_account: broker_account,
+          result_timestamp: timestamp,
+          result_value: value
+        )
+      end
+    end
+  end
+
+  module DashboardSamples
+    module_function
+
+    RANGE_DAYS = 30
+    SAMPLE_HOUR = 10
+
+    def seed_activity_for(user:)
+      return unless user
+
+      scatter_scope(user.licenses, offset_step: 3)
+      scatter_scope(user.course_enrollments, offset_step: 5)
+      scatter_broker_accounts(user)
+      scatter_course_progress(user)
+    end
+
+    def scatter_scope(scope, offset_step:)
+      base = Time.current.utc.to_date
+      scope.find_each.with_index do |record, idx|
+        offset = (idx * offset_step) % RANGE_DAYS
+        time = sample_time(base - offset.days)
+        record.update_columns(created_at: time, updated_at: time)
+      end
+    end
+
+    def scatter_broker_accounts(user)
+      return unless defined?(BrokerAccount)
+
+      scope = BrokerAccount.joins(license: :user).where(licenses: { user_id: user.id })
+      scatter_scope(scope, offset_step: 4)
+    end
+
+    def scatter_course_progress(user)
+      return unless defined?(CourseLessonProgress)
+
+      base = Time.current.utc.to_date
+      user.course_lesson_progresses.where(status: "completed").find_each.with_index do |progress, idx|
+        offset = (idx * 2) % RANGE_DAYS
+        time = sample_time(base - offset.days)
+        progress.update_columns(created_at: time, updated_at: time, completed_at: time)
+      end
+    end
+
+    def sample_time(date)
+      Time.utc(date.year, date.month, date.day, SAMPLE_HOUR, 0, 0)
+    end
+  end
+
+  module DashboardAnalytics
+    module_function
+
+    RANGE_DAYS = 30
+    RECENT_HOURS = 24
+    REPORT_LIMIT = 8
+
+    def seed_for(user:)
+      return unless user
+
+      seed_recent_results(user: user)
+      seed_course_enrollments(user: user)
+      seed_lesson_progress(user: user)
+      seed_license_expirations(user: user)
+    end
+
+    def seed_recent_results(user:)
+      return unless defined?(BrokerAccountDailyResult)
+      return unless defined?(BrokerAccount)
+
+      accounts = BrokerAccount.joins(license: :user).where(licenses: { user_id: user.id }).distinct.to_a
+      return if accounts.empty?
+
+      accounts.each do |account|
+        Seeds::DashboardMain.seed_daily_results(account, days: RANGE_DAYS, seed: account.account_number)
+      end
+
+      cutoff = RECENT_HOURS.hours.ago.to_i
+      accounts.each_with_index do |account, idx|
+        next if BrokerAccountDailyResult.where(broker_account: account).where("result_timestamp >= ?", cutoff).exists?
+
+        timestamp = Time.current.utc.to_i - (idx * 3600)
+        value = recent_result_value(account_number: account.account_number, offset: idx)
+        BrokerAccountDailyResult.create!(
+          broker_account: account,
+          result_timestamp: timestamp,
+          result_value: value
+        )
+      end
+    end
+
+    def seed_course_enrollments(user:)
+      return unless defined?(CourseEnrollment)
+      return unless defined?(Course)
+
+      courses = Course.order(:position)
+      return if courses.empty?
+
+      now = Time.current
+      progress_values = [0, 18, 42, 67, 85, 100]
+
+      courses.each_with_index do |course, idx|
+        progress = progress_values[idx % progress_values.length]
+        enrollment = CourseEnrollment.find_or_initialize_by(user: user, course: course)
+        enrollment.progress_percent = progress
+        enrollment.started_at ||= progress.zero? ? nil : (now - (idx + 2).days)
+        enrollment.completed_at = progress >= 100 ? (now - (idx + 1).days) : nil
+        enrollment.last_lesson ||= course.course_lessons.order(:position).last
+        enrollment.save!
+      end
+    end
+
+    def seed_lesson_progress(user:)
+      return unless defined?(CourseLessonProgress)
+      return unless defined?(CourseLesson)
+
+      lessons = CourseLesson.joins(course_module: :course)
+                            .order("courses.position ASC, course_modules.position ASC, course_lessons.position ASC")
+                            .limit(REPORT_LIMIT)
+      return if lessons.empty?
+
+      now = Time.current
+      progress_points = [15, 35, 55, 75, 90, 45, 65, 80]
+
+      lessons.each_with_index do |lesson, idx|
+        percent = progress_points[idx % progress_points.length]
+        duration = lesson.duration_seconds.to_i
+        duration = 600 if duration <= 0
+        progress_seconds = ((duration * percent) / 100.0).round
+        progress_seconds = [progress_seconds, duration].min
+
+        progress = CourseLessonProgress.find_or_initialize_by(user: user, course_lesson: lesson)
+        progress.progress_seconds = progress_seconds
+        progress.last_watched_at = now - idx.days
+        progress.status = percent >= 80 ? "completed" : "started"
+        progress.completed_at = percent >= 80 ? now - idx.days : nil
+        progress.save!
+
+        enrollment = CourseEnrollment.find_or_initialize_by(user: user, course: lesson.course)
+        enrollment.last_lesson = lesson
+        enrollment.started_at ||= progress.last_watched_at
+        enrollment.save!
+      end
+    end
+
+    def seed_license_expirations(user:)
+      return unless defined?(License)
+
+      now = Time.current
+      offsets = [3, 7, 10, 14, 21, 30, 45, 60]
+
+      user.licenses.active_or_trial.order(:id).each_with_index do |license, idx|
+        expires_at = now + offsets[idx % offsets.length].days
+        if license.trial?
+          license.update!(trial_ends_at: expires_at)
+        else
+          license.update!(expires_at: expires_at)
+        end
+      end
+    end
+
+    def recent_result_value(account_number:, offset:)
+      seed = account_number.to_i + (offset * 37)
+      rng = Random.new(seed)
+      rng.rand(-120.0..120.0).round(2)
     end
   end
 
