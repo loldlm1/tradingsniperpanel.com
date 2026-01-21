@@ -40,6 +40,7 @@ en:
         manage_licenses: "Manage licenses"
       intro:
         greeting: "Hi %{name}, this is your all-time PnL:"
+        greeting_html: "Hi %{name}, this is your all-time PnL:"
         subtitle: "Across all broker accounts."
         add_broker: "Add broker account"
       unknown_ea: "Unknown EA"
@@ -53,7 +54,7 @@ en:
         price_label: "Price"
         price: "%{amount} %{interval}"
         usage_label: "Active licenses"
-        usage_value: "%{active} of %{total}"
+        usage_value: "%{active} of %{total} (%{percent}%)"
         benefits_title: "Included benefits"
         benefits_empty: "Plan benefits are not available yet."
         renewal_label: "Renewal"
@@ -86,15 +87,19 @@ en:
       mini_cards:
         broker_accounts:
           title: "Broker accounts"
+          suffix: " - linked"
           change: "%{delta} (%{percent}%) - Today"
         active_eas:
-          title: "Expert Advisors in use"
+          title: "EAs"
+          suffix: " - active"
           change: "%{delta} (%{percent}%) - Today"
         active_licenses:
-          title: "Licenses active"
+          title: "Licenses"
+          suffix: " - active"
           change: "%{delta} (%{percent}%) - Today"
         courses_in_progress:
-          title: "Courses in progress"
+          title: "Courses"
+          suffix: " - in progress"
           change: "%{delta} (%{percent}%) - Today"
       account_summary:
         title: "Account summary"

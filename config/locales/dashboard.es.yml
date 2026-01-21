@@ -40,6 +40,7 @@ es:
         manage_licenses: "Gestionar licencias"
       intro:
         greeting: "Hola %{name}, este es tu PnL histórico:"
+        greeting_html: "Hola %{name}, este es tu PnL histórico:"
         subtitle: "En todas tus cuentas broker."
         add_broker: "Agregar cuenta broker"
       unknown_ea: "EA desconocido"
@@ -53,7 +54,7 @@ es:
         price_label: "Precio"
         price: "%{amount} %{interval}"
         usage_label: "Licencias activas"
-        usage_value: "%{active} de %{total}"
+        usage_value: "%{active} de %{total} (%{percent}%)"
         benefits_title: "Beneficios incluidos"
         benefits_empty: "Los beneficios del plan aún no están disponibles."
         renewal_label: "Renovación"
@@ -86,15 +87,19 @@ es:
       mini_cards:
         broker_accounts:
           title: "Cuentas broker"
+          suffix: " - vinculadas"
           change: "%{delta} (%{percent}%) - Hoy"
         active_eas:
-          title: "Expert Advisors en uso"
+          title: "EAs"
+          suffix: " - activos"
           change: "%{delta} (%{percent}%) - Hoy"
         active_licenses:
-          title: "Licencias activas"
+          title: "Licencias"
+          suffix: " - activas"
           change: "%{delta} (%{percent}%) - Hoy"
         courses_in_progress:
-          title: "Cursos en progreso"
+          title: "Cursos"
+          suffix: " - en progreso"
           change: "%{delta} (%{percent}%) - Hoy"
       account_summary:
         title: "Resumen de cuenta"

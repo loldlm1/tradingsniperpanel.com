@@ -9,6 +9,12 @@ module Dashboard
       { color: "#F59E0B", legend_class: "bg-amber-500" },
       { color: "#64748B", legend_class: "bg-slate-500" }
     ].freeze
+    BALANCE_PIE_PALETTE = [
+      { color: "#4BD37D", legend_class: "bg-emerald-400" },
+      { color: "#F7CD4C", legend_class: "bg-amber-400" },
+      { color: "#7BC8FF", legend_class: "bg-sky-400" },
+      { color: "#8470FF", legend_class: "bg-violet-500" }
+    ].freeze
     DONUT_PALETTE = [
       { color: "#6366F1", legend_class: "bg-indigo-500" },
       { color: "#F59E0B", legend_class: "bg-amber-500" },
@@ -18,7 +24,12 @@ module Dashboard
       { color: "#8B5CF6", legend_class: "bg-violet-500" }
     ].freeze
     MINI_LINE_COLOR = "#94A3B8"
-    SPARKLINE_COLOR = "#6366F1"
+    MINI_LINE_POSITIVE = "#3EC972"
+    MINI_LINE_NEGATIVE = "#FF5656"
+    LICENSE_LINE_COLOR = "#8470FF"
+    COURSE_LINE_COLOR = "#3EC972"
+    SPARKLINE_POSITIVE = "#3EC972"
+    SPARKLINE_NEGATIVE = "#FF5656"
 
     def initialize(user:, subscription:, plan_context:, plan_hint: nil, marketplace_available: false, now: Time.current)
       @user = user
@@ -75,7 +86,7 @@ module Dashboard
         active_count: active_licenses_count,
         trial_count: trial_licenses_count,
         renewal_at: renewal_at,
-        chart: licenses_activity_chart
+        chart: licenses_activity_chart(color: LICENSE_LINE_COLOR)
       }
     end
 
@@ -84,7 +95,7 @@ module Dashboard
       {
         progress_percent: enrollment&.progress_percent,
         course_title: enrollment&.course&.title_for(I18n.locale),
-        chart: course_progress_chart
+        chart: course_progress_chart(color: COURSE_LINE_COLOR)
       }
     end
 
@@ -103,28 +114,28 @@ module Dashboard
           total: broker_accounts_count,
           today: broker_accounts_today,
           yesterday: broker_accounts_yesterday,
-          chart: broker_accounts_chart
+          chart: broker_accounts_chart(color: MINI_LINE_NEGATIVE)
         ),
         build_mini_card(
           key: :active_eas,
           total: active_eas_in_use_count,
           today: licenses_today,
           yesterday: licenses_yesterday,
-          chart: licenses_activity_chart(color: MINI_LINE_COLOR)
+          chart: licenses_activity_chart(color: MINI_LINE_POSITIVE)
         ),
         build_mini_card(
           key: :active_licenses,
           total: active_licenses_count,
           today: licenses_today,
           yesterday: licenses_yesterday,
-          chart: licenses_activity_chart(color: MINI_LINE_COLOR)
+          chart: licenses_activity_chart(color: MINI_LINE_POSITIVE)
         ),
         build_mini_card(
           key: :courses_in_progress,
           total: courses_in_progress_count,
           today: enrollments_today,
           yesterday: enrollments_yesterday,
-          chart: enrollments_chart
+          chart: enrollments_chart(color: MINI_LINE_POSITIVE)
         )
       ]
     end
@@ -145,6 +156,8 @@ module Dashboard
         status = license&.status.to_s.presence || "unknown"
         palette = DONUT_PALETTE[idx % DONUT_PALETTE.size]
         name = ea_names[ea_id] || I18n.t("dashboard.main.unknown_ea", default: "Unknown EA")
+        pnl_total = totals.fetch(ea_id, 0).to_f
+        sparkline_color = pnl_total.negative? ? SPARKLINE_NEGATIVE : SPARKLINE_POSITIVE
         {
           id: ea_id,
           name: name,
@@ -154,7 +167,7 @@ module Dashboard
           status_label: license_status_label(status),
           status_class: license_status_class(status),
           total_accounts: accounts.fetch(ea_id, 0),
-          pnl_total: currency(totals.fetch(ea_id, 0)),
+          pnl_total: currency(pnl_total),
           chart: {
             type: "line",
             labels: labels,
@@ -162,7 +175,7 @@ module Dashboard
               {
                 label: "PnL",
                 data: labels.map { |label| (pnl_by_ea_day.dig(ea_id, label) || 0).to_f },
-                color: SPARKLINE_COLOR
+                color: sparkline_color
               }
             ]
           },
@@ -279,7 +292,7 @@ module Dashboard
       return nil if legend.empty?
 
       {
-        type: "doughnut",
+        type: "pie",
         labels: legend.map { |entry| entry[:label] },
         datasets: [
           {
@@ -303,7 +316,7 @@ module Dashboard
       end
 
       top.each_with_index.map do |(company, total), idx|
-        palette = DONUT_PALETTE[idx % DONUT_PALETTE.size]
+        palette = BALANCE_PIE_PALETTE[idx % BALANCE_PIE_PALETTE.size]
         {
           label: company,
           value: total.to_f.abs,
@@ -379,21 +392,21 @@ module Dashboard
       }
     end
 
-    def broker_accounts_chart
-      chart_from_counts(daily_counts(broker_accounts_scope, "broker_accounts.created_at"), MINI_LINE_COLOR)
+    def broker_accounts_chart(color: MINI_LINE_COLOR)
+      chart_from_counts(daily_counts(broker_accounts_scope, "broker_accounts.created_at"), color)
     end
 
     def licenses_activity_chart(color: MINI_LINE_COLOR)
       chart_from_counts(daily_counts(licenses_scope, "licenses.created_at"), color)
     end
 
-    def enrollments_chart
-      chart_from_counts(daily_counts(enrollments_scope, "course_enrollments.created_at"), MINI_LINE_COLOR)
+    def enrollments_chart(color: MINI_LINE_COLOR)
+      chart_from_counts(daily_counts(enrollments_scope, "course_enrollments.created_at"), color)
     end
 
-    def course_progress_chart
+    def course_progress_chart(color: MINI_LINE_COLOR)
       scope = user.course_lesson_progresses.where(status: "completed")
-      chart_from_counts(daily_counts(scope, "course_lesson_progresses.completed_at"), MINI_LINE_COLOR)
+      chart_from_counts(daily_counts(scope, "course_lesson_progresses.completed_at"), color)
     end
 
     def daily_counts(scope, column)
@@ -638,7 +651,7 @@ module Dashboard
     def license_status_class(status)
       case status
       when "active"
-        "text-emerald-500"
+        "text-green-500"
       when "trial"
         "text-amber-500"
       when "expired"

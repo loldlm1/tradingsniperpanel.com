@@ -42,19 +42,23 @@
                           alt: t("dashboard.header.user_avatar_alt") %>
           </div>
           <div>
-            <div class="mb-2 text-sm text-gray-600 dark:text-gray-300">
-              <%= t("dashboard.main.intro.greeting", name: user_label) %>
+            <div class="mb-2 text-gray-600 dark:text-gray-300">
+              <%= t(
+                    "dashboard.main.intro.greeting_html",
+                    name: content_tag(:strong, user_label, class: "font-medium text-gray-800 dark:text-gray-100")
+                  ).html_safe %>
             </div>
-            <div class="text-3xl font-bold text-emerald-500"><%= intro[:total_pnl] %></div>
-            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.main.intro.subtitle") %></div>
+            <div class="text-3xl font-bold text-green-500"><%= intro[:total_pnl] %></div>
           </div>
         </div>
         <ul class="shrink-0 flex flex-wrap justify-end md:justify-start -space-x-3 -ml-px">
           <% intro[:brokers].to_a.compact.each do |broker| %>
             <li>
-              <div class="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700/60 text-xs font-semibold text-gray-700 dark:text-gray-100">
-                <%= broker.to_s.first(2).upcase %>
-              </div>
+              <a class="block" href="#0">
+                <div class="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700/60 text-xs font-semibold text-gray-700 dark:text-gray-100">
+                  <%= broker.to_s.first(2).upcase %>
+                </div>
+              </a>
             </li>
           <% end %>
           <li>
@@ -85,16 +89,7 @@
           </div>
         </div>
         <div id="fintech-card-01-legend" class="grow mb-1">
-          <% if pnl[:chart].present? %>
-            <ul class="flex flex-wrap gap-x-4 sm:justify-end">
-              <% pnl[:chart][:datasets].each do |dataset| %>
-                <li class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                  <span class="w-2 h-2 rounded-full <%= dataset[:legend_class] %>"></span>
-                  <span><%= dataset[:label] %></span>
-                </li>
-              <% end %>
-            </ul>
-          <% end %>
+          <ul class="flex flex-wrap gap-x-4 sm:justify-end"></ul>
         </div>
       </div>
     </div>
@@ -148,7 +143,12 @@
           <div class="flex items-center justify-between text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide">
             <span><%= t("dashboard.main.plan_card.usage_label") %></span>
             <span class="normal-case text-gray-500 dark:text-gray-400">
-              <%= t("dashboard.main.plan_card.usage_value", active: plan[:usage][:active], total: plan[:usage][:total]) %>
+              <%= t(
+                    "dashboard.main.plan_card.usage_value",
+                    active: plan[:usage][:active],
+                    total: plan[:usage][:total],
+                    percent: plan[:usage][:percent]
+                  ) %>
             </span>
           </div>
           <div class="mt-2 w-full h-2 bg-gray-100 dark:bg-gray-700/60 rounded-full">
@@ -213,7 +213,7 @@
       <div class="flex items-center">
         <div class="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2"><%= licenses_card[:active_count] %></div>
         <div class="text-sm">
-          <span class="font-medium text-amber-600"><%= t("dashboard.main.licenses_card.trials_label", count: licenses_card[:trial_count]) %></span>
+          <span class="font-medium text-yellow-600"><%= t("dashboard.main.licenses_card.trials_label", count: licenses_card[:trial_count]) %></span>
         </div>
       </div>
       <div class="text-sm text-gray-500 dark:text-gray-400">
@@ -223,7 +223,6 @@
           <%= t("dashboard.main.licenses_card.empty") %>
         <% end %>
       </div>
-      <div class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.main.licenses_card.note") %></div>
     </div>
     <div class="grow">
       <canvas
@@ -287,20 +286,12 @@
             height="220"
             data-dashboard-chart="true"
             data-chart="<%= json_escape(balance[:chart].to_json) %>"
-            data-chart-style="doughnut"
+            data-chart-style="pie"
             data-chart-format="currency"
           ></canvas>
         </div>
         <div id="fintech-card-09-legend" class="px-5 py-4">
-          <ul class="flex flex-wrap justify-center -m-1">
-            <% balance[:legend].each do |entry| %>
-              <li class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 m-1">
-                <span class="w-2 h-2 rounded-full <%= entry[:legend_class] %>"></span>
-                <span><%= entry[:label] %></span>
-                <span class="text-gray-400 dark:text-gray-500"><%= entry[:display_value] %></span>
-              </li>
-            <% end %>
-          </ul>
+          <ul class="flex flex-wrap justify-center -m-1"></ul>
         </div>
       <% else %>
         <div class="px-5 py-6 text-sm text-gray-500 dark:text-gray-400">
@@ -313,10 +304,14 @@
   <!-- Line charts (Stock graphs) -->
   <% mini_chart_ids = %w[fintech-card-10 fintech-card-11 fintech-card-12 fintech-card-13] %>
   <% mini_cards.each_with_index do |card, idx| %>
-    <% change_class = card[:change][:delta].negative? ? "text-rose-600" : "text-emerald-600" %>
+    <% change_class = card[:change][:delta].negative? ? "text-rose-600" : "text-green-600" %>
     <% change_text = t("dashboard.main.mini_cards.#{card[:key]}.change", delta: card[:change][:delta_label], percent: card[:change][:percent]) %>
+    <% title_suffix = t("dashboard.main.mini_cards.#{card[:key]}.suffix", default: "") %>
+    <% title_size_class = card[:key] == :active_licenses ? "text-xs" : "text-sm" %>
     <%= render "dashboards/main/mini_card",
                title: t("dashboard.main.mini_cards.#{card[:key]}.title"),
+               title_suffix: title_suffix,
+               title_size_class: title_size_class,
                value: card[:total],
                change_text: change_text,
                change_class: change_class,
