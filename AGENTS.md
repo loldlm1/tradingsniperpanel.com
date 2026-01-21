@@ -1,3 +1,15 @@
+# Codex workflow
+
+- **Plan-first**: for any non-trivial change, create/update `docs/plans/<slug>.md` **before coding**.
+  - Keep it short: Goal, Definition of Done, Constraints, Steps, Open Questions.
+- **Clarify until aligned**: ask questions and iterate the plan until DoD + steps are clear; only then implement.
+- **During execution**: update the plan with decisions + commands run (PASS/FAIL only). No long logs.
+- **Keep it lightweight**: don’t paste large code blocks or tool output; reference file paths instead.
+- **Done = clean**: once the feature is verified and merged, remove it from active context:
+  - Move to `docs/plans/_archive/<YYYY-MM-DD>-<slug>.md` **or**
+  - Delete it after copying a 5–10 line “Post-Implementation Summary” into the PR description.
+  - `docs/plans/` should contain only active work.
+
 # Engineering Notes (Ruby/Rails)
 
 - **Structure first**: keep controllers thin; push business logic to POROs/service objects under `app/services` and plain models. Use concerns sparingly—prefer explicit composition and small objects.
