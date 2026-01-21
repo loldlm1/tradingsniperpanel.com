@@ -22,15 +22,16 @@ RSpec.describe "Dashboard analytics", type: :request do
     get dashboard_analytics_path
 
     expect(response).to be_successful
-    expect(response.body).to include(I18n.t("dashboard.analytics.pnl_title"))
-    expect(response.body).to include("PagedFX")
-    expect(response.body).to include(I18n.t("dashboard.analytics.top_accounts"))
+    expect(response.body).to include(I18n.t("dashboard.analytics.cards.daily_performance.title"))
+    expect(response.body).to include(I18n.t("dashboard.analytics.cards.active_now.title"))
+    expect(response.body).to include("analytics-card-01")
   end
 
-  it "paginates the top setups table" do
-    get dashboard_analytics_path(page: 2)
+  it "renders analytics cards without pagination" do
+    get dashboard_analytics_path
 
     expect(response).to be_successful
-    expect(response.body).to include(I18n.t("dashboard.analytics.page", current: 2, total: 2))
+    expect(response.body).to include(I18n.t("dashboard.analytics.cards.top_eas.title"))
+    expect(response.body).to include(I18n.t("dashboard.analytics.cards.latest_lessons.title"))
   end
 end

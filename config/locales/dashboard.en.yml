@@ -516,6 +516,88 @@ en:
     analytics_channels_copy: "Channel attribution (sample)."
     analytics_value: "Real Time Value"
     analytics:
+      date_range: "Select dates"
+      other: "Other"
+      uncategorized: "Uncategorized"
+      cards:
+        daily_performance:
+          title: "Daily performance"
+          empty: "Not enough data"
+          kpis:
+            total_pnl: "30-day Profit & Loss"
+            cumulative_pnl: "Cumulative Profit & Loss"
+            positive_days: "Positive days"
+            max_drawdown: "Max drawdown"
+          chart:
+            current: "Current"
+            previous: "Previous"
+        active_now:
+          title: "Expert Advisors active now"
+          active_accounts: "Active accounts (24h)"
+          active_eas:
+            one: "%{count} active EA (24h)"
+            other: "%{count} active EAs (24h)"
+          empty: "No recent activity"
+          cta: "View activity ->"
+          chart:
+            label: "Active accounts"
+          table:
+            ea: "Expert Advisor"
+            count: "Active accounts"
+        ea_results:
+          title: "Expert Advisor results"
+          empty: "No results in this range"
+        course_progress:
+          title: "Top courses by progress"
+          empty: "No courses in progress"
+          legend: "Progress (%)"
+        top_eas:
+          title: "Top Expert Advisors by profit"
+          empty: "No Profit & Loss in this range"
+          cta: "View Expert Advisor details ->"
+          columns:
+            ea: "Expert Advisor"
+            pnl: "30-day PnL"
+        latest_lessons:
+          title: "Latest lessons watched"
+          empty: "No lessons watched yet"
+          cta: "View courses ->"
+          minutes_label: "%{minutes} min"
+          lesson_label: "%{course} - %{lesson}"
+          columns:
+            lesson: "Lesson"
+            progress: "Progress"
+        expiring_licenses:
+          title: "Licenses expiring soon"
+          empty: "No upcoming expirations"
+          cta: "Renew license ->"
+          today: "today"
+          in_days:
+            one: "in %{count} day"
+            other: "in %{count} days"
+          columns:
+            ea: "Expert Advisor"
+            expires_in: "Expires in"
+        course_status:
+          title: "Course status"
+          empty: "No enrolled courses"
+          labels:
+            not_started: "Not started"
+            in_progress: "In progress"
+            completed: "Completed"
+        study_time:
+          title: "Study time by category"
+          empty: "No recent study time"
+          other: "Other"
+          uncategorized: "Uncategorized"
+        ea_types:
+          title: "Expert Advisor type in use"
+          empty: "No active licenses"
+          labels:
+            ea_robot: "EA robot"
+            ea_tool: "EA tool"
+            indicator: "Indicator"
+            script: "Script"
       pnl_page_copy: "Broker account PnL and daily results across your EA setups."
       filters:
         date_range: "Date range"
