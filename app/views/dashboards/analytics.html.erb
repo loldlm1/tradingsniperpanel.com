@@ -57,8 +57,9 @@
     <div class="px-5 py-1">
       <div class="flex flex-wrap max-sm:*:w-1/2">
         <% daily[:kpis].each_with_index do |kpi, index| %>
-          <div class="flex items-center py-2">
-            <div class="mr-5">
+          <% last_item = index == daily[:kpis].size - 1 %>
+          <div class="flex items-center<%= last_item ? "" : " py-2" %>">
+            <div class="<%= last_item ? "" : "mr-5" %>">
               <div class="flex items-center">
                 <div class="text-3xl font-bold text-gray-800 dark:text-gray-100 mr-2"><%= analytics_value(kpi[:value], kpi[:value_type]) %></div>
                 <% if kpi[:change_percent].present? %>
