@@ -39,3 +39,6 @@
 
 # GeoIP databases
 /maxmind/*.mmdb
+
+# Plans archived
+/docs/plans/_archive/*
