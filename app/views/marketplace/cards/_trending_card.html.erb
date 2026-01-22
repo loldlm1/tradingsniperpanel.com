@@ -1,0 +1,11 @@
+<div class="relative col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-xs rounded-xl dark:border-transparent overflow-hidden">
+  <!-- Image -->
+  <%= image_tag card.image, class: "absolute w-full h-full object-cover", width: 286, height: 160, alt: card.title %>
+  <!-- Gradient -->
+  <div class="absolute inset-0 bg-linear-to-t from-gray-800 to-transparent" aria-hidden="true"></div>
+  <!-- Content -->
+  <div class="relative h-full p-5 flex flex-col justify-end">
+    <h3 class="text-lg text-white font-semibold mt-16 mb-0.5"><%= card.title %></h3>
+    <%= link_to t(card.cta_label_key), card.cta_url, class: "text-sm font-medium text-violet-400 hover:text-violet-300" %>
+  </div>
+</div>
