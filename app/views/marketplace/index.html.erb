@@ -41,21 +41,27 @@
     <% end %>
   </ul>
   <% if @marketplace.tags.any? %>
-    <div class="mt-3 flex flex-wrap items-center gap-2 pb-4">
-      <% @marketplace.tags.each do |tag| %>
-        <% active = @marketplace.selected_tags.include?(tag) %>
-        <% class_name = active ? "bg-gray-900 text-white border-gray-900 hover:border-gray-900 dark:bg-gray-100 dark:text-gray-900 dark:border-gray-100" : "" %>
-        <%= render "dashboard/shared/filter_chip",
-                   label: tag,
-                   href: dashboard_marketplace_path(locale: I18n.locale, **@marketplace.params_for_tag(tag)),
-                   class_name: class_name %>
-      <% end %>
-      <% if @marketplace.selected_tags.any? %>
-        <%= render "dashboard/shared/filter_chip",
-                   label: t("dashboard.marketplace.filters.clear"),
-                   href: dashboard_marketplace_path(locale: I18n.locale, **@marketplace.clear_tags_params),
-                   class_name: "bg-gray-100 dark:bg-gray-700/60" %>
-      <% end %>
+    <div class="mt-3 pb-4">
+      <ul class="flex flex-wrap -m-1">
+        <% @marketplace.tags.each do |tag| %>
+          <% active = @marketplace.selected_tags.include?(tag) %>
+          <% class_name = active ? "border-transparent shadow-xs bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-800" : "" %>
+          <li class="m-1">
+            <%= render "dashboard/shared/filter_chip",
+                       label: tag,
+                       href: dashboard_marketplace_path(locale: I18n.locale, **@marketplace.params_for_tag(tag)),
+                       class_name: class_name %>
+          </li>
+        <% end %>
+        <% if @marketplace.selected_tags.any? %>
+          <li class="m-1">
+            <%= render "dashboard/shared/filter_chip",
+                       label: t("dashboard.marketplace.filters.clear"),
+                       href: dashboard_marketplace_path(locale: I18n.locale, **@marketplace.clear_tags_params),
+                       class_name: "bg-gray-100 dark:bg-gray-700/60 text-gray-700 dark:text-gray-200 border-transparent" %>
+          </li>
+        <% end %>
+      </ul>
     </div>
   <% end %>
 </div>
@@ -80,7 +86,7 @@
     <% if @marketplace.show_courses? && @marketplace.course_cards.any? %>
       <!-- Cards 1 (Video Courses) -->
       <div class="mt-8">
-        <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-5"><%= t("dashboard.marketplace.sections.courses") %></h2>
+        <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-5"><%= t(@marketplace.course_section_label_key) %></h2>
         <div class="grid grid-cols-12 gap-6">
           <% @marketplace.course_cards.each_with_index do |card, index| %>
             <!-- Card <%= index + 1 %> -->
@@ -93,7 +99,7 @@
     <% if @marketplace.show_digital_goods? && @marketplace.digital_goods_cards.any? %>
       <!-- Cards 2 (Digital Goods) -->
       <div class="mt-8">
-        <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-5"><%= t("dashboard.marketplace.sections.digital_goods") %></h2>
+        <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-5"><%= t(@marketplace.digital_goods_section_label_key) %></h2>
         <div class="grid grid-cols-12 gap-6">
           <% @marketplace.digital_goods_cards.each_with_index do |card, index| %>
             <!-- Card <%= index + 1 %> -->

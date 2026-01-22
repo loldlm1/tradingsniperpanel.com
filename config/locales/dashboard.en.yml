@@ -130,11 +130,17 @@ en:
       tabs:
         all: "View All"
         courses: "Courses"
-        digital_goods: "Digital Goods"
-        online_events: "Online Events"
+        expert_advisors: "Expert Advisors"
+        marketplace_assets: "Marketplace Assets"
+        addons: "Add-ons"
+        bundles: "Bundles"
       sections:
         courses: "Video Courses"
         digital_goods: "Digital Goods"
+        expert_advisors: "Expert Advisors"
+        marketplace_assets: "Marketplace Assets"
+        addons: "Add-ons"
+        bundles: "Bundles"
         categories: "Popular Categories"
         trending: "Trending Now"
       filters:
@@ -174,7 +180,7 @@ en:
       cta:
         view_details: "View details"
         buy_now: "Buy now"
-        explore: "Explore ->"
+        explore: "Explore →"
         buy_course: "Buy course"
         view_course: "View course"
         explore_course: "Explore course"
