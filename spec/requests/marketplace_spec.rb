@@ -15,11 +15,37 @@ RSpec.describe "Marketplace", type: :request do
   it "renders the marketplace index for signed-in users" do
     course
     sign_in user, scope: :user
+    allow_any_instance_of(Marketplace::IndexPresenter).to receive(:most_chosen_plan).and_return(nil)
 
     get dashboard_marketplace_path(locale: :en)
 
     expect(response).to be_successful
     expect(response.body).to include(course.title_en)
+  end
+
+  it "renders localized headings and sections when data is available" do
+    create(:course, title_en: "Curso Alpha")
+    create(:expert_advisor, name: "EA Alpha")
+    sign_in user, scope: :user
+    allow_any_instance_of(Marketplace::IndexPresenter).to receive(:most_chosen_plan).and_return(nil)
+
+    get dashboard_marketplace_path(locale: :es)
+
+    expect(response).to be_successful
+    expect(response.body).to include(I18n.t("dashboard.marketplace.index.heading", locale: :es))
+    expect(response.body).to include(I18n.t("dashboard.marketplace.sections.courses", locale: :es))
+    expect(response.body).to include(I18n.t("dashboard.marketplace.sections.digital_goods", locale: :es))
+  end
+
+  it "shows the empty state when no products exist" do
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_path(locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include(I18n.t("dashboard.marketplace.index.empty_title", locale: :en))
+    expect(response.body).not_to include(I18n.t("dashboard.marketplace.sections.courses", locale: :en))
+    expect(response.body).not_to include("<!-- Cards 2 (Digital Goods) -->")
   end
 
   it "renders the marketplace product detail page" do
