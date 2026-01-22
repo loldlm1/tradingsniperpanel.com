@@ -3,13 +3,7 @@ require "rails_helper"
 RSpec.describe "Marketplace filters", type: :request do
   let(:user) { create(:user) }
 
-  def seed_tagged_products
-    plan_one = create(:billing_plan, :one_time)
-    plan_two = create(:billing_plan, :one_time)
-
-    product_one = create(:marketplace_product, billing_plan: plan_one, title_en: "Automation Pack", title_es: "Pack Automatizacion")
-    product_two = create(:marketplace_product, billing_plan: plan_two, title_en: "Manual Pack", title_es: "Pack Manual")
-
+  def seed_tagged_items
     expert_advisor = create(:expert_advisor, name: "Auto EA")
     expert_advisor.tag_list = "automation"
     expert_advisor.save!
@@ -18,41 +12,36 @@ RSpec.describe "Marketplace filters", type: :request do
     course.tag_list = "manual"
     course.save!
 
-    create(:billing_plan_entitlement, billing_plan: plan_one, expert_advisor: expert_advisor)
-    create(:course_plan_entitlement, billing_plan: plan_two, course: course)
-
-    [product_one, product_two]
+    [course, expert_advisor]
   end
 
   it "filters by a single tag (EN)" do
-    product_one, product_two = seed_tagged_products
+    course, expert_advisor = seed_tagged_items
     sign_in user, scope: :user
-    entries = Marketplace::Catalog.new(user: user).call
-    entry_map = entries.index_by { |entry| entry.product.id }
-
-    expect(entry_map[product_one.id].tags).to eq(["automation"])
-    expect(entry_map[product_two.id].tags).to eq(["manual"])
 
     get dashboard_marketplace_path(locale: :en, tags: ["automation"])
 
     expect(response).to be_successful
     expect(request.query_parameters["tags"]).to eq(["automation"])
     controller_instance = response.request.env["action_controller.instance"]
-    entries = controller_instance.instance_variable_get(:@entries)
-    expect(entries.map { |entry| entry.product.id }).to eq([product_one.id])
-    expect(response.body).to include(product_one.title_en)
+    marketplace = controller_instance.instance_variable_get(:@marketplace)
+    expect(marketplace.selected_tags).to eq(["automation"])
+    expect(marketplace.course_cards).to be_empty
+    expect(marketplace.digital_goods_cards.map(&:title)).to include(expert_advisor.name)
+    expect(response.body).to include(expert_advisor.name)
+    expect(response.body).not_to include(course.title_en)
     expect(response.body).to include("automation")
   end
 
   it "filters by multiple tags using OR (ES)" do
-    product_one, product_two = seed_tagged_products
+    course, expert_advisor = seed_tagged_items
     sign_in user, scope: :user
 
     get dashboard_marketplace_path(locale: :es, tags: ["automation", "manual"])
 
     expect(response).to be_successful
-    expect(response.body).to include(product_one.title_es)
-    expect(response.body).to include(product_two.title_es)
-    expect(response.body).to include(I18n.t("dashboard.marketplace.filters.title", locale: :es))
+    expect(response.body).to include(course.title_es)
+    expect(response.body).to include(expert_advisor.name)
+    expect(response.body).to include(I18n.t("dashboard.marketplace.tabs.all", locale: :es))
   end
 end

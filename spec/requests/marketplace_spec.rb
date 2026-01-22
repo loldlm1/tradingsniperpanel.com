@@ -3,6 +3,7 @@ require "rails_helper"
 RSpec.describe "Marketplace", type: :request do
   let(:user) { create(:user) }
   let(:marketplace_product) { create(:marketplace_product, title_en: "Pro Bundle") }
+  let(:course) { create(:course, title_en: "Market Course") }
 
   it "redirects unauthenticated users to sign in" do
     get dashboard_marketplace_path(locale: :en)
@@ -12,13 +13,13 @@ RSpec.describe "Marketplace", type: :request do
   end
 
   it "renders the marketplace index for signed-in users" do
-    marketplace_product
+    course
     sign_in user, scope: :user
 
     get dashboard_marketplace_path(locale: :en)
 
     expect(response).to be_successful
-    expect(response.body).to include("Pro Bundle")
+    expect(response.body).to include(course.title_en)
   end
 
   it "renders the marketplace product detail page" do

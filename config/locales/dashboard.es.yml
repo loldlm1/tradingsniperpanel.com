@@ -119,15 +119,49 @@ es:
     marketplace:
       index:
         title: "Marketplace"
+        heading: "Encuentra el producto ideal para ti"
         subtitle: "Bundles de compra única con acceso de por vida."
         link: "Todos los productos"
+        search_label: "Buscar en el marketplace"
+        search_placeholder: "Busca Expert Advisors, cursos, add-ons o planes"
         empty_title: "El Marketplace está en preparación"
         empty_copy: "Estamos preparando bundles de compra única para tu cuenta."
         empty_cta: "Contactar soporte"
+      tabs:
+        all: "Ver todo"
+        courses: "Cursos"
+        digital_goods: "Productos digitales"
+        online_events: "Eventos en línea"
+      sections:
+        courses: "Cursos en video"
+        digital_goods: "Productos digitales"
+        categories: "Categorías populares"
+        trending: "Tendencias"
       filters:
         title: "Etiquetas"
         clear: "Limpiar"
         note: "Filtra productos por las etiquetas que incluyen."
+      pricing:
+        free: "Gratis"
+      rating:
+        star: "Estrella %{count}"
+      courses:
+        features:
+          duration: "Duración: %{duration}"
+          lessons:
+            one: "%{count} lección"
+            other: "%{count} lecciones"
+          modules:
+            one: "%{count} módulo"
+            other: "%{count} módulos"
+          category: "Categoría: %{category}"
+      digital_goods:
+        popular: "Popular"
+        rating_count: "(%{count})"
+      categories:
+        expert_advisors: "Expert Advisors"
+        tools: "Herramientas"
+        addons_bundles: "Add-ons y bundles"
       card:
         purchased_badge: "Comprado"
         includes_eas: "%{count} Expert Advisors"
@@ -140,6 +174,15 @@ es:
       cta:
         view_details: "Ver detalles"
         buy_now: "Comprar ahora"
+        explore: "Explorar ->"
+        buy_course: "Comprar curso"
+        view_course: "Ver curso"
+        explore_course: "Explorar curso"
+        continue_course: "Continuar curso"
+        buy_ea: "Comprar Expert Advisor"
+        view_performance: "Ver rendimiento"
+        explore_ea: "Explorar Expert Advisor"
+        view_ea: "Ver Expert Advisor"
         purchased: "Comprado"
         requires_base: "Requiere acceso base"
       detail:
