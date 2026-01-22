@@ -53,12 +53,11 @@
                        class_name: class_name %>
           </li>
         <% end %>
-        <% if @marketplace.selected_tags.any? %>
+          <% if @marketplace.selected_tags.any? %>
           <li class="m-1">
             <%= render "dashboard/shared/filter_chip",
                        label: t("dashboard.marketplace.filters.clear"),
-                       href: dashboard_marketplace_path(locale: I18n.locale, **@marketplace.clear_tags_params),
-                       class_name: "bg-gray-100 dark:bg-gray-700/60 text-gray-700 dark:text-gray-200 border-transparent" %>
+                       href: dashboard_marketplace_path(locale: I18n.locale, **@marketplace.clear_tags_params) %>
           </li>
         <% end %>
       </ul>
