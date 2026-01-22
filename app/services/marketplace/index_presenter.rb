@@ -3,25 +3,11 @@ module Marketplace
     include Rails.application.routes.url_helpers
 
     TAG_LIMIT = 8
-    POPULAR_LICENSE_THRESHOLD = 5
-    BEST_SELLING_WINDOW_DAYS = 30
-    RETENTION_WINDOW_DAYS = 30
-    TRENDING_WINDOW_DAYS = 7
-    PNL_WINDOW_DAYS = 30
-
-    COURSE_PLACEHOLDERS = %w[
-      mosaic/images/applications-image-01.jpg
-      mosaic/images/applications-image-02.jpg
-      mosaic/images/applications-image-03.jpg
-      mosaic/images/applications-image-04.jpg
-    ].freeze
-
-    DIGITAL_GOODS_PLACEHOLDERS = %w[
-      mosaic/images/applications-image-05.jpg
-      mosaic/images/applications-image-06.jpg
-      mosaic/images/applications-image-07.jpg
-      mosaic/images/applications-image-08.jpg
-    ].freeze
+    CARD_LIMIT = 4
+    TRENDING_LIMIT = 4
+    TRENDING_WINDOW_DAYS = 30
+    POPULAR_PURCHASE_THRESHOLD = 5
+    DEFAULT_PLACEHOLDER = "mosaic/images/applications-image-09.jpg"
 
     CATEGORY_PLACEHOLDERS = %w[
       mosaic/images/shop-category-01.png
@@ -30,22 +16,24 @@ module Marketplace
       mosaic/images/shop-category-04.png
     ].freeze
 
-    TRENDING_PLACEHOLDERS = %w[
-      mosaic/images/applications-image-17.jpg
-      mosaic/images/applications-image-18.jpg
-      mosaic/images/applications-image-19.jpg
-      mosaic/images/applications-image-20.jpg
-    ].freeze
+    TAB_CONFIG = {
+      all: "dashboard.marketplace.tabs.all",
+      courses: "dashboard.marketplace.tabs.courses",
+      expert_advisors: "dashboard.marketplace.tabs.expert_advisors",
+      marketplace_assets: "dashboard.marketplace.tabs.marketplace_assets",
+      addons: "dashboard.marketplace.tabs.addons",
+      bundles: "dashboard.marketplace.tabs.bundles"
+    }.freeze
 
-    TABS = [
-      { key: :all, label_key: "dashboard.marketplace.tabs.all" },
-      { key: :courses, label_key: "dashboard.marketplace.tabs.courses" },
-      { key: :digital_goods, label_key: "dashboard.marketplace.tabs.digital_goods" },
-      { key: :online_events, label_key: "dashboard.marketplace.tabs.online_events" }
-    ].freeze
+    TAB_ORDER = %i[all courses expert_advisors marketplace_assets addons bundles].freeze
+
+    TYPE_TERMS = {
+      addons: %w[addon addons add-on add-ons],
+      bundles: %w[bundle bundles]
+    }.freeze
 
     CourseCard = Struct.new(
-      :course,
+      :product,
       :title,
       :image,
       :rating,
@@ -60,7 +48,7 @@ module Marketplace
     )
 
     DigitalGoodCard = Struct.new(
-      :expert_advisor,
+      :product,
       :title,
       :summary,
       :image,
@@ -112,7 +100,21 @@ module Marketplace
     end
 
     def tabs
-      TABS
+      available_tab_keys.map { |key| { key: key, label_key: TAB_CONFIG.fetch(key) } }
+    end
+
+    def course_section_label_key
+      "dashboard.marketplace.sections.courses"
+    end
+
+    def digital_goods_section_label_key
+      case selected_tab
+      when :expert_advisors then "dashboard.marketplace.sections.expert_advisors"
+      when :marketplace_assets then "dashboard.marketplace.sections.marketplace_assets"
+      when :addons then "dashboard.marketplace.sections.addons"
+      when :bundles then "dashboard.marketplace.sections.bundles"
+      else "dashboard.marketplace.sections.digital_goods"
+      end
     end
 
     def filtering?
@@ -120,11 +122,9 @@ module Marketplace
     end
 
     def empty_state?
-      return true if selected_tab == :online_events
-      return false if show_courses? && course_cards.any?
-      return false if show_digital_goods? && digital_goods_cards.any?
+      return course_cards.empty? && digital_goods_cards.empty? if selected_tab == :all
 
-      true
+      entries_for_tab(filtered_entries, selected_tab).empty?
     end
 
     def show_courses?
@@ -132,14 +132,10 @@ module Marketplace
     end
 
     def show_digital_goods?
-      selected_tab == :all || selected_tab == :digital_goods
+      selected_tab != :courses
     end
 
     def show_categories?
-      selected_tab == :all && !empty_state?
-    end
-
-    def show_trending?
       selected_tab == :all && !empty_state?
     end
 
@@ -147,18 +143,14 @@ module Marketplace
       false
     end
 
+    def show_trending?
+      selected_tab == :all && !empty_state?
+    end
+
     def tags
-      return [] if selected_tab == :online_events
-
-      counts = {}
-      if selected_tab == :all || selected_tab == :courses
-        counts = merge_tag_counts(counts, tag_counts_for(search_course_scope, "Course"))
-      end
-      if selected_tab == :all || selected_tab == :digital_goods
-        counts = merge_tag_counts(counts, tag_counts_for(search_expert_advisor_scope, "ExpertAdvisor"))
-      end
-
-      ordered = counts.sort_by { |(name, count)| [-count, name.downcase] }.map(&:first)
+      entries = entries_for_tagging
+      counts = tag_counts(entries)
+      ordered = counts.sort_by { |(name, count)| [-count, name] }.map(&:first)
       (ordered.first(TAG_LIMIT) + selected_tags).uniq
     end
 
@@ -202,8 +194,10 @@ module Marketplace
 
       normalized = value.to_s
       return :courses if normalized == "courses"
-      return :digital_goods if normalized == "digital_goods"
-      return :online_events if normalized == "online_events"
+      return :expert_advisors if normalized == "expert_advisors"
+      return :marketplace_assets if normalized == "marketplace_assets"
+      return :addons if normalized == "addons"
+      return :bundles if normalized == "bundles"
 
       :all
     end
@@ -228,408 +222,247 @@ module Marketplace
       params
     end
 
-    def merge_tag_counts(base, new_counts)
-      new_counts.each_with_object(base.dup) do |(name, count), merged|
-        merged[name] = merged.fetch(name, 0) + count.to_i
-      end
-    end
-
-    def tag_counts_for(scope, taggable_type)
-      return {} if scope.none?
-
-      taggings = ActsAsTaggableOn::Tagging.where(
-        context: "tags",
-        taggable_type: taggable_type,
-        taggable_id: scope.reselect(:id).unscope(:order)
-      )
-
-      taggings.joins(:tag).group("tags.name").count
-    end
-
     def search_terms
       @search_terms ||= query.to_s.downcase.split(/\s+/).map(&:strip).reject(&:blank?)
     end
 
-    def matching_plan_ids
-      return BillingPlan.none if search_terms.empty?
-      return @matching_plan_ids if defined?(@matching_plan_ids)
+    def text_search_terms
+      @text_search_terms ||= search_terms - TYPE_TERMS.values.flatten
+    end
 
-      plans = BillingPlan.active.left_joins(:marketplace_product)
-      plan_table = BillingPlan.arel_table
+    def type_filters
+      @type_filters ||= TYPE_TERMS.each_with_object([]) do |(type, terms), filters|
+        filters << type if (search_terms & terms).any?
+      end
+    end
+
+    def search_scope
+      terms = text_search_terms
+      scope = MarketplaceProduct.all
+      return scope if terms.empty?
+
+      scope = scope.left_joins(
+        :billing_plan,
+        billing_plan: [:addon, :expert_advisors, :courses, :marketplace_assets]
+      )
+
       product_table = MarketplaceProduct.arel_table
+      plan_table = BillingPlan.arel_table
+      addon_table = Addon.arel_table
+      ea_table = ExpertAdvisor.arel_table
+      course_table = Course.arel_table
+      asset_table = MarketplaceAsset.arel_table
 
-      conditions = search_terms.map do |term|
+      conditions = terms.map do |term|
         pattern = "%#{ActiveRecord::Base.sanitize_sql_like(term)}%"
-        plan_table[:name].matches(pattern)
-          .or(plan_table[:key].matches(pattern))
-          .or(product_table[:title_en].matches(pattern))
+        product_table[:title_en].matches(pattern)
           .or(product_table[:title_es].matches(pattern))
           .or(product_table[:summary_en].matches(pattern))
           .or(product_table[:summary_es].matches(pattern))
           .or(product_table[:description_en].matches(pattern))
           .or(product_table[:description_es].matches(pattern))
+          .or(product_table[:slug].matches(pattern))
+          .or(product_table[:key].matches(pattern))
+          .or(plan_table[:name].matches(pattern))
+          .or(plan_table[:key].matches(pattern))
+          .or(addon_table[:key].matches(pattern))
+          .or(ea_table[:name].matches(pattern))
+          .or(ea_table[:ea_type].matches(pattern))
+          .or(course_table[:title_en].matches(pattern))
+          .or(course_table[:title_es].matches(pattern))
+          .or(course_table[:category].matches(pattern))
+          .or(asset_table[:title_en].matches(pattern))
+          .or(asset_table[:title_es].matches(pattern))
       end
 
       combined = conditions.reduce { |memo, condition| memo.or(condition) }
-      @matching_plan_ids = plans.where(combined).select(:id)
+      scope.where(combined).distinct
     end
 
-    def matching_plan_ids_present?
-      @matching_plan_ids_present ||= matching_plan_ids.exists?
-    end
-
-    def apply_text_search(scope, columns, terms)
-      return nil if terms.blank?
-
-      table = scope.klass.arel_table
-      conditions = terms.map do |term|
-        pattern = "%#{ActiveRecord::Base.sanitize_sql_like(term)}%"
-        columns.map { |column| table[column].matches(pattern) }.reduce(:or)
+    def base_entries
+      @base_entries ||= begin
+        entries = Marketplace::Catalog.new(user: user, scope: search_scope).call
+        entries.reject!(&:purchased)
+        entries = filter_entries_by_query_type(entries)
+        entries
       end
-
-      scope.where(conditions.reduce(:or))
     end
 
-    def combine_scopes(*scopes)
-      scopes.compact.reduce { |memo, scope| memo.or(scope) }
+    def filter_entries_by_query_type(entries)
+      return entries if type_filters.empty?
+
+      entries.select { |entry| type_filters.include?(entry_type(entry)) }
     end
 
-    def base_course_scope
-      Course.published
+    def filtered_entries
+      @filtered_entries ||= begin
+        entries = base_entries
+        entries = filter_entries_by_tags(entries)
+        entries = entries_for_tab(entries, selected_tab) if selected_tab != :all
+        entries
+      end
     end
 
-    def course_search_columns
-      %i[title_en title_es summary_en summary_es description_en description_es category]
+    def entries_for_tagging
+      entries = base_entries
+      entries = entries_for_tab(entries, selected_tab) if selected_tab != :all
+      entries
     end
 
-    def search_course_scope
-      return @search_course_scope if defined?(@search_course_scope)
+    def filter_entries_by_tags(entries)
+      return entries if selected_tags.empty?
 
-      scope = base_course_scope
-      if search_terms.empty?
-        @search_course_scope = scope
-      else
-        text_scope = apply_text_search(scope, course_search_columns, search_terms)
-        plan_scope = nil
-        if matching_plan_ids_present?
-          plan_course_ids = CoursePlanEntitlement.where(billing_plan_id: matching_plan_ids).select(:course_id)
-          plan_scope = scope.where(id: plan_course_ids)
+      entries.select do |entry|
+        entry_tags = entry.tags.map(&:downcase)
+        (entry_tags & selected_tags).any?
+      end
+    end
+
+    def entries_for_tab(entries, tab_key)
+      return entries if tab_key == :all
+
+      entries.select { |entry| entry_type(entry) == tab_key }
+    end
+
+    def available_tab_keys
+      types = base_entries.map { |entry| entry_type(entry) }.uniq
+      ordered = TAB_ORDER.select { |key| key == :all || types.include?(key) }
+      ordered << selected_tab if selected_tab != :all && !ordered.include?(selected_tab)
+      ordered
+    end
+
+    def entry_type(entry)
+      return :addons if entry.addon?
+
+      course_count = entry.courses.size
+      ea_count = entry.expert_advisors.size
+      asset_count = entry.marketplace_assets.size
+      type_count = [course_count.positive?, ea_count.positive?, asset_count.positive?].count(true)
+      item_count = course_count + ea_count + asset_count
+
+      return :bundles if type_count > 1 || item_count > 1
+      return :courses if course_count.positive?
+      return :expert_advisors if ea_count.positive?
+      return :marketplace_assets if asset_count.positive?
+
+      :other
+    end
+
+    def tag_counts(entries)
+      entries.each_with_object(Hash.new(0)) do |entry, counts|
+        entry.tags.each do |tag|
+          normalized = tag.to_s.downcase
+          next if normalized.blank?
+
+          counts[normalized] += 1
         end
-        combined = combine_scopes(text_scope, plan_scope)
-        @search_course_scope = combined ? combined.distinct : scope.none
       end
     end
 
-    def filtered_course_scope
-      scope = search_course_scope
-      return scope if selected_tags.empty?
-
-      scope.tagged_with(selected_tags, any: true)
+    def course_entries(entries)
+      entries.select { |entry| entry_type(entry) == :courses }
     end
 
-    def base_expert_advisor_scope
-      ExpertAdvisor.active
-    end
-
-    def search_expert_advisor_scope
-      return @search_expert_advisor_scope if defined?(@search_expert_advisor_scope)
-
-      scope = base_expert_advisor_scope
-      if search_terms.empty?
-        @search_expert_advisor_scope = scope
-      else
-        type_terms = search_terms & ExpertAdvisor.ea_types.keys
-        text_terms = search_terms - type_terms
-        text_scope = apply_text_search(scope, %i[name description], text_terms)
-        type_scope = type_terms.any? ? scope.where(ea_type: type_terms) : nil
-        plan_scope = nil
-        if matching_plan_ids_present?
-          plan_ea_ids = BillingPlanEntitlement.where(billing_plan_id: matching_plan_ids).select(:expert_advisor_id)
-          plan_scope = scope.where(id: plan_ea_ids)
-        end
-
-        combined = combine_scopes(text_scope, type_scope, plan_scope)
-        @search_expert_advisor_scope = combined ? combined.distinct : scope.none
-      end
-    end
-
-    def filtered_expert_advisor_scope
-      scope = search_expert_advisor_scope
-      return scope if selected_tags.empty?
-
-      scope.tagged_with(selected_tags, any: true)
-    end
-
-    def addon_matches_filters?(addon)
-      return false unless matches_query_for_addon?(addon)
-      return true if selected_tags.empty?
-
-      addonable = addon.addonable
-      return false unless addonable.respond_to?(:tag_list)
-
-      tag_list = addonable.tag_list.map(&:downcase)
-      (tag_list & selected_tags).any?
-    end
-
-    def matches_query_for_addon?(addon)
-      return true if search_terms.empty?
-
-      product = addon.marketplace_product
-      plan = addon.billing_plan
-      matches_any_term?(
-        addon.key,
-        plan&.name,
-        plan&.key,
-        product&.title_en,
-        product&.title_es,
-        product&.summary_en,
-        product&.summary_es,
-        product&.description_en,
-        product&.description_es
-      )
-    end
-
-    def matches_any_term?(*values)
-      return true if search_terms.empty?
-
-      haystack = values.compact.map { |value| value.to_s.downcase }
-      search_terms.any? { |term| haystack.any? { |value| value.include?(term) } }
-    end
-
-    def best_course_ids_by_enrollments(scope, window_days:)
-      CourseEnrollment.where(course_id: scope.reselect(:id))
-                      .where(created_at: window_days.days.ago..Time.current)
-                      .group(:course_id)
-                      .order(Arel.sql("COUNT(course_enrollments.id) DESC"))
-                      .pluck(:course_id)
-    end
-
-    def best_course_ids_by_completion(scope)
-      CourseEnrollment.where(course_id: scope.reselect(:id))
-                      .group(:course_id)
-                      .order(Arel.sql("AVG(course_enrollments.progress_percent) DESC"))
-                      .pluck(:course_id)
-    end
-
-    def most_recent_course_ids(scope)
-      scope.distinct(false).reorder(published_at: :desc, created_at: :desc).pluck(:id)
-    end
-
-    def recommended_course_id(scope, fallback_ids:, used_ids:)
-      return pick_unique_id(fallback_ids, used_ids) unless user
-
-      enrollment = CourseEnrollment.where(user: user).where("progress_percent < 100").order(progress_percent: :desc).first
-      if enrollment && scope.where(id: enrollment.course_id).exists? && !used_ids.include?(enrollment.course_id)
-        return enrollment.course_id
-      end
-
-      pick_unique_id(fallback_ids, used_ids)
-    end
-
-    def pick_unique_id(candidates, used_ids)
-      Array(candidates).find { |candidate| candidate.present? && !used_ids.include?(candidate) }
-    end
-
-    def best_expert_advisor_ids_by_usage(scope)
-      License.active_or_trial.where(expert_advisor_id: scope.reselect(:id))
-                             .group(:expert_advisor_id)
-                             .order(Arel.sql("COUNT(licenses.id) DESC"))
-                             .pluck(:expert_advisor_id)
-    end
-
-    def best_expert_advisor_ids_by_pnl(scope)
-      from_ts = PNL_WINDOW_DAYS.days.ago.to_i
-      to_ts = Time.current.to_i
-
-      BrokerAccountDailyResult.joins(broker_account: { license: :expert_advisor })
-                              .where(licenses: { expert_advisor_id: scope.reselect(:id) })
-                              .where(result_timestamp: from_ts..to_ts)
-                              .group("licenses.expert_advisor_id")
-                              .order(Arel.sql("SUM(broker_account_daily_results.result_value) DESC"))
-                              .pluck("licenses.expert_advisor_id")
-    end
-
-    def best_expert_advisor_ids_by_retention(scope)
-      from_ts = RETENTION_WINDOW_DAYS.days.ago.to_i
-      to_ts = Time.current.to_i
-
-      BrokerAccountDailyResult.joins(broker_account: :license)
-                              .where(licenses: { expert_advisor_id: scope.reselect(:id), status: License::STATUSES.values_at(:active, :trial) })
-                              .where(result_timestamp: from_ts..to_ts)
-                              .group("licenses.expert_advisor_id")
-                              .order(Arel.sql("COUNT(DISTINCT licenses.id) DESC"))
-                              .pluck("licenses.expert_advisor_id")
-    end
-
-    def most_recent_expert_advisor_ids(scope)
-      scope.distinct(false).reorder(created_at: :desc).pluck(:id)
+    def digital_goods_entries(entries)
+      entries.reject { |entry| entry_type(entry) == :courses }
     end
 
     def build_course_cards
-      scope = filtered_course_scope
-      return [] if scope.none?
+      entries = course_entries(filtered_entries)
+      return [] if entries.empty?
 
-      fallback_ids = scope.distinct(false).reorder(:position, :title_en).pluck(:id)
-      used_ids = []
-      selected_ids = []
+      purchase_counts = purchase_counts_for(entries)
+      usage_counts = usage_counts_for(entries)
+      metric_counts = metric_counts_for(entries, purchase_counts, usage_counts)
+      max_metric = metric_counts.values.max.to_f
 
-      best_selling_ids = best_course_ids_by_enrollments(scope, window_days: BEST_SELLING_WINDOW_DAYS)
-      selected_ids << pick_unique_id(best_selling_ids + fallback_ids, used_ids)
-      used_ids.concat(selected_ids.compact)
+      course_ids = entries.flat_map { |entry| entry.courses.map(&:id) }.uniq
+      module_counts = CourseModule.where(course_id: course_ids).group(:course_id).count
+      lesson_counts = CourseLesson.joins(:course_module)
+                                  .where(course_modules: { course_id: course_ids })
+                                  .group("course_modules.course_id")
+                                  .count
+      duration_sums = CourseLesson.joins(:course_module)
+                                  .where(course_modules: { course_id: course_ids })
+                                  .group("course_modules.course_id")
+                                  .sum(:duration_seconds)
 
-      completion_ids = best_course_ids_by_completion(scope)
-      selected_ids << pick_unique_id(completion_ids + fallback_ids, used_ids)
-      used_ids.concat(selected_ids.compact)
-
-      recent_ids = most_recent_course_ids(scope)
-      selected_ids << pick_unique_id(recent_ids + fallback_ids, used_ids)
-      used_ids.concat(selected_ids.compact)
-
-      selected_ids << recommended_course_id(scope, fallback_ids: fallback_ids, used_ids: used_ids)
-      selected_ids.compact!
-      return [] if selected_ids.empty?
-
-      courses = scope.where(id: selected_ids).includes(
-        billing_plans: { marketplace_product: { image_attachment: :blob } },
-        addons: { billing_plan: { marketplace_product: { image_attachment: :blob } } }
-      )
-      course_map = courses.index_by(&:id)
-
-      module_counts = CourseModule.where(course_id: selected_ids).group(:course_id).count
-      lesson_counts = CourseLesson.joins(:course_module).where(course_modules: { course_id: selected_ids }).group("course_modules.course_id").count
-      duration_sums = CourseLesson.joins(:course_module).where(course_modules: { course_id: selected_ids }).group("course_modules.course_id").sum(:duration_seconds)
-      progress_map = CourseEnrollment.where(course_id: selected_ids).group(:course_id).average(:progress_percent)
-
-      selected_ids.map.with_index do |course_id, index|
-        course = course_map[course_id]
-        next unless course
-
-        plan = best_priced_plan(course.billing_plans, course.addons)
+      sorted_entries(entries, purchase_counts, usage_counts).first(CARD_LIMIT).map do |entry|
+        product = entry.product
+        plan_id = entry.plan&.id
+        course_ids = entry.courses.map(&:id)
         CourseCard.new(
-          course: course,
-          title: course.title_for(locale),
-          image: image_for_plan(plan, COURSE_PLACEHOLDERS[index % COURSE_PLACEHOLDERS.length]),
-          rating: rating_from_percent(progress_map[course_id].to_f),
-          price_display: price_display_for(plan),
-          duration_seconds: duration_sums[course_id].to_i,
-          lessons_count: lesson_counts[course_id].to_i,
-          modules_count: module_counts[course_id].to_i,
-          category: course.category,
-          cta_label_key: course_cta_label_key(index),
-          detail_url: dashboard_course_path(course)
+          product: product,
+          title: product.title_for(locale),
+          image: image_for(product),
+          rating: rating_from_metric(metric_counts[plan_id].to_f, max_metric),
+          price_display: entry.price_display || price_display_for(entry.plan),
+          duration_seconds: course_ids.sum { |id| duration_sums[id].to_i },
+          lessons_count: course_ids.sum { |id| lesson_counts[id].to_i },
+          modules_count: course_ids.sum { |id| module_counts[id].to_i },
+          category: entry.courses.first&.category,
+          cta_label_key: "dashboard.marketplace.cta.buy_now",
+          detail_url: dashboard_marketplace_product_path(product)
         )
-      end.compact
+      end
     end
 
     def build_digital_goods_cards
-      scope = filtered_expert_advisor_scope
-      return [] if scope.none?
+      entries = digital_goods_entries(filtered_entries)
+      return [] if entries.empty?
 
-      fallback_ids = scope.distinct(false).ordered_by_rank.pluck(:id)
-      used_ids = []
-      selected_ids = []
+      purchase_counts = purchase_counts_for(entries)
+      usage_counts = usage_counts_for(entries)
+      metric_counts = metric_counts_for(entries, purchase_counts, usage_counts)
+      max_metric = metric_counts.values.max.to_f
 
-      usage_ids = best_expert_advisor_ids_by_usage(scope)
-      selected_ids << pick_unique_id(usage_ids + fallback_ids, used_ids)
-      used_ids.concat(selected_ids.compact)
-
-      pnl_ids = best_expert_advisor_ids_by_pnl(scope)
-      selected_ids << pick_unique_id(pnl_ids + fallback_ids, used_ids)
-      used_ids.concat(selected_ids.compact)
-
-      recent_ids = most_recent_expert_advisor_ids(scope)
-      selected_ids << pick_unique_id(recent_ids + fallback_ids, used_ids)
-      used_ids.concat(selected_ids.compact)
-
-      retention_ids = best_expert_advisor_ids_by_retention(scope)
-      selected_ids << pick_unique_id(retention_ids + fallback_ids, used_ids)
-      selected_ids.compact!
-      return [] if selected_ids.empty?
-
-      expert_advisors = scope.where(id: selected_ids).includes(
-        billing_plans: { marketplace_product: { image_attachment: :blob } },
-        addons: { billing_plan: { marketplace_product: { image_attachment: :blob } } }
-      )
-      ea_map = expert_advisors.index_by(&:id)
-
-      license_counts = License.active_or_trial.where(expert_advisor_id: selected_ids).group(:expert_advisor_id).count
-      pnl_map = pnl_map_for(selected_ids)
-      retention_map = retention_map_for(selected_ids)
-
-      usage_max = license_counts.values.max.to_f
-      pnl_max = pnl_map.values.map(&:to_f).max.to_f
-      retention_max = retention_map.values.max.to_f
-
-      selected_ids.map.with_index do |ea_id, index|
-        expert_advisor = ea_map[ea_id]
-        next unless expert_advisor
-
-        plan = best_priced_plan(expert_advisor.billing_plans, expert_advisor.addons)
-        metric_rating = case index
-                        when 0 then rating_from_metric(license_counts[ea_id].to_f, usage_max)
-                        when 1 then rating_from_metric(pnl_map[ea_id].to_f, pnl_max)
-                        when 2 then rating_from_metric(license_counts[ea_id].to_f, usage_max)
-                        else rating_from_metric(retention_map[ea_id].to_f, retention_max)
-                        end
+      sorted_entries(entries, purchase_counts, usage_counts).first(CARD_LIMIT).map.with_index do |entry, index|
+        product = entry.product
+        plan_id = entry.plan&.id
+        summary = product.summary_for(locale).presence || product.description_for(locale)
+        purchase_count = purchase_counts[plan_id].to_i
+        metric_count = metric_counts[plan_id].to_i
 
         DigitalGoodCard.new(
-          expert_advisor: expert_advisor,
-          title: expert_advisor.name,
-          summary: expert_advisor.description,
-          image: image_for_plan(plan, DIGITAL_GOODS_PLACEHOLDERS[index % DIGITAL_GOODS_PLACEHOLDERS.length]),
-          rating: metric_rating,
-          rating_count: license_counts[ea_id].to_i,
-          price_display: price_display_for(plan),
-          cta_label_key: digital_good_cta_label_key(index),
-          detail_url: dashboard_expert_advisor_path(expert_advisor),
-          popular: index.zero? && license_counts[ea_id].to_i >= POPULAR_LICENSE_THRESHOLD
+          product: product,
+          title: product.title_for(locale),
+          summary: summary,
+          image: image_for(product),
+          rating: rating_from_metric(metric_count.to_f, max_metric),
+          rating_count: metric_count,
+          price_display: entry.price_display || price_display_for(entry.plan),
+          cta_label_key: "dashboard.marketplace.cta.buy_now",
+          detail_url: dashboard_marketplace_product_path(product),
+          popular: index.zero? && purchase_count >= POPULAR_PURCHASE_THRESHOLD
         )
-      end.compact
-    end
-
-    def pnl_map_for(selected_ids)
-      return {} if selected_ids.empty?
-
-      from_ts = PNL_WINDOW_DAYS.days.ago.to_i
-      to_ts = Time.current.to_i
-
-      BrokerAccountDailyResult.joins(broker_account: :license)
-                              .where(licenses: { expert_advisor_id: selected_ids })
-                              .where(result_timestamp: from_ts..to_ts)
-                              .group("licenses.expert_advisor_id")
-                              .sum(:result_value)
-    end
-
-    def retention_map_for(selected_ids)
-      return {} if selected_ids.empty?
-
-      from_ts = RETENTION_WINDOW_DAYS.days.ago.to_i
-      to_ts = Time.current.to_i
-
-      BrokerAccountDailyResult.joins(broker_account: :license)
-                              .where(licenses: { expert_advisor_id: selected_ids, status: License::STATUSES.values_at(:active, :trial) })
-                              .where(result_timestamp: from_ts..to_ts)
-                              .group("licenses.expert_advisor_id")
-                              .distinct
-                              .count("licenses.id")
+      end
     end
 
     def build_category_cards
-      cards = []
-      cards << CategoryCard.new(
-        title: I18n.t("dashboard.marketplace.categories.expert_advisors", locale: locale),
-        image: CATEGORY_PLACEHOLDERS[0],
-        cta_label_key: "dashboard.marketplace.cta.explore",
-        cta_url: dashboard_marketplace_path(tab: :digital_goods, q: "ea_robot")
-      )
-      cards << CategoryCard.new(
-        title: I18n.t("dashboard.marketplace.categories.tools", locale: locale),
-        image: CATEGORY_PLACEHOLDERS[1],
-        cta_label_key: "dashboard.marketplace.cta.explore",
-        cta_url: dashboard_marketplace_path(tab: :digital_goods, q: "ea_tool")
-      )
+      entries = base_entries
+      return [] if entries.empty?
 
-      top_category = top_course_category
+      cards = []
+
+      if entries.any? { |entry| entry.expert_advisors.any? || entry.addonable.is_a?(ExpertAdvisor) }
+        cards << CategoryCard.new(
+          title: I18n.t("dashboard.marketplace.categories.expert_advisors", locale: locale),
+          image: CATEGORY_PLACEHOLDERS[0],
+          cta_label_key: "dashboard.marketplace.cta.explore",
+          cta_url: dashboard_marketplace_path(tab: :expert_advisors)
+        )
+      end
+
+      if entries.any? { |entry| entry.expert_advisors.any? { |ea| ea.ea_type == "ea_tool" } || entry.addonable&.ea_type == "ea_tool" }
+        cards << CategoryCard.new(
+          title: I18n.t("dashboard.marketplace.categories.tools", locale: locale),
+          image: CATEGORY_PLACEHOLDERS[1],
+          cta_label_key: "dashboard.marketplace.cta.explore",
+          cta_url: dashboard_marketplace_path(tab: :expert_advisors, q: "ea_tool")
+        )
+      end
+
+      top_category = top_course_category(entries)
       if top_category.present?
         category_label = I18n.t("dashboard.courses.categories.#{top_category}", locale: locale, default: top_category.to_s.humanize)
         cards << CategoryCard.new(
@@ -640,170 +473,129 @@ module Marketplace
         )
       end
 
-      cards << CategoryCard.new(
-        title: I18n.t("dashboard.marketplace.categories.addons_bundles", locale: locale),
-        image: CATEGORY_PLACEHOLDERS[3],
-        cta_label_key: "dashboard.marketplace.cta.explore",
-        cta_url: dashboard_marketplace_path(q: "addon bundle")
-      )
+      if entries.any? { |entry| entry_type(entry).in?(%i[addons bundles]) }
+        cards << CategoryCard.new(
+          title: I18n.t("dashboard.marketplace.categories.addons_bundles", locale: locale),
+          image: CATEGORY_PLACEHOLDERS[3],
+          cta_label_key: "dashboard.marketplace.cta.explore",
+          cta_url: dashboard_marketplace_path(q: "addon bundle")
+        )
+      end
 
-      cards.compact
+      cards
     end
 
-    def top_course_category
-      @top_course_category ||= begin
-        category = CourseEnrollment.joins(:course)
-                                   .merge(Course.published)
-                                   .group("courses.category")
-                                   .order(Arel.sql("COUNT(course_enrollments.id) DESC"))
-                                   .limit(1)
-                                   .pluck("courses.category")
-                                   .first
-        category.presence || Course.published.order(:position).limit(1).pluck(:category).first
-      end
+    def top_course_category(entries)
+      course_ids = entries.flat_map { |entry| entry.courses.map(&:id) }.uniq
+      return nil if course_ids.empty?
+
+      category = CourseEnrollment.joins(:course)
+                                 .where(course_id: course_ids)
+                                 .group("courses.category")
+                                 .order(Arel.sql("COUNT(course_enrollments.id) DESC"))
+                                 .limit(1)
+                                 .pluck("courses.category")
+                                 .first
+      return category if category.present?
+
+      Course.where(id: course_ids).where.not(category: [nil, ""]).order(:category).limit(1).pluck(:category).first
     end
 
     def build_trending_cards
-      cards = []
-      cards << trending_expert_advisor_card
-      cards << trending_course_card
-      cards << trending_addon_card
-      cards << trending_plan_card
-      cards.compact.each_with_index.map do |card, index|
-        next card unless card.image.nil?
+      entries = filter_entries_by_tags(base_entries)
+      return [] if entries.empty?
 
-        card.image = TRENDING_PLACEHOLDERS[index % TRENDING_PLACEHOLDERS.length]
-        card
-      end.compact
-    end
+      purchase_counts = purchase_counts_for(entries, window_days: TRENDING_WINDOW_DAYS)
+      sorted_by_purchase = sorted_entries(entries, purchase_counts, {})
+      selected = sorted_by_purchase.select { |entry| purchase_counts[entry.plan&.id].to_i.positive? }
+                                   .first(TRENDING_LIMIT)
 
-    def trending_expert_advisor_card
-      scope = filtered_expert_advisor_scope
-      return nil if scope.none?
-
-      from_time = TRENDING_WINDOW_DAYS.days.ago
-      purchase_ids = MarketplacePurchase.joins(billing_plan: :expert_advisors)
-                                         .where(expert_advisors: { id: scope.reselect(:id) })
-                                         .where(purchased_at: from_time..Time.current)
-                                         .group("expert_advisors.id")
-                                         .order(Arel.sql("COUNT(marketplace_purchases.id) DESC"))
-                                         .pluck("expert_advisors.id")
-
-      if purchase_ids.empty?
-        purchase_ids = License.where(expert_advisor_id: scope.reselect(:id))
-                              .where(created_at: from_time..Time.current)
-                              .group(:expert_advisor_id)
-                              .order(Arel.sql("COUNT(licenses.id) DESC"))
-                              .pluck(:expert_advisor_id)
+      if selected.size < TRENDING_LIMIT
+        usage_counts = usage_counts_for(entries)
+        fallback = (entries - selected)
+                   .sort_by { |entry| [-usage_counts[entry.plan&.id].to_i, entry.product.sort_order.to_i] }
+                   .select { |entry| usage_counts[entry.plan&.id].to_i.positive? }
+        selected += fallback.first(TRENDING_LIMIT - selected.size)
       end
 
-      expert_advisor_id = purchase_ids.first
-      expert_advisor = expert_advisor_id ? scope.find_by(id: expert_advisor_id) : nil
-      return nil unless expert_advisor
+      return [] if selected.empty?
 
-      plan = best_priced_plan(expert_advisor.billing_plans, expert_advisor.addons)
-      TrendingCard.new(
-        title: expert_advisor.name,
-        image: image_for_plan(plan, nil),
-        cta_label_key: "dashboard.marketplace.cta.explore",
-        cta_url: dashboard_expert_advisor_path(expert_advisor)
-      )
-    end
-
-    def trending_course_card
-      scope = filtered_course_scope
-      return nil if scope.none?
-
-      from_time = TRENDING_WINDOW_DAYS.days.ago
-      course_ids = CourseEnrollment.where(course_id: scope.reselect(:id))
-                                   .where(created_at: from_time..Time.current)
-                                   .group(:course_id)
-                                   .order(Arel.sql("COUNT(course_enrollments.id) DESC"))
-                                   .pluck(:course_id)
-      course_id = course_ids.first
-      course = course_id ? scope.find_by(id: course_id) : nil
-      return nil unless course
-
-      plan = best_priced_plan(course.billing_plans, course.addons)
-      TrendingCard.new(
-        title: course.title_for(locale),
-        image: image_for_plan(plan, nil),
-        cta_label_key: "dashboard.marketplace.cta.explore",
-        cta_url: dashboard_course_path(course)
-      )
-    end
-
-    def trending_addon_card
-      from_time = TRENDING_WINDOW_DAYS.days.ago
-      addon_plan_ids = Addon.pluck(:billing_plan_id)
-      return nil if addon_plan_ids.empty?
-
-      plan_ids = MarketplacePurchase.where(billing_plan_id: addon_plan_ids)
-                                    .where(purchased_at: from_time..Time.current)
-                                    .group(:billing_plan_id)
-                                    .order(Arel.sql("COUNT(marketplace_purchases.id) DESC"))
-                                    .pluck(:billing_plan_id)
-      return nil if plan_ids.empty?
-
-      addons = Addon.where(billing_plan_id: plan_ids).includes(
-        billing_plan: { marketplace_product: { image_attachment: :blob } },
-        addonable: :tags
-      )
-      addon_map = addons.index_by(&:billing_plan_id)
-      addon = plan_ids.find do |plan_id|
-        candidate = addon_map[plan_id]
-        candidate if candidate && addon_matches_filters?(candidate)
+      selected.map do |entry|
+        product = entry.product
+        TrendingCard.new(
+          title: product.title_for(locale),
+          image: image_for(product),
+          cta_label_key: "dashboard.marketplace.cta.explore",
+          cta_url: dashboard_marketplace_product_path(product)
+        )
       end
-      addon = addon_map[addon] if addon
-      return nil unless addon
-
-      product = addon.marketplace_product
-      title = product&.title_for(locale) || addon.key.to_s.humanize
-
-      TrendingCard.new(
-        title: title,
-        image: product&.image&.attached? ? product.image : nil,
-        cta_label_key: "dashboard.marketplace.cta.explore",
-        cta_url: product ? dashboard_marketplace_product_path(product) : dashboard_marketplace_path
-      )
     end
 
-    def trending_plan_card
-      return nil if selected_tags.any?
-
-      plan = most_chosen_plan
-      return nil unless plan
-      return nil unless matches_any_term?(plan.name, plan.key)
-
-      TrendingCard.new(
-        title: plan.name,
-        image: nil,
-        cta_label_key: "dashboard.marketplace.cta.explore",
-        cta_url: dashboard_plans_path(price_key: plan.key)
-      )
-    end
-
-    def most_chosen_plan
-      return nil unless defined?(Pay::Subscription)
-
-      price_ids = Pay::Subscription.where(status: "active")
-                                   .group(:processor_plan)
-                                   .order(Arel.sql("COUNT(pay_subscriptions.id) DESC"))
-                                   .pluck(:processor_plan)
-
-      price_ids.each do |price_id|
-        plan = BillingPlan.active.subscription.find_by(stripe_price_id: price_id)
-        return plan if plan
+    def sorted_entries(entries, purchase_counts, usage_counts)
+      entries.sort_by do |entry|
+        plan_id = entry.plan&.id
+        [
+          -purchase_counts[plan_id].to_i,
+          -usage_counts[plan_id].to_i,
+          entry.product.sort_order.to_i,
+          entry.product.title_for(locale).to_s
+        ]
       end
-
-      nil
     end
 
-    def best_priced_plan(plans, addons)
-      plan_list = Array(plans).select(&:present?)
-      addon_plans = Array(addons).map(&:billing_plan).compact
-      candidates = plan_list + addon_plans
-      candidates.min_by { |plan| [plan.amount_cents.to_i, plan.sort_order.to_i] }
+    def purchase_counts_for(entries, window_days: nil)
+      plan_ids = entries.map { |entry| entry.plan&.id }.compact
+      return {} if plan_ids.empty?
+
+      scope = MarketplacePurchase.where(billing_plan_id: plan_ids)
+      if window_days
+        scope = scope.where(purchased_at: window_days.days.ago..Time.current)
+      end
+      scope.group(:billing_plan_id).count
+    end
+
+    def usage_counts_for(entries)
+      ea_ids = entries.flat_map { |entry| entry.expert_advisors.map(&:id) }
+      course_ids = entries.flat_map { |entry| entry.courses.map(&:id) }
+      addon_ea_ids = entries.filter_map { |entry| entry.addonable if entry.addonable.is_a?(ExpertAdvisor) }.map(&:id)
+      addon_course_ids = entries.filter_map { |entry| entry.addonable if entry.addonable.is_a?(Course) }.map(&:id)
+
+      all_ea_ids = (ea_ids + addon_ea_ids).uniq
+      all_course_ids = (course_ids + addon_course_ids).uniq
+
+      license_counts = if all_ea_ids.any?
+                         License.active_or_trial.where(expert_advisor_id: all_ea_ids).group(:expert_advisor_id).count
+                       else
+                         {}
+                       end
+      enrollment_counts = if all_course_ids.any?
+                            CourseEnrollment.where(course_id: all_course_ids).group(:course_id).count
+                          else
+                            {}
+                          end
+
+      entries.each_with_object({}) do |entry, counts|
+        total = entry.expert_advisors.sum { |ea| license_counts[ea.id].to_i }
+        total += entry.courses.sum { |course| enrollment_counts[course.id].to_i }
+
+        addonable = entry.addonable
+        if addonable.is_a?(ExpertAdvisor)
+          total += license_counts[addonable.id].to_i
+        elsif addonable.is_a?(Course)
+          total += enrollment_counts[addonable.id].to_i
+        end
+
+        counts[entry.plan&.id] = total
+      end
+    end
+
+    def metric_counts_for(entries, purchase_counts, usage_counts)
+      entries.each_with_object({}) do |entry, counts|
+        plan_id = entry.plan&.id
+        purchase_count = purchase_counts[plan_id].to_i
+        usage_count = usage_counts[plan_id].to_i
+        counts[plan_id] = purchase_count.positive? ? purchase_count : usage_count
+      end
     end
 
     def price_display_for(plan)
@@ -812,46 +604,20 @@ module Marketplace
       ActionController::Base.helpers.number_to_currency(plan.amount_cents.to_i / 100.0, unit: "$", precision: 2)
     end
 
-    def image_for_plan(plan, fallback)
-      product = plan&.marketplace_product
-      return product.image if product&.image&.attached?
-      fallback
-    end
+    def image_for(product)
+      return product.image if product.image.attached?
 
-    def rating_from_percent(value)
-      base_rating = 3.5
-      range = 1.5
-      percent = value.to_f.clamp(0.0, 100.0)
-      rating = base_rating + (percent / 100.0) * range
-      rating.round(1)
+      DEFAULT_PLACEHOLDER
     end
 
     def rating_from_metric(value, max_value)
-      base_rating = 3.5
-      range = 1.5
+      base_rating = 3.0
+      range = 2.0
       return base_rating if max_value.to_f <= 0
 
       rating = base_rating + (value.to_f / max_value.to_f) * range
       rating = rating.clamp(base_rating, base_rating + range)
       rating.round(1)
-    end
-
-    def course_cta_label_key(index)
-      case index
-      when 0 then "dashboard.marketplace.cta.buy_course"
-      when 1 then "dashboard.marketplace.cta.view_course"
-      when 2 then "dashboard.marketplace.cta.explore_course"
-      else "dashboard.marketplace.cta.continue_course"
-      end
-    end
-
-    def digital_good_cta_label_key(index)
-      case index
-      when 0 then "dashboard.marketplace.cta.buy_ea"
-      when 1 then "dashboard.marketplace.cta.view_performance"
-      when 2 then "dashboard.marketplace.cta.explore_ea"
-      else "dashboard.marketplace.cta.view_ea"
-      end
     end
   end
 end

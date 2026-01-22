@@ -130,11 +130,17 @@ es:
       tabs:
         all: "Ver todo"
         courses: "Cursos"
-        digital_goods: "Productos digitales"
-        online_events: "Eventos en línea"
+        expert_advisors: "Expert Advisors"
+        marketplace_assets: "Recursos del marketplace"
+        addons: "Add-ons"
+        bundles: "Bundles"
       sections:
         courses: "Cursos en video"
         digital_goods: "Productos digitales"
+        expert_advisors: "Expert Advisors"
+        marketplace_assets: "Recursos del marketplace"
+        addons: "Add-ons"
+        bundles: "Bundles"
         categories: "Categorías populares"
         trending: "Tendencias"
       filters:
@@ -174,7 +180,7 @@ es:
       cta:
         view_details: "Ver detalles"
         buy_now: "Comprar ahora"
-        explore: "Explorar ->"
+        explore: "Explorar →"
         buy_course: "Comprar curso"
         view_course: "Ver curso"
         explore_course: "Explorar curso"
