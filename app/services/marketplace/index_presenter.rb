@@ -412,7 +412,7 @@ module Marketplace
     end
 
     def most_recent_course_ids(scope)
-      scope.order(published_at: :desc, created_at: :desc).pluck(:id)
+      scope.distinct(false).reorder(published_at: :desc, created_at: :desc).pluck(:id)
     end
 
     def recommended_course_id(scope, fallback_ids:, used_ids:)
@@ -462,14 +462,14 @@ module Marketplace
     end
 
     def most_recent_expert_advisor_ids(scope)
-      scope.order(created_at: :desc).pluck(:id)
+      scope.distinct(false).reorder(created_at: :desc).pluck(:id)
     end
 
     def build_course_cards
       scope = filtered_course_scope
       return [] if scope.none?
 
-      fallback_ids = scope.order(:position, :title_en).pluck(:id)
+      fallback_ids = scope.distinct(false).reorder(:position, :title_en).pluck(:id)
       used_ids = []
       selected_ids = []
 
@@ -525,7 +525,7 @@ module Marketplace
       scope = filtered_expert_advisor_scope
       return [] if scope.none?
 
-      fallback_ids = scope.ordered_by_rank.pluck(:id)
+      fallback_ids = scope.distinct(false).ordered_by_rank.pluck(:id)
       used_ids = []
       selected_ids = []
 

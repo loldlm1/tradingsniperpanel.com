@@ -29,7 +29,7 @@ RSpec.describe "Marketplace filters", type: :request do
     expect(marketplace.course_cards).to be_empty
     expect(marketplace.digital_goods_cards.map(&:title)).to include(expert_advisor.name)
     expect(response.body).to include(expert_advisor.name)
-    expect(response.body).not_to include(course.title_en)
+    expect(response.body).not_to include(I18n.t("dashboard.marketplace.sections.courses", locale: :en))
     expect(response.body).to include("automation")
   end
 
