@@ -20,10 +20,22 @@ RSpec.describe "Marketplace seeds" do
   it "creates marketplace products and billing plans with Stripe identifiers" do
     expect do
       Seeds::MarketplaceProducts.seed_products!
-    end.to change(MarketplaceProduct, :count).by(3)
+    end.to change(MarketplaceProduct, :count).by(9)
 
     products = MarketplaceProduct.order(:slug).to_a
-    expect(products.map(&:slug)).to match_array(%w[course_essentials ea_starter_bundle pro_trader_bundle])
+    expect(products.map(&:slug)).to match_array(
+      %w[
+        asset_quick_start_guide
+        asset_risk_checklist
+        course_essentials
+        course_intermediate_systems
+        course_trading_foundations
+        ea_momentum_pulse
+        ea_sniper_panel
+        ea_starter_bundle
+        pro_trader_bundle
+      ]
+    )
 
     products.each do |product|
       plan = product.billing_plan
@@ -33,9 +45,10 @@ RSpec.describe "Marketplace seeds" do
       expect(plan.stripe_price_id).to be_present
     end
 
-    expect(BillingPlan.where(key: products.map(&:key)).count).to eq(3)
-    expect(BillingPlanEntitlement.count).to eq(3)
-    expect(CoursePlanEntitlement.count).to eq(3)
+    expect(BillingPlan.where(key: products.map(&:key)).count).to eq(9)
+    expect(BillingPlanEntitlement.count).to eq(5)
+    expect(CoursePlanEntitlement.count).to eq(5)
+    expect(AssetPlanEntitlement.count).to eq(7)
 
     expect do
       Seeds::MarketplaceProducts.seed_products!
@@ -168,6 +181,17 @@ RSpec.describe "Marketplace seeds" do
       ea.trial_enabled = true
     end
 
+    ExpertAdvisor.find_or_create_by!(ea_id: "momentum_pulse_indicator") do |ea|
+      ea.name = "Momentum Pulse Indicator"
+      ea.description = "Seed"
+      ea.ea_type = :indicator
+      ea.allowed_subscription_tiers = []
+      ea.tier_rank = 3
+      ea.doc_guide_en = "Guide"
+      ea.doc_guide_es = "Guia"
+      ea.trial_enabled = false
+    end
+
     Course.find_or_create_by!(slug: "trading-foundations") do |course|
       course.position = 1
       course.status = "published"
@@ -190,6 +214,27 @@ RSpec.describe "Marketplace seeds" do
       course.category = "systems"
       course.title_en = "Intermediate Systems"
       course.title_es = "Sistemas Intermedios"
+    end
+
+    MarketplaceAsset.find_or_create_by!(slug: "quick_start_guide") do |asset|
+      asset.sort_order = 1
+      asset.status = "active"
+      asset.title_en = "Quick Start Guide"
+      asset.title_es = "Guia de inicio rapido"
+    end
+
+    MarketplaceAsset.find_or_create_by!(slug: "session_templates") do |asset|
+      asset.sort_order = 2
+      asset.status = "active"
+      asset.title_en = "Session Templates"
+      asset.title_es = "Plantillas de sesion"
+    end
+
+    MarketplaceAsset.find_or_create_by!(slug: "risk_checklist") do |asset|
+      asset.sort_order = 3
+      asset.status = "active"
+      asset.title_en = "Risk Checklist"
+      asset.title_es = "Checklist de riesgo"
     end
   end
 end

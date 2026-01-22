@@ -255,7 +255,7 @@ module Marketplace
 
       conditions = terms.map do |term|
         pattern = "%#{ActiveRecord::Base.sanitize_sql_like(term)}%"
-        product_table[:title_en].matches(pattern)
+        condition = product_table[:title_en].matches(pattern)
           .or(product_table[:title_es].matches(pattern))
           .or(product_table[:summary_en].matches(pattern))
           .or(product_table[:summary_es].matches(pattern))
@@ -267,16 +267,25 @@ module Marketplace
           .or(plan_table[:key].matches(pattern))
           .or(addon_table[:key].matches(pattern))
           .or(ea_table[:name].matches(pattern))
-          .or(ea_table[:ea_type].matches(pattern))
           .or(course_table[:title_en].matches(pattern))
           .or(course_table[:title_es].matches(pattern))
           .or(course_table[:category].matches(pattern))
           .or(asset_table[:title_en].matches(pattern))
           .or(asset_table[:title_es].matches(pattern))
+        ea_type_condition = ea_type_condition_for(term, ea_table)
+        condition = condition.or(ea_type_condition) if ea_type_condition
+        condition
       end
 
       combined = conditions.reduce { |memo, condition| memo.or(condition) }
       scope.where(combined).distinct
+    end
+
+    def ea_type_condition_for(term, ea_table)
+      normalized = term.to_s.tr("-", "_")
+      return unless ExpertAdvisor.ea_types.key?(normalized)
+
+      ea_table[:ea_type].eq(ExpertAdvisor.ea_types.fetch(normalized))
     end
 
     def base_entries

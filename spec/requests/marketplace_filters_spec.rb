@@ -52,4 +52,30 @@ RSpec.describe "Marketplace filters", type: :request do
     expect(response.body).to include(ea_product.title_es)
     expect(response.body).to include(I18n.t("dashboard.marketplace.tabs.all", locale: :es))
   end
+
+  it "searches by expert advisor type without SQL errors" do
+    expert_advisor = create(:expert_advisor, name: "Tool EA", ea_type: :ea_tool)
+    plan = create(:billing_plan, :one_time, key: "marketplace_ea_tool")
+    product = create(:marketplace_product, billing_plan: plan, title_en: "EA Tool Pack")
+    create(:billing_plan_entitlement, expert_advisor: expert_advisor, billing_plan: plan)
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_path(locale: :en, q: "ea_tool", tab: "expert_advisors")
+
+    expect(response).to be_successful
+    expect(response.body).to include(product.title_en)
+  end
+
+  it "searches by course category without SQL errors" do
+    course = create(:course, title_en: "Beginner Course", category: "beginner")
+    plan = create(:billing_plan, :one_time, key: "marketplace_beginner_course")
+    product = create(:marketplace_product, billing_plan: plan, title_en: "Beginner Course Pack")
+    create(:course_plan_entitlement, course: course, billing_plan: plan)
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_path(locale: :en, q: "beginner", tab: "courses")
+
+    expect(response).to be_successful
+    expect(response.body).to include(product.title_en)
+  end
 end
