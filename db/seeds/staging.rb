@@ -26,6 +26,7 @@ Seeds::Addons.seed_addons!
 Seeds::ExpertAdvisorBundles.seed_bundles!
 qa_users = Seeds::QaUsers.seed!
 qa_user = qa_users[:trader]
+Seeds::MarketplacePurchases.seed_for(qa_user: qa_user)
 Seeds::Courses.seed_progress_for(user: qa_user) if qa_user
 Seeds::Partners.seed_qa!(partner: qa_users[:partner])
 Seeds::Subscriptions.seed_manual_subscription_for(

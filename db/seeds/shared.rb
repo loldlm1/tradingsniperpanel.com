@@ -1113,6 +1113,102 @@ module Seeds
           ea_ids: %w[sniper_advanced_panel],
           course_slugs: %w[intermediate-systems],
           asset_slugs: %w[session_templates risk_checklist]
+        },
+        {
+          slug: "ea_sniper_panel",
+          sort_order: 4,
+          title_en: "Sniper Panel EA",
+          title_es: "EA Panel Sniper",
+          summary_en: "Risk-first panel EA with precision execution tools.",
+          summary_es: "EA panel con enfoque en riesgo y ejecucion precisa.",
+          description_en: "One-time access to the Sniper Advanced Panel EA with lifetime updates.",
+          description_es: "Acceso unico al EA Sniper Advanced Panel con actualizaciones de por vida.",
+          amount_cents: 5900,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-03.jpg"),
+          ea_ids: %w[sniper_advanced_panel],
+          course_slugs: [],
+          asset_slugs: [],
+          stripe_required: false
+        },
+        {
+          slug: "ea_momentum_pulse",
+          sort_order: 5,
+          title_en: "Momentum Pulse Indicator",
+          title_es: "Indicador Momentum Pulse",
+          summary_en: "Visual momentum indicator for clean entry signals.",
+          summary_es: "Indicador visual de momentum para entradas claras.",
+          description_en: "One-time access to the Momentum Pulse Indicator with lifetime updates.",
+          description_es: "Acceso unico al Indicador Momentum Pulse con actualizaciones de por vida.",
+          amount_cents: 3900,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-04.jpg"),
+          ea_ids: %w[momentum_pulse_indicator],
+          course_slugs: [],
+          asset_slugs: [],
+          stripe_required: false
+        },
+        {
+          slug: "course_trading_foundations",
+          sort_order: 6,
+          title_en: "Trading Foundations Course",
+          title_es: "Curso Fundamentos de Trading",
+          summary_en: "Start with the core platform and risk workflow.",
+          summary_es: "Comienza con la plataforma y flujo de riesgo.",
+          description_en: "One-time access to the Trading Foundations course.",
+          description_es: "Acceso unico al curso Fundamentos de Trading.",
+          amount_cents: 4900,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-05.jpg"),
+          ea_ids: [],
+          course_slugs: %w[trading-foundations],
+          asset_slugs: [],
+          stripe_required: false
+        },
+        {
+          slug: "course_intermediate_systems",
+          sort_order: 7,
+          title_en: "Intermediate Systems Course",
+          title_es: "Curso Sistemas Intermedios",
+          summary_en: "Advanced structure and system design frameworks.",
+          summary_es: "Estructura avanzada y diseno de sistemas.",
+          description_en: "One-time access to the Intermediate Systems course.",
+          description_es: "Acceso unico al curso Sistemas Intermedios.",
+          amount_cents: 6900,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-07.jpg"),
+          ea_ids: [],
+          course_slugs: %w[intermediate-systems],
+          asset_slugs: [],
+          stripe_required: false
+        },
+        {
+          slug: "asset_quick_start_guide",
+          sort_order: 8,
+          title_en: "Quick Start Guide",
+          title_es: "Guia de Inicio Rapido",
+          summary_en: "A fast onboarding guide to get you trading in minutes.",
+          summary_es: "Guia rapida para comenzar a operar en minutos.",
+          description_en: "One-time access to the Quick Start Guide asset.",
+          description_es: "Acceso unico al asset Guia de inicio rapido.",
+          amount_cents: 1900,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-08.jpg"),
+          ea_ids: [],
+          course_slugs: [],
+          asset_slugs: %w[quick_start_guide],
+          stripe_required: false
+        },
+        {
+          slug: "asset_risk_checklist",
+          sort_order: 9,
+          title_en: "Risk Checklist",
+          title_es: "Checklist de Riesgo",
+          summary_en: "Daily rules to stay aligned with your risk plan.",
+          summary_es: "Reglas diarias para seguir tu plan de riesgo.",
+          description_en: "One-time access to the Risk Checklist asset.",
+          description_es: "Acceso unico al asset Checklist de riesgo.",
+          amount_cents: 1700,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-10.jpg"),
+          ea_ids: [],
+          course_slugs: [],
+          asset_slugs: %w[risk_checklist],
+          stripe_required: false
         }
       ]
     end
@@ -1120,19 +1216,24 @@ module Seeds
     def seed_products!
       return unless defined?(MarketplaceProduct)
       return unless defined?(BillingPlan)
-      unless ENV["STRIPE_PRIVATE_KEY"].present?
-        Rails.logger.warn("[Seeds::MarketplaceProducts] skipped: STRIPE_PRIVATE_KEY is not set")
-        return
-      end
-
-      manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
+      stripe_available = ENV["STRIPE_PRIVATE_KEY"].present?
+      stripe_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
+      local_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: false)
 
       definitions.each do |attrs|
-        upsert_product(manager, attrs)
+        attrs = attrs.dup
+        stripe_required = attrs.delete(:stripe_required) { true }
+        if stripe_required && !stripe_available
+          Rails.logger.warn("[Seeds::MarketplaceProducts] skipped slug=#{attrs[:slug]}: STRIPE_PRIVATE_KEY is not set")
+          next
+        end
+
+        manager = stripe_required ? stripe_manager : local_manager
+        upsert_product(manager, attrs, stripe_required: stripe_required)
       end
     end
 
-    def upsert_product(manager, attrs)
+    def upsert_product(manager, attrs, stripe_required:)
       product = manager.upsert!(
         product_attributes: {
           slug: attrs[:slug],
@@ -1145,14 +1246,29 @@ module Seeds
           description_en: attrs[:description_en],
           description_es: attrs[:description_es]
         },
-        plan_attributes: {
-          amount_cents: attrs[:amount_cents],
-          currency: BillingPlans::DEFAULT_CURRENCY
-        }
+        plan_attributes: plan_attributes(attrs, stripe_required: stripe_required)
       )
 
       attach_image(product, attrs[:image])
       attach_entitlements(product.billing_plan, attrs[:ea_ids], attrs[:course_slugs], attrs[:asset_slugs])
+    end
+
+    def plan_attributes(attrs, stripe_required:)
+      plan_attrs = {
+        amount_cents: attrs[:amount_cents],
+        currency: BillingPlans::DEFAULT_CURRENCY
+      }
+      return plan_attrs if stripe_required
+
+      stripe_product_id, stripe_price_id = seed_stripe_ids(attrs[:slug])
+      plan_attrs[:stripe_product_id] = attrs[:stripe_product_id] || stripe_product_id
+      plan_attrs[:stripe_price_id] = attrs[:stripe_price_id] || stripe_price_id
+      plan_attrs
+    end
+
+    def seed_stripe_ids(slug)
+      normalized = slug.to_s.parameterize(separator: "_")
+      ["seed_prod_#{normalized}", "seed_price_#{normalized}"]
     end
 
     def attach_image(product, image_path)
@@ -1250,6 +1366,22 @@ module Seeds
           image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-12.jpg"),
           addonable_type: "Course",
           addonable_key: "trading-foundations"
+        },
+        {
+          key: "session_templates_pack",
+          slug: "addon_session_templates_pack",
+          sort_order: 13,
+          title_en: "Session Templates Pack",
+          title_es: "Pack Plantillas de Sesion",
+          summary_en: "Bonus layouts for the Session Templates asset.",
+          summary_es: "Plantillas extra para el asset Session Templates.",
+          description_en: "A paid add-on with extra printable templates and checklists.",
+          description_es: "Add-on de pago con plantillas y checklists adicionales.",
+          amount_cents: 1500,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-13.jpg"),
+          addonable_type: "MarketplaceAsset",
+          addonable_key: "session_templates",
+          stripe_required: false
         }
       ]
     end
@@ -1258,17 +1390,22 @@ module Seeds
       return unless defined?(Addon)
       return unless defined?(MarketplaceProduct)
       return unless defined?(BillingPlan)
-      unless ENV["STRIPE_PRIVATE_KEY"].present?
-        Rails.logger.warn("[Seeds::Addons] skipped: STRIPE_PRIVATE_KEY is not set")
-        return
-      end
-
-      manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
+      stripe_available = ENV["STRIPE_PRIVATE_KEY"].present?
+      stripe_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
+      local_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: false)
 
       definitions.each do |attrs|
+        attrs = attrs.dup
+        stripe_required = attrs.delete(:stripe_required) { true }
+        if stripe_required && !stripe_available
+          Rails.logger.warn("[Seeds::Addons] skipped addon=#{attrs[:key]}: STRIPE_PRIVATE_KEY is not set")
+          next
+        end
+
         addonable = resolve_addonable(attrs)
         next unless addonable
 
+        manager = stripe_required ? stripe_manager : local_manager
         product = manager.upsert!(
           product_attributes: {
             slug: attrs[:slug],
@@ -1281,15 +1418,25 @@ module Seeds
             description_en: attrs[:description_en],
             description_es: attrs[:description_es]
           },
-          plan_attributes: {
-            amount_cents: attrs[:amount_cents],
-            currency: BillingPlans::DEFAULT_CURRENCY
-          }
+          plan_attributes: addon_plan_attributes(attrs, stripe_required: stripe_required)
         )
 
         MarketplaceProducts.attach_image(product, attrs[:image])
         upsert_addon(attrs, product.billing_plan, addonable)
       end
+    end
+
+    def addon_plan_attributes(attrs, stripe_required:)
+      plan_attrs = {
+        amount_cents: attrs[:amount_cents],
+        currency: BillingPlans::DEFAULT_CURRENCY
+      }
+      return plan_attrs if stripe_required
+
+      stripe_product_id, stripe_price_id = MarketplaceProducts.seed_stripe_ids(attrs[:slug])
+      plan_attrs[:stripe_product_id] = attrs[:stripe_product_id] || stripe_product_id
+      plan_attrs[:stripe_price_id] = attrs[:stripe_price_id] || stripe_price_id
+      plan_attrs
     end
 
     def resolve_addonable(attrs)
@@ -1316,6 +1463,78 @@ module Seeds
         "addonable_id" => addonable.id
       )
       plan.save!
+    end
+  end
+
+  module MarketplacePurchases
+    module_function
+
+    SEED_USERS = [
+      { email: "marketplace.seed.1@example.com", name: "Marketplace Seed 1" },
+      { email: "marketplace.seed.2@example.com", name: "Marketplace Seed 2" },
+      { email: "marketplace.seed.3@example.com", name: "Marketplace Seed 3" },
+      { email: "marketplace.seed.4@example.com", name: "Marketplace Seed 4" },
+      { email: "marketplace.seed.5@example.com", name: "Marketplace Seed 5" }
+    ].freeze
+
+    def seed_for(qa_user:)
+      return unless defined?(MarketplacePurchase)
+
+      users = seed_users
+      seed_purchase_matrix(users) if users.any?
+      seed_qa_purchases(qa_user) if qa_user
+    end
+
+    def seed_users
+      return [] unless defined?(User)
+
+      SEED_USERS.map do |attrs|
+        Seeds::QaUsers.upsert_user(
+          email: attrs[:email],
+          name: attrs[:name],
+          role: :trader,
+          password: QaUsers::DEFAULT_PASSWORD
+        )
+      end.compact
+    end
+
+    def seed_purchase_matrix(users)
+      seed_purchases(slug: "ea_sniper_panel", users: users, offsets: [3, 6, 10, 14, 19])
+      seed_purchases(slug: "course_trading_foundations", users: users.take(3), offsets: [4, 9, 21])
+      seed_purchases(slug: "addon_sniper_news_filter", users: users.take(2), offsets: [5, 12])
+      seed_purchases(slug: "asset_quick_start_guide", users: users.take(3), offsets: [45, 53, 60])
+      seed_purchases(slug: "asset_risk_checklist", users: users.last(2), offsets: [65, 72])
+      seed_purchases(slug: "ea_starter_bundle", users: users.drop(1).take(3), offsets: [41, 55, 68])
+      seed_purchases(slug: "course_essentials", users: users.last(1), offsets: [80])
+      seed_purchases(slug: "addon_pandora_risk_guard", users: users.drop(2).take(1), offsets: [38])
+      seed_purchases(slug: "addon_session_templates_pack", users: users.last(2), offsets: [52, 63])
+      seed_purchases(slug: "addon_foundations_workbook", users: users.take(1), offsets: [85])
+    end
+
+    def seed_qa_purchases(qa_user)
+      seed_purchase(slug: "pro_trader_bundle", user: qa_user, offset: 12)
+      seed_purchase(slug: "addon_foundations_workbook", user: qa_user, offset: 8)
+    end
+
+    def seed_purchases(slug:, users:, offsets:)
+      offsets.each_with_index do |offset, idx|
+        user = users[idx]
+        next unless user
+
+        seed_purchase(slug: slug, user: user, offset: offset)
+      end
+    end
+
+    def seed_purchase(slug:, user:, offset:)
+      product = MarketplaceProduct.find_by(slug: slug)
+      return unless product
+
+      plan = product.billing_plan
+      return unless plan&.one_time?
+
+      purchase = MarketplacePurchase.find_or_initialize_by(user: user, billing_plan: plan)
+      purchase.purchased_at = Time.current - offset.days
+      purchase.save!
     end
   end
 
