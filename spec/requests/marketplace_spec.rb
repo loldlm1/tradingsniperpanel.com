@@ -3,6 +3,7 @@ require "rails_helper"
 RSpec.describe "Marketplace", type: :request do
   let(:user) { create(:user) }
   let(:marketplace_product) { create(:marketplace_product, title_en: "Pro Bundle") }
+  let(:course) { create(:course, title_en: "Market Course") }
 
   it "redirects unauthenticated users to sign in" do
     get dashboard_marketplace_path(locale: :en)
@@ -12,13 +13,46 @@ RSpec.describe "Marketplace", type: :request do
   end
 
   it "renders the marketplace index for signed-in users" do
-    marketplace_product
+    plan = create(:billing_plan, :one_time, key: "marketplace_course_index")
+    create(:marketplace_product, billing_plan: plan, title_en: "Course Index Bundle")
+    create(:course_plan_entitlement, course: course, billing_plan: plan)
     sign_in user, scope: :user
 
     get dashboard_marketplace_path(locale: :en)
 
     expect(response).to be_successful
-    expect(response.body).to include("Pro Bundle")
+    expect(response.body).to include("Course Index Bundle")
+  end
+
+  it "renders localized headings and sections when data is available" do
+    course_plan = create(:billing_plan, :one_time, key: "marketplace_course_locale")
+    course_product = create(:marketplace_product, billing_plan: course_plan, title_en: "Curso Alpha", title_es: "Curso Alpha")
+    create(:course_plan_entitlement, course: create(:course, title_en: "Curso Alpha"), billing_plan: course_plan)
+
+    ea_plan = create(:billing_plan, :one_time, key: "marketplace_ea_locale")
+    ea_product = create(:marketplace_product, billing_plan: ea_plan, title_en: "EA Alpha", title_es: "EA Alpha")
+    create(:billing_plan_entitlement, expert_advisor: create(:expert_advisor, name: "EA Alpha"), billing_plan: ea_plan)
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_path(locale: :es)
+
+    expect(response).to be_successful
+    expect(response.body).to include(I18n.t("dashboard.marketplace.index.heading", locale: :es))
+    expect(response.body).to include(I18n.t("dashboard.marketplace.sections.courses", locale: :es))
+    expect(response.body).to include(I18n.t("dashboard.marketplace.sections.digital_goods", locale: :es))
+    expect(response.body).to include(course_product.title_for(:es))
+    expect(response.body).to include(ea_product.title_for(:es))
+  end
+
+  it "shows the empty state when no products exist" do
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_path(locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include(I18n.t("dashboard.marketplace.index.empty_title", locale: :en))
+    expect(response.body).not_to include(I18n.t("dashboard.marketplace.sections.courses", locale: :en))
+    expect(response.body).not_to include("<!-- Cards 2 (Digital Goods) -->")
   end
 
   it "renders the marketplace product detail page" do

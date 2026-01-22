@@ -1,6 +1,8 @@
 <% label = local_assigns.fetch(:label) %>
 <% href = local_assigns.fetch(:href, "#") %>
 <% class_name = local_assigns.fetch(:class_name, "") %>
-<% base_class = "btn-xs text-xs border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300 px-2.5 py-1 rounded-full shadow-none" %>
+<% base_class = "inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border shadow-xs transition" %>
+<% default_class = "border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400" %>
+<% state_class = class_name.presence || default_class %>
 
-<%= link_to label, href, class: [base_class, class_name].reject(&:blank?).join(" ") %>
+<%= link_to label, href, class: [base_class, state_class].join(" ") %>
