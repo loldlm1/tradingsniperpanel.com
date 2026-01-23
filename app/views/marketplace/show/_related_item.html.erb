@@ -1,0 +1,21 @@
+<li class="sm:flex items-center">
+  <%= link_to item.detail_url, class: "block mb-4 sm:mb-0 mr-5 md:w-32 xl:w-auto shrink-0" do %>
+    <%= image_tag item.image, class: "rounded-xs", width: 200, height: 142, alt: item.title %>
+  <% end %>
+  <div class="grow">
+    <%= link_to item.detail_url do %>
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1"><%= item.title %></h3>
+    <% end %>
+    <% if item.summary.present? %>
+      <div class="text-sm mb-2"><%= truncate(item.summary, length: 140) %></div>
+    <% end %>
+    <!-- Rating and price -->
+    <div class="flex flex-wrap items-center space-x-2">
+      <!-- Rating -->
+      <!-- Price -->
+      <div>
+        <div class="inline-flex text-sm font-medium bg-green-500/20 text-green-700 rounded-full text-center px-2 py-0.5"><%= item.price_display %></div>
+      </div>
+    </div>
+  </div>
+</li>

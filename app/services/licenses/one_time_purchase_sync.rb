@@ -11,21 +11,23 @@ module Licenses
       return unless charge
       return if charge.subscription_id.present?
 
-      plan = resolve_plan(charge)
-      return unless plan&.one_time?
+      plans = resolve_plans(charge)
+      return if plans.empty?
 
       customer = charge.customer
       user = customer&.owner
       return unless user.is_a?(User)
 
-      record_marketplace_purchase(user: user, plan: plan, charge: charge)
+      plans.each do |plan|
+        record_marketplace_purchase(user: user, plan: plan, charge: charge)
 
-      plan.expert_advisors.find_each do |expert_advisor|
-        grant_license(user: user, expert_advisor: expert_advisor)
-      end
+        plan.expert_advisors.find_each do |expert_advisor|
+          grant_license(user: user, expert_advisor: expert_advisor)
+        end
 
-      plan.courses.find_each do |course|
-        grant_course_access(user: user, course: course, charge: charge)
+        plan.courses.find_each do |course|
+          grant_course_access(user: user, course: course, charge: charge)
+        end
       end
 
       mark_referral_completed(user: user, charge: charge)
@@ -38,8 +40,24 @@ module Licenses
 
     attr_reader :pay_charge_id, :encoder, :logger
 
-    def resolve_plan(charge)
+    def resolve_plans(charge)
       metadata = (charge.metadata || {}).to_h.stringify_keys
+      keys = extract_plan_keys(metadata)
+      plans = keys.map { |key| BillingPlan.for_key(key) }.compact
+
+      if plans.empty?
+        plan = resolve_plan_from_charge(charge, metadata: metadata)
+        plans = plan ? [plan] : []
+      end
+
+      plans.select(&:one_time?).uniq
+    end
+
+    def resolve_plan(charge)
+      resolve_plan_from_charge(charge, metadata: (charge.metadata || {}).to_h.stringify_keys)
+    end
+
+    def resolve_plan_from_charge(charge, metadata:)
       key = metadata["billing_plan_key"] || metadata["price_key"] || metadata["plan_key"]
       return BillingPlan.for_key(key) if key.present?
 
@@ -49,6 +67,13 @@ module Licenses
 
       product_id = metadata["stripe_product_id"] || metadata["product_id"] || extract_product_id(charge)
       BillingPlan.for_product_id(product_id)
+    end
+
+    def extract_plan_keys(metadata)
+      raw = metadata["billing_plan_keys"] || metadata["plan_keys"] || metadata["price_keys"]
+      return [] if raw.blank?
+
+      raw.to_s.split(",").map(&:strip).reject(&:blank?).uniq
     end
 
     def extract_price_id(charge)

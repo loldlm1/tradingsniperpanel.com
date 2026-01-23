@@ -22,6 +22,7 @@ Rails.application.routes.draw do
     get "dashboard/marketplace/assets/:id", to: "marketplace_assets#show", as: :dashboard_marketplace_asset
     get "dashboard/marketplace/assets/:id/download", to: "marketplace_assets#download", as: :dashboard_marketplace_asset_download
     get "dashboard/marketplace/:id", to: "marketplace#show", as: :dashboard_marketplace_product
+    post "dashboard/marketplace/:id/checkout", to: "marketplace#checkout", as: :dashboard_marketplace_product_checkout
     get "dashboard/plans", to: "dashboards#plans", as: :dashboard_plans
     get "dashboard/billing", to: "dashboards#billing", as: :dashboard_billing
     get "dashboard/support", to: "dashboards#support", as: :dashboard_support
