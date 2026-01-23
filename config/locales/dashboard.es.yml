@@ -209,7 +209,7 @@ es:
         required_base_title: "Acceso base requerido"
         requires_base: "Se requiere acceso de pago a %{base} para usar este add-on."
       show:
-        back_link: "<- Volver al Marketplace"
+        back_link: "← Volver al Marketplace"
         promo_badge: "Oferta especial"
         empty_description: "Aún no hay un resumen disponible."
         related_title: "Comprados juntos con frecuencia"
