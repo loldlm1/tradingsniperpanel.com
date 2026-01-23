@@ -16,10 +16,10 @@
 <% content_for :title, "#{app_short_name} - #{marketplace.title}" %>
 
 <!-- Page content -->
-<div class="max-w-5xl mx-auto flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-x-8 xl:gap-x-16">
+<div class="max-w-5xl mx-auto flex flex-col lg:flex-row lg:space-x-8 xl:space-x-16">
 
   <!-- Content -->
-  <div class="lg:col-start-1 lg:row-start-1">
+  <div>
     <div class="mb-3">
       <%= link_to t("dashboard.marketplace.show.back_link"),
                   dashboard_marketplace_path(locale: I18n.locale),
@@ -83,10 +83,37 @@
     </div>
 
     <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60 lg:hidden" />
+
+    <% if marketplace.related_items.any? %>
+      <div class="hidden lg:block">
+        <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60" />
+
+        <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60" />
+
+        <!-- Related -->
+        <div>
+          <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-2"><%= t("dashboard.marketplace.show.related_title") %></h2>
+          <ul class="space-y-8 sm:space-y-5 my-6">
+            <% marketplace.related_items.each do |item| %>
+              <!-- Related item -->
+              <%= render "marketplace/show/related_item", item: item %>
+            <% end %>
+          </ul>
+          <!-- Load More -->
+          <div class="text-center">
+            <%= link_to t("dashboard.marketplace.show.load_more"),
+                        marketplace.related_load_more_url,
+                        class: "btn bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300" %>
+          </div>
+        </div>
+
+        <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60" />
+      </div>
+    <% end %>
   </div>
 
   <!-- Sidebar -->
-  <div class="lg:col-start-2 lg:row-start-1 lg:row-span-2">
+  <div>
     <div class="bg-white dark:bg-gray-800 p-5 shadow-xs rounded-xl lg:w-72 xl:w-80">
       <%= form_with url: dashboard_marketplace_product_checkout_path(product, locale: I18n.locale),
                     method: :post,
@@ -180,7 +207,7 @@
 
   <!-- Related -->
   <% if marketplace.related_items.any? %>
-    <div class="lg:col-start-1 lg:row-start-2">
+    <div class="lg:hidden">
       <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60" />
 
       <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60" />
