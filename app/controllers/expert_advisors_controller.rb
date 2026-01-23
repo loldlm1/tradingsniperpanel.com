@@ -9,10 +9,15 @@ class ExpertAdvisorsController < ApplicationController
   before_action :set_markdown, only: [:guides]
 
   def index
-    @selected_status = normalized_filter(params[:status])
-    @selected_type = normalized_filter(params[:type])
-    @accessible_eas = filter_entries(@accessible_eas)
-    @guide_previews = ExpertAdvisors::GuidePreview.for_entries(@accessible_eas, locale: I18n.locale)
+    @filter_query = params[:q].to_s.strip
+    @filter_tag = params[:tag].to_s.strip
+    @index_presenter = ExpertAdvisors::IndexPresenter.new(
+      entries: @accessible_eas,
+      user: current_user,
+      locale: I18n.locale,
+      marketplace_available: @marketplace_available,
+      page: params[:page]
+    )
   end
 
   def show; end
@@ -73,21 +78,4 @@ class ExpertAdvisorsController < ApplicationController
     @guide_preview = ExpertAdvisors::GuidePreview.call(@expert_advisor.doc_guide_for(I18n.locale))
   end
 
-  def normalized_filter(value)
-    value = value.to_s
-    return nil if value.blank? || value == "all"
-
-    value
-  end
-
-  def filter_entries(entries)
-    filtered = entries
-    if @selected_status.present?
-      filtered = filtered.select { |entry| entry.status.to_s == @selected_status }
-    end
-    if @selected_type.present?
-      filtered = filtered.select { |entry| entry.expert_advisor.ea_type.to_s == @selected_type }
-    end
-    filtered
-  end
 end

@@ -3,4 +3,5 @@
 pin "application"
 pin "dashboard_analytics"
 pin "dashboard_main"
+pin "filterable_cards"
 pin "marketplace_show"

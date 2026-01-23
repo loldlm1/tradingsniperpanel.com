@@ -461,6 +461,11 @@ es:
       index:
         title: "Expert Advisors"
         subtitle: "Tus Expert Advisors activos y guías."
+        search_label: "Buscar"
+        search_placeholder: "Buscar..."
+        count_template: "%{count} Expert Advisors"
+        guide_title: "Guía"
+        guide_copy: "Accede a la guía del bot y a la ficha completa del sistema."
         table:
           title: "Todos los Expert Advisors"
           columns:
@@ -471,12 +476,14 @@ es:
         status: "Estado"
         type: "Tipo"
         all_types: "Todos los tipos"
+        all: "Ver todo"
         note: "Filtra por estado y tipo para encontrar tus herramientas."
       types:
         ea_robot: "EA Robot"
         ea_tool: "EA Tool"
         indicator: "Indicador"
         script: "Script"
+      guide_cta: "Ver guía"
       pnl_soon: "PnL pronto"
       trial_countdown: "La prueba termina %{date}"
       docs_copy: "Vista previa en markdown con anclas y código para copiar."
@@ -512,6 +519,26 @@ es:
       performance_placeholder: "Las estadísticas se sincronizarán de las cuentas de broker cuando lancemos la función."
       copy_code: "Copiar"
       copied: "Copiado"
+      addons:
+        title: "Progreso de Adons"
+        progress: "%{owned}/%{total}"
+        purchase_cta: "Adquirir"
+        owned_cta: "Adquirido"
+      license:
+        title: "Licencia"
+        hint: "Copia la licencia completa para activar el sistema."
+        locked_value: "Bloqueada"
+        locked_hint: "Desbloquea para ver tu licencia."
+      status:
+        active: "Licencia activa"
+        trial: "Licencia de prueba"
+        expired: "Licencia expirada"
+        revoked: "Licencia revocada"
+        locked: "Licencia bloqueada"
+    pagination:
+      nav_label: "Navegación"
+      prev: "Anterior"
+      next: "Siguiente"
     courses:
       index:
         title: "Cursos"

@@ -1,6 +1,7 @@
 // Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
 import "dashboard_analytics";
 import "dashboard_main";
+import "filterable_cards";
 import "marketplace_show";
 
 const resetLoadingButtons = () => {

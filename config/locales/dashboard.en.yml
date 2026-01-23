@@ -461,6 +461,11 @@ en:
       index:
         title: "Expert Advisors"
         subtitle: "Your active Expert Advisors and guides."
+        search_label: "Search"
+        search_placeholder: "Search..."
+        count_template: "%{count} Expert Advisors"
+        guide_title: "Guide"
+        guide_copy: "Access the guide and the full system sheet."
         table:
           title: "All Expert Advisors"
           columns:
@@ -471,12 +476,14 @@ en:
         status: "Status"
         type: "Type"
         all_types: "All types"
+        all: "View All"
         note: "Filter by status and type to find your tools faster."
       types:
         ea_robot: "EA Robot"
         ea_tool: "EA Tool"
         indicator: "Indicator"
         script: "Script"
+      guide_cta: "View guide"
       pnl_soon: "PnL coming soon"
       trial_countdown: "Trial ends %{date}"
       docs_copy: "Markdown preview with anchors and copy-friendly code blocks."
@@ -512,6 +519,26 @@ en:
       performance_placeholder: "Live stats will sync from broker accounts once the feature ships."
       copy_code: "Copy"
       copied: "Copied"
+      addons:
+        title: "Add-ons progress"
+        progress: "%{owned}/%{total}"
+        purchase_cta: "Acquire"
+        owned_cta: "Owned"
+      license:
+        title: "License"
+        hint: "Copy the full license to activate the system."
+        locked_value: "Locked"
+        locked_hint: "Unlock to view your license."
+      status:
+        active: "Active license"
+        trial: "Trial license"
+        expired: "Expired license"
+        revoked: "Revoked license"
+        locked: "Locked license"
+    pagination:
+      nav_label: "Navigation"
+      prev: "Previous"
+      next: "Next"
     courses:
       index:
         title: "Courses"
