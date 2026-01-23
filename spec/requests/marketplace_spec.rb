@@ -176,4 +176,68 @@ RSpec.describe "Marketplace", type: :request do
 
     expect(response).to redirect_to("https://checkout.test/session")
   end
+
+  it "shows the add-ons empty state and progress when no add-ons exist" do
+    base_plan = create(:billing_plan, :one_time)
+    base_product = create(:marketplace_product, billing_plan: base_plan, title_en: "Base Bundle")
+    expert_advisor = create(:expert_advisor, name: "Base EA")
+    create(:billing_plan_entitlement, billing_plan: base_plan, expert_advisor: expert_advisor)
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_product_path(base_product, locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include(I18n.t("dashboard.marketplace.show.addons.title", locale: :en))
+    expect(response.body).to include(I18n.t("dashboard.marketplace.show.addons.empty", locale: :en))
+    expect(response.body).to include("0/0")
+  end
+
+  it "hides owned add-ons from the add-ons list" do
+    base_plan = create(:billing_plan, :one_time)
+    base_product = create(:marketplace_product, billing_plan: base_plan, title_en: "Base Bundle")
+    expert_advisor = create(:expert_advisor, name: "Base EA")
+    create(:billing_plan_entitlement, billing_plan: base_plan, expert_advisor: expert_advisor)
+
+    addon_plan = create(:billing_plan, :one_time)
+    create(:addon, addonable: expert_advisor, billing_plan: addon_plan)
+    create(:marketplace_product, billing_plan: addon_plan, title_en: "Hidden Addon")
+    create(:marketplace_purchase, user: user, billing_plan: addon_plan)
+
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_product_path(base_product, locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).not_to include("data-addon-key=\"#{addon_plan.key}\"")
+    expect(response.body).to include(I18n.t("dashboard.marketplace.show.addons.empty", locale: :en))
+  end
+
+  it "shows a base missing warning for add-on products without a base" do
+    expert_advisor = create(:expert_advisor, name: "Addon EA")
+    addon_plan = create(:billing_plan, :one_time)
+    create(:addon, addonable: expert_advisor, billing_plan: addon_plan)
+    addon_product = create(:marketplace_product, billing_plan: addon_plan, title_en: "Addon Only")
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_product_path(addon_product, locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include(I18n.t("dashboard.marketplace.show.base_missing", locale: :en))
+  end
+
+  it "redirects with an error when no items are selected for checkout" do
+    base_plan = create(:billing_plan, :one_time)
+    base_product = create(:marketplace_product, billing_plan: base_plan, title_en: "Owned Base")
+    expert_advisor = create(:expert_advisor, name: "Owned EA")
+    create(:billing_plan_entitlement, billing_plan: base_plan, expert_advisor: expert_advisor)
+    create(:marketplace_purchase, user: user, billing_plan: base_plan)
+    create(:license, :one_time, user: user, expert_advisor: expert_advisor)
+    sign_in user, scope: :user
+
+    post dashboard_marketplace_product_checkout_path(base_product, locale: :en),
+         params: { base_plan_key: base_plan.key, addon_keys: [] }
+
+    expect(response).to redirect_to(dashboard_marketplace_product_path(base_product, locale: :en))
+    expect(flash[:alert]).to eq(I18n.t("dashboard.marketplace.errors.no_items_selected", locale: :en))
+  end
 end
