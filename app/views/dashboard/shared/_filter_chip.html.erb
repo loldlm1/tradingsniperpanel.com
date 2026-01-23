@@ -1,8 +1,15 @@
 <% label = local_assigns.fetch(:label) %>
 <% href = local_assigns.fetch(:href, "#") %>
 <% class_name = local_assigns.fetch(:class_name, "") %>
+<% extra_class = local_assigns.fetch(:extra_class, "") %>
+<% interactive = local_assigns.fetch(:interactive, true) %>
 <% base_class = "inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border shadow-xs transition" %>
 <% default_class = "border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400" %>
 <% state_class = class_name.presence || default_class %>
+<% combined_class = [base_class, state_class, extra_class].join(" ") %>
 
-<%= link_to label, href, class: [base_class, state_class].join(" ") %>
+<% if interactive %>
+  <%= link_to label, href, class: combined_class %>
+<% else %>
+  <span class="<%= combined_class %>"><%= label %></span>
+<% end %>
