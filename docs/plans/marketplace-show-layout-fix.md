@@ -14,10 +14,11 @@ Restore the marketplace show layout so large screens match the intended two-colu
 - Avoid over-complex layout changes; prefer class or structural adjustments in `app/views/marketplace/show.html.erb`.
 
 ## Steps
-1. Inspect `app/views/marketplace/show.html.erb` to confirm current grid/flex structure and ordering.
-2. Adjust layout classes/structure so the two-column desktop layout matches the original mockup while preserving mobile order.
-3. Add a responsive-only `hr` after the product description (visible on small screens, hidden on lg+).
-4. Verify ordering and divider visibility in light/dark themes at small and lg+ widths.
+1. Inspect `app/views/marketplace/show.html.erb` and Mosaic patterns to confirm which responsive classes are available.
+2. Align the container layout with Mosaic (`flex flex-col lg:flex-row` + spacing) to restore the large-screen two-column layout.
+3. Render the related section so mobile order remains content → sidebar → related while desktop keeps related under content (likely via a responsive-only variant).
+4. Keep the mobile-only `hr` after the description.
+5. Verify ordering and divider visibility in light/dark themes at small and lg+ widths.
 
 ## Open Questions
 None.
@@ -26,8 +27,10 @@ None.
 - Match the responsive patterns from `mosaic-html/dashboard_marketplace_show.html` (keep `lg` breakpoint).
 - Mobile-only divider uses the same separator styling as other `hr` elements.
 - Layout order: small screens = content → sidebar → related; large screens = content left + sidebar right, related below content.
+- Render the related section twice, using responsive visibility classes (`hidden lg:block` and `lg:hidden`) to avoid rebuilding Tailwind.
 
 ## Commands
+- PASS: sed -n '1,200p' docs/plans/marketplace-show-layout-fix.md
 - PASS: rg -n "Frequently Bought|Related" mosaic-html/dashboard_marketplace_show.html
 - PASS: rg -n "Page content|Sidebar" mosaic-html/dashboard_marketplace_show.html
 - PASS: sed -n '1030,1115p' mosaic-html/dashboard_marketplace_show.html
@@ -36,3 +39,23 @@ None.
 - PASS: sed -n '1330,1395p' mosaic-html/dashboard_marketplace_show.html
 - PASS: sed -n '1395,1465p' mosaic-html/dashboard_marketplace_show.html
 - PASS: sed -n '1,260p' app/views/marketplace/show.html.erb
+- PASS: rg -n "lg:hidden" mosaic-html/dashboard_marketplace_show.html | head
+- PASS: rg --files -g 'tailwind*'
+- FAIL: rg --files -g 'tailwind.config.*'
+- PASS: rg -n "tailwind" app/assets/stylesheets app/assets/builds config | head
+- PASS: ls app/assets
+- PASS: ls app/assets/stylesheets
+- PASS: ls app/assets/tailwind
+- PASS: sed -n '1,200p' app/assets/tailwind/application.css
+- FAIL: rg -n "\\.lg\\\\:grid" app/assets/builds/tailwind.css
+- FAIL: rg -n "\\.lg\\\\:flex-row" app/assets/builds/tailwind.css
+- PASS: rg -n "flex-row" app/assets/builds/tailwind.css | head
+- PASS: rg -n "grid-cols-2" app/assets/builds/tailwind.css | head
+- PASS: rg -n "minmax\\(0,1fr\\).*18rem" app/assets/builds/tailwind.css
+- PASS: rg -n "grid-template-columns:minmax\\(0,1fr\\) 18rem" app/assets/builds/tailwind.css
+- FAIL: rg -n "\\.lg\\\\:pr-80" app/assets/builds/tailwind.css
+- PASS: rg -n "lg:flex-row|lg:grid|lg:space-x-8|lg:space-x-" app/views app/assets
+- FAIL: rg -n "lg\\\\:grid-cols-3" app/assets/builds/tailwind.css
+- PASS: rg -n "grid-cols-3" app/assets/builds/tailwind.css | head
+- PASS: rg -n "min-width:64rem" app/assets/builds/tailwind.css | head
+- PASS: sed -n '1,280p' app/views/marketplace/show.html.erb
