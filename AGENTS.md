@@ -10,6 +10,10 @@
   - Delete it after copying a 5–10 line “Post-Implementation Summary” into the PR description.
   - `docs/plans/` should contain only active work.
 
+# Skills playbooks
+- See `agents/skills/README.md` for selector policy and role playbooks.
+- Default playbook: `agents/skills/fullstack.md`, switch to specialist playbooks as needed.
+
 # Engineering Notes (Ruby/Rails)
 
 - **Structure first**: keep controllers thin; push business logic to POROs/service objects under `app/services` and plain models. Use concerns sparingly—prefer explicit composition and small objects.
