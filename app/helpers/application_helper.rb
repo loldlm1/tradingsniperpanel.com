@@ -1,5 +1,4 @@
 module ApplicationHelper
-  include Pagy::Frontend
   def support_email
     Rails.configuration.x.branding.support_email
   end
