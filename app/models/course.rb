@@ -42,7 +42,23 @@ class Course < ApplicationRecord
     localized_value(:description, locale)
   end
 
+  def free_access?
+    subscription_tiers.blank? && !marketplace_only?
+  end
+
+  def marketplace_only?
+    return false if subscription_tiers.present?
+
+    if billing_plans.loaded?
+      billing_plans.any?(&:one_time?)
+    else
+      billing_plans.one_time.exists?
+    end
+  end
+
   def allowed_for_tier?(tier)
+    return false if marketplace_only?
+
     allowed = subscription_tiers
     return true if allowed.blank?
 

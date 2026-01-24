@@ -26,6 +26,14 @@
 4) Add tests covering the index presenter filtering logic, marketplace CTA selection, and request response shape/content.
 5) Run `bundle exec rspec` and record PASS/FAIL in this plan.
 
+## Decisions
+- Tag chip counts use the same metric as selection: count of courses with `progress_percent > 0`; if none, fall back to total course counts.
+- Unlock CTA prefers marketplace product links when available; fallback to subscription plans.
+- Seeds: 10 total courses; 4 tied to marketplace products (3 marketplace+subscription, 1 marketplace-only), remaining 6 subscription-only.
+
 ## Open Questions
-- Should tag chip counts reflect the progress-activity counts (courses with `progress_percent > 0`), or total courses for those tags?
-- Confirm the seed breakdown for 10 courses: how many should have marketplace products, and how many of those are marketplace-only vs marketplace+subscription vs subscription-only?
+- None.
+
+## Commands
+- `bundle exec rspec` (FAIL)
+- `bundle exec rspec` (PASS)

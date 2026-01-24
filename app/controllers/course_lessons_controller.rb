@@ -50,7 +50,7 @@ class CourseLessonsController < ApplicationController
 
   def ensure_access!
     return if @course_entry&.accessible
-    return if @course.subscription_tiers.blank?
+    return if @course.free_access?
 
     redirect_to dashboard_course_path(@course, locale: I18n.locale), alert: t("dashboard.courses.access_locked")
   end

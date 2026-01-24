@@ -205,7 +205,7 @@ module Seeds
           description_en: "A quick start course for new traders to align on the workflow.",
           description_es: "Curso rapido para alinear el flujo de trabajo.",
           tags: %w[foundations basics],
-          tiers: [],
+          tiers: %w[basic],
           modules: [
             {
               title_en: "Welcome and Setup",
@@ -416,6 +416,342 @@ module Seeds
               ]
             }
           ]
+        },
+        {
+          slug: "price-action-sets",
+          position: 5,
+          status: "published",
+          category: "beginner",
+          title_en: "Price Action Sets",
+          title_es: "Setups de accion del precio",
+          summary_en: "Read structure and timing with clear price action patterns.",
+          summary_es: "Lee estructura y timing con patrones claros de precio.",
+          description_en: "Pattern-based entries built on clean structure and market context.",
+          description_es: "Entradas por patrones con estructura y contexto.",
+          tags: %w[price_action patterns],
+          tiers: %w[basic],
+          modules: [
+            {
+              title_en: "Structure Basics",
+              title_es: "Bases de estructura",
+              summary_en: "Define swing points and usable zones.",
+              summary_es: "Define swings y zonas operables.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Swing Points",
+                  title_es: "Puntos de swing",
+                  duration_seconds: 540,
+                  stream_uid: "demo_stream_uid_17"
+                ),
+                lesson_attrs(
+                  title_en: "Range Breaks",
+                  title_es: "Rupturas de rango",
+                  duration_seconds: 600,
+                  stream_uid: "demo_stream_uid_18"
+                )
+              ]
+            },
+            {
+              title_en: "Entry Patterns",
+              title_es: "Patrones de entrada",
+              summary_en: "Identify high-probability triggers.",
+              summary_es: "Identifica gatillos de alta probabilidad.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Break and Retest",
+                  title_es: "Ruptura y retesteo",
+                  duration_seconds: 660,
+                  stream_uid: "demo_stream_uid_19"
+                ),
+                lesson_attrs(
+                  title_en: "Failed Breakouts",
+                  title_es: "Falsas rupturas",
+                  duration_seconds: 600,
+                  stream_uid: "demo_stream_uid_20"
+                )
+              ]
+            }
+          ]
+        },
+        {
+          slug: "orderflow-lab",
+          position: 6,
+          status: "published",
+          category: "intermediate",
+          title_en: "Orderflow Lab",
+          title_es: "Laboratorio de orderflow",
+          summary_en: "Map liquidity and validate entries with flow data.",
+          summary_es: "Mapea liquidez y valida entradas con flujo.",
+          description_en: "Applied orderflow practice for timing and liquidity insight.",
+          description_es: "Practica aplicada de orderflow para timing y liquidez.",
+          tags: %w[orderflow liquidity],
+          tiers: [],
+          modules: [
+            {
+              title_en: "Tape Reading",
+              title_es: "Lectura de cinta",
+              summary_en: "See pressure shifts before the move.",
+              summary_es: "Detecta cambios de presion antes del movimiento.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Imbalance Clues",
+                  title_es: "Pistas de desequilibrio",
+                  duration_seconds: 600,
+                  stream_uid: "demo_stream_uid_21"
+                ),
+                lesson_attrs(
+                  title_en: "Absorption",
+                  title_es: "Absorcion",
+                  duration_seconds: 660,
+                  stream_uid: "demo_stream_uid_22"
+                )
+              ]
+            },
+            {
+              title_en: "Liquidity Mapping",
+              title_es: "Mapa de liquidez",
+              summary_en: "Track pools and reaction zones.",
+              summary_es: "Rastrea pools y zonas de reaccion.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Liquidity Sweeps",
+                  title_es: "Barridos de liquidez",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_23"
+                ),
+                lesson_attrs(
+                  title_en: "Flow Confirmation",
+                  title_es: "Confirmacion de flujo",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_24"
+                )
+              ]
+            }
+          ]
+        },
+        {
+          slug: "macro-structure",
+          position: 7,
+          status: "published",
+          category: "intermediate",
+          title_en: "Macro Structure",
+          title_es: "Estructura macro",
+          summary_en: "Align intraday tactics with macro drivers.",
+          summary_es: "Alinea tacticas intradia con drivers macro.",
+          description_en: "Frameworks for macro regimes, narratives, and timing.",
+          description_es: "Frameworks para regimenes macro, narrativas y timing.",
+          tags: %w[macro fundamentals],
+          tiers: %w[hft],
+          modules: [
+            {
+              title_en: "Macro Drivers",
+              title_es: "Drivers macro",
+              summary_en: "Rate cycles and liquidity shifts.",
+              summary_es: "Ciclos de tasas y cambios de liquidez.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Rate Cycles",
+                  title_es: "Ciclos de tasas",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_25"
+                ),
+                lesson_attrs(
+                  title_en: "Risk On Risk Off",
+                  title_es: "Riesgo on riesgo off",
+                  duration_seconds: 660,
+                  stream_uid: "demo_stream_uid_26"
+                )
+              ]
+            },
+            {
+              title_en: "News Filters",
+              title_es: "Filtros de noticias",
+              summary_en: "Prepare for key events.",
+              summary_es: "Prepara eventos clave.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Event Windows",
+                  title_es: "Ventanas de evento",
+                  duration_seconds: 600,
+                  stream_uid: "demo_stream_uid_27"
+                ),
+                lesson_attrs(
+                  title_en: "Correlation Map",
+                  title_es: "Mapa de correlacion",
+                  duration_seconds: 600,
+                  stream_uid: "demo_stream_uid_28"
+                )
+              ]
+            }
+          ]
+        },
+        {
+          slug: "algorithmic-execution",
+          position: 8,
+          status: "published",
+          category: "advanced",
+          title_en: "Algorithmic Execution",
+          title_es: "Ejecucion algoritmica",
+          summary_en: "Translate strategies into automated execution.",
+          summary_es: "Traduce estrategias a ejecucion automatizada.",
+          description_en: "Design signals, validate them, and deploy safely.",
+          description_es: "Disena senales, valida y despliega con seguridad.",
+          tags: %w[automation execution],
+          tiers: %w[pro],
+          modules: [
+            {
+              title_en: "Signal Engineering",
+              title_es: "Ingenieria de senales",
+              summary_en: "Define rules without ambiguity.",
+              summary_es: "Define reglas sin ambiguedad.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Rule Translation",
+                  title_es: "Traduccion de reglas",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_29"
+                ),
+                lesson_attrs(
+                  title_en: "Signal Validation",
+                  title_es: "Validacion de senales",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_30"
+                )
+              ]
+            },
+            {
+              title_en: "Execution",
+              title_es: "Ejecucion",
+              summary_en: "Protect against slippage and drift.",
+              summary_es: "Protege contra slippage y drift.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Order Routing",
+                  title_es: "Ruteo de ordenes",
+                  duration_seconds: 660,
+                  stream_uid: "demo_stream_uid_31"
+                ),
+                lesson_attrs(
+                  title_en: "Slippage Control",
+                  title_es: "Control de slippage",
+                  duration_seconds: 600,
+                  stream_uid: "demo_stream_uid_32"
+                )
+              ]
+            }
+          ]
+        },
+        {
+          slug: "psychology-discipline",
+          position: 9,
+          status: "published",
+          category: "beginner",
+          title_en: "Psychology and Discipline",
+          title_es: "Psicologia y disciplina",
+          summary_en: "Build routines that keep decisions consistent.",
+          summary_es: "Crea rutinas para decisiones consistentes.",
+          description_en: "Mindset systems for calm execution under pressure.",
+          description_es: "Sistemas de mindset para ejecutar bajo presion.",
+          tags: %w[psychology discipline],
+          tiers: %w[basic],
+          modules: [
+            {
+              title_en: "Mindset",
+              title_es: "Mindset",
+              summary_en: "Reduce noise before the session.",
+              summary_es: "Reduce ruido antes de la sesion.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Pre-Session Prep",
+                  title_es: "Preparacion previa",
+                  duration_seconds: 540,
+                  stream_uid: "demo_stream_uid_33"
+                ),
+                lesson_attrs(
+                  title_en: "Emotional Triggers",
+                  title_es: "Disparadores emocionales",
+                  duration_seconds: 600,
+                  stream_uid: "demo_stream_uid_34"
+                )
+              ]
+            },
+            {
+              title_en: "Process",
+              title_es: "Proceso",
+              summary_en: "Keep a tight execution loop.",
+              summary_es: "Mantiene un bucle de ejecucion.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Rules Journal",
+                  title_es: "Diario de reglas",
+                  duration_seconds: 600,
+                  stream_uid: "demo_stream_uid_35"
+                ),
+                lesson_attrs(
+                  title_en: "Consistency Loops",
+                  title_es: "Loops de consistencia",
+                  duration_seconds: 660,
+                  stream_uid: "demo_stream_uid_36"
+                )
+              ]
+            }
+          ]
+        },
+        {
+          slug: "portfolio-hedging",
+          position: 10,
+          status: "published",
+          category: "advanced",
+          title_en: "Portfolio Hedging",
+          title_es: "Cobertura de portafolio",
+          summary_en: "Balance exposure with systematic hedges.",
+          summary_es: "Balancea exposicion con coberturas sistematicas.",
+          description_en: "Protect capital through structured hedging plans.",
+          description_es: "Protege capital con planes de cobertura.",
+          tags: %w[portfolio risk],
+          tiers: %w[pro],
+          modules: [
+            {
+              title_en: "Exposure Control",
+              title_es: "Control de exposicion",
+              summary_en: "Quantify and cap correlated risk.",
+              summary_es: "Cuantifica y limita riesgo correlacionado.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Hedge Ratios",
+                  title_es: "Ratios de cobertura",
+                  duration_seconds: 660,
+                  stream_uid: "demo_stream_uid_37"
+                ),
+                lesson_attrs(
+                  title_en: "Correlation Bands",
+                  title_es: "Bandas de correlacion",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_38"
+                )
+              ]
+            },
+            {
+              title_en: "Scenario Planning",
+              title_es: "Planeacion de escenarios",
+              summary_en: "Stress-test exposure before it hurts.",
+              summary_es: "Stress test de exposicion antes del dolor.",
+              lessons: [
+                lesson_attrs(
+                  title_en: "Stress Tests",
+                  title_es: "Stress tests",
+                  duration_seconds: 720,
+                  stream_uid: "demo_stream_uid_39"
+                ),
+                lesson_attrs(
+                  title_en: "Capital Buckets",
+                  title_es: "Buckets de capital",
+                  duration_seconds: 660,
+                  stream_uid: "demo_stream_uid_40"
+                )
+              ]
+            }
+          ]
         }
       ]
     end
@@ -515,6 +851,28 @@ module Seeds
           user: user,
           lesson: lesson,
           progress_seconds: lesson.duration_seconds.to_i,
+          completed: true
+        ).call
+      end
+
+      price_course = Course.find_by(slug: "price-action-sets")
+      price_lesson = price_course&.course_lessons&.first
+      if price_lesson
+        Courses::ProgressTracker.new(
+          user: user,
+          lesson: price_lesson,
+          progress_seconds: (price_lesson.duration_seconds.to_i * 0.4).to_i,
+          completed: false
+        ).call
+      end
+
+      mindset_course = Course.find_by(slug: "psychology-discipline")
+      mindset_lesson = mindset_course&.course_lessons&.first
+      if mindset_lesson
+        Courses::ProgressTracker.new(
+          user: user,
+          lesson: mindset_lesson,
+          progress_seconds: (mindset_lesson.duration_seconds.to_i * 0.6).to_i,
           completed: true
         ).call
       end
@@ -1179,8 +1537,24 @@ module Seeds
           stripe_required: false
         },
         {
-          slug: "asset_quick_start_guide",
+          slug: "course_orderflow_lab",
           sort_order: 8,
+          title_en: "Orderflow Lab Course",
+          title_es: "Curso Laboratorio de orderflow",
+          summary_en: "Deep dive into liquidity mapping and flow validation.",
+          summary_es: "Inmersion en mapa de liquidez y validacion de flujo.",
+          description_en: "One-time access to the Orderflow Lab course.",
+          description_es: "Acceso unico al curso Laboratorio de orderflow.",
+          amount_cents: 7200,
+          image: Rails.root.join("app", "assets", "templates", "mosaic", "images", "applications-image-30.jpg"),
+          ea_ids: [],
+          course_slugs: %w[orderflow-lab],
+          asset_slugs: [],
+          stripe_required: false
+        },
+        {
+          slug: "asset_quick_start_guide",
+          sort_order: 9,
           title_en: "Quick Start Guide",
           title_es: "Guia de Inicio Rapido",
           summary_en: "A fast onboarding guide to get you trading in minutes.",
@@ -1196,7 +1570,7 @@ module Seeds
         },
         {
           slug: "asset_risk_checklist",
-          sort_order: 9,
+          sort_order: 10,
           title_en: "Risk Checklist",
           title_es: "Checklist de Riesgo",
           summary_en: "Daily rules to stay aligned with your risk plan.",
