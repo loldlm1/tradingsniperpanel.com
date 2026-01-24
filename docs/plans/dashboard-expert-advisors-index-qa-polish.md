@@ -6,6 +6,7 @@
 - Use `_filter_chip` styling for card tags.
 - Replace locked “View Guide” label with an unlock-focused CTA.
 - Improve header status chip and license field styling for dark theme readability.
+- Fix header status chip wrapping and improve locked-status contrast in dark theme.
 
 ## Definition of Done
 - License block renders the full key inside a field-like container with truncation at the end, no overflow, and the copy button state is visible when toggled.
@@ -14,6 +15,7 @@
 - Locked CTA copy communicates “unlock” intent while keeping the same destination URLs.
 - Header status badge uses the filter chip styling and reads clearly in dark theme.
 - License field contrast is improved in dark theme so the “Locked” value is visible.
+- Status badge stays on one line in the header and locked/expired/revoked text is readable in dark mode.
 - Request specs cover the new license display and locked CTA label changes (no system specs).
 
 ## Constraints
@@ -30,7 +32,8 @@
 5. Add a single locked CTA label + I18n keys and swap the view to use it.
 6. Update request specs to assert license display formatting and locked CTA label changes.
 7. Update the header status badge to use the filter chip styling and refine license field colors for dark theme contrast.
-8. Run request specs + full suite; log PASS/FAIL.
+8. Keep the status badge on one line (no wrap) and adjust locked/expired/revoked contrast for dark mode.
+9. Run request specs + full suite; log PASS/FAIL.
 
 ## Open Questions
 - (none)
@@ -47,3 +50,5 @@
 - Command: bundle exec rspec (PASS)
 - Command: bundle exec rspec (FAIL)
 - Command: bundle exec rspec (PASS)
+- Decision: status badge uses `whitespace-nowrap` + `leading-4` and the header column is `shrink-0` to avoid wrapping.
+- Decision: default status badge text uses `dark:text-gray-100` for contrast.

@@ -160,7 +160,7 @@ module ExpertAdvisors
       when "trial"
         "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200"
       else
-        "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200"
+        "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100"
       end
     end
 
