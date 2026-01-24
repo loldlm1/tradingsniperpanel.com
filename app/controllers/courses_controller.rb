@@ -4,7 +4,14 @@ class CoursesController < ApplicationController
   before_action :set_course_entry, only: [:show]
 
   def index
-    @course_entries = @accessible_courses || []
+    @filter_query = params[:q].to_s.strip
+    @filter_tag = params[:tag].to_s.strip
+    @index_presenter = Courses::IndexPresenter.new(
+      entries: @accessible_courses || [],
+      locale: I18n.locale,
+      page: params[:page],
+      items: 8
+    )
   end
 
   def show

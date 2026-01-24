@@ -19,7 +19,7 @@ Short, API-flavored map of the persisted data model so agents and developers can
 ## Tables and key fields
 - `users`: `email` (uniq), `encrypted_password`, `name`, `preferred_locale`, `time_zone`, `provider`/`uid`, `oauth_data` JSON, `terms_accepted_at`, `role` enum. Associations: `pay_customers`, `licenses`, `user_expert_advisors`, `partner_profile`, refer gem (`referrer`, `referral_codes`, `referrals`).
 - `expert_advisors`: `name`, `description`, `ea_type` enum (`ea_robot`, `ea_tool`, `indicator`, `script`), `doc_guide_en`/`doc_guide_es` (markdown text), `allowed_subscription_tiers` JSON array, `ea_id` (immutable slug/id), `trial_enabled`, `deleted_at`, `ea_files` (Active Storage attachment for the EA bundle).
-- `courses`: `slug`, `status` (`draft`, `published`), `category`, `position`, `published_at`, localized `title_*`, `summary_*`, `description_*`; has many `course_modules`, `course_lessons`, and entitlements to billing plans.
+- `courses`: `slug`, `status` (`draft`, `published`), `category`, `position`, `published_at`, localized `title_*`, `summary_*`, `description_*`, `cover_image` (Active Storage); has many `course_modules`, `course_lessons`, and entitlements to billing plans.
 - `course_modules`: `course_id`, `position`, localized `title_*`, `summary_*`; has many `course_lessons`.
 - `course_lessons`: `course_module_id`, `position`, localized `title_*`, `summary_*`, `body_markdown_*`, `stream_uid`, `duration_seconds`.
 - `course_plan_entitlements`: `course_id`, `billing_plan_id` (unique per pair) connecting paid tiers to courses.
