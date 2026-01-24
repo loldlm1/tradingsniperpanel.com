@@ -5,12 +5,15 @@
 - Replace guide preview markdown with a clean, static guide message.
 - Use `_filter_chip` styling for card tags.
 - Replace locked “View Guide” label with an unlock-focused CTA.
+- Improve header status chip and license field styling for dark theme readability.
 
 ## Definition of Done
 - License block renders the full key inside a field-like container with truncation at the end, no overflow, and the copy button state is visible when toggled.
 - Guide copy uses an I18n message instead of raw markdown/video embed content.
 - Card tags render with `app/views/dashboard/shared/_filter_chip.html.erb` and look good in light/dark themes.
 - Locked CTA copy communicates “unlock” intent while keeping the same destination URLs.
+- Header status badge uses the filter chip styling and reads clearly in dark theme.
+- License field contrast is improved in dark theme so the “Locked” value is visible.
 - Request specs cover the new license display and locked CTA label changes (no system specs).
 
 ## Constraints
@@ -26,7 +29,8 @@
 4. Render card tags with `_filter_chip` as display-only chips and tune sizing classes.
 5. Add a single locked CTA label + I18n keys and swap the view to use it.
 6. Update request specs to assert license display formatting and locked CTA label changes.
-7. Run request specs + full suite; log PASS/FAIL.
+7. Update the header status badge to use the filter chip styling and refine license field colors for dark theme contrast.
+8. Run request specs + full suite; log PASS/FAIL.
 
 ## Open Questions
 - (none)
@@ -36,6 +40,10 @@
 - Decision: card tags render via `_filter_chip` as non-interactive chips.
 - Decision: locked guide CTA uses `dashboard.expert_advisors.unlock_cta`.
 - Decision: license text sits inside a truncated field with a fixed-width copy button and a 3s reset.
+- Decision: header status badge uses `_filter_chip` with status colors and smaller sizing.
+- Decision: license field uses a darker background/border in dark theme for contrast.
 - Decision: request spec asserts the static guide copy on the index page.
+- Command: bundle exec rspec (FAIL)
+- Command: bundle exec rspec (PASS)
 - Command: bundle exec rspec (FAIL)
 - Command: bundle exec rspec (PASS)
