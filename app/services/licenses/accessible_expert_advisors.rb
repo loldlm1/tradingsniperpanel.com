@@ -19,7 +19,14 @@ module Licenses
       return [] unless user
       return [] unless user.respond_to?(:licenses)
 
-      eas = ExpertAdvisor.active.includes(:licenses, :billing_plan_entitlements, :billing_plans, ea_files_attachment: :blob)
+      eas = ExpertAdvisor.active.includes(
+        :licenses,
+        :billing_plan_entitlements,
+        :billing_plans,
+        :expert_advisor_bundles,
+        :tags,
+        ea_files_attachment: :blob
+      )
                           .ordered_by_rank
       license_map = licenses_indexed
 

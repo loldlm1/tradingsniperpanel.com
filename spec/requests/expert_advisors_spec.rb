@@ -27,7 +27,26 @@ RSpec.describe "Expert advisor guides", type: :request do
     end
   end
 
-  it "renders the Expert Advisors index page with guide preview" do
+  def parsed_body
+    Nokogiri::HTML(response.body)
+  end
+
+  def card_for(doc, name)
+    doc.css("[data-filter-item]").find do |card|
+      heading = card.at_css("h3")
+      heading && heading.text.strip == name
+    end
+  end
+
+  def link_in(card, label)
+    card.css("a").find { |link| link.text.strip == label }
+  end
+
+  def button_in(card, label)
+    card.css("button").find { |button| button.text.strip == label }
+  end
+
+  it "renders the Expert Advisors index page with guide copy" do
     create(:user_expert_advisor, user:, expert_advisor:)
     sign_in user, scope: :user
 
@@ -35,8 +54,7 @@ RSpec.describe "Expert advisor guides", type: :request do
 
     expect(response).to be_successful
     expect(response.body).to include(expert_advisor.name)
-    expect(response.body).to include("Sniper Advanced Panel")
-    expect(response.body).to include("First paragraph.")
+    expect(response.body).to include(I18n.t("dashboard.expert_advisors.index.guide_copy", locale: :en))
   end
 
   it "renders guides for an active user EA" do
@@ -133,36 +151,145 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(positions).to eq(positions.sort)
   end
 
-  it "filters expert advisors by status" do
-    active_ea = create(:expert_advisor, name: "Active EA")
-    trial_ea = create(:expert_advisor, name: "Trial EA")
-    expired_ea = create(:expert_advisor, name: "Expired EA")
+  it "renders tag filter chips for the top tags" do
+    ea1 = create(:expert_advisor, name: "EA Alpha")
+    ea2 = create(:expert_advisor, name: "EA Beta")
+    ea3 = create(:expert_advisor, name: "EA Gamma")
+    ea4 = create(:expert_advisor, name: "EA Delta")
+    ea5 = create(:expert_advisor, name: "EA Epsilon")
+    ea6 = create(:expert_advisor, name: "EA Zeta")
 
-    create(:license, user: user, expert_advisor: active_ea, status: "active")
-    create(:license, user: user, expert_advisor: trial_ea, status: "trial")
-    create(:license, user: user, expert_advisor: expired_ea, status: "expired")
+    ea1.tag_list.add("alpha", "beta")
+    ea2.tag_list.add("alpha", "gamma")
+    ea3.tag_list.add("alpha")
+    ea4.tag_list.add("delta")
+    ea5.tag_list.add("epsilon")
+    ea6.tag_list.add("zeta")
+    [ea1, ea2, ea3, ea4, ea5, ea6].each(&:save!)
 
     sign_in user, scope: :user
 
-    get dashboard_expert_advisors_path(locale: :en, status: "trial")
+    get dashboard_expert_advisors_path(locale: :en)
 
-    expect(response).to be_successful
-    expect(response.body).to include("Trial EA")
-    expect(response.body).not_to include("Active EA")
-    expect(response.body).not_to include("Expired EA")
+    doc = parsed_body
+    chips = doc.css("[data-filter-tag]")
+    values = chips.map { |chip| chip["data-filter-tag"] }
+
+    expect(doc.at_css("[data-filter-all]")).to be_present
+    expect(chips.size).to eq(5)
+    expect(values).to include("alpha", "beta", "gamma", "delta", "epsilon")
+    expect(values).not_to include("zeta")
   end
 
-  it "filters expert advisors by type with localized labels" do
-    indicator_ea = create(:expert_advisor, name: "Indicator EA", ea_type: :indicator)
-    script_ea = create(:expert_advisor, name: "Script EA", ea_type: :script)
+  it "paginates cards and toggles visibility by page" do
+    names = ("A".."I").map { |letter| "EA #{letter}" }
+    names.each { |name| create(:expert_advisor, name: name) }
 
     sign_in user, scope: :user
 
-    get dashboard_expert_advisors_path(locale: :es, type: "indicator")
+    get dashboard_expert_advisors_path(locale: :en)
 
-    expect(response).to be_successful
-    expect(response.body).to include("Indicator EA")
-    expect(response.body).not_to include("Script EA")
-    expect(response.body).to include(I18n.t("dashboard.expert_advisors.types.indicator", locale: :es))
+    doc = parsed_body
+    expect(doc.at_css("[data-filter-pagination]")).to be_present
+
+    first_card = card_for(doc, names.first)
+    last_card = card_for(doc, names.last)
+    expect(first_card["class"].split).not_to include("hidden")
+    expect(last_card["class"].split).to include("hidden")
+
+    get dashboard_expert_advisors_path(locale: :en, page: 2)
+
+    doc = parsed_body
+    first_card = card_for(doc, names.first)
+    last_card = card_for(doc, names.last)
+    expect(first_card["class"].split).to include("hidden")
+    expect(last_card["class"].split).not_to include("hidden")
+  end
+
+  it "omits pagination when there are 8 or fewer cards" do
+    create_list(:expert_advisor, 8)
+    sign_in user, scope: :user
+
+    get dashboard_expert_advisors_path(locale: :en)
+
+    doc = parsed_body
+    expect(doc.at_css("[data-filter-pagination]")).to be_nil
+  end
+
+  it "renders CTA states for accessible and locked expert advisors" do
+    accessible_ea = create(:expert_advisor, name: "Accessible EA")
+    locked_marketplace_ea = create(:expert_advisor, name: "Marketplace Locked EA")
+    locked_plan_ea = create(:expert_advisor, name: "Plan Locked EA")
+
+    license = create(:license, user: user, expert_advisor: accessible_ea, status: "active")
+    attach_bundle(accessible_ea)
+
+    subscription_plan = create(:billing_plan, tier: "basic")
+
+    product_plan = create(:billing_plan, :one_time)
+    marketplace_product = create(:marketplace_product, billing_plan: product_plan)
+    create(:billing_plan_entitlement, billing_plan: product_plan, expert_advisor: locked_marketplace_ea)
+
+    owned_plan = create(:billing_plan, :one_time)
+    owned_product = create(:marketplace_product, billing_plan: owned_plan)
+    create(:addon, addonable: accessible_ea, billing_plan: owned_plan)
+    create(:marketplace_purchase, user: user, billing_plan: owned_plan)
+
+    unowned_plan = create(:billing_plan, :one_time)
+    unowned_product = create(:marketplace_product, billing_plan: unowned_plan)
+    create(:addon, addonable: accessible_ea, billing_plan: unowned_plan)
+
+    extra_plan = create(:billing_plan, :one_time)
+    extra_product = create(:marketplace_product, billing_plan: extra_plan)
+    create(:addon, addonable: accessible_ea, billing_plan: extra_plan)
+
+    sign_in user, scope: :user
+
+    get dashboard_expert_advisors_path(locale: :en)
+
+    doc = parsed_body
+    guide_label = I18n.t("dashboard.expert_advisors.guide_cta", locale: :en)
+    unlock_label = I18n.t("dashboard.expert_advisors.unlock_cta", locale: :en)
+    details_label = I18n.t("dashboard.expert_advisors.show_cta", locale: :en)
+    download_label = I18n.t("dashboard.expert_advisors.download_bundle", locale: :en)
+    purchase_label = I18n.t("dashboard.expert_advisors.addons.purchase_cta", locale: :en)
+    owned_label = I18n.t("dashboard.expert_advisors.addons.owned_cta", locale: :en)
+    copy_label = I18n.t("dashboard.expert_advisors.copy_code", locale: :en)
+    locked_license = I18n.t("dashboard.expert_advisors.license.locked_value", locale: :en)
+    addons_progress = I18n.t("dashboard.expert_advisors.addons.progress", owned: 1, total: 3, locale: :en)
+    zero_progress = I18n.t("dashboard.expert_advisors.addons.progress", owned: 0, total: 0, locale: :en)
+
+    accessible_card = card_for(doc, accessible_ea.name)
+    expect(link_in(accessible_card, guide_label)["href"])
+      .to eq(dashboard_expert_advisor_guides_path(accessible_ea, locale: :en))
+    license_value = accessible_card.at_css("[data-license-value]")
+    expect(license_value).to be_present
+    expect(license_value.text).to include(license.encrypted_key)
+    expect(link_in(accessible_card, details_label)["href"])
+      .to eq(dashboard_expert_advisor_path(accessible_ea, locale: :en))
+    expect(link_in(accessible_card, download_label)["href"])
+      .to eq(dashboard_expert_advisor_download_path(accessible_ea, locale: :en))
+    expect(accessible_card.text).to include(addons_progress)
+    expect(accessible_card.css("a").any? { |link| link.text.strip == purchase_label }).to be(true)
+    expect(accessible_card.css("button").any? { |button| button.text.strip == owned_label }).to be(true)
+    copy_button = button_in(accessible_card, copy_label)
+    expect(copy_button["data-copy-text"]).to eq(license.encrypted_key)
+    expect(copy_button["disabled"]).to be_nil
+
+    marketplace_card = card_for(doc, locked_marketplace_ea.name)
+    expect(link_in(marketplace_card, unlock_label)["href"])
+      .to eq(dashboard_marketplace_product_path(marketplace_product, locale: :en))
+    download_button = button_in(marketplace_card, download_label)
+    expect(download_button["disabled"]).to eq("disabled")
+    expect(marketplace_card.text).to include(locked_license)
+    expect(marketplace_card.at_css("[data-license-value]").text).to include(locked_license)
+    locked_copy_button = button_in(marketplace_card, copy_label)
+    expect(locked_copy_button["disabled"]).to eq("disabled")
+    expect(locked_copy_button["data-copy-text"]).to be_nil
+
+    plan_card = card_for(doc, locked_plan_ea.name)
+    expect(link_in(plan_card, unlock_label)["href"])
+      .to eq(dashboard_plans_path(locale: :en, price_key: subscription_plan.key))
+    expect(plan_card.text).to include(zero_progress)
   end
 end

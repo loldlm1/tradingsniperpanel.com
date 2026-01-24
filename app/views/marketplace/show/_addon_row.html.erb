@@ -1,0 +1,20 @@
+<% selected = row.selected %>
+<% button_label = selected ? t("dashboard.marketplace.show.addons.added") : t("dashboard.marketplace.show.addons.add") %>
+<% button_class = selected ? "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-400 dark:text-gray-500" : "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+
+<div class="grid grid-cols-3 items-center gap-2"
+     data-addon-row
+     data-addon-key="<%= row.plan_key %>"
+     data-addon-price-cents="<%= row.price_cents %>"
+     data-addon-selected="<%= selected %>">
+  <span class="text-gray-700 dark:text-gray-400"><%= row.title %></span>
+  <span class="text-center text-gray-700 dark:text-gray-400"><%= row.price_display %></span>
+  <button class="<%= button_class %>"
+          type="button"
+          data-addon-toggle
+          data-addon-label-add="<%= t("dashboard.marketplace.show.addons.add") %>"
+          data-addon-label-added="<%= t("dashboard.marketplace.show.addons.added") %>"
+          aria-pressed="<%= selected %>">
+    <%= button_label %>
+  </button>
+</div>

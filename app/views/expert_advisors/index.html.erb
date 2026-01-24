@@ -1,135 +1,89 @@
 <% content_for :title, "#{app_short_name} - #{t('dashboard.expert_advisors.index.title')}" %>
+<% presenter = @index_presenter %>
+<% cards = presenter.cards %>
+<% pagy = presenter.pagy %>
+<% tag_filters = presenter.tag_filters %>
+<% active_tag = @filter_tag.to_s.downcase %>
+<% count_template = t("dashboard.expert_advisors.index.count_template") %>
+<% active_class = "border-transparent bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-800" %>
 
-<div class="sm:flex sm:justify-between sm:items-start mb-6">
-  <div class="mb-4 sm:mb-0">
-    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.expert_advisors.index.title") %></h1>
-    <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.index.subtitle") %></p>
-  </div>
-</div>
-
-<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-6">
-  <div class="flex flex-wrap items-center gap-3">
-    <span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.expert_advisors.filters.status") %></span>
-    <% %w[all active trial expired].each do |status| %>
-      <% active = @selected_status.to_s == status || (@selected_status.blank? && status == "all") %>
-      <% status_param = status == "all" ? nil : status %>
-      <% href = dashboard_expert_advisors_path(locale: I18n.locale, status: status_param, type: @selected_type) %>
-      <% class_name = active ? "border-transparent shadow-xs bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-800" : "" %>
-      <%= render "dashboard/shared/filter_chip", label: status.capitalize, href: href, class_name: class_name %>
-    <% end %>
-    <span class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold ml-3"><%= t("dashboard.expert_advisors.filters.type") %></span>
-    <% [
-      [t("dashboard.expert_advisors.filters.all_types"), "all"],
-      [t("dashboard.expert_advisors.types.ea_robot"), "ea_robot"],
-      [t("dashboard.expert_advisors.types.ea_tool"), "ea_tool"],
-      [t("dashboard.expert_advisors.types.indicator"), "indicator"],
-      [t("dashboard.expert_advisors.types.script"), "script"]
-    ].each do |label, value| %>
-      <% active = @selected_type.to_s == value || (@selected_type.blank? && value == "all") %>
-      <% type_param = value == "all" ? nil : value %>
-      <% href = dashboard_expert_advisors_path(locale: I18n.locale, status: @selected_status, type: type_param) %>
-      <% class_name = active ? "border-transparent shadow-xs bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-800" : "" %>
-      <%= render "dashboard/shared/filter_chip", label: label, href: href, class_name: class_name %>
-    <% end %>
-  </div>
-  <p class="text-xs text-gray-500 dark:text-gray-400 mt-3"><%= t("dashboard.expert_advisors.filters.note") %></p>
-</div>
-
-<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3 min-w-0">
-  <% (@accessible_eas || []).each_with_index do |entry, idx| %>
-    <% ea = entry.expert_advisor %>
-    <% badge_class = case entry.status
-                    when :active then "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
-                    when :trial then "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
-                    else "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200"
-                    end %>
-    <% broker_count = entry.license&.broker_accounts&.size.to_i %>
-    <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between min-w-0">
-      <div class="space-y-3">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between min-w-0">
-          <div class="flex items-center gap-2">
-            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-xs font-semibold"><%= idx + 1 %></span>
-            <div>
-              <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= ea.name %></h2>
-              <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.expert_advisors.types.#{ea.ea_type}", default: ea.ea_type.to_s.humanize) %></div>
-            </div>
-          </div>
-          <div class="flex flex-col items-start gap-1 sm:items-end">
-            <%= render "dashboard/shared/badge",
-                       label: entry.status.to_s.humanize,
-                       padding_class: "px-2 py-1",
-                       class_name: badge_class %>
-            <%= render "dashboard/shared/badge",
-                       label: t("dashboard.expert_advisors.pnl_soon"),
-                       size_class: "text-[11px]",
-                       padding_class: "px-2 py-1",
-                       class_name: "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200" %>
-          </div>
-        </div>
-        <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed"><%= ea.description %></p>
-        <% preview = @guide_previews&.dig(ea.id) %>
-        <div class="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 p-3 text-xs space-y-1">
-          <div class="text-[11px] uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.expert_advisors.guides_label") %></div>
-          <% if preview&.heading.present? %>
-            <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 break-words"><%= preview.heading %></div>
-          <% end %>
-          <% if preview&.paragraph.present? %>
-            <p class="text-xs text-gray-600 dark:text-gray-300 break-words"><%= truncate(preview.paragraph, length: 140) %></p>
-          <% else %>
-            <p class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.preview_missing") %></p>
-          <% end %>
-        </div>
-        <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-          <%= render "dashboard/shared/badge",
-                     label: "#{t("dashboard.broker_accounts.title")}: #{broker_count}",
-                     padding_class: "px-2 py-1",
-                     class_name: "bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200" %>
-          <% if entry.status == :trial && entry.expires_at.present? %>
-            <%= render "dashboard/shared/badge",
-                       label: t("dashboard.expert_advisors.trial_countdown", date: l(entry.expires_at.to_date, format: :short_with_year)),
-                       padding_class: "px-2 py-1",
-                       class_name: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-100 border border-amber-200/80 dark:border-amber-500/40" %>
-          <% end %>
-        </div>
-        <% if entry.accessible && entry.license_key.present? %>
-          <div class="mt-1">
-            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1"><%= t("dashboard.license_key") %></div>
-          <div class="flex items-center gap-2 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 min-w-0">
-              <span class="min-w-0 flex-1 truncate"><%= entry.license_key %></span>
-              <button
-                type="button"
-                class="text-violet-600 dark:text-violet-300 font-semibold shrink-0"
-                data-copy-text="<%= j entry.license_key %>"
-                data-default-text="<%= t('dashboard.copy') %>"
-                data-copied-text="<%= t('dashboard.copied') %>"
-                onclick="copyToClipboard(this)"
-              ><%= t("dashboard.copy") %></button>
-            </div>
-            <% if entry.expires_at.present? %>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= t("dashboard.expires_at") %>: <%= l(entry.expires_at, format: :short_with_year) %></div>
-            <% end %>
-            <%= render "expert_advisors/broker_accounts", broker_accounts: entry.license&.broker_accounts if entry.license.present? %>
-          </div>
-        <% end %>
-      </div>
-      <div class="mt-4 flex items-center justify-between">
-        <%= link_to t("dashboard.expert_advisors.show_cta"), dashboard_expert_advisor_path(ea, locale: I18n.locale), class: "text-violet-600 hover:text-violet-800 dark:text-violet-300 dark:hover:text-violet-100 text-sm font-semibold" %>
-        <div class="flex items-center gap-2">
-          <% if entry.accessible && ea.ea_files.attached? %>
-            <%= link_to t("dashboard.expert_advisors.download_bundle"), dashboard_expert_advisor_download_path(ea, locale: I18n.locale), class: "btn-xs bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
-          <% else %>
-            <button class="btn-xs bg-gray-900 text-white opacity-60 cursor-not-allowed dark:bg-gray-100 dark:text-gray-800" disabled><%= t("dashboard.expert_advisors.download_bundle") %></button>
-            <% unless entry.accessible %>
-              <% tier = entry.allowed_tiers.first %>
-              <% cta_key = "#{tier}_monthly" %>
-              <%= link_to t("dashboard.expert_advisors.unlock_cta"), dashboard_plans_path(price_key: cta_key), class: "text-sm font-semibold text-violet-600 dark:text-violet-300 hover:text-violet-800 dark:hover:text-violet-100" %>
-            <% end %>
-          <% end %>
-        </div>
-      </div>
+<div
+  data-filterable
+  data-page-size="<%= pagy.limit %>"
+  data-current-page="<%= pagy.page %>"
+  data-active-query="<%= j @filter_query.to_s %>"
+  data-active-tag="<%= j active_tag %>"
+>
+  <!-- Page header -->
+  <div class="sm:flex sm:justify-between sm:items-center mb-5">
+    <!-- Left: Title -->
+    <div class="mb-4 sm:mb-0">
+      <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.expert_advisors.index.title") %></h1>
     </div>
-  <% end %>
-  <% if (@accessible_eas || []).empty? %>
-    <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.expert_advisors.index.subtitle") %></div>
+
+    <!-- Right: Actions -->
+    <div class="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
+      <!-- Search form -->
+      <form class="relative" data-filter-form>
+        <label for="action-search" class="sr-only"><%= t("dashboard.expert_advisors.index.search_label") %></label>
+        <input
+          id="action-search"
+          class="form-input pl-9 bg-white dark:bg-gray-800"
+          type="search"
+          placeholder="<%= t("dashboard.expert_advisors.index.search_placeholder") %>"
+          data-filter-input
+          value="<%= @filter_query %>"
+        />
+        <button class="absolute inset-0 right-auto group" type="submit" aria-label="<%= t("dashboard.expert_advisors.index.search_label") %>">
+          <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400 ml-3 mr-2" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 14c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zM7 2C4.243 2 2 4.243 2 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5z" />
+            <path d="M15.707 14.293L13.314 11.9a8.019 8.019 0 01-1.414 1.414l2.393 2.393a.997.997 0 001.414 0 .999.999 0 000-1.414z" />
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="mb-5">
+    <ul class="flex flex-wrap -m-1">
+        <li class="m-1">
+          <%= render "dashboard/shared/filter_chip",
+                     label: t("dashboard.expert_advisors.filters.all"),
+                     href: dashboard_expert_advisors_path(locale: I18n.locale),
+                     class_name: active_tag.blank? ? active_class : "",
+                     data: { filter_all: true, filter_active_class: active_class } %>
+        </li>
+      <% tag_filters.each do |tag| %>
+        <% normalized_tag = tag.to_s.downcase %>
+        <li class="m-1">
+          <%= render "dashboard/shared/filter_chip",
+                     label: tag,
+                     href: dashboard_expert_advisors_path(locale: I18n.locale, tag: tag),
+                     class_name: normalized_tag == active_tag ? active_class : "",
+                     data: { filter_tag: normalized_tag, filter_active_class: active_class } %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div
+    class="text-sm text-gray-500 dark:text-gray-400 italic mb-4"
+    data-filter-count
+    data-count-template="<%= count_template %>"
+  ><%= count_template % { count: presenter.total_count } %></div>
+
+  <!-- Content -->
+  <div class="grid xl:grid-cols-2 gap-6 mb-8">
+    <% cards.each do |card| %>
+      <%= render "expert_advisors/index_card", card: card %>
+    <% end %>
+  </div>
+
+  <!-- Pagination -->
+  <% if pagy.pages > 1 %>
+    <div data-filter-pagination>
+      <%= pagy_mosaic_nav(pagy) %>
+    </div>
   <% end %>
 </div>

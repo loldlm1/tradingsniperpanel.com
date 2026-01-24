@@ -12,6 +12,8 @@ RSpec.describe Licenses::OneTimePurchaseSync do
   end
   let!(:marketplace_product) { create(:marketplace_product) }
   let!(:plan) { marketplace_product.billing_plan }
+  let!(:extra_plan) { create(:billing_plan, :one_time) }
+  let!(:extra_product) { create(:marketplace_product, billing_plan: extra_plan) }
   let!(:expert_advisor) { create(:expert_advisor, ea_id: "ea-basic") }
   let!(:course) { create(:course, slug: "course-basic") }
   let!(:entitlement) { create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: expert_advisor) }
@@ -22,7 +24,7 @@ RSpec.describe Licenses::OneTimePurchaseSync do
       processor_id: "ch_#{SecureRandom.hex(4)}",
       amount: 1000,
       currency: "usd",
-      metadata: { billing_plan_key: plan.key }
+      metadata: { billing_plan_keys: "#{plan.key},#{extra_plan.key}" }
     )
   end
 
@@ -44,5 +46,8 @@ RSpec.describe Licenses::OneTimePurchaseSync do
 
     purchase = MarketplacePurchase.find_by(user: user, billing_plan: plan)
     expect(purchase).to be_present
+
+    extra_purchase = MarketplacePurchase.find_by(user: user, billing_plan: extra_plan)
+    expect(extra_purchase).to be_present
   end
 end

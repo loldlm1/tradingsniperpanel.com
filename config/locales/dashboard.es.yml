@@ -208,6 +208,29 @@ es:
         price_label: "Compra única"
         required_base_title: "Acceso base requerido"
         requires_base: "Se requiere acceso de pago a %{base} para usar este add-on."
+      show:
+        back_link: "← Volver al Marketplace"
+        promo_badge: "Oferta especial"
+        empty_description: "Aún no hay un resumen disponible."
+        related_title: "Comprados juntos con frecuencia"
+        load_more: "Ver más"
+        sidebar_product_label: "Producto"
+        base_missing: "El producto base requerido no está disponible."
+        buy_now: "Comprar ahora - %{total}"
+        select_addons: "Selecciona add-ons"
+        legal: "Términos"
+        addons:
+          title: "Add-ons del producto"
+          columns:
+            addon: "Add-on"
+            price: "Precio"
+            action: "Acción"
+          add: "Añadir"
+          added: "Añadido"
+          empty: "Aún no hay add-ons disponibles."
+          subtotal: "Subtotal add-ons"
+          total: "Total final"
+          progress_label: "Progreso de add-ons"
       assets:
         back: "Volver al Marketplace"
         description_title: "Resumen"
@@ -221,6 +244,10 @@ es:
         already_purchased: "Ya compraste este producto."
         addon_requires_base: "Se requiere acceso de pago a %{base} para comprar este add-on."
         addon_base_default: "este elemento"
+        base_missing: "El producto base requerido no está disponible."
+        no_items_selected: "Selecciona al menos un add-on para continuar."
+        checkout_unavailable: "El checkout no está disponible para este producto."
+        checkout_error: "No pudimos iniciar el checkout. Inténtalo de nuevo."
     settings:
       page_title: "Ajustes de la cuenta"
       updated: "Cuenta actualizada."
@@ -434,6 +461,11 @@ es:
       index:
         title: "Expert Advisors"
         subtitle: "Tus Expert Advisors activos y guías."
+        search_label: "Buscar"
+        search_placeholder: "Buscar..."
+        count_template: "%{count} Expert Advisors"
+        guide_title: "Guía"
+        guide_copy: "Accede a la guía del bot y a la ficha completa del sistema."
         table:
           title: "Todos los Expert Advisors"
           columns:
@@ -444,12 +476,14 @@ es:
         status: "Estado"
         type: "Tipo"
         all_types: "Todos los tipos"
+        all: "Ver todo"
         note: "Filtra por estado y tipo para encontrar tus herramientas."
       types:
         ea_robot: "EA Robot"
         ea_tool: "EA Tool"
         indicator: "Indicador"
         script: "Script"
+      guide_cta: "Ver guía"
       pnl_soon: "PnL pronto"
       trial_countdown: "La prueba termina %{date}"
       docs_copy: "Vista previa en markdown con anclas y código para copiar."
@@ -485,10 +519,32 @@ es:
       performance_placeholder: "Las estadísticas se sincronizarán de las cuentas de broker cuando lancemos la función."
       copy_code: "Copiar"
       copied: "Copiado"
+      addons:
+        title: "Progreso de Adons"
+        progress: "%{owned}/%{total}"
+        purchase_cta: "Adquirir"
+        owned_cta: "Adquirido"
+      license:
+        title: "Licencia"
+        hint: "Copia la licencia completa para activar el sistema."
+        locked_value: "Bloqueada"
+        locked_hint: "Desbloquea para ver tu licencia."
+      status:
+        active: "Licencia activa"
+        trial: "Licencia de prueba"
+        expired: "Licencia expirada"
+        revoked: "Licencia revocada"
+        locked: "Licencia bloqueada"
+    pagination:
+      nav_label: "Navegación"
+      prev: "Anterior"
+      next: "Siguiente"
     courses:
       index:
         title: "Cursos"
         subtitle: "Aprende estrategias de trading con lecciones estructuradas."
+        search_label: "Buscar cursos"
+        search_placeholder: "Buscar cursos..."
         empty_title: "Los cursos están en camino"
         empty_copy: "Estamos preparando nuevas lecciones. Vuelve pronto o contáctanos para novedades."
         empty_cta: "Contactar soporte"
@@ -514,10 +570,31 @@ es:
         free: "Gratis"
         unlocked: "Desbloqueado"
         locked: "Bloqueado"
+      status:
+        active: "Curso activo"
+      filters:
+        all: "Todos"
+      sort:
+        label: "Ordenar cursos"
+        recent: "Más recientes"
+        oldest: "Más antiguos"
+      card:
+        type_label: "Curso"
+        type_category: "%{type} | %{category}"
+      progress:
+        title: "Progreso"
+        aria_label: "Progreso del curso"
+        status:
+          in_progress: "En progreso"
+          completed: "Completado"
+      cover_placeholder_alt: "Curso sin imagen"
       meta:
         modules: "%{count} módulos"
         lessons: "%{count} lecciones"
         duration: "%{duration} total"
+        modules_label: "módulos"
+        lessons_label: "lecciones"
+        duration_label: "de duración"
       categories:
         introduction: "Introducción"
         beginner: "Principiante"

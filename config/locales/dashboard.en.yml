@@ -208,6 +208,29 @@ en:
         price_label: "One-time purchase"
         required_base_title: "Required base access"
         requires_base: "Paid access to %{base} is required to use this add-on."
+      show:
+        back_link: "← Back to Marketplace"
+        promo_badge: "Special Offer"
+        empty_description: "No overview is available yet."
+        related_title: "Frequently Bought Together"
+        load_more: "Load More"
+        sidebar_product_label: "Product"
+        base_missing: "Required base product is not available."
+        buy_now: "Buy now - %{total}"
+        select_addons: "Select add-ons"
+        legal: "Terms"
+        addons:
+          title: "Product add-ons"
+          columns:
+            addon: "Add-on"
+            price: "Price"
+            action: "Action"
+          add: "Add"
+          added: "Added"
+          empty: "No add-ons available yet."
+          subtotal: "Add-ons subtotal"
+          total: "Final total"
+          progress_label: "Add-ons progress"
       assets:
         back: "Back to Marketplace"
         description_title: "Overview"
@@ -221,6 +244,10 @@ en:
         already_purchased: "You already purchased this product."
         addon_requires_base: "Paid access to %{base} is required to purchase this add-on."
         addon_base_default: "this item"
+        base_missing: "The required base product is not available."
+        no_items_selected: "Select at least one add-on to continue."
+        checkout_unavailable: "Checkout is not available for this product."
+        checkout_error: "Unable to start checkout. Please try again."
     settings:
       page_title: "Account Settings"
       updated: "Account updated."
@@ -434,6 +461,11 @@ en:
       index:
         title: "Expert Advisors"
         subtitle: "Your active Expert Advisors and guides."
+        search_label: "Search"
+        search_placeholder: "Search..."
+        count_template: "%{count} Expert Advisors"
+        guide_title: "Guide"
+        guide_copy: "Access the guide and the full system sheet."
         table:
           title: "All Expert Advisors"
           columns:
@@ -444,12 +476,14 @@ en:
         status: "Status"
         type: "Type"
         all_types: "All types"
+        all: "View All"
         note: "Filter by status and type to find your tools faster."
       types:
         ea_robot: "EA Robot"
         ea_tool: "EA Tool"
         indicator: "Indicator"
         script: "Script"
+      guide_cta: "View guide"
       pnl_soon: "PnL coming soon"
       trial_countdown: "Trial ends %{date}"
       docs_copy: "Markdown preview with anchors and copy-friendly code blocks."
@@ -485,10 +519,32 @@ en:
       performance_placeholder: "Live stats will sync from broker accounts once the feature ships."
       copy_code: "Copy"
       copied: "Copied"
+      addons:
+        title: "Add-ons progress"
+        progress: "%{owned}/%{total}"
+        purchase_cta: "Acquire"
+        owned_cta: "Owned"
+      license:
+        title: "License"
+        hint: "Copy the full license to activate the system."
+        locked_value: "Locked"
+        locked_hint: "Unlock to view your license."
+      status:
+        active: "Active license"
+        trial: "Trial license"
+        expired: "Expired license"
+        revoked: "Revoked license"
+        locked: "Locked license"
+    pagination:
+      nav_label: "Navigation"
+      prev: "Previous"
+      next: "Next"
     courses:
       index:
         title: "Courses"
         subtitle: "Learn trading strategies through structured lessons."
+        search_label: "Search courses"
+        search_placeholder: "Search courses..."
         empty_title: "Courses are on the way"
         empty_copy: "We are preparing new lessons for you. Check back soon or reach out for updates."
         empty_cta: "Contact support"
@@ -514,10 +570,31 @@ en:
         free: "Free"
         unlocked: "Unlocked"
         locked: "Locked"
+      status:
+        active: "Course active"
+      filters:
+        all: "All"
+      sort:
+        label: "Order courses"
+        recent: "Newest"
+        oldest: "Oldest"
+      card:
+        type_label: "Course"
+        type_category: "%{type} | %{category}"
+      progress:
+        title: "Progress"
+        aria_label: "Course progress"
+        status:
+          in_progress: "In progress"
+          completed: "Completed"
+      cover_placeholder_alt: "Course placeholder"
       meta:
         modules: "%{count} modules"
         lessons: "%{count} lessons"
         duration: "%{duration} total"
+        modules_label: "modules"
+        lessons_label: "lessons"
+        duration_label: "total"
       categories:
         introduction: "Introduction"
         beginner: "Beginner"

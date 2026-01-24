@@ -1,201 +1,235 @@
-<% product = @entry.product %>
-<% summary = product.summary_for(I18n.locale).presence || product.description_for(I18n.locale) %>
-<% description = product.description_for(I18n.locale).presence || summary %>
-<% addonable = @entry.addonable %>
-<% addon_base = addonable.is_a?(ExpertAdvisor) ? addonable&.name : addonable&.title_for(I18n.locale) %>
-<% addon_base ||= t("dashboard.marketplace.errors.addon_base_default") if @entry.addon? %>
-<% eligible_to_buy = !@entry.addon? || @entry.eligible != false %>
+<% marketplace = @marketplace %>
+<% product = marketplace.product %>
+<% base_product = marketplace.base_product %>
+<% summary = marketplace.summary %>
+<% description = marketplace.description %>
+<% base_available = marketplace.base_entry.present? %>
+<% addon_progress = marketplace.add_on_progress %>
+<% cart_total_cents = marketplace.cart_total_cents %>
+<% button_disabled = cart_total_cents.zero? || !base_available %>
+<% button_label = if button_disabled
+                    t("dashboard.marketplace.show.select_addons")
+                  else
+                    t("dashboard.marketplace.show.buy_now", total: marketplace.cart_total_display)
+                  end %>
 
-<% content_for :title, "#{app_short_name} - #{product.title_for(I18n.locale)}" %>
+<% content_for :title, "#{app_short_name} - #{marketplace.title}" %>
 
-<div class="sm:flex sm:justify-between sm:items-start mb-6">
-  <div class="mb-4 sm:mb-0">
-    <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.index.title") %></div>
-    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= product.title_for(I18n.locale) %></h1>
-    <% if summary.present? %>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= summary %></p>
-    <% end %>
-    <% if @entry.tags.any? %>
-      <div class="flex flex-wrap gap-2 mt-3 text-xs text-gray-600 dark:text-gray-300">
-        <% @entry.tags.each do |tag| %>
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700/60"><%= tag %></span>
-        <% end %>
-      </div>
-    <% end %>
-  </div>
+<!-- Page content -->
+<div class="max-w-5xl mx-auto flex flex-col lg:flex-row lg:space-x-8 xl:space-x-16">
+
+  <!-- Content -->
   <div>
-    <%= render "dashboard/shared/secondary_button",
-               label: t("dashboard.marketplace.detail.back"),
-               href: dashboard_marketplace_path(locale: I18n.locale) %>
-  </div>
-</div>
-
-<div class="grid gap-6 lg:grid-cols-3">
-  <div class="lg:col-span-2 space-y-6">
-    <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-      <figure class="mb-6">
-        <% if product.image.attached? %>
-          <%= image_tag product.image, class: "w-full rounded-xs", alt: product.title_for(I18n.locale) %>
-        <% else %>
-          <%= image_tag "mosaic/images/applications-image-09.jpg", class: "w-full rounded-xs", alt: t("dashboard.marketplace.card.placeholder_alt") %>
-        <% end %>
-      </figure>
-
-      <div class="space-y-4">
-        <div>
-          <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-2"><%= t("dashboard.marketplace.detail.overview_title") %></h2>
-          <% if description.present? %>
-            <div class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed"><%= simple_format(description) %></div>
-          <% end %>
-        </div>
-
-        <div>
-          <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-2"><%= t("dashboard.marketplace.detail.includes_title") %></h2>
-          <% if @entry.addon? %>
-            <div>
-              <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.detail.addon_for_label") %></div>
-              <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                <li class="flex items-center gap-2">
-                  <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold">1</span>
-                  <span><%= addon_base %></span>
-                </li>
-              </ul>
-            </div>
-          <% else %>
-            <% if @entry.marketplace_assets.any? %>
-              <div class="grid gap-6 md:grid-cols-3">
-              <div>
-                <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.detail.included_eas") %></div>
-                <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <% @entry.expert_advisors.each do |expert_advisor| %>
-                    <li class="flex items-center gap-2">
-                      <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= expert_advisor.tier_rank.to_i + 1 %></span>
-                      <span><%= expert_advisor.name %></span>
-                    </li>
-                  <% end %>
-                </ul>
-              </div>
-              <div>
-                <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.detail.included_courses") %></div>
-                <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <% @entry.courses.each do |course| %>
-                    <li class="flex items-center gap-2">
-                      <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= course.position.to_i + 1 %></span>
-                      <span><%= course.title_for(I18n.locale) %></span>
-                    </li>
-                  <% end %>
-                </ul>
-              </div>
-              <div>
-                <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.detail.included_assets") %></div>
-                <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <% @entry.marketplace_assets.each do |asset| %>
-                    <li class="flex items-center gap-2">
-                      <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= asset.sort_order.to_i + 1 %></span>
-                      <%= link_to asset.title_for(I18n.locale), dashboard_marketplace_asset_path(asset, locale: I18n.locale), class: "hover:text-violet-600 dark:hover:text-violet-300" %>
-                    </li>
-                  <% end %>
-                </ul>
-              </div>
-            </div>
-            <% else %>
-              <div class="grid gap-6 md:grid-cols-2">
-                <div>
-                  <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.detail.included_eas") %></div>
-                  <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                    <% @entry.expert_advisors.each do |expert_advisor| %>
-                      <li class="flex items-center gap-2">
-                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= expert_advisor.tier_rank.to_i + 1 %></span>
-                        <span><%= expert_advisor.name %></span>
-                      </li>
-                    <% end %>
-                  </ul>
-                </div>
-                <div>
-                  <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.marketplace.detail.included_courses") %></div>
-                  <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                    <% @entry.courses.each do |course| %>
-                      <li class="flex items-center gap-2">
-                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= course.position.to_i + 1 %></span>
-                        <span><%= course.title_for(I18n.locale) %></span>
-                      </li>
-                    <% end %>
-                  </ul>
-                </div>
-              </div>
-            <% end %>
-          <% end %>
-        </div>
-      </div>
+    <div class="mb-3">
+      <%= link_to t("dashboard.marketplace.show.back_link"),
+                  dashboard_marketplace_path(locale: I18n.locale),
+                  class: "text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
     </div>
-  </div>
-
-  <div class="space-y-6">
-    <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-      <div class="flex items-center justify-between gap-3">
-        <div class="text-2xl font-semibold text-gray-800 dark:text-gray-100"><%= @entry.price_display %></div>
-        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"><%= t("dashboard.marketplace.detail.lifetime_badge") %></span>
-      </div>
-      <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.marketplace.detail.price_label") %></p>
-      <div class="mt-4">
-        <% if @entry.purchased %>
-          <button class="btn-sm w-full bg-gray-900 text-white opacity-60 cursor-not-allowed dark:bg-gray-100 dark:text-gray-800" disabled><%= t("dashboard.marketplace.cta.purchased") %></button>
-          <% if @entry.purchase&.purchased_at %>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.marketplace.detail.purchased_on", date: l(@entry.purchase.purchased_at.to_date)) %></p>
-          <% end %>
-        <% elsif !eligible_to_buy %>
-          <button class="btn-sm w-full bg-gray-900 text-white opacity-60 cursor-not-allowed dark:bg-gray-100 dark:text-gray-800" disabled><%= t("dashboard.marketplace.cta.requires_base") %></button>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.marketplace.detail.requires_base", base: addon_base) %></p>
-        <% else %>
-          <%= button_to t("dashboard.marketplace.cta.buy_now"), dashboard_checkout_path(price_key: @entry.plan&.key), method: :post, class: "btn-sm w-full bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
-        <% end %>
-      </div>
-    </div>
-
-    <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
-      <% if @entry.addon? %>
-        <div>
-          <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.marketplace.detail.required_base_title") %></h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.marketplace.detail.requires_base", base: addon_base) %></p>
-        </div>
-      <% else %>
-        <div>
-          <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.marketplace.detail.already_have_title") %></h3>
-          <% if @entry.owned_expert_advisors.any? || @entry.owned_courses.any? || @entry.owned_assets.any? %>
-            <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300 list-disc list-inside">
-              <% @entry.owned_expert_advisors.each do |expert_advisor| %>
-                <li><%= expert_advisor.name %></li>
-              <% end %>
-              <% @entry.owned_courses.each do |course| %>
-                <li><%= course.title_for(I18n.locale) %></li>
-              <% end %>
-              <% @entry.owned_assets.each do |asset| %>
-                <li><%= asset.title_for(I18n.locale) %></li>
-              <% end %>
-            </ul>
-          <% else %>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.marketplace.detail.already_have_empty") %></p>
-          <% end %>
-        </div>
-        <div>
-          <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.marketplace.detail.you_will_get_title") %></h3>
-          <% if @entry.remaining_expert_advisors.any? || @entry.remaining_courses.any? || @entry.remaining_assets.any? %>
-            <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300 list-disc list-inside">
-              <% @entry.remaining_expert_advisors.each do |expert_advisor| %>
-                <li><%= expert_advisor.name %></li>
-              <% end %>
-              <% @entry.remaining_courses.each do |course| %>
-                <li><%= course.title_for(I18n.locale) %></li>
-              <% end %>
-              <% @entry.remaining_assets.each do |asset| %>
-                <li><%= asset.title_for(I18n.locale) %></li>
-              <% end %>
-            </ul>
-          <% else %>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.marketplace.detail.you_will_get_empty") %></p>
+    <header class="mb-4">
+      <!-- Title -->
+      <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2"><%= marketplace.title %></h1>
+      <% if summary.present? %>
+        <p><%= summary %></p>
+      <% end %>
+      <% if marketplace.tags.any? %>
+        <div class="flex flex-wrap gap-2 mt-3">
+          <% marketplace.tags.each do |tag| %>
+            <%= render "dashboard/shared/filter_chip",
+                       label: tag,
+                       interactive: false,
+                       extra_class: "text-xs cursor-default" %>
           <% end %>
         </div>
       <% end %>
+    </header>
+
+    <!-- Meta -->
+    <div class="space-y-3 sm:flex sm:items-center sm:justify-between sm:space-y-0 mb-6">
+      <!-- Author -->
+      <!-- Right side -->
+      <div class="flex flex-wrap items-center sm:justify-end space-x-4">
+        <!-- Tag -->
+        <% if marketplace.show_promo_badge? %>
+          <div class="inline-flex items-center text-xs font-medium text-gray-100 dark:text-gray-300 bg-gray-900/60 dark:bg-gray-800/60 rounded-full text-center px-2 py-0.5">
+            <svg class="w-3 h-3 shrink-0 fill-current text-yellow-500 mr-1" viewBox="0 0 12 12">
+              <path d="M11.953 4.29a.5.5 0 00-.454-.292H6.14L6.984.62A.5.5 0 006.12.173l-6 7a.5.5 0 00.379.825h5.359l-.844 3.38a.5.5 0 00.864.445l6-7a.5.5 0 00.075-.534z" />
+            </svg>
+            <span><%= t("dashboard.marketplace.show.promo_badge") %></span>
+          </div>
+        <% end %>
+        <!-- Rating -->
+        <% if marketplace.show_ratings? %>
+          <div class="flex items-center space-x-2 mr-2">
+            <!-- Stars -->
+            <!-- Rate -->
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Image -->
+    <figure class="mb-6">
+      <%= image_tag marketplace.image, class: "w-full rounded-xs", alt: marketplace.title %>
+    </figure>
+
+    <!-- Product content -->
+    <div>
+      <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-2"><%= t("dashboard.marketplace.detail.overview_title") %></h2>
+      <% if description.present? %>
+        <div class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed"><%= simple_format(description) %></div>
+      <% else %>
+        <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.marketplace.show.empty_description") %></p>
+      <% end %>
+    </div>
+
+    <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60 lg:hidden" />
+
+    <% if marketplace.related_items.any? %>
+      <div class="hidden lg:block">
+        <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60" />
+
+        <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60" />
+
+        <!-- Related -->
+        <div>
+          <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-2"><%= t("dashboard.marketplace.show.related_title") %></h2>
+          <ul class="space-y-8 sm:space-y-5 my-6">
+            <% marketplace.related_items.each do |item| %>
+              <!-- Related item -->
+              <%= render "marketplace/show/related_item", item: item %>
+            <% end %>
+          </ul>
+          <!-- Load More -->
+          <div class="text-center">
+            <%= link_to t("dashboard.marketplace.show.load_more"),
+                        marketplace.related_load_more_url,
+                        class: "btn bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300" %>
+          </div>
+        </div>
+
+        <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60" />
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Sidebar -->
+  <div>
+    <div class="bg-white dark:bg-gray-800 p-5 shadow-xs rounded-xl lg:w-72 xl:w-80">
+      <%= form_with url: dashboard_marketplace_product_checkout_path(product, locale: I18n.locale),
+                    method: :post,
+                    data: {
+                      marketplace_cart: true,
+                      base_price_cents: marketplace.base_price_cents,
+                      base_required: marketplace.base_required?,
+                      checkout_locked: !base_available,
+                      currency: marketplace.base_entry&.plan&.currency || "USD",
+                      locale: I18n.locale
+                    } do %>
+        <%= hidden_field_tag :base_plan_key, marketplace.base_plan_key %>
+        <%= hidden_field_tag :addon_keys, marketplace.selected_addon_keys.join(","), data: { addon_keys_input: true } %>
+
+        <!-- Section: Header -->
+        <div class="pb-4 mb-4 border-b border-gray-100 dark:border-gray-700/60">
+          <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.marketplace.show.sidebar_product_label") %></div>
+          <div class="flex items-start justify-between gap-3 mt-1">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100"><%= base_product&.title_for(I18n.locale) || marketplace.title %></h3>
+            <span class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= marketplace.base_price_display || marketplace.cart_total_display %></span>
+          </div>
+          <% if marketplace.entry.addon? %>
+            <% base_label = base_product&.title_for(I18n.locale) || t("dashboard.marketplace.errors.addon_base_default") %>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.marketplace.detail.requires_base", base: base_label) %></p>
+          <% end %>
+          <% unless base_available %>
+            <p class="text-xs text-rose-500 mt-2"><%= t("dashboard.marketplace.show.base_missing") %></p>
+          <% end %>
+        </div>
+
+        <!-- Section: Adons del producto -->
+        <div class="pb-4 mb-4 border-b border-gray-100 dark:border-gray-700/60">
+          <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.marketplace.show.addons.title") %></div>
+          <div class="mt-2 grid grid-cols-3 gap-2 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+            <span><%= t("dashboard.marketplace.show.addons.columns.addon") %></span>
+            <span class="text-center"><%= t("dashboard.marketplace.show.addons.columns.price") %></span>
+            <span class="text-right"><%= t("dashboard.marketplace.show.addons.columns.action") %></span>
+          </div>
+          <div class="mt-2 space-y-2 text-sm">
+            <% if marketplace.addon_rows.any? %>
+              <% marketplace.addon_rows.each do |row| %>
+                <%= render "marketplace/show/addon_row", row: row %>
+              <% end %>
+            <% else %>
+              <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.marketplace.show.addons.empty") %></p>
+            <% end %>
+          </div>
+          <div class="mt-3 border-t border-gray-100 dark:border-gray-700/60 pt-3 text-sm">
+            <div class="flex items-center justify-between text-gray-500 dark:text-gray-400">
+              <span><%= t("dashboard.marketplace.show.addons.subtotal") %></span>
+              <span data-addon-subtotal><%= marketplace.addon_total_display %></span>
+            </div>
+            <div class="flex items-center justify-between font-semibold text-gray-800 dark:text-gray-100 mt-1">
+              <span><%= t("dashboard.marketplace.show.addons.total") %></span>
+              <span data-cart-total><%= marketplace.cart_total_display %></span>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="flex items-center justify-between text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide">
+              <span><%= t("dashboard.marketplace.show.addons.progress_label") %></span>
+              <span class="normal-case text-gray-500 dark:text-gray-400" data-addon-progress-count>
+                <%= addon_progress[:selected] %>/<%= addon_progress[:total] %>
+              </span>
+            </div>
+            <div class="mt-2 w-full h-2 bg-gray-100 dark:bg-gray-700/60 rounded-full">
+              <div class="h-2 rounded-full bg-violet-500" data-addon-progress-bar style="width: <%= addon_progress[:percent] %>%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Comprar -->
+        <div class="mb-3">
+          <button class="btn w-full bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white"
+                  type="submit"
+                  data-cart-submit
+                  data-checkout-label-template="<%= t("dashboard.marketplace.show.buy_now", total: "%{total}") %>"
+                  data-checkout-label="<%= t("dashboard.marketplace.show.buy_now", total: marketplace.cart_total_display) %>"
+                  data-empty-label="<%= t("dashboard.marketplace.show.select_addons") %>"
+                  <%= "disabled" if button_disabled %>>
+            <%= button_label %>
+          </button>
+        </div>
+
+        <!-- Section: Legal -->
+        <% if marketplace.show_legal? %>
+          <div class="text-xs text-gray-500 italic text-center"><%= t("dashboard.marketplace.show.legal") %></div>
+        <% end %>
+      <% end %>
     </div>
   </div>
+
+  <!-- Related -->
+  <% if marketplace.related_items.any? %>
+    <div class="lg:hidden">
+      <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60" />
+
+      <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60" />
+
+      <div>
+        <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-2"><%= t("dashboard.marketplace.show.related_title") %></h2>
+        <ul class="space-y-8 sm:space-y-5 my-6">
+          <% marketplace.related_items.each do |item| %>
+            <!-- Related item -->
+            <%= render "marketplace/show/related_item", item: item %>
+          <% end %>
+        </ul>
+        <!-- Load More -->
+        <div class="text-center">
+          <%= link_to t("dashboard.marketplace.show.load_more"),
+                      marketplace.related_load_more_url,
+                      class: "btn bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300" %>
+        </div>
+      </div>
+
+      <hr class="my-6 border-t border-gray-200 dark:border-gray-700/60" />
+    </div>
+  <% end %>
+
 </div>
