@@ -14,6 +14,7 @@ module ExpertAdvisors
       :type_label,
       :meta_tags,
       :guide_copy,
+      :guide_cta_label,
       :guide_url,
       :details_url,
       :download_url,
@@ -72,7 +73,6 @@ module ExpertAdvisors
     attr_reader :user, :locale, :marketplace_available, :offset
 
     def preload_context
-      @guide_previews = ExpertAdvisors::GuidePreview.for_entries(entries, locale: locale)
       @addons_by_ea_id = load_addons
       @purchased_plan_ids = load_purchased_plan_ids
       @marketplace_products_by_ea_id = load_marketplace_products
@@ -130,6 +130,7 @@ module ExpertAdvisors
         type_label: type_label_for(expert_advisor),
         meta_tags: display_tags(expert_advisor.tag_list),
         guide_copy: guide_copy_for(expert_advisor),
+        guide_cta_label: guide_cta_label_for(entry),
         guide_url: guide_url_for(entry, expert_advisor),
         details_url: dashboard_expert_advisor_path(expert_advisor, locale: locale),
         download_url: download_url_for(entry, expert_advisor),
@@ -171,9 +172,13 @@ module ExpertAdvisors
       Array(tags).map { |tag| tag.to_s.strip }.reject(&:blank?).first(3)
     end
 
-    def guide_copy_for(expert_advisor)
-      preview = @guide_previews[expert_advisor.id]
-      preview&.paragraph.presence || I18n.t("dashboard.expert_advisors.index.guide_copy")
+    def guide_copy_for(_expert_advisor)
+      I18n.t("dashboard.expert_advisors.index.guide_copy")
+    end
+
+    def guide_cta_label_for(entry)
+      key = entry.accessible ? "dashboard.expert_advisors.guide_cta" : "dashboard.expert_advisors.unlock_cta"
+      I18n.t(key)
     end
 
     def guide_url_for(entry, expert_advisor)

@@ -46,7 +46,7 @@ RSpec.describe "Expert advisor guides", type: :request do
     card.css("button").find { |button| button.text.strip == label }
   end
 
-  it "renders the Expert Advisors index page with guide preview" do
+  it "renders the Expert Advisors index page with guide copy" do
     create(:user_expert_advisor, user:, expert_advisor:)
     sign_in user, scope: :user
 
@@ -54,7 +54,7 @@ RSpec.describe "Expert advisor guides", type: :request do
 
     expect(response).to be_successful
     expect(response.body).to include(expert_advisor.name)
-    expect(response.body).to include("First paragraph.")
+    expect(response.body).to include(I18n.t("dashboard.expert_advisors.index.guide_copy", locale: :en))
   end
 
   it "renders guides for an active user EA" do
@@ -249,6 +249,7 @@ RSpec.describe "Expert advisor guides", type: :request do
 
     doc = parsed_body
     guide_label = I18n.t("dashboard.expert_advisors.guide_cta", locale: :en)
+    unlock_label = I18n.t("dashboard.expert_advisors.unlock_cta", locale: :en)
     details_label = I18n.t("dashboard.expert_advisors.show_cta", locale: :en)
     download_label = I18n.t("dashboard.expert_advisors.download_bundle", locale: :en)
     purchase_label = I18n.t("dashboard.expert_advisors.addons.purchase_cta", locale: :en)
@@ -261,6 +262,9 @@ RSpec.describe "Expert advisor guides", type: :request do
     accessible_card = card_for(doc, accessible_ea.name)
     expect(link_in(accessible_card, guide_label)["href"])
       .to eq(dashboard_expert_advisor_guides_path(accessible_ea, locale: :en))
+    license_value = accessible_card.at_css("[data-license-value]")
+    expect(license_value).to be_present
+    expect(license_value.text).to include(license.encrypted_key)
     expect(link_in(accessible_card, details_label)["href"])
       .to eq(dashboard_expert_advisor_path(accessible_ea, locale: :en))
     expect(link_in(accessible_card, download_label)["href"])
@@ -273,17 +277,18 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(copy_button["disabled"]).to be_nil
 
     marketplace_card = card_for(doc, locked_marketplace_ea.name)
-    expect(link_in(marketplace_card, guide_label)["href"])
+    expect(link_in(marketplace_card, unlock_label)["href"])
       .to eq(dashboard_marketplace_product_path(marketplace_product, locale: :en))
     download_button = button_in(marketplace_card, download_label)
     expect(download_button["disabled"]).to eq("disabled")
     expect(marketplace_card.text).to include(locked_license)
+    expect(marketplace_card.at_css("[data-license-value]").text).to include(locked_license)
     locked_copy_button = button_in(marketplace_card, copy_label)
     expect(locked_copy_button["disabled"]).to eq("disabled")
     expect(locked_copy_button["data-copy-text"]).to be_nil
 
     plan_card = card_for(doc, locked_plan_ea.name)
-    expect(link_in(plan_card, guide_label)["href"])
+    expect(link_in(plan_card, unlock_label)["href"])
       .to eq(dashboard_plans_path(locale: :en, price_key: subscription_plan.key))
     expect(plan_card.text).to include(zero_progress)
   end
