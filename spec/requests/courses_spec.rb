@@ -13,6 +13,20 @@ RSpec.describe "Courses", type: :request do
     expect(response.body).to include("Trading Foundations")
   end
 
+  it "prefers marketplace unlock links when available" do
+    course = create(:course, slug: "marketplace-course", title_en: "Marketplace Course")
+    subscription_plan = create(:billing_plan, tier: "pro")
+    create(:course_plan_entitlement, course: course, billing_plan: subscription_plan)
+    product = create(:marketplace_product, title_en: "Marketplace Course Product")
+    create(:course_plan_entitlement, course: course, billing_plan: product.billing_plan)
+    sign_in user, scope: :user
+
+    get dashboard_courses_path(locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include(dashboard_marketplace_product_path(product, locale: :en))
+  end
+
   it "allows access to a free course but blocks locked lessons" do
     paid_course = create(:course, slug: "paid-course")
     module_record = create(:course_module, course: paid_course)

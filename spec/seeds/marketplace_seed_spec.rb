@@ -20,7 +20,7 @@ RSpec.describe "Marketplace seeds" do
   it "creates marketplace products and billing plans with Stripe identifiers" do
     expect do
       Seeds::MarketplaceProducts.seed_products!
-    end.to change(MarketplaceProduct, :count).by(9)
+    end.to change(MarketplaceProduct, :count).by(10)
 
     products = MarketplaceProduct.order(:slug).to_a
     expect(products.map(&:slug)).to match_array(
@@ -29,6 +29,7 @@ RSpec.describe "Marketplace seeds" do
         asset_risk_checklist
         course_essentials
         course_intermediate_systems
+        course_orderflow_lab
         course_trading_foundations
         ea_momentum_pulse
         ea_sniper_panel
@@ -45,9 +46,9 @@ RSpec.describe "Marketplace seeds" do
       expect(plan.stripe_price_id).to be_present
     end
 
-    expect(BillingPlan.where(key: products.map(&:key)).count).to eq(9)
+    expect(BillingPlan.where(key: products.map(&:key)).count).to eq(10)
     expect(BillingPlanEntitlement.count).to eq(5)
-    expect(CoursePlanEntitlement.count).to eq(5)
+    expect(CoursePlanEntitlement.count).to eq(6)
     expect(AssetPlanEntitlement.count).to eq(7)
 
     expect do
@@ -214,6 +215,14 @@ RSpec.describe "Marketplace seeds" do
       course.category = "systems"
       course.title_en = "Intermediate Systems"
       course.title_es = "Sistemas Intermedios"
+    end
+
+    Course.find_or_create_by!(slug: "orderflow-lab") do |course|
+      course.position = 4
+      course.status = "published"
+      course.category = "intermediate"
+      course.title_en = "Orderflow Lab"
+      course.title_es = "Laboratorio de orderflow"
     end
 
     MarketplaceAsset.find_or_create_by!(slug: "quick_start_guide") do |asset|

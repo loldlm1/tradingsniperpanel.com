@@ -29,13 +29,16 @@ module Courses
       keyword_init: true
     )
 
-    def initialize(entries:, locale: I18n.locale, page: nil, items: 8)
+    def initialize(entries:, locale: I18n.locale, marketplace_available: false, page: nil, items: 8)
       @entries = Array(entries)
       @locale = locale.presence || I18n.locale
+      @marketplace_available = marketplace_available
       @items = items
       @page = page.to_i
       @page = 1 if @page < 1
       @offset = (@page - 1) * @items
+
+      preload_context
     end
 
     attr_reader :entries, :items, :page
@@ -62,7 +65,11 @@ module Courses
 
     private
 
-    attr_reader :locale, :offset
+    attr_reader :locale, :marketplace_available, :offset
+
+    def preload_context
+      @marketplace_products_by_course_id = marketplace_available ? load_marketplace_products : {}
+    end
 
     def sorted_entries
       @sorted_entries ||= entries.sort_by do |entry|
@@ -123,7 +130,7 @@ module Courses
     end
 
     def access_status_for(entry, course)
-      return "free" if course.subscription_tiers.blank?
+      return "free" if course.free_access?
       return "unlocked" if entry.accessible
 
       "locked"
@@ -131,6 +138,11 @@ module Courses
 
     def unlock_url_for(entry)
       return if entry.accessible
+
+      if marketplace_available
+        product = @marketplace_products_by_course_id[entry.course.id]
+        return dashboard_marketplace_product_path(product, locale: locale) if product.present?
+      end
 
       plan = entry.cta_plan
       return if plan.blank?
@@ -212,10 +224,26 @@ module Courses
     end
 
     def tag_filters
+      entries_for_tags = entries_with_progress
+      entries_for_tags = entries if entries_for_tags.empty?
+
+      counts, labels = tag_counts_for(entries_for_tags)
+      return [] if counts.empty?
+
+      counts.sort_by { |tag, count| [-count, tag] }.first(5).map do |tag, count|
+        Filter.new(label: labels[tag] || tag, value: tag, count: count)
+      end
+    end
+
+    def entries_with_progress
+      entries.select { |entry| entry.progress_percent.to_i.positive? }
+    end
+
+    def tag_counts_for(entries_for_tags)
       counts = Hash.new(0)
       labels = {}
 
-      entries.each do |entry|
+      entries_for_tags.each do |entry|
         entry.course.tag_list.each do |tag|
           normalized = normalize_tag(tag)
           next if normalized.blank?
@@ -225,8 +253,23 @@ module Courses
         end
       end
 
-      counts.sort_by { |tag, count| [-count, tag] }.first(5).map do |tag, count|
-        Filter.new(label: labels[tag] || tag, value: tag, count: count)
+      [counts, labels]
+    end
+
+    def load_marketplace_products
+      course_ids = entries.map { |entry| entry.course.id }
+      return {} if course_ids.empty?
+
+      products = MarketplaceProduct.active
+                                   .joins(billing_plan: :course_plan_entitlements)
+                                   .where(course_plan_entitlements: { course_id: course_ids })
+                                   .includes(billing_plan: :courses)
+                                   .order(:sort_order)
+
+      products.each_with_object({}) do |product, map|
+        product.courses.each do |course|
+          map[course.id] ||= product
+        end
       end
     end
 

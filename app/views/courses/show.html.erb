@@ -1,7 +1,7 @@
 <% entry = @course_entry %>
 <% course = @course %>
-<% accessible = entry&.accessible || course.subscription_tiers.blank? %>
-<% cta_plan = entry&.cta_plan %>
+<% accessible = entry&.accessible || course.free_access? %>
+<% unlock_url = @unlock_url %>
 <% progress_percent = entry&.progress_percent %>
 <% lessons = course.course_lessons %>
 
@@ -17,14 +17,14 @@
     <% end %>
   </div>
   <div class="flex items-center gap-2">
-    <% badge_label = if course.subscription_tiers.blank?
+    <% badge_label = if course.free_access?
                       t("dashboard.courses.badges.free")
                     elsif accessible
                       t("dashboard.courses.badges.unlocked")
                     else
                       t("dashboard.courses.badges.locked")
                     end %>
-    <% badge_class = if course.subscription_tiers.blank?
+    <% badge_class = if course.free_access?
                       "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
                     elsif accessible
                       "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
@@ -35,8 +35,8 @@
                label: badge_label,
                padding_class: "px-2 py-1",
                class_name: badge_class %>
-    <% if !accessible && cta_plan.present? %>
-      <%= link_to t("dashboard.courses.unlock_cta"), dashboard_plans_path(price_key: cta_plan.key), class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+    <% if unlock_url.present? %>
+      <%= link_to t("dashboard.courses.unlock_cta"), unlock_url, class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
     <% end %>
   </div>
 </div>
@@ -111,8 +111,8 @@
       <% else %>
         <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.access_locked") %></div>
       <% end %>
-      <% if !accessible && cta_plan.present? %>
-        <%= link_to t("dashboard.courses.unlock_cta"), dashboard_plans_path(price_key: cta_plan.key), class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full" %>
+      <% if unlock_url.present? %>
+        <%= link_to t("dashboard.courses.unlock_cta"), unlock_url, class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full" %>
       <% end %>
     </div>
   </aside>
