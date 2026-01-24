@@ -1,5 +1,6 @@
 class Course < ApplicationRecord
   acts_as_taggable_on :tags
+  has_one_attached :cover_image
 
   has_many :course_modules, dependent: :destroy
   has_many :course_lessons, through: :course_modules

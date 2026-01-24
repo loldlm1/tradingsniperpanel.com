@@ -1,0 +1,91 @@
+<% card = local_assigns.fetch(:card) %>
+<% course = card.course %>
+<% item_classes = ["flex bg-white dark:bg-gray-800 shadow-xs rounded-xl overflow-hidden"] %>
+<% item_classes << "hidden" unless card.visible_by_default %>
+<% progress_percent = card.progress_percent %>
+<% progress_label = card.progress_label %>
+<% cover_alt = course.title_for(I18n.locale) %>
+
+<!-- Item <%= card.index + 1 %> -->
+<article
+  class="<%= item_classes.join(" ") %>"
+  data-filter-item="true"
+  data-filter-text="<%= j card.search_text.to_s %>"
+  data-filter-tags="<%= j card.filter_tags.to_s %>"
+  data-filter-index="<%= card.index %>"
+  data-published-at="<%= card.published_at %>"
+  data-position="<%= card.position %>"
+  data-slug="<%= card.slug %>"
+>
+  <!-- Image -->
+  <a class="relative block w-24 sm:w-56 xl:sidebar-expanded:w-40 2xl:sidebar-expanded:w-56 shrink-0" href="<%= card.details_url %>">
+    <% if course.cover_image.attached? %>
+      <%= image_tag course.cover_image, class: "absolute object-cover object-center w-full h-full", width: 220, height: 236, alt: cover_alt %>
+    <% else %>
+      <%= image_tag "mosaic/images/product-image.jpg", class: "absolute object-cover object-center w-full h-full", width: 220, height: 236, alt: t("dashboard.courses.cover_placeholder_alt") %>
+    <% end %>
+  </a>
+  <!-- Content -->
+  <div class="grow p-5 flex flex-col">
+    <!-- Header -->
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div class="text-xs font-semibold text-violet-500 uppercase mb-1"><%= card.type_label %></div>
+        <a class="inline-flex" href="<%= card.details_url %>">
+          <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100"><%= course.title_for(I18n.locale) %></h3>
+        </a>
+      </div>
+      <!-- Status -->
+      <div class="shrink-0">
+        <% if card.accessible %>
+          <%= render "dashboard/shared/badge",
+                     label: card.status_label,
+                     padding_class: "px-2.5 py-1",
+                     class_name: card.status_class %>
+        <% elsif card.unlock_url.present? %>
+          <%= link_to t("dashboard.courses.unlock_cta"), card.unlock_url, class: "btn-xs bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white whitespace-nowrap" %>
+        <% else %>
+          <%= render "dashboard/shared/badge",
+                     label: card.status_label,
+                     padding_class: "px-2.5 py-1",
+                     class_name: card.status_class %>
+        <% end %>
+      </div>
+    </div>
+    <!-- Body -->
+    <% if card.summary.present? %>
+      <div class="mt-3 text-sm text-gray-600 dark:text-gray-400">
+        <%= truncate(card.summary, length: 160) %>
+      </div>
+    <% end %>
+    <!-- Footer -->
+    <div class="mt-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <!-- Details -->
+      <div class="grow">
+        <!-- Meta -->
+        <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+          <div><span class="font-semibold text-gray-800 dark:text-gray-100"><%= card.modules_count %></span> <%= t("dashboard.courses.meta.modules_label") %></div>
+          <div><span class="font-semibold text-gray-800 dark:text-gray-100"><%= card.lessons_count %></span> <%= t("dashboard.courses.meta.lessons_label") %></div>
+          <div><span class="font-semibold text-gray-800 dark:text-gray-100"><%= format_duration(card.duration_seconds) %></span> <%= t("dashboard.courses.meta.duration_label") %></div>
+        </div>
+        <!-- Progress -->
+        <div class="mt-4">
+          <div class="flex justify-between text-sm mb-2">
+            <div class="text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.progress.title") %></div>
+            <div class="font-medium text-gray-800 dark:text-gray-100"><%= progress_percent %>%</div>
+          </div>
+          <div class="relative w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700" role="progressbar" aria-label="<%= t("dashboard.courses.progress.aria_label") %>" aria-valuenow="<%= progress_percent %>" aria-valuemin="0" aria-valuemax="100">
+            <div class="absolute left-0 top-0 bottom-0 bg-violet-500 rounded-full" style="width:<%= progress_percent %>%;"></div>
+          </div>
+          <% if progress_label.present? %>
+            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400"><%= progress_label %></div>
+          <% end %>
+        </div>
+      </div>
+      <!-- Actions -->
+      <div class="shrink-0">
+        <%= link_to t("dashboard.courses.view_cta"), card.details_url, class: "btn-sm w-full sm:w-auto bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white whitespace-nowrap" %>
+      </div>
+    </div>
+  </div>
+</article>

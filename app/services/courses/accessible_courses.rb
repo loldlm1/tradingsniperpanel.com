@@ -18,7 +18,8 @@ module Courses
       return [] unless user
 
       courses = Course.published
-                      .includes(:course_plan_entitlements, :billing_plans, course_modules: :course_lessons)
+                      .with_attached_cover_image
+                      .includes(:course_plan_entitlements, :billing_plans, :tags, course_modules: :course_lessons)
                       .ordered
       enrollment_map = enrollments_indexed
       current_tier = resolved_tier

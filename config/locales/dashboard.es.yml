@@ -543,6 +543,8 @@ es:
       index:
         title: "Cursos"
         subtitle: "Aprende estrategias de trading con lecciones estructuradas."
+        search_label: "Buscar cursos"
+        search_placeholder: "Buscar cursos..."
         empty_title: "Los cursos están en camino"
         empty_copy: "Estamos preparando nuevas lecciones. Vuelve pronto o contáctanos para novedades."
         empty_cta: "Contactar soporte"
@@ -568,10 +570,31 @@ es:
         free: "Gratis"
         unlocked: "Desbloqueado"
         locked: "Bloqueado"
+      status:
+        active: "Curso activo"
+      filters:
+        all: "Todos"
+      sort:
+        label: "Ordenar cursos"
+        recent: "Más recientes"
+        oldest: "Más antiguos"
+      card:
+        type_label: "Curso"
+        type_category: "%{type} | %{category}"
+      progress:
+        title: "Progreso"
+        aria_label: "Progreso del curso"
+        status:
+          in_progress: "En progreso"
+          completed: "Completado"
+      cover_placeholder_alt: "Curso sin imagen"
       meta:
         modules: "%{count} módulos"
         lessons: "%{count} lecciones"
         duration: "%{duration} total"
+        modules_label: "módulos"
+        lessons_label: "lecciones"
+        duration_label: "de duración"
       categories:
         introduction: "Introducción"
         beginner: "Principiante"
