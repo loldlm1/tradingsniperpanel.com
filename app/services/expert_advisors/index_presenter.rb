@@ -52,7 +52,7 @@ module ExpertAdvisors
     end
 
     def pagy
-      @pagy ||= Pagy.new(count: entries.size, page: page, items: items)
+      @pagy ||= Pagy::Offset.new(count: entries.size, page: page, limit: items)
     end
 
     def tag_filters
