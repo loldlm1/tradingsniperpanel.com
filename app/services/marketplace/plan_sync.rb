@@ -62,7 +62,9 @@ module Marketplace
         currency: plan.currency,
         active: plan.active,
         sort_order: plan.sort_order,
-        metadata: plan.metadata
+        metadata: plan.metadata,
+        stripe_product_id: plan.stripe_product_id,
+        stripe_price_id: plan.stripe_price_id
       }
     end
   end

@@ -7,6 +7,9 @@ class MarketplaceProduct < ApplicationRecord
   has_many :marketplace_assets, through: :billing_plan
   has_one :addon, through: :billing_plan
 
+  delegate :amount_cents, :currency, to: :billing_plan, prefix: :plan, allow_nil: true
+  delegate :stripe_product_id, :stripe_price_id, to: :billing_plan, allow_nil: true
+
   enum :status, { draft: "draft", active: "active" }
 
   scope :ordered, -> { order(:sort_order, :title_en) }
@@ -48,6 +51,17 @@ class MarketplaceProduct < ApplicationRecord
 
   def description_for(locale)
     localized_value(:description, locale)
+  end
+
+  def addonable_ref
+    addon = billing_plan&.addon
+    return if addon.blank?
+
+    "#{addon.addonable_type}:#{addon.addonable_id}"
+  end
+
+  def addon_key
+    billing_plan&.addon&.key
   end
 
   private

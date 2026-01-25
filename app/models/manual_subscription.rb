@@ -17,6 +17,7 @@ class ManualSubscription < ApplicationRecord
   validate :billing_plan_is_subscription
   validate :ends_after_start
   validate :no_overlapping_periods
+  validate :no_active_pay_subscription, if: :active_for_time?
 
   before_validation :assign_status_from_dates
   after_commit :enqueue_sync, on: %i[create update]
@@ -96,6 +97,29 @@ class ManualSubscription < ApplicationRecord
     return if ends_at.blank?
 
     self.status = ends_at.future? ? STATUSES[:active] : STATUSES[:expired]
+  end
+
+  def no_active_pay_subscription
+    return unless user && billing_plan
+    return unless Pay::Subscription.table_exists?
+
+    pay_customer_ids = user.pay_customers.select(:id)
+    return if pay_customer_ids.blank?
+
+    scope = Pay::Subscription.where(customer_id: pay_customer_ids).active
+
+    if billing_plan.stripe_price_id.present?
+      if scope.where(processor_plan: billing_plan.stripe_price_id).exists?
+        errors.add(:base, :billing_conflict)
+      end
+      return
+    end
+
+    return if billing_plan.key.blank?
+
+    if scope.where("pay_subscriptions.metadata ->> 'billing_plan_key' = ?", billing_plan.key).exists?
+      errors.add(:base, :billing_conflict)
+    end
   end
 
   def enqueue_sync

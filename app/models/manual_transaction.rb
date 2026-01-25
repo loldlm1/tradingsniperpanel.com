@@ -8,6 +8,7 @@ class ManualTransaction < ApplicationRecord
   validates :billing_plan_id, uniqueness: { scope: :user_id }
 
   validate :billing_plan_is_one_time
+  validate :no_stripe_charge_conflict
 
   after_commit :enqueue_fulfillment, on: :create
 
@@ -25,6 +26,16 @@ class ManualTransaction < ApplicationRecord
     return if billing_plan&.one_time?
 
     errors.add(:billing_plan, :invalid)
+  end
+
+  def no_stripe_charge_conflict
+    return unless user && billing_plan
+    return unless MarketplacePurchase.table_exists?
+
+    conflict = MarketplacePurchase.where(user: user, billing_plan: billing_plan)
+                                  .where.not(pay_charge_id: nil)
+                                  .exists?
+    errors.add(:base, :billing_conflict) if conflict
   end
 
   def enqueue_fulfillment

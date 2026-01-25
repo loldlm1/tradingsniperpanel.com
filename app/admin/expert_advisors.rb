@@ -78,10 +78,6 @@ ActiveAdmin.register ExpertAdvisor do
   end
 
   form do |f|
-    selected_product_ids = MarketplaceProduct.where(
-      billing_plan_id: f.object.billing_plans.select(:id)
-    ).pluck(:id)
-
     f.inputs t("active_admin.expert_advisors.sections.details") do
       if f.object.persisted?
         f.input :ea_id, input_html: { disabled: true }
@@ -101,28 +97,15 @@ ActiveAdmin.register ExpertAdvisor do
     end
 
     f.inputs t("active_admin.expert_advisors.sections.marketplace_products") do
-      li class: "input" do
-        text_node f.template.link_to(
-          t("active_admin.expert_advisors.labels.create_marketplace_product"),
-          new_admin_marketplace_product_path
-        )
-      end
-      li class: "input" do
-        text_node f.template.label_tag(
-          "expert_advisor_marketplace_product_ids",
-          t("active_admin.expert_advisors.labels.marketplace_products")
-        )
-        text_node f.template.select_tag(
-          "expert_advisor[marketplace_product_ids][]",
-          f.template.options_from_collection_for_select(
-            MarketplaceProduct.ordered,
-            :id,
-            :title_en,
-            selected_product_ids
-          ),
-          multiple: true
-        )
-      end
+      f.input :marketplace_product_ids,
+              as: :select,
+              collection: MarketplaceProduct.ordered.map { |product| [product.title_en, product.id] },
+              input_html: { multiple: true },
+              label: t("active_admin.expert_advisors.labels.marketplace_products"),
+              hint: f.template.link_to(
+                t("active_admin.expert_advisors.labels.create_marketplace_product"),
+                new_admin_marketplace_product_path
+              )
     end
 
     f.actions

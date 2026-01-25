@@ -50,6 +50,11 @@ class DashboardsController < ApplicationController
     end
 
     if plan&.one_time?
+      if manual_billing_conflict?(plan)
+        redirect_to marketplace_redirect_path(plan),
+                    alert: t("dashboard.marketplace.errors.already_purchased") and return
+      end
+
       guard = Marketplace::PurchaseGuard.new(user: current_user, billing_plan: plan).call
       unless guard.allowed
         alert_key = guard.reason == :already_purchased ? "dashboard.marketplace.errors.already_purchased" : "dashboard.marketplace.errors.addon_requires_base"
@@ -85,6 +90,10 @@ class DashboardsController < ApplicationController
 
       session = current_user.payment_processor.checkout(**checkout_params)
       redirect_to session.url, allow_other_host: true and return
+    end
+
+    if manual_billing_conflict?(plan)
+      redirect_to dashboard_plans_path, alert: t("dashboard.plans.manual_unavailable") and return
     end
 
     if @subscription.present?
@@ -242,6 +251,16 @@ class DashboardsController < ApplicationController
 
   def manual_subscription?
     @subscription.is_a?(ManualSubscription)
+  end
+
+  def manual_billing_conflict?(plan)
+    return false unless plan && current_user
+
+    if plan.one_time?
+      ManualTransaction.where(user: current_user, billing_plan_id: plan.id).exists?
+    else
+      ManualSubscription.active_at(Time.current).where(user: current_user, billing_plan_id: plan.id).exists?
+    end
   end
 
   def plan_label_for(price_key)
