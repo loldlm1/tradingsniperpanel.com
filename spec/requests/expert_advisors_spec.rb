@@ -7,6 +7,10 @@ RSpec.describe "Expert advisor guides", type: :request do
   end
   let(:bundle_path) { Rails.root.join("spec/fixtures/files/ea_bundle.rar") }
 
+  before do
+    sign_in user, scope: :user
+  end
+
   def attach_bundle(record)
     File.open(bundle_path) do |file|
       record.ea_files.attach(
@@ -48,7 +52,6 @@ RSpec.describe "Expert advisor guides", type: :request do
 
   it "renders the Expert Advisors index page with guide copy" do
     create(:user_expert_advisor, user:, expert_advisor:)
-    sign_in user, scope: :user
 
     get dashboard_expert_advisors_path(locale: :en)
 
@@ -59,7 +62,6 @@ RSpec.describe "Expert advisor guides", type: :request do
 
   it "renders guides for an active user EA" do
     create(:user_expert_advisor, user:, expert_advisor:)
-    sign_in user, scope: :user
 
     get dashboard_expert_advisor_guides_path(expert_advisor, locale: :en)
 
@@ -69,8 +71,6 @@ RSpec.describe "Expert advisor guides", type: :request do
   end
 
   it "renders the EA show page for a locked user" do
-    sign_in user, scope: :user
-
     get dashboard_expert_advisor_path(expert_advisor, locale: :en)
 
     expect(response).to be_successful
@@ -79,8 +79,6 @@ RSpec.describe "Expert advisor guides", type: :request do
   end
 
   it "returns not found when user does not own the EA" do
-    sign_in user, scope: :user
-
     get dashboard_expert_advisor_guides_path(expert_advisor, locale: :en)
 
     expect(response).to have_http_status(:not_found)
@@ -89,7 +87,6 @@ RSpec.describe "Expert advisor guides", type: :request do
   it "redirects to the bundle download when licensed" do
     create(:license, user:, expert_advisor:)
     attach_bundle(expert_advisor)
-    sign_in user, scope: :user
 
     get dashboard_expert_advisor_download_path(expert_advisor, locale: :en)
 
@@ -104,7 +101,6 @@ RSpec.describe "Expert advisor guides", type: :request do
     create(:license, user:, expert_advisor:)
     bundle = create(:expert_advisor_bundle, expert_advisor: expert_advisor, bundle_key: "base", required_addon_keys: "")
     attach_ea_bundle(bundle, filename: "#{expert_advisor.ea_id}__base.rar")
-    sign_in user, scope: :user
 
     get dashboard_expert_advisor_download_path(expert_advisor, locale: :en)
 
@@ -117,7 +113,6 @@ RSpec.describe "Expert advisor guides", type: :request do
   it "blocks bundle downloads when the matching bundle is missing" do
     create(:license, user:, expert_advisor:)
     create(:expert_advisor_bundle, expert_advisor: expert_advisor, bundle_key: "base", required_addon_keys: "")
-    sign_in user, scope: :user
 
     get dashboard_expert_advisor_download_path(expert_advisor, locale: :en)
 
@@ -128,7 +123,6 @@ RSpec.describe "Expert advisor guides", type: :request do
 
   it "blocks bundle download when locked" do
     attach_bundle(expert_advisor)
-    sign_in user, scope: :user
 
     get dashboard_expert_advisor_download_path(expert_advisor, locale: :en)
 
@@ -142,7 +136,6 @@ RSpec.describe "Expert advisor guides", type: :request do
       create(:expert_advisor, name: "Pandora Box", tier_rank: 2),
       create(:expert_advisor, name: "XAU HFT Scalper", tier_rank: 3)
     ]
-    sign_in user, scope: :user
 
     get dashboard_expert_advisors_path(locale: :en)
 
@@ -167,8 +160,6 @@ RSpec.describe "Expert advisor guides", type: :request do
     ea6.tag_list.add("zeta")
     [ea1, ea2, ea3, ea4, ea5, ea6].each(&:save!)
 
-    sign_in user, scope: :user
-
     get dashboard_expert_advisors_path(locale: :en)
 
     doc = parsed_body
@@ -184,8 +175,6 @@ RSpec.describe "Expert advisor guides", type: :request do
   it "paginates cards and toggles visibility by page" do
     names = ("A".."I").map { |letter| "EA #{letter}" }
     names.each { |name| create(:expert_advisor, name: name) }
-
-    sign_in user, scope: :user
 
     get dashboard_expert_advisors_path(locale: :en)
 
@@ -208,7 +197,6 @@ RSpec.describe "Expert advisor guides", type: :request do
 
   it "omits pagination when there are 8 or fewer cards" do
     create_list(:expert_advisor, 8)
-    sign_in user, scope: :user
 
     get dashboard_expert_advisors_path(locale: :en)
 
@@ -242,8 +230,6 @@ RSpec.describe "Expert advisor guides", type: :request do
     extra_plan = create(:billing_plan, :one_time)
     extra_product = create(:marketplace_product, billing_plan: extra_plan)
     create(:addon, addonable: accessible_ea, billing_plan: extra_plan)
-
-    sign_in user, scope: :user
 
     get dashboard_expert_advisors_path(locale: :en)
 

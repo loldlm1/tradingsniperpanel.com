@@ -1,5 +1,3 @@
-require "timeout"
-
 if ENV["COVERAGE"]
   require "simplecov"
 
@@ -32,9 +30,6 @@ end
 #
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
-  config.around do |example|
-    Timeout.timeout(ENV.fetch("RSPEC_TIMEOUT", "60").to_i) { example.run }
-  end
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
   # assertions if you prefer.

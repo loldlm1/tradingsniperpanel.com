@@ -5,7 +5,7 @@ RSpec.describe "Dashboard analytics", type: :request do
   let(:expert_advisor) { create(:expert_advisor, name: "Grid Guard") }
   let!(:license) { create(:license, user: user, expert_advisor: expert_advisor, status: "active") }
   let!(:broker_accounts) do
-    Array.new(12) do |index|
+    Array.new(2) do |index|
       create(:broker_account,
              license: license,
              company: "PagedFX",

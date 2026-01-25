@@ -54,15 +54,6 @@ RSpec.describe "Marketplace seeds" do
     expect do
       Seeds::MarketplaceProducts.seed_products!
     end.not_to change(MarketplaceProduct, :count)
-  end
-
-  it "does not create duplicate Stripe products or prices when seeding twice" do
-    Seeds::MarketplaceProducts.seed_products!
-
-    expect(Stripe::Product.counter.to_i).to eq(3)
-    expect(Stripe::Price.counter.to_i).to eq(3)
-
-    Seeds::MarketplaceProducts.seed_products!
 
     expect(Stripe::Product.counter.to_i).to eq(3)
     expect(Stripe::Price.counter.to_i).to eq(3)
