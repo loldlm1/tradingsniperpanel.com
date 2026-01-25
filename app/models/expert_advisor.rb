@@ -67,6 +67,10 @@ class ExpertAdvisor < ApplicationRecord
     "#{ea_id}.#{bundle_extension}"
   end
 
+  def marketplace_product_ids
+    MarketplaceProduct.where(billing_plan_id: billing_plans.select(:id)).pluck(:id)
+  end
+
   def ensure_bundle_filename!
     return unless ea_files.attached?
 
