@@ -86,6 +86,13 @@ es:
       labels:
         create_marketplace_product: "Crear un producto de marketplace"
         marketplace_products: "Productos del marketplace (compra única)"
+    course_modules:
+      sections:
+        details: "Detalles del módulo"
+    course_lessons:
+      sections:
+        details: "Detalles de la lección"
+        content: "Contenido de la lección"
     expert_advisor_bundles:
       sections:
         details: "Detalles"
