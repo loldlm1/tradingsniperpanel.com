@@ -63,4 +63,23 @@ RSpec.describe Admin::Users::RoleGuard do
       expect(guard.allow_role_change?(record: trader, new_role: "admin")).to be(true)
     end
   end
+
+  describe "#can_access_record?" do
+    it "blocks admins from accessing master admin records" do
+      admin = create(:user, :admin)
+      master_admin = create(:user, :master_admin)
+
+      guard = described_class.new(actor: admin)
+
+      expect(guard.can_access_record?(master_admin)).to be(false)
+    end
+
+    it "allows master admins to access master admin records" do
+      master_admin = create(:user, :master_admin)
+
+      guard = described_class.new(actor: master_admin)
+
+      expect(guard.can_access_record?(master_admin)).to be(true)
+    end
+  end
 end
