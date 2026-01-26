@@ -1,0 +1,7 @@
+<% content_for :title, "#{t('legal.refunds_and_cancellations.title')} | #{app_name}" %>
+
+<%= render "document",
+  title: t("legal.refunds_and_cancellations.title"),
+  subtitle: t("legal.refunds_and_cancellations.subtitle"),
+  updated_at: t("legal.updated_at"),
+  sections: legal_sections("refunds_and_cancellations") %>

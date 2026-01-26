@@ -156,6 +156,7 @@ en:
     tagline: "Built for disciplined MQL5 traders."
     terms: "Terms"
     privacy: "Privacy Policy"
+    refunds: "Refund & Cancellation Policy"
     contact:
       title: "Contact"
       chat: "Live chat"
@@ -187,6 +188,7 @@ en:
       links:
         terms: "Terms"
         privacy: "Privacy Policy"
+        refunds_and_cancellations: "Refund & Cancellation Policy"
   terms_acceptance:
     title: "Accept Terms & Privacy"
     badge: "Consent required"
@@ -203,10 +205,12 @@ en:
       label: "I acknowledge that purchases are final and no refunds are offered (except where required by law)."
       helper: "You can cancel your subscription anytime to avoid future charges."
       required: "Please acknowledge the no-refunds policy to continue."
+    subscription_notice_html: "No refunds. You can cancel anytime to stop future charges. See the %{refunds_link}."
   legal:
     links:
       terms: "Terms of Service"
       privacy: "Privacy Policy"
+      refunds_and_cancellations: "Refund & Cancellation Policy"
     badge: "Legal"
     last_updated: "Last updated: %{date}"
     updated_at: "January 26, 2026"
@@ -321,6 +325,30 @@ en:
         - title: "10. Changes"
           paragraphs:
             - "We may update this Privacy Policy from time to time. Continued use of the Service after an update becomes effective constitutes acceptance of the updated policy."
+    refunds_and_cancellations:
+      title: "Refund & Cancellation Policy"
+      subtitle: "This policy explains how cancellations work and when refunds are available."
+      sections:
+        - title: "1. Overview"
+          paragraphs:
+            - "This policy applies to all subscriptions and one-time digital purchases made through %{brand_display_name}."
+        - title: "2. Subscriptions"
+          paragraphs:
+            - "You can cancel your subscription at any time from your billing settings or by contacting support."
+            - "Your subscription remains active until the end of the current billing period; we do not provide prorated refunds for unused time unless required by law."
+            - "After cancellation, you will not be charged for future billing periods."
+        - title: "3. One-Time Purchases"
+          paragraphs:
+            - "One-time purchases (including digital downloads and access passes) are final and non-refundable once delivered, except where required by law."
+        - title: "4. Refund Exceptions"
+          paragraphs:
+            - "We may issue refunds if required by law, for billing errors, or at our discretion in exceptional cases."
+        - title: "5. Delivery & Access"
+          paragraphs:
+            - "Digital products and subscription access are delivered electronically via your account. If you experience access issues, contact %{support_email}."
+        - title: "6. How to Contact Us"
+          paragraphs:
+            - "If you have questions about cancellations or refunds, email %{support_email}."
   landing:
     neon:
       nav:

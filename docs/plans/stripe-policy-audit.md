@@ -47,9 +47,11 @@
 - Marketing copy includes “signals” references (fintech sections + locales) that may conflict with your “no signals/copy-trading” stance.
 
 # Decisions (in progress)
-- Add refund acknowledgement at checkout (plans + marketplace) with a server-side guard.
+- Keep refund acknowledgement checkbox + server-side guard for marketplace only.
 - Add business info + contact blocks to Terms/Privacy using per-tenant branding fields.
 - Replace “signals” marketing copy with “playbooks/workflows” language in EN/ES.
+- Subscription checkout will use inline refund/cancellation notice (no checkbox) for Stripe alignment.
+- Add dedicated Refund & Cancellation policy at `/refunds-and-cancellations` and link in footer/legal.
 
 # Stripe Policy Notes (research)
 - Website checklist requires multiple, direct contact methods (email + phone/live chat/etc) and clear fulfillment policies including refund, delivery, and cancellation.
@@ -67,6 +69,7 @@
 8) Run verification readiness review and schedule legal/compliance review.
 
 # Open Questions
+- None (refunds policy URL + titles confirmed).
 - Revenue share mechanics: How do you collect your share if creators use their own Stripe accounts (manual invoicing, separate SaaS fee, or planned Connect application fees)?
 - Merchant of record: Are end customers buying from the creators (creator as MoR) or from your company?
 - Pay/Checkout scope: Is Pay + Stripe Checkout used only for creator subscriptions, or also for end-customer purchases? If end-customer purchases are on-platform, how do you connect to creator Stripe accounts without Connect?
@@ -146,3 +149,39 @@
 - PASS: `sed -n '1,120p' app/javascript/application.js`
 - PASS: `sed -n '1,120p' config/importmap.rb`
 - PASS: `rg -n "refund_acknowledgement" -S app config`
+- PASS: `SUPPORT_EMAIL=qa@example.com SUPPORT_PHONE=+1-555-0100 SUPPORT_CHAT_URL=https://example.com/chat SUPPORT_DISCORD_URL=https://discord.gg/example SUPPORT_TELEGRAM_URL=https://t.me/example BRAND_LEGAL_NAME="QA Trading LLC" BRAND_TRADE_NAME="QA Trading" BRAND_ADDRESS_LINE1="123 Market St" BRAND_ADDRESS_LINE2="Suite 500" BRAND_CITY="Miami" BRAND_STATE="FL" BRAND_POSTAL="33101" BRAND_COUNTRY="US" LANDING_TEMPLATE=neon bin/rails server -p 3000 -e development -P /tmp/rails_neon.pid > tmp/rails-server.log 2>&1 & echo $!`
+- PASS: `sleep 4`
+- PASS: `curl -H "Accept: text/html" -A "Mozilla/5.0" -s -o /tmp/terms_neon.html -w "%{http_code}\n" http://localhost:3000/terms`
+- PASS: `curl -H "Accept: text/html" -A "Mozilla/5.0" -s -o /tmp/privacy_neon.html -w "%{http_code}\n" http://localhost:3000/privacy`
+- PASS: `rg -n "QA Trading|123 Market St|qa@example.com" /tmp/terms_neon.html /tmp/privacy_neon.html`
+- PASS: `curl -s -c /tmp/cookies_neon.txt -b /tmp/cookies_neon.txt -o /tmp/signin_neon.html -L http://localhost:3000/users/sign_in`
+- PASS: `token=$(perl -ne 'if(/name="authenticity_token" value="([^"]+)"/){print $1; exit}' /tmp/signin_neon.html); curl -s -c /tmp/cookies_neon.txt -b /tmp/cookies_neon.txt -L -X POST http://localhost:3000/users/sign_in -H "Content-Type: application/x-www-form-urlencoded" --data "authenticity_token=${token}&user[email]=qa%40example.com&user[password]=Password123%21&user[remember_me]=0" -o /tmp/signin_post_neon.html`
+- PASS: `curl -s -b /tmp/cookies_neon.txt -o /tmp/plans_neon.html -w "%{http_code}\n" http://localhost:3000/dashboard/plans`
+- PASS: `rg -n "refund|no refunds|no-refunds|purchases are final" /tmp/plans_neon.html`
+- PASS: `curl -s -b /tmp/cookies_neon.txt -o /tmp/marketplace_neon.html -w "%{http_code}\n" http://localhost:3000/dashboard/marketplace/ea_sniper_panel`
+- PASS: `rg -n "refund|no refunds|purchases are final|refund_acknowledged" /tmp/marketplace_neon.html`
+- PASS: `kill 97609`
+- PASS: `SUPPORT_EMAIL=qa@example.com SUPPORT_PHONE=+1-555-0100 SUPPORT_CHAT_URL=https://example.com/chat SUPPORT_DISCORD_URL=https://discord.gg/example SUPPORT_TELEGRAM_URL=https://t.me/example BRAND_LEGAL_NAME="QA Trading LLC" BRAND_TRADE_NAME="QA Trading" BRAND_ADDRESS_LINE1="123 Market St" BRAND_ADDRESS_LINE2="Suite 500" BRAND_CITY="Miami" BRAND_STATE="FL" BRAND_POSTAL="33101" BRAND_COUNTRY="US" LANDING_TEMPLATE=fintech bin/rails server -p 3000 -e development -P /tmp/rails_fintech.pid > tmp/rails-server.log 2>&1 & echo $!`
+- PASS: `sleep 4`
+- PASS: `curl -H "Accept: text/html" -A "Mozilla/5.0" -s -o /tmp/terms_fintech.html -w "%{http_code}\n" http://localhost:3000/terms`
+- PASS: `curl -H "Accept: text/html" -A "Mozilla/5.0" -s -o /tmp/privacy_fintech.html -w "%{http_code}\n" http://localhost:3000/privacy`
+- PASS: `rg -n "QA Trading|123 Market St|qa@example.com" /tmp/terms_fintech.html /tmp/privacy_fintech.html`
+- PASS: `curl -s -c /tmp/cookies_fintech.txt -b /tmp/cookies_fintech.txt -o /tmp/signin_fintech.html -L http://localhost:3000/users/sign_in`
+- PASS: `token=$(perl -ne 'if(/name="authenticity_token" value="([^"]+)"/){print $1; exit}' /tmp/signin_fintech.html); curl -s -c /tmp/cookies_fintech.txt -b /tmp/cookies_fintech.txt -L -X POST http://localhost:3000/users/sign_in -H "Content-Type: application/x-www-form-urlencoded" --data "authenticity_token=${token}&user[email]=qa%40example.com&user[password]=Password123%21&user[remember_me]=0" -o /tmp/signin_post_fintech.html`
+- PASS: `curl -s -b /tmp/cookies_fintech.txt -o /tmp/plans_fintech.html -w "%{http_code}\n" http://localhost:3000/dashboard/plans`
+- PASS: `curl -s -b /tmp/cookies_fintech.txt -o /tmp/marketplace_fintech.html -w "%{http_code}\n" http://localhost:3000/dashboard/marketplace/ea_sniper_panel`
+- PASS: `rg -n "purchases are final|refund_acknowledged" /tmp/plans_fintech.html /tmp/marketplace_fintech.html`
+- PASS: `kill 98098`
+- PASS: `rg -n "class Legal|legal#" app/controllers app/views -S`
+- PASS: `sed -n '1,120p' app/controllers/legal_controller.rb`
+- PASS: `sed -n '1,120p' app/views/legal/terms.html.erb`
+- PASS: `sed -n '1,120p' app/views/legal/privacy.html.erb`
+- PASS: `rg -n "footer\\.legal|legal\\.links" app/views`
+- PASS: `rg -n "legal\\.links|Terms|Privacy" app/views/shared app/views/templates -S`
+- FAIL: `rg -n "Terms|Privacy|Términos|Privacidad" app/views/shared app/views/templates -S`
+- FAIL: `rg -n "footer:\\n" -n config/locales/en.yml`
+- PASS: `rg -n "footer:" config/locales/en.yml`
+- PASS: `sed -n '150,190p' config/locales/en.yml`
+- PASS: `sed -n '1,200p' app/views/shared/_marketing_footer.html.erb`
+- PASS: `sed -n '1,200p' app/views/templates/fintech/shared/_marketing_footer.html.erb`
+- PASS: `sed -n '70,170p' app/views/dashboards/plans.html.erb`
