@@ -156,6 +156,7 @@ es:
     tagline: "Construido para traders disciplinados de MQL5."
     terms: "Términos"
     privacy: "Privacidad"
+    refunds: "Política de reembolsos y cancelaciones"
     contact:
       title: "Contacto"
       chat: "Chat en vivo"
@@ -187,6 +188,7 @@ es:
       links:
         terms: "Términos"
         privacy: "Privacidad"
+        refunds_and_cancellations: "Política de reembolsos y cancelaciones"
   terms_acceptance:
     title: "Aceptar Términos y Privacidad"
     badge: "Consentimiento requerido"
@@ -203,10 +205,12 @@ es:
       label: "Reconozco que las compras son finales y no se ofrecen reembolsos (salvo que la ley lo exija)."
       helper: "Puedes cancelar tu suscripción en cualquier momento para evitar cargos futuros."
       required: "Confirma la política de no reembolsos para continuar."
+    subscription_notice_html: "No ofrecemos reembolsos. Puedes cancelar en cualquier momento para detener cargos futuros. Consulta la %{refunds_link}."
   legal:
     links:
       terms: "Términos del servicio"
       privacy: "Política de privacidad"
+      refunds_and_cancellations: "Política de reembolsos y cancelaciones"
     badge: "Legal"
     last_updated: "Última actualización: %{date}"
     updated_at: "26 de enero de 2026"
@@ -321,6 +325,30 @@ es:
         - title: "10. Cambios"
           paragraphs:
             - "Podemos actualizar esta Política de Privacidad ocasionalmente. El uso continuado del Servicio después de que una actualización entre en vigor constituye aceptación de la política actualizada."
+    refunds_and_cancellations:
+      title: "Política de reembolsos y cancelaciones"
+      subtitle: "Esta política explica cómo funcionan las cancelaciones y cuándo hay reembolsos."
+      sections:
+        - title: "1. Resumen"
+          paragraphs:
+            - "Esta política aplica a todas las suscripciones y compras digitales realizadas a través de %{brand_display_name}."
+        - title: "2. Suscripciones"
+          paragraphs:
+            - "Puedes cancelar tu suscripción en cualquier momento desde tu configuración de facturación o contactando a soporte."
+            - "Tu suscripción permanece activa hasta el final del período facturado; no ofrecemos reembolsos prorrateados por tiempo no utilizado salvo que la ley lo exija."
+            - "Después de cancelar, no se realizarán cargos en períodos futuros."
+        - title: "3. Compras únicas"
+          paragraphs:
+            - "Las compras únicas (incluyendo descargas digitales y accesos) son finales y no reembolsables una vez entregadas, salvo que la ley lo exija."
+        - title: "4. Excepciones de reembolso"
+          paragraphs:
+            - "Podemos emitir reembolsos si la ley lo exige, por errores de facturación o a nuestra discreción en casos excepcionales."
+        - title: "5. Entrega y acceso"
+          paragraphs:
+            - "Los productos digitales y el acceso por suscripción se entregan electrónicamente en tu cuenta. Si tienes problemas de acceso, escribe a %{support_email}."
+        - title: "6. Contacto"
+          paragraphs:
+            - "Si tienes preguntas sobre cancelaciones o reembolsos, escribe a %{support_email}."
   landing:
     neon:
       nav:
