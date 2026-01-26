@@ -63,7 +63,7 @@
       </div>
 
       <% initial_interval = requested_interval.presence || interval_keys.first || "monthly" %>
-      <div x-data="{ period: '<%= initial_interval %>' }">
+      <div x-data="{ period: '<%= initial_interval %>' }" data-refund-ack-scope>
         <div class="flex flex-wrap items-center gap-2 mb-6">
           <div class="inline-flex flex-wrap w-full sm:w-auto bg-gray-100 dark:bg-gray-700/60 rounded-full p-1 border border-gray-200 dark:border-gray-600 gap-1">
             <% intervals.each do |interval| %>
@@ -77,6 +77,14 @@
               </button>
             <% end %>
           </div>
+        </div>
+
+        <div class="mb-6 rounded-lg border border-gray-200 dark:border-gray-700/60 bg-gray-50 dark:bg-gray-800/60 p-4">
+          <label class="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-200">
+            <input type="checkbox" class="mt-1 rounded border-gray-300 text-violet-600 focus:ring-violet-500" data-refund-ack-checkbox>
+            <span><%= t("checkout.refund_acknowledgement.label") %></span>
+          </label>
+          <p class="mt-2 text-xs text-gray-500 dark:text-gray-400"><%= t("checkout.refund_acknowledgement.helper") %></p>
         </div>
 
         <div class="grid grid-cols-12 gap-6">
@@ -148,7 +156,7 @@
                                            end %>
                         <% interval_data = { loading_target: true } %>
                         <% interval_data[:confirm_message] = upgrade_confirm if subscribed && interval_state == :upgrade %>
-                        <%= button_to dashboard_checkout_path(price_key: plan_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full", data: interval_data do %>
+                        <%= button_to dashboard_checkout_path(price_key: plan_key), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full", data: interval_data, form: { data: { refund_ack_form: true } } do %>
                           <%= loading_label(interval_label, loading_text: t("loading.default")) %>
                         <% end %>
                       <% end %>

@@ -42,6 +42,8 @@ class DashboardsController < ApplicationController
   def support; end
 
   def checkout
+    return unless ensure_refund_acknowledgement!(fallback: dashboard_plans_path)
+
     price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
     plan = BillingPlan.active.find_by(key: price_key)
     price_id = plan&.stripe_price_id || Billing::ConfiguredPrices.price_id_for(price_key)

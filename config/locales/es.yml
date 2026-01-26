@@ -44,8 +44,8 @@ es:
         title: "Proyección"
         body: "Lanza BUY/SELL con multiplicadores de TP y capas de grid."
       signal:
-        title: "Gestión de señales"
-        body: "Recorre señales o tickets para cierres parciales/totales y movimientos a break-even."
+        title: "Gestión de posiciones"
+        body: "Revisa operaciones o tickets para cierres parciales/totales y movimientos a break-even."
       scope:
         title: "Reapuntar con Scope"
         body: "Bloquea TP/SL con el crosshair antes de enviar ajustes precisos."
@@ -156,6 +156,13 @@ es:
     tagline: "Construido para traders disciplinados de MQL5."
     terms: "Términos"
     privacy: "Privacidad"
+    contact:
+      title: "Contacto"
+      chat: "Chat en vivo"
+      discord: "Discord"
+      telegram: "Telegram"
+    merchant:
+      title: "Comercio"
     resources:
       title: "Recursos"
       links:
@@ -191,13 +198,18 @@ es:
     failure: "No pudimos guardar tu consentimiento. Intenta de nuevo."
     required: "Acepta los Términos de Servicio y la Política de Privacidad para continuar al dashboard."
     checkbox_error: "Confirma que aceptas los Términos de Servicio y la Política de Privacidad."
+  checkout:
+    refund_acknowledgement:
+      label: "Reconozco que las compras son finales y no se ofrecen reembolsos (salvo que la ley lo exija)."
+      helper: "Puedes cancelar tu suscripción en cualquier momento para evitar cargos futuros."
+      required: "Confirma la política de no reembolsos para continuar."
   legal:
     links:
       terms: "Términos del servicio"
       privacy: "Política de privacidad"
     badge: "Legal"
     last_updated: "Última actualización: %{date}"
-    updated_at: "17 de diciembre de 2025"
+    updated_at: "26 de enero de 2026"
     terms:
       title: "Términos de servicio"
       subtitle: "Estos Términos rigen tu acceso a Trading Sniper Panel y a los recursos relacionados de Expert Advisors."
@@ -253,7 +265,12 @@ es:
         - title: "11. Terminación"
           paragraphs:
             - "Puedes dejar de usar el Servicio en cualquier momento. Podemos suspender o terminar tu acceso si creemos razonablemente que violaste estos Términos o si es necesario para proteger el Servicio."
-        - title: "12. Cambios y contacto"
+        - title: "12. Información comercial"
+          paragraphs:
+            - "%{brand_display_name} opera el Servicio."
+            - "Dirección comercial: %{brand_address}."
+            - "Contacto: %{support_email}."
+        - title: "13. Cambios y contacto"
           paragraphs:
             - "Podemos actualizar estos Términos ocasionalmente. El uso continuado del Servicio después de que una actualización entre en vigor constituye aceptación de los Términos actualizados."
             - "Si tienes preguntas sobre estos Términos, escribe a %{support_email}."
@@ -297,7 +314,11 @@ es:
         - title: "8. Transferencias internacionales"
           paragraphs:
             - "Tu información puede procesarse en países distintos al tuyo. Cuando corresponda, tomamos medidas para ofrecer salvaguardas adecuadas."
-        - title: "9. Cambios"
+        - title: "9. Contacto"
+          paragraphs:
+            - "Si tienes preguntas sobre esta Política de Privacidad o sobre tus datos, escribe a %{support_email}."
+            - "Dirección comercial: %{brand_address}."
+        - title: "10. Cambios"
           paragraphs:
             - "Podemos actualizar esta Política de Privacidad ocasionalmente. El uso continuado del Servicio después de que una actualización entre en vigor constituye aceptación de la política actualizada."
   landing:
@@ -459,7 +480,7 @@ es:
       hero:
         title_prefix: "Trader Sintético, operan con un ecosistema"
         title_highlight: "completo"
-        subtitle_line1: "Cursos, plantillas, bots y un canal de señales premium"
+        subtitle_line1: "Cursos, plantillas, bots y una comunidad premium"
         subtitle_line2: "para ejecutar con reglas, gestión de riesgo y consistencia en MT5."
       cta:
         primary: "Comenzar ahora"
@@ -467,13 +488,13 @@ es:
         title: "Únete a Trader Sintético hoy"
         support: "Hablar con soporte"
       media:
-        hero_image_alt: "Panel/Señales (Índices Sintéticos)"
+        hero_image_alt: "Panel/Herramientas (Índices Sintéticos)"
         footer_illustration_alt: "Ilustración del pie de página"
       section1:
         items:
           signals:
-            title: "Señales premium"
-            body: "Canal pago con entradas, SL/TP y sesiones enfocadas en sintéticos. Ejecuta rápido y sin dudas."
+            title: "Guías de ejecución"
+            body: "Flujos guiados con checklists y planificación de sesión enfocados en sintéticos. Ejecuta con claridad y confianza."
           academy:
             title: "Academia"
             body: "Ruta de aprendizaje clara: estrategia, psicología y gestión de riesgo aplicada a índices sintéticos."
@@ -482,7 +503,7 @@ es:
             body: "Plantillas MT5, utilidades y EAs para automatizar tareas y mantener una operativa disciplinada."
       section2:
         title: "Construye tu operativa en sintéticos con reglas claras"
-        body: "Aprende a leer el contexto, definir escenarios y ejecutar un plan. Nuestro enfoque une educación, señales y herramientas para que operes con estructura."
+        body: "Aprende a leer el contexto, definir escenarios y ejecutar un plan. Nuestro enfoque une educación, flujos y herramientas para que operes con estructura."
         quote:
           text: "“ Dejé de improvisar. Con el ecosistema de Trader Sintético tengo plan, ejecución y seguimiento. Ahora opero sintéticos con más calma y precisión. ”"
           author_alt: "Autor testimonio 01"
@@ -501,7 +522,7 @@ es:
           include:
             title: "Incluye"
             items:
-              - "Señales"
+              - "Playbooks"
               - "Cursos"
               - "Sesiones"
               - "Comunidad"
@@ -523,15 +544,15 @@ es:
         image_alt: "Features 04"
       section5:
         title: "Empieza en minutos y opera con estructura en sintéticos"
-        body: "Te guiamos paso a paso para que tengas un proceso claro: desde la configuración en MT5 hasta la ejecución con señales y reglas."
+        body: "Te guiamos paso a paso para que tengas un proceso claro: desde la configuración en MT5 hasta la ejecución con playbooks y reglas."
         image_alt: "Logos"
         steps:
           - title: "Accede al ecosistema"
             body: "Elige tu plan y recibe el onboarding con recursos, enlaces y guía de instalación."
           - title: "Configura MT5 y plantillas"
             body: "Instala plantillas e indicadores, ajusta tu riesgo y prepara tus setups."
-          - title: "Recibe señales y ejecuta"
-            body: "Sigue el canal premium con SL/TP claros y opera con disciplina."
+          - title: "Aplica el playbook y ejecuta"
+            body: "Sigue el playbook de ejecución con pasos claros y opera con disciplina."
       section6:
         title: "Disciplina, riesgo y consistencia para traders de sintéticos"
         body: "Priorizamos reglas y gestión del riesgo. Las herramientas están diseñadas para ayudarte a tomar decisiones simples y repetibles."
@@ -559,7 +580,7 @@ es:
             role: "CEO & Co-Founder"
       section7:
         title: "Elige tu plan y accede al ecosistema"
-        body: "Planes pensados para tu etapa: aprende, ejecuta y escala con señales, herramientas y automatización."
+        body: "Planes pensados para tu etapa: aprende, ejecuta y escala con flujos, herramientas y automatización."
         subscribe_cta: "Subcribirse"
         plans:
           - name: "Básico"
@@ -571,7 +592,7 @@ es:
             badge: ""
             features_title: "Features include"
             features:
-              - "Acceso al canal de señales"
+              - "Acceso a la biblioteca de playbooks"
               - "Curso base de sintéticos"
               - "Plantillas esenciales MT5"
               - "Guía de instalación"
@@ -625,7 +646,7 @@ es:
         items:
           - question: "¿Qué son los índices sintéticos y dónde se operan?"
             answer: "Resolvemos las dudas más comunes antes de que empieces. Si necesitas ayuda, contacta a soporte."
-          - question: "¿Qué incluye la suscripción al canal de señales?"
+          - question: "¿Qué incluye el acceso a los playbooks?"
             answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
           - question: "¿Necesito experiencia previa para entrar a los cursos?"
             answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."

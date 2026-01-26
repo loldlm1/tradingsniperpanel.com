@@ -184,6 +184,19 @@
           </div>
         </div>
 
+        <div class="mb-3">
+          <label class="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <input type="checkbox"
+                   name="refund_acknowledged"
+                   value="1"
+                   required
+                   class="mt-0.5 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                   data-refund-ack-checkbox>
+            <span><%= t("checkout.refund_acknowledgement.label") %></span>
+          </label>
+          <p class="mt-2 text-xs text-gray-400 dark:text-gray-500"><%= t("checkout.refund_acknowledgement.helper") %></p>
+        </div>
+
         <!-- Section: Comprar -->
         <div class="mb-3">
           <button class="btn w-full bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white"
