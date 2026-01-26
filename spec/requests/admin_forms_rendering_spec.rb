@@ -48,6 +48,28 @@ RSpec.describe "Admin form rendering", type: :request do
     expect_form_ok
   end
 
+  it "renders course module forms" do
+    get new_admin_course_module_path
+    expect_form_ok
+    expect(response.body).to include('name="course_module[course_id]"')
+    expect(response.body).to include('name="course_module[title_en]"')
+
+    course_module = create(:course_module)
+    get edit_admin_course_module_path(course_module)
+    expect_form_ok
+  end
+
+  it "renders course lesson forms" do
+    get new_admin_course_lesson_path
+    expect_form_ok
+    expect(response.body).to include('name="course_lesson[course_module_id]"')
+    expect(response.body).to include('name="course_lesson[stream_uid]"')
+
+    lesson = create(:course_lesson)
+    get edit_admin_course_lesson_path(lesson)
+    expect_form_ok
+  end
+
   it "renders marketplace asset forms with marketplace product linking" do
     get new_admin_marketplace_asset_path
     expect_form_ok

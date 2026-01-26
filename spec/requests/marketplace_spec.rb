@@ -75,6 +75,17 @@ RSpec.describe "Marketplace", type: :request do
     expect(flash[:alert]).to eq(I18n.t("dashboard.marketplace.errors.already_purchased"))
   end
 
+  it "blocks checkout when a manual transaction already exists" do
+    create(:manual_transaction, user: user, billing_plan: marketplace_product.billing_plan)
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path(locale: :en, price_key: marketplace_product.billing_plan.key)
+
+    expect(response).to have_http_status(:found)
+    expect(response.headers["Location"]).to include("/dashboard/marketplace")
+    expect(flash[:alert]).to eq(I18n.t("dashboard.marketplace.errors.already_purchased"))
+  end
+
   it "blocks add-on purchases without base access" do
     expert_advisor = create(:expert_advisor, name: "Addon Base EA")
     addon = create(:addon, addonable: expert_advisor)
@@ -144,6 +155,21 @@ RSpec.describe "Marketplace", type: :request do
          params: { base_plan_key: base_plan.key, addon_keys: [addon_plan.key] }
 
     expect(response).to redirect_to("https://checkout.test/session")
+  end
+
+  it "blocks marketplace checkout when a manual base purchase exists" do
+    base_plan = create(:billing_plan, :one_time, key: "manual_base")
+    base_product = create(:marketplace_product, billing_plan: base_plan, title_en: "Manual Base")
+    create(:manual_transaction, user: user, billing_plan: base_plan)
+
+    user.pay_customers.create!(processor: "stripe", processor_id: "cus_manual_base", default: true)
+    sign_in user, scope: :user
+
+    post dashboard_marketplace_product_checkout_path(base_product, locale: :en)
+
+    expect(response).to have_http_status(:found)
+    expect(response.headers["Location"]).to include("/dashboard/marketplace/#{base_product.slug}")
+    expect(flash[:alert]).to eq(I18n.t("dashboard.marketplace.errors.already_purchased"))
   end
 
   it "creates a checkout session with add-ons only when base is owned" do

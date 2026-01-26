@@ -130,11 +130,6 @@ ActiveAdmin.register MarketplaceProduct do
   filter :title_es
 
   form do |f|
-    plan = f.object.billing_plan
-    addon = plan&.addon
-    addonable_ref = addon ? "#{addon.addonable_type}:#{addon.addonable_id}" : nil
-    addon_key = addon&.key
-
     f.inputs t("active_admin.marketplace_products.sections.product") do
       if f.object.persisted?
         f.input :slug, input_html: { disabled: true }
@@ -153,98 +148,34 @@ ActiveAdmin.register MarketplaceProduct do
     end
 
     f.inputs t("active_admin.marketplace_products.sections.pricing") do
-      li class: "input" do
-        text_node f.template.label_tag(
-          "marketplace_product_plan_amount_cents",
-          t("active_admin.marketplace_products.labels.plan_amount_cents")
-        )
-        text_node f.template.number_field_tag(
-          "marketplace_product[plan_amount_cents]",
-          plan&.amount_cents,
-          min: 0
-        )
-      end
-      li class: "input" do
-        text_node f.template.label_tag(
-          "marketplace_product_plan_currency",
-          t("active_admin.marketplace_products.labels.plan_currency")
-        )
-        text_node f.template.select_tag(
-          "marketplace_product[plan_currency]",
-          f.template.options_for_select([["USD", "usd"]], plan&.currency || "usd")
-        )
-      end
-      li class: "input" do
-        text_node f.template.label_tag(
-          "marketplace_product_stripe_product_id",
-          t("active_admin.marketplace_products.labels.stripe_product_id")
-        )
-        text_node f.template.text_field_tag(
-          "marketplace_product[stripe_product_id]",
-          plan&.stripe_product_id
-        )
-      end
-      li class: "input" do
-        text_node f.template.label_tag(
-          "marketplace_product_stripe_price_id",
-          t("active_admin.marketplace_products.labels.stripe_price_id")
-        )
-        text_node f.template.text_field_tag(
-          "marketplace_product[stripe_price_id]",
-          plan&.stripe_price_id
-        )
-      end
+      f.input :plan_amount_cents,
+              as: :number,
+              input_html: { min: 0 },
+              label: t("active_admin.marketplace_products.labels.plan_amount_cents")
+      f.input :plan_currency,
+              as: :select,
+              collection: [["USD", "usd"]],
+              label: t("active_admin.marketplace_products.labels.plan_currency")
+      f.input :stripe_product_id, label: t("active_admin.marketplace_products.labels.stripe_product_id")
+      f.input :stripe_price_id, label: t("active_admin.marketplace_products.labels.stripe_price_id")
     end
 
     f.inputs t("active_admin.marketplace_products.sections.entitlements") do
-      li class: "input" do
-        text_node f.template.label_tag(
-          "marketplace_product_expert_advisor_ids",
-          t("active_admin.marketplace_products.labels.expert_advisors")
-        )
-        text_node f.template.select_tag(
-          "marketplace_product[expert_advisor_ids][]",
-          f.template.options_from_collection_for_select(
-            ExpertAdvisor.ordered_by_rank,
-            :id,
-            :name,
-            plan&.expert_advisors&.pluck(:id)
-          ),
-          multiple: true
-        )
-      end
-      li class: "input" do
-        text_node f.template.label_tag(
-          "marketplace_product_course_ids",
-          t("active_admin.marketplace_products.labels.courses")
-        )
-        text_node f.template.select_tag(
-          "marketplace_product[course_ids][]",
-          f.template.options_from_collection_for_select(
-            Course.ordered,
-            :id,
-            :title_en,
-            plan&.courses&.pluck(:id)
-          ),
-          multiple: true
-        )
-      end
-      li class: "input" do
-        text_node f.template.label_tag(
-          "marketplace_product_marketplace_asset_ids",
-          t("active_admin.marketplace_products.labels.marketplace_assets")
-        )
-        text_node f.template.select_tag(
-          "marketplace_product[marketplace_asset_ids][]",
-          f.template.options_from_collection_for_select(
-            MarketplaceAsset.ordered,
-            :id,
-            :title_en,
-            plan&.marketplace_assets&.pluck(:id)
-          ),
-          multiple: true
-        )
-      end
+      f.input :expert_advisor_ids,
+              as: :select,
+              collection: ExpertAdvisor.ordered_by_rank.map { |ea| [ea.name, ea.id] },
+              input_html: { multiple: true },
+              label: t("active_admin.marketplace_products.labels.expert_advisors")
+      f.input :course_ids,
+              as: :select,
+              collection: Course.ordered.map { |course| [course.title_en, course.id] },
+              input_html: { multiple: true },
+              label: t("active_admin.marketplace_products.labels.courses")
+      f.input :marketplace_asset_ids,
+              as: :select,
+              collection: MarketplaceAsset.ordered.map { |asset| [asset.title_en, asset.id] },
+              input_html: { multiple: true },
+              label: t("active_admin.marketplace_products.labels.marketplace_assets")
     end
 
     f.inputs t("active_admin.marketplace_products.sections.addon") do
@@ -257,27 +188,12 @@ ActiveAdmin.register MarketplaceProduct do
           MarketplaceAsset.ordered.map { |asset| ["#{asset.title_en} (#{asset.slug})", "MarketplaceAsset:#{asset.id}"] }
       }
 
-      li class: "input" do
-        text_node f.template.label_tag(
-          "marketplace_product_addonable_ref",
-          t("active_admin.marketplace_products.labels.addonable_ref")
-        )
-        text_node f.template.select_tag(
-          "marketplace_product[addonable_ref]",
-          f.template.grouped_options_for_select(addonable_options, addonable_ref),
-          include_blank: true
-        )
-      end
-      li class: "input" do
-        text_node f.template.label_tag(
-          "marketplace_product_addon_key",
-          t("active_admin.marketplace_products.labels.addon_key")
-        )
-        text_node f.template.text_field_tag(
-          "marketplace_product[addon_key]",
-          addon_key
-        )
-      end
+      f.input :addonable_ref,
+              as: :select,
+              collection: addonable_options,
+              include_blank: true,
+              label: t("active_admin.marketplace_products.labels.addonable_ref")
+      f.input :addon_key, label: t("active_admin.marketplace_products.labels.addon_key")
     end
 
     f.actions

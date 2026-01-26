@@ -35,7 +35,12 @@ module Marketplace
       base_plan = base_entry&.plan
       return Result.new(allowed: false, error_key: "dashboard.marketplace.errors.base_missing") unless base_plan&.stripe_price_id
 
-      base_included = !base_entry.purchased
+      manual_base_purchase = manual_purchase_exists?(base_plan)
+      if manual_base_purchase && !entry.addon? && addon_keys.blank?
+        return Result.new(allowed: false, error_key: "dashboard.marketplace.errors.already_purchased")
+      end
+
+      base_included = !base_entry.purchased && !manual_base_purchase
 
       addons = addons_for_base(base_entry)
       addon_map = addons.index_by { |addon| addon.billing_plan.key }
@@ -43,6 +48,9 @@ module Marketplace
 
       purchased_plan_ids = MarketplacePurchase.where(user: user, billing_plan_id: addons.select(:billing_plan_id))
                                               .pluck(:billing_plan_id)
+      manual_plan_ids = ManualTransaction.where(user: user, billing_plan_id: addons.select(:billing_plan_id))
+                                         .pluck(:billing_plan_id)
+      purchased_plan_ids |= manual_plan_ids
 
       selected_addons.reject! { |addon| purchased_plan_ids.include?(addon.billing_plan_id) }
 
@@ -182,6 +190,12 @@ module Marketplace
       return addonable.title_for(locale) if addonable.respond_to?(:title_for)
 
       addonable.to_s
+    end
+
+    def manual_purchase_exists?(plan)
+      return false unless user && plan
+
+      ManualTransaction.where(user: user, billing_plan_id: plan.id).exists?
     end
   end
 end

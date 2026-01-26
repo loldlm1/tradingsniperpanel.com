@@ -43,6 +43,10 @@ class MarketplaceAsset < ApplicationRecord
     localized_value(:description_markdown, locale)
   end
 
+  def marketplace_product_ids
+    MarketplaceProduct.where(billing_plan_id: billing_plans.select(:id)).pluck(:id)
+  end
+
   private
 
   def normalize_slug

@@ -4,6 +4,9 @@ es:
     short_name: "Sniper Panel"
     tagline: "Ejecución precisa para traders de MQL5."
     docs_path: "/docs/sniper_advanced_panel"
+  errors:
+    messages:
+      billing_conflict: "La facturación manual entra en conflicto con una compra activa de Stripe para este plan."
   nav:
     home: "Inicio"
     pricing: "Planes"

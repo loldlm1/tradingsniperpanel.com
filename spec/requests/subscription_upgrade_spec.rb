@@ -27,6 +27,16 @@ RSpec.describe "Subscription upgrades", type: :request do
     allow(Stripe::SubscriptionSchedule).to receive(:retrieve).and_return(double(status: "active"))
   end
 
+  it "blocks checkout when a manual subscription exists for the same plan" do
+    create(:manual_subscription, user: user, billing_plan: basic_plan, starts_at: 1.day.ago, ends_at: 1.day.from_now)
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+
+    expect(response).to redirect_to(dashboard_plans_path)
+    expect(flash[:alert]).to eq(I18n.t("dashboard.plans.manual_unavailable"))
+  end
+
   it "swaps an existing subscription instead of creating a new one" do
     existing = customer.subscriptions.create!(
       name: "default",
