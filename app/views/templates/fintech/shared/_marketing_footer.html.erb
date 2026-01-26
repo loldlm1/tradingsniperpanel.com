@@ -1,4 +1,7 @@
 <footer class="relative">
+  <% contact_links = support_contact_links %>
+  <% show_contact = contact_links.any? %>
+  <% show_merchant = brand_legal_name.present? || brand_full_address.present? %>
   <div class="absolute inset-0 bg-slate-800 -z-10" aria-hidden="true"></div>
 
   <div class="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none -z-10" aria-hidden="true">
@@ -17,6 +20,33 @@
           <%= link_to t("footer.privacy"), privacy_path, class: "text-slate-400 hover:text-blue-500 transition duration-150 ease-in-out" %>
         </div>
       </div>
+
+      <% if show_contact %>
+        <div class="sm:col-span-12 lg:col-span-4">
+          <div class="text-xs uppercase tracking-widest text-slate-400 mb-3"><%= t("footer.contact.title") %></div>
+          <div class="text-sm text-slate-400 space-y-2">
+            <% contact_links.each do |link| %>
+              <div>
+                <%= link_to link[:label], link[:url], class: "hover:text-blue-500 transition duration-150 ease-in-out", target: "_blank", rel: "noopener" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <% if show_merchant %>
+        <div class="sm:col-span-12 lg:col-span-4">
+          <div class="text-xs uppercase tracking-widest text-slate-400 mb-3"><%= t("footer.merchant.title") %></div>
+          <div class="text-sm text-slate-400 space-y-2">
+            <% if brand_display_name.present? %>
+              <div><%= brand_display_name %></div>
+            <% end %>
+            <% if brand_full_address.present? %>
+              <div><%= brand_full_address %></div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
   </div>
 </footer>

@@ -3,12 +3,95 @@ module ApplicationHelper
     Rails.configuration.x.branding.support_email
   end
 
+  def support_phone
+    Rails.configuration.x.branding.support_phone
+  end
+
+  def support_chat_url
+    Rails.configuration.x.branding.support_chat_url
+  end
+
+  def support_discord_url
+    Rails.configuration.x.branding.support_discord_url
+  end
+
+  def support_telegram_url
+    Rails.configuration.x.branding.support_telegram_url
+  end
+
+  def support_contact_links
+    links = []
+    links << { label: support_email, url: "mailto:#{support_email}" } if support_email.present?
+    links << { label: support_phone, url: "tel:#{support_phone}" } if support_phone.present?
+    links << { label: t("footer.contact.chat"), url: support_chat_url } if support_chat_url.present?
+    links << { label: t("footer.contact.discord"), url: support_discord_url } if support_discord_url.present?
+    links << { label: t("footer.contact.telegram"), url: support_telegram_url } if support_telegram_url.present?
+    links
+  end
+
   def app_name
     Rails.configuration.x.branding.app_name
   end
 
   def app_short_name
     Rails.configuration.x.branding.short_name
+  end
+
+  def brand_legal_name
+    Rails.configuration.x.branding.brand_legal_name
+  end
+
+  def brand_trade_name
+    Rails.configuration.x.branding.brand_trade_name
+  end
+
+  def brand_display_name
+    return app_name if brand_legal_name.blank? && brand_trade_name.blank?
+    return brand_legal_name if brand_trade_name.blank?
+    return brand_trade_name if brand_legal_name.blank?
+
+    "#{brand_legal_name} (#{brand_trade_name})"
+  end
+
+  def brand_address_parts
+    address = Rails.configuration.x.branding.brand_address || {}
+    [
+      address[:line1],
+      address[:line2],
+      address[:city],
+      address[:state],
+      address[:postal],
+      address[:country]
+    ].compact_blank
+  end
+
+  def brand_full_address
+    brand_address_parts.join(", ")
+  end
+
+  def legal_sections(key)
+    interpolations = {
+      support_email: support_email,
+      brand_legal_name: brand_legal_name,
+      brand_trade_name: brand_trade_name,
+      brand_display_name: brand_display_name,
+      brand_address: brand_full_address
+    }
+    sections = Array(I18n.t("legal.#{key}.sections", default: []))
+    sections.map { |section| interpolate_legal_content(section, interpolations) }
+  end
+
+  def interpolate_legal_content(value, interpolations)
+    case value
+    when String
+      I18n.interpolate(value, interpolations)
+    when Array
+      value.map { |item| interpolate_legal_content(item, interpolations) }
+    when Hash
+      value.to_h.transform_values { |item| interpolate_legal_content(item, interpolations) }
+    else
+      value
+    end
   end
 
   def marketing_assets_template

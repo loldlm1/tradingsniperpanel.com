@@ -21,6 +21,8 @@ class MarketplaceController < ApplicationController
   end
 
   def checkout
+    return unless ensure_refund_acknowledgement!(fallback: dashboard_marketplace_product_path(@entry.product, locale: I18n.locale))
+
     result = Marketplace::CheckoutBuilder.new(
       user: current_user,
       entry: @entry,
