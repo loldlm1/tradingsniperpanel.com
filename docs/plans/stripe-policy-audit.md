@@ -54,6 +54,7 @@
 - Add dedicated Refund & Cancellation policy at `/refunds-and-cancellations` and link in footer/legal.
 - Price interval labels are cached per locale to avoid mixed-language UI.
 - Terms will use broad product language with explicit examples (including Expert Advisors) for clarity.
+- Prefer "trading tools" phrasing with explicit MT5 EA examples to avoid “system”/get-rich-quick connotations.
 - Add a brief Stripe compliance guide to README for internal devs/agents.
 
 # Stripe Policy Notes (research)
@@ -239,3 +240,4 @@
 - PASS: `curl -H "Accept: text/html" -H "Accept-Language: en" -A "Mozilla/5.0" -s -o /tmp/terms_neon.html -w "%{http_code}\n" http://localhost:3000/terms`
 - PASS: `rg -n "trading systems|Expert Advisors|EAs on certain platforms" /tmp/terms_neon.html`
 - FAIL: `kill 130383`
+- PASS: `rg -n "trading systems|trading tools|Expert Advisors" config/locales/en.yml config/locales/es.yml`
