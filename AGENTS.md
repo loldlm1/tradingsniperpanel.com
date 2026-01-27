@@ -10,6 +10,11 @@
   - Delete it after copying a 5–10 line “Post-Implementation Summary” into the PR description.
   - `docs/plans/` should contain only active work.
 
+# Skills (auto-detect)
+- **Check first**: before planning, identify applicable Codex skills; if the task matches a skill’s description, use it even if not named.
+- **Follow the skill**: open the relevant `SKILL.md` and follow its workflow; keep any skill-specific files/tools usage minimal and on-scope.
+- **Available skills**: `rails-expert`, `frontend-design`, `unix-macos-engineer`, `find-skills`.
+
 # Engineering Notes (Ruby/Rails)
 
 - **Structure first**: keep controllers thin; push business logic to POROs/service objects under `app/services` and plain models. Use concerns sparingly—prefer explicit composition and small objects.
