@@ -501,7 +501,7 @@ en:
         type_label: "Type: %{type}"
         details_title: "System details"
         guide_title: "System guide"
-        guide_copy: "General guide for installation, configuration, and validation."
+        guide_copy: "Access the guide and the full system sheet."
         guide_fallback: "Guide preview is coming soon."
         license_title: "System license"
         license_copy: "Activation license to enable the system."
@@ -533,8 +533,8 @@ en:
         values:
           available: "Available"
           unavailable: "Unavailable"
-          yes: "Yes"
-          no: "No"
+          "yes": "Yes"
+          "no": "No"
           bundle_active: "Active bundle"
           file_available: "File available"
           file_missing: "Not uploaded"
@@ -677,6 +677,7 @@ en:
       referrer_label: "Referred by"
     broker_accounts:
       title: "Broker Accounts"
+      latest: "Latest broker account"
       unnamed: "Broker account"
       none: "No broker accounts connected."
       account_type:

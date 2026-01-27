@@ -78,4 +78,21 @@ RSpec.describe ExpertAdvisors::ShowPresenter, type: :service do
     expect(labels).to include(I18n.t("dashboard.expert_advisors.show.details.broker_accounts", locale: :en))
     expect(values).to include(I18n.t("dashboard.expert_advisors.show.values.broker_accounts_count", count: 1, locale: :en))
   end
+
+  it "selects the latest broker account by sync activity" do
+    account_a = create(:broker_account, license: license, company: "BrokerA", account_number: 111111)
+    account_b = create(:broker_account, license: license, company: "BrokerB", account_number: 222222)
+
+    create(:broker_account_daily_result, broker_account: account_a, result_timestamp: Time.utc(2025, 1, 10, 12).to_i, result_value: 10.0)
+    create(:broker_account_daily_result, broker_account: account_b, result_timestamp: Time.utc(2025, 1, 20, 12).to_i, result_value: 15.0)
+
+    presenter = described_class.new(
+      user: user,
+      expert_advisor: expert_advisor,
+      entry: entry,
+      locale: :en
+    )
+
+    expect(presenter.latest_broker_account).to eq(account_b)
+  end
 end
