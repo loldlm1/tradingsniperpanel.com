@@ -234,3 +234,8 @@
 - PASS: `sed -n '64,90p' docs/plans/stripe-policy-audit.md`
 - PASS: `rg -n "Execution log|Execution Log|Commands" -n docs/plans/stripe-policy-audit.md`
 - PASS: `tail -n 20 docs/plans/stripe-policy-audit.md`
+- PASS: `SUPPORT_EMAIL=qa@example.com BRAND_LEGAL_NAME="QA Trading LLC" BRAND_TRADE_NAME="QA Trading" BRAND_ADDRESS_LINE1="123 Market St" BRAND_CITY="Miami" BRAND_STATE="FL" BRAND_POSTAL="33101" BRAND_COUNTRY="US" LANDING_TEMPLATE=neon bin/rails server -p 3000 -e development -P /tmp/rails_neon.pid > tmp/rails-server.log 2>&1 & echo $!`
+- PASS: `sleep 4`
+- PASS: `curl -H "Accept: text/html" -H "Accept-Language: en" -A "Mozilla/5.0" -s -o /tmp/terms_neon.html -w "%{http_code}\n" http://localhost:3000/terms`
+- PASS: `rg -n "trading systems|Expert Advisors|EAs on certain platforms" /tmp/terms_neon.html`
+- FAIL: `kill 130383`
