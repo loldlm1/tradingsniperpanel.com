@@ -75,7 +75,7 @@ RSpec.describe "Expert advisor guides", type: :request do
 
     expect(response).to be_successful
     expect(response.body).to include(expert_advisor.name)
-    expect(response.body).to include("Sniper Advanced Panel")
+    expect(response.body).to include(I18n.t("dashboard.expert_advisors.show.guide_copy", locale: :en))
     expect(response.body).to include(I18n.t("dashboard.expert_advisors.license.locked_value", locale: :en))
   end
 

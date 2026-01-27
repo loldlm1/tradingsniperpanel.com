@@ -1,3 +1,10 @@
+<% copy_label = t("dashboard.expert_advisors.copy_code") %>
+<% copied_label = t("dashboard.expert_advisors.copied") %>
+<% copy_button_class = "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 min-w-[88px]" %>
+<% copy_button_disabled_class = "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700/60 text-gray-400 dark:text-gray-500 cursor-not-allowed min-w-[88px]" %>
+<% license_hint = presenter.license_copy_enabled? ? t("dashboard.expert_advisors.license.hint") : t("dashboard.expert_advisors.license.locked_hint") %>
+<% latest_account = presenter.latest_broker_account %>
+
 <div class="flex flex-col bg-white dark:bg-gray-800 shadow-xs rounded-xl p-4">
   <!-- Header: Title -->
   <div class="flex items-center justify-between">
@@ -14,22 +21,51 @@
     <div class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= presenter.license_expires_label %></div>
   <% end %>
   <!-- Section: License key -->
-  <div class="mt-2">
+  <div class="mt-4">
     <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.expert_advisors.show.license_key_label") %></div>
-    <div class="mt-0.5 font-mono text-sm text-gray-800 dark:text-gray-100"><%= presenter.license_key_display %></div>
-    <div class="mt-2">
-      <button
-        class="inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700/60 <%= presenter.license_copy_enabled? ? "text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600" : "text-gray-400 dark:text-gray-500" %>"
-        type="button"
-        data-copy-text="<%= presenter.license_copy_enabled? ? j(presenter.license_key) : nil %>"
-        data-default-text="<%= t("dashboard.expert_advisors.copy_code") %>"
-        data-copied-text="<%= t("dashboard.expert_advisors.copied") %>"
-        onclick="copyToClipboard(this)"
-        <%= "disabled" unless presenter.license_copy_enabled? %>
-      >
-        <%= t("dashboard.expert_advisors.copy_code") %>
-      </button>
+    <div class="mt-2 flex items-center gap-3">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center rounded-lg border border-gray-200 dark:border-gray-700/60 bg-white dark:bg-gray-900/40 px-3 py-2 font-mono text-sm text-gray-800 dark:text-gray-100">
+          <span class="truncate" data-license-value title="<%= presenter.license_key_display %>"><%= presenter.license_key_display %></span>
+        </div>
+      </div>
+      <% if presenter.license_copy_enabled? %>
+        <button
+          class="<%= copy_button_class %>"
+          type="button"
+          data-copy-text="<%= j presenter.license_key %>"
+          data-default-text="<%= copy_label %>"
+          data-copied-text="<%= copied_label %>"
+          data-reset-after-ms="3000"
+          onclick="copyToClipboard(this)"
+          aria-live="polite"
+        ><%= copy_label %></button>
+      <% else %>
+        <button
+          class="<%= copy_button_disabled_class %>"
+          type="button"
+          disabled
+        ><%= copy_label %></button>
+      <% end %>
     </div>
+    <div class="mt-2 text-xs text-gray-500 dark:text-gray-400"><%= license_hint %></div>
   </div>
-  <%= render "expert_advisors/broker_accounts", broker_accounts: presenter.broker_accounts %>
+
+  <!-- Section: Latest broker account -->
+  <div class="mt-4">
+    <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.broker_accounts.latest") %></div>
+    <% if latest_account.present? %>
+      <div class="mt-2 flex items-center justify-between gap-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
+        <div class="min-w-0">
+          <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate"><%= latest_account.name.presence || t("dashboard.broker_accounts.unnamed") %></div>
+          <div class="text-xs text-gray-500 dark:text-gray-400"><%= latest_account.company %> · <%= latest_account.account_number %></div>
+        </div>
+        <span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700/60 text-gray-700 dark:text-gray-200">
+          <%= t("dashboard.broker_accounts.account_type.#{latest_account.account_type}") %>
+        </span>
+      </div>
+    <% else %>
+      <div class="mt-2 text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.broker_accounts.none") %></div>
+    <% end %>
+  </div>
 </div>

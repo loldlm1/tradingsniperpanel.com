@@ -501,7 +501,7 @@ es:
         type_label: "Tipo: %{type}"
         details_title: "Detalles del sistema"
         guide_title: "Guia del sistema"
-        guide_copy: "Guia general para instalacion, configuracion y validacion del EA."
+        guide_copy: "Accede a la guía y a la ficha completa del sistema."
         guide_fallback: "La vista previa de la guia llegara pronto."
         license_title: "Licencia del sistema"
         license_copy: "Licencia activadora, colocar en el sistema para el funcionamiento."
@@ -533,8 +533,8 @@ es:
         values:
           available: "Disponible"
           unavailable: "No disponible"
-          yes: "Si"
-          no: "No"
+          "yes": "Si"
+          "no": "No"
           bundle_active: "Bundle activo"
           file_available: "Archivo disponible"
           file_missing: "Sin archivo"
@@ -677,6 +677,7 @@ es:
       referrer_label: "Referido por"
     broker_accounts:
       title: "Cuentas de broker"
+      latest: "Cuenta de broker más reciente"
       unnamed: "Cuenta de broker"
       none: "Sin cuentas de broker conectadas."
       account_type:

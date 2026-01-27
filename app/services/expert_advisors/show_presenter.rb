@@ -86,11 +86,11 @@ module ExpertAdvisors
     end
 
     def guide_heading
-      guide_preview&.heading
+      nil
     end
 
     def guide_copy
-      guide_preview&.paragraph.presence || I18n.t("dashboard.expert_advisors.show.guide_copy")
+      I18n.t("dashboard.expert_advisors.show.guide_copy")
     end
 
     def guide_url
@@ -166,6 +166,15 @@ module ExpertAdvisors
 
     def broker_accounts
       @broker_accounts ||= license&.broker_accounts.to_a
+    end
+
+    def latest_broker_account
+      return nil if license.blank?
+
+      latest_result = results_scope.includes(:broker_account).order(result_timestamp: :desc).limit(1).first
+      return latest_result.broker_account if latest_result&.broker_account.present?
+
+      broker_accounts.max_by { |account| account.updated_at || account.created_at }
     end
 
     def broker_accounts_label

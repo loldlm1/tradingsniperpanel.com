@@ -26,6 +26,7 @@ Rebuild `expert_advisors#show` to match the Mosaic mock-up (`mosaic-html/dashboa
 - Add-ons list capped to 3; ordering is unowned first, then owned.
 - Copy is EN-first with ES translations.
 - Extra data to surface: last sync timestamp + broker accounts count/list.
+- QA updates: back link uses inline arrow style; guide section uses fixed copy (no markdown preview); license card uses compact input+copy layout; show only latest broker account on license card.
 
 ## Steps
 1. **Section/Data mapping**: define a per-section data contract for the mock-up blocks:
@@ -50,13 +51,31 @@ Rebuild `expert_advisors#show` to match the Mosaic mock-up (`mosaic-html/dashboa
    - Presenter spec for status, add-on progress, chart payload shapes, broker count/list, and empty states.
    - Request spec confirming page renders for accessible and locked users.
 7. **Verify**: manual smoke check in browser; run specs.
-8. **Post-implementation**: update this plan with additional test-coverage next steps, then archive per AGENTS.md.
+8. **QA refinements**:
+   - Update the back-link UI to match the inline arrow style from QA.
+   - Replace guide preview markdown with fixed guide copy (no dynamic heading).
+   - Redesign the license block to the compact input+copy layout.
+   - Show only the most recent broker account synced for the EA in the license card.
+   - Fix `yes/no` translation keys in EN/ES locale files.
+   - Adjust layout to reduce the gap between columns when heights differ.
+   - Update specs impacted by copy/layout changes.
+9. **Verify**: manual smoke check in browser; run specs.
+10. **Post-implementation**: update this plan with additional test-coverage next steps, then archive per AGENTS.md.
 
 ## Open Questions
 - None.
 
 ## Execution Notes
 - Commands run:
+  - apply_patch docs/plans/expert-advisors-show-redesign.md (PASS)
+  - apply_patch config/locales/dashboard.en.yml (PASS)
+  - apply_patch config/locales/dashboard.es.yml (PASS)
+  - apply_patch app/services/expert_advisors/show_presenter.rb (PASS)
+  - apply_patch app/views/expert_advisors/show.html.erb (PASS)
+  - apply_patch app/views/expert_advisors/_show_license_card.html.erb (PASS)
+  - apply_patch spec/requests/expert_advisors_spec.rb (PASS)
+  - apply_patch spec/services/expert_advisors/show_presenter_spec.rb (PASS)
+  - bundle exec rspec spec/services/expert_advisors/show_presenter_spec.rb spec/requests/expert_advisors_spec.rb (PASS)
   - apply_patch app/controllers/expert_advisors_controller.rb (PASS)
   - cat > app/services/expert_advisors/show_presenter.rb (PASS)
   - apply_patch app/services/expert_advisors/show_presenter.rb (PASS)
@@ -70,6 +89,8 @@ Rebuild `expert_advisors#show` to match the Mosaic mock-up (`mosaic-html/dashboa
   - bundle exec rspec spec/services/expert_advisors/show_presenter_spec.rb spec/requests/expert_advisors_spec.rb (FAIL)
   - apply_patch spec/services/expert_advisors/show_presenter_spec.rb (PASS)
   - bundle exec rspec spec/services/expert_advisors/show_presenter_spec.rb spec/requests/expert_advisors_spec.rb (PASS)
+  - bundle exec rspec spec/services/expert_advisors/show_presenter_spec.rb spec/requests/expert_advisors_spec.rb (PASS)
+  - bundle exec rspec (PASS)
 
 ## Post-Implementation Test Coverage Next Steps
 - Add presenter specs for trial/expired/revoked statuses to verify badge classes and expiry labels.
