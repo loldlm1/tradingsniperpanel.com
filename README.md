@@ -418,3 +418,10 @@ COVERAGE=true bundle exec rspec
 - Locale detection lives in `LocaleResolver` (param > session > user > GeoIP > Accept-Language > default); keep it lean and testable.
 - Keep Stripe/Pay actions idempotent; webhook endpoints (from Pay) live under `/pay`.
 - Respect referral cookies (`ref`) before sign-up; locale detection falls back to user session override.
+
+## Stripe compliance notes (internal)
+- Each client is the merchant of record; use their Stripe keys (BYO-Stripe) and keep product descriptions aligned with actual deliverables.
+- Ensure `/terms`, `/privacy`, and `/refunds-and-cancellations` render on every custom domain with the client’s legal name, address, and support email.
+- Avoid financial advice/earnings claims and do not market signals/copy-trading/account management features.
+- Checkout disclosures: inline “no refunds / cancel anytime” notice on subscriptions; refund acknowledgement checkbox + server guard on marketplace purchases.
+- Provide at least one public support method (email required; chat/Discord/Telegram optional).

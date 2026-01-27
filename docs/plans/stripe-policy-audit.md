@@ -53,6 +53,8 @@
 - Subscription checkout will use inline refund/cancellation notice (no checkbox) for Stripe alignment.
 - Add dedicated Refund & Cancellation policy at `/refunds-and-cancellations` and link in footer/legal.
 - Price interval labels are cached per locale to avoid mixed-language UI.
+- Terms will use broad product language with explicit examples (including Expert Advisors) for clarity.
+- Add a brief Stripe compliance guide to README for internal devs/agents.
 
 # Stripe Policy Notes (research)
 - Website checklist requires multiple, direct contact methods (email + phone/live chat/etc) and clear fulfillment policies including refund, delivery, and cancellation.
@@ -67,7 +69,8 @@
 5) Prepare implementation plan for Rails (I18n keys, page routes, footer links, content ownership).
 6) Add brand setup env variables (merchant name, address, support channels, jurisdiction) and wire them into legal/marketing pages.
 7) Visual audit: run the app locally, verify both landing templates (neon + fintech), legal pages, checkout entry points, and footer links.
-8) Run verification readiness review and schedule legal/compliance review.
+8) Refine Terms section copy (Service + Risk disclaimer) and add internal Stripe compliance notes to README.
+9) Run verification readiness review and schedule legal/compliance review.
 
 # Open Questions
 - None (refunds policy URL + titles confirmed).
@@ -222,3 +225,12 @@
 - PASS: `rg -n "Billed daily|Refund &amp; Cancellation Policy" /tmp/plans_fintech.html`
 - PASS: `rg -n "refunds-and-cancellations" /tmp/home_fintech.html`
 - FAIL: `kill 107439`
+- PASS: `rg -n "terms:" config/locales/en.yml config/locales/es.yml`
+- PASS: `sed -n '210,320p' config/locales/en.yml`
+- PASS: `sed -n '210,320p' config/locales/es.yml`
+- PASS: `rg -n "Stripe|billing|refund|compliance" README.md`
+- PASS: `sed -n '360,460p' README.md`
+- PASS: `rg -n "# Steps" -n docs/plans/stripe-policy-audit.md`
+- PASS: `sed -n '64,90p' docs/plans/stripe-policy-audit.md`
+- PASS: `rg -n "Execution log|Execution Log|Commands" -n docs/plans/stripe-policy-audit.md`
+- PASS: `tail -n 20 docs/plans/stripe-policy-audit.md`
