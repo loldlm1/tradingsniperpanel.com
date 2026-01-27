@@ -1,0 +1,35 @@
+<div class="flex flex-col bg-white dark:bg-gray-800 shadow-xs rounded-xl p-4">
+  <!-- Header: Title -->
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.expert_advisors.show.license_title") %></h2>
+    <span class="inline-flex items-center rounded-full text-xs font-medium px-2.5 py-1 <%= presenter.status_badge_class %>">
+      <%= presenter.license_status_label %>
+    </span>
+  </div>
+  <!-- Section: Summary -->
+  <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+    <%= t("dashboard.expert_advisors.show.license_copy") %>
+  </p>
+  <% if presenter.license_expires_label.present? %>
+    <div class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= presenter.license_expires_label %></div>
+  <% end %>
+  <!-- Section: License key -->
+  <div class="mt-2">
+    <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.expert_advisors.show.license_key_label") %></div>
+    <div class="mt-0.5 font-mono text-sm text-gray-800 dark:text-gray-100"><%= presenter.license_key_display %></div>
+    <div class="mt-2">
+      <button
+        class="inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700/60 <%= presenter.license_copy_enabled? ? "text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600" : "text-gray-400 dark:text-gray-500" %>"
+        type="button"
+        data-copy-text="<%= presenter.license_copy_enabled? ? j(presenter.license_key) : nil %>"
+        data-default-text="<%= t("dashboard.expert_advisors.copy_code") %>"
+        data-copied-text="<%= t("dashboard.expert_advisors.copied") %>"
+        onclick="copyToClipboard(this)"
+        <%= "disabled" unless presenter.license_copy_enabled? %>
+      >
+        <%= t("dashboard.expert_advisors.copy_code") %>
+      </button>
+    </div>
+  </div>
+  <%= render "expert_advisors/broker_accounts", broker_accounts: presenter.broker_accounts %>
+</div>
