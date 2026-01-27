@@ -19,25 +19,27 @@
   <div class="col-span-full xl:col-span-8 flex flex-col gap-6">
     <!-- Item 1 -->
     <article class="bg-white dark:bg-gray-800 shadow-xs rounded-xl p-6">
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div class="flex flex-col gap-4">
         <!-- Header: Left side -->
         <div>
           <div class="text-xs uppercase text-gray-500 dark:text-gray-400 tracking-wide"><%= t("dashboard.expert_advisors.show.system_info") %></div>
-          <h2 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= presenter.expert_advisor.name %></h2>
+          <div class="mt-1 flex w-full flex-wrap items-center justify-between gap-3">
+            <h2 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= presenter.expert_advisor.name %></h2>
+            <!-- Header: Right side -->
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <span class="inline-flex items-center rounded-full font-medium px-2.5 py-1 <%= presenter.status_badge_class %>">
+                <%= presenter.system_status_label %>
+              </span>
+              <%= render "dashboard/shared/filter_chip",
+                label: t("dashboard.expert_advisors.show.type_label", type: presenter.type_label),
+                interactive: false,
+                extra_class: "text-xs" %>
+            </div>
+          </div>
           <div class="text-sm font-semibold text-gray-700 dark:text-gray-200 mt-3"><%= t("dashboard.expert_advisors.show.description_label") %></div>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
             <%= presenter.description || t("dashboard.expert_advisors.show.description_missing") %>
           </p>
-        </div>
-        <!-- Header: Right side -->
-        <div class="flex flex-wrap items-center gap-2 text-xs">
-          <span class="inline-flex items-center rounded-full font-medium px-2.5 py-1 <%= presenter.status_badge_class %>">
-            <%= presenter.system_status_label %>
-          </span>
-          <%= render "dashboard/shared/filter_chip",
-            label: t("dashboard.expert_advisors.show.type_label", type: presenter.type_label),
-            interactive: false,
-            extra_class: "text-xs" %>
         </div>
       </div>
 

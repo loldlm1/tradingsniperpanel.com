@@ -5,8 +5,8 @@
 <% tag_list = card.tag_list.join("|") %>
 <% addons_progress = t("dashboard.expert_advisors.addons.progress", owned: card.addons_owned_count, total: card.addons_total_count) %>
 <% download_label = t("dashboard.expert_advisors.download_bundle") %>
-<% download_class = "btn col-span-full bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
-<% download_disabled_class = "btn col-span-full bg-gray-900 text-gray-100 dark:bg-gray-100 dark:text-gray-800 opacity-60 cursor-not-allowed" %>
+<% download_class = "btn w-full justify-center bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+<% download_disabled_class = "btn w-full justify-center bg-gray-900 text-gray-100 dark:bg-gray-100 dark:text-gray-800 opacity-60 cursor-not-allowed" %>
 <% addon_purchase_class = "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
 <% addon_owned_class = "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-400 dark:text-gray-500" %>
 <% tag_chip_class = "border-gray-200 dark:border-gray-700/60 bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300" %>
@@ -66,12 +66,12 @@
         <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.expert_advisors.index.guide_title") %></div>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= card.guide_copy %></p>
         <div class="mt-4 grid grid-cols-2 gap-2">
-          <%= link_to card.guide_cta_label, card.guide_url, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
-          <%= link_to t("dashboard.expert_advisors.show_cta"), card.details_url, class: "btn bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600" %>
+          <%= link_to card.guide_cta_label, card.guide_url, class: "btn w-full justify-center bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+          <%= link_to t("dashboard.expert_advisors.show_cta"), card.details_url, class: "btn w-full justify-center bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600" %>
           <% if card.download_enabled %>
-            <%= link_to download_label, card.download_url, class: download_class %>
+            <%= link_to download_label, card.download_url, class: "#{download_class} col-span-2" %>
           <% else %>
-            <button class="<%= download_disabled_class %>" type="button" disabled><%= download_label %></button>
+            <button class="<%= download_disabled_class %> col-span-2" type="button" disabled><%= download_label %></button>
           <% end %>
         </div>
       </div>
