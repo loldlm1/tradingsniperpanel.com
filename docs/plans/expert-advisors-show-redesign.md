@@ -146,6 +146,7 @@ Rebuild `expert_advisors#show` to match the Mosaic mock-up (`mosaic-html/dashboa
   - agent-browser open http://localhost:3000/en/dashboard/expert_advisors (PASS)
   - agent-browser screenshot --full /tmp/ea-index-guide-buttons-fix.png (PASS)
   - agent-browser close (PASS)
+  - apply_patch app/views/expert_advisors/_index_card.html.erb (PASS)
 
 ## Post-Implementation Test Coverage Next Steps
 - Add presenter specs for trial/expired/revoked statuses to verify badge classes and expiry labels.
