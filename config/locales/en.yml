@@ -224,7 +224,7 @@ en:
             - "If you use the Service on behalf of an organization, you represent that you have authority to bind that organization to these Terms."
         - title: "2. The Service"
           paragraphs:
-            - "The Service is a software platform that provides access to trading workflow tools and resources, including web dashboards/panels, automation utilities and trading systems, downloadable software or scripts (sometimes called Expert Advisors or EAs on certain platforms), indicators, templates, strategy materials, courses, documentation, and subscription-based features."
+            - "The Service is a software platform that provides access to trading workflow tools and resources, including web dashboards/panels, automation utilities, trading tools, downloadable software or scripts (including Expert Advisors (EAs) for MetaTrader 5 (MT5) where offered), indicators, templates, strategy materials, courses, documentation, and subscription-based features."
             - "We may modify, suspend, or discontinue any part of the Service at any time, including features, content, and availability."
         - title: "3. Eligibility and Accounts"
           paragraphs:
@@ -247,7 +247,7 @@ en:
             - "Do not use the Service for unlawful, harmful, or deceptive activity."
         - title: "6. Trading Risk Disclaimer (Not Financial Advice)"
           paragraphs:
-            - "The Service and any related tools, automation features, educational content, and downloadable software (including trading systems, indicators, and scripts where offered) are provided for informational and automation purposes only and do not constitute financial, investment, legal, or tax advice."
+            - "The Service and any related tools, automation features, educational content, and downloadable software (including trading tools, indicators, scripts, and Expert Advisors (EAs) for MT5 where offered) are provided for informational and automation purposes only and do not constitute financial, investment, legal, or tax advice."
             - "Trading involves risk and may result in significant losses. You are solely responsible for your trading decisions, configurations, and risk management."
             - "Past performance is not indicative of future results."
         - title: "7. Third-Party Services"
