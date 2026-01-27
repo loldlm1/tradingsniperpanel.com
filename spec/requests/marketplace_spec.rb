@@ -152,7 +152,7 @@ RSpec.describe "Marketplace", type: :request do
     end
 
     post dashboard_marketplace_product_checkout_path(base_product, locale: :en),
-         params: { base_plan_key: base_plan.key, addon_keys: [addon_plan.key] }
+         params: { base_plan_key: base_plan.key, addon_keys: [addon_plan.key], refund_acknowledged: "1" }
 
     expect(response).to redirect_to("https://checkout.test/session")
   end
@@ -165,7 +165,8 @@ RSpec.describe "Marketplace", type: :request do
     user.pay_customers.create!(processor: "stripe", processor_id: "cus_manual_base", default: true)
     sign_in user, scope: :user
 
-    post dashboard_marketplace_product_checkout_path(base_product, locale: :en)
+    post dashboard_marketplace_product_checkout_path(base_product, locale: :en),
+         params: { refund_acknowledged: "1" }
 
     expect(response).to have_http_status(:found)
     expect(response.headers["Location"]).to include("/dashboard/marketplace/#{base_product.slug}")
@@ -198,7 +199,7 @@ RSpec.describe "Marketplace", type: :request do
     end
 
     post dashboard_marketplace_product_checkout_path(base_product, locale: :en),
-         params: { base_plan_key: base_plan.key, addon_keys: [addon_plan.key] }
+         params: { base_plan_key: base_plan.key, addon_keys: [addon_plan.key], refund_acknowledged: "1" }
 
     expect(response).to redirect_to("https://checkout.test/session")
   end
@@ -261,7 +262,7 @@ RSpec.describe "Marketplace", type: :request do
     sign_in user, scope: :user
 
     post dashboard_marketplace_product_checkout_path(base_product, locale: :en),
-         params: { base_plan_key: base_plan.key, addon_keys: [] }
+         params: { base_plan_key: base_plan.key, addon_keys: [], refund_acknowledged: "1" }
 
     expect(response).to redirect_to(dashboard_marketplace_product_path(base_product, locale: :en))
     expect(flash[:alert]).to eq(I18n.t("dashboard.marketplace.errors.no_items_selected", locale: :en))

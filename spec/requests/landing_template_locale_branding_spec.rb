@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe "Landing template locale and branding", type: :request do
   TEMPLATE_EXPECTATIONS = {
     "neon" => "COMPLETE PORTFOLIOS FOR TRADING",
-    "fintech" => "Premium signals"
+    "fintech" => "Execution playbooks"
   }.freeze
 
   around do |example|
