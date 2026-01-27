@@ -47,6 +47,7 @@ Rails.application.routes.draw do
 
     get "terms", to: "legal#terms"
     get "privacy", to: "legal#privacy"
+    get "refunds-and-cancellations", to: "legal#refunds_and_cancellations"
     root "pages#home"
   end
 

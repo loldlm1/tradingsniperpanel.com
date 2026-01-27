@@ -160,6 +160,9 @@
                 <% intervals.each do |interval| %>
                   <% next if interval[:billed_label].blank? %>
                   <div class="text-xs text-gray-500 mt-3" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:billed_label] %></div>
+                  <div class="text-xs text-gray-500 mt-3" x-show="period === '<%= interval[:key] %>'" x-cloak>
+                    <%= t("checkout.subscription_notice_html", refunds_link: link_to(t("legal.links.refunds_and_cancellations"), refunds_and_cancellations_path, class: "underline")).html_safe %>
+                  </div>
                 <% end %>
               </div>
               <div class="px-5 pt-4 pb-5">

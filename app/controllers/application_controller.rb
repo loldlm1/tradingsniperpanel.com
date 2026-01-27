@@ -147,6 +147,17 @@ class ApplicationController < ActionController::Base
     cookies.delete(:desired_plan)
   end
 
+  def refund_acknowledged?
+    ActiveModel::Type::Boolean.new.cast(params[:refund_acknowledged])
+  end
+
+  def ensure_refund_acknowledgement!(fallback:)
+    return true if refund_acknowledged?
+
+    redirect_back fallback_location: fallback, alert: t("checkout.refund_acknowledgement.required")
+    false
+  end
+
   def set_accessible_expert_advisors
     @accessible_eas ||= Licenses::AccessibleExpertAdvisors.new(user: current_user).call
   end

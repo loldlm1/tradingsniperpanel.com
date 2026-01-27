@@ -44,8 +44,8 @@ en:
         title: "Projection"
         body: "Launch BUY/SELL projections with TP multipliers and grid layers."
       signal:
-        title: "Signal management"
-        body: "Cycle through signals or tickets for partial/full closes and break-even moves."
+        title: "Position management"
+        body: "Cycle through tickets for partial/full closes and break-even moves."
       scope:
         title: "Scope retargeting"
         body: "Lock TP/SL with the crosshair before sending precise adjustments."
@@ -156,6 +156,14 @@ en:
     tagline: "Built for disciplined MQL5 traders."
     terms: "Terms"
     privacy: "Privacy Policy"
+    refunds: "Refund & Cancellation Policy"
+    contact:
+      title: "Contact"
+      chat: "Live chat"
+      discord: "Discord"
+      telegram: "Telegram"
+    merchant:
+      title: "Merchant"
     resources:
       title: "Resources"
       links:
@@ -180,6 +188,7 @@ en:
       links:
         terms: "Terms"
         privacy: "Privacy Policy"
+        refunds_and_cancellations: "Refund & Cancellation Policy"
   terms_acceptance:
     title: "Accept Terms & Privacy"
     badge: "Consent required"
@@ -191,16 +200,23 @@ en:
     failure: "We couldn't save your consent. Please try again."
     required: "Please accept the Terms of Service and Privacy Policy to continue to the dashboard."
     checkbox_error: "Please confirm you accept the Terms of Service and Privacy Policy."
+  checkout:
+    refund_acknowledgement:
+      label: "I acknowledge that purchases are final and no refunds are offered (except where required by law)."
+      helper: "You can cancel your subscription anytime to avoid future charges."
+      required: "Please acknowledge the no-refunds policy to continue."
+    subscription_notice_html: "No refunds. You can cancel anytime to stop future charges. See the %{refunds_link}."
   legal:
     links:
       terms: "Terms of Service"
       privacy: "Privacy Policy"
+      refunds_and_cancellations: "Refund & Cancellation Policy"
     badge: "Legal"
     last_updated: "Last updated: %{date}"
-    updated_at: "December 17, 2025"
+    updated_at: "January 27, 2026"
     terms:
       title: "Terms of Service"
-      subtitle: "These Terms govern your access to Trading Sniper Panel and related Expert Advisor resources."
+      subtitle: "These Terms govern your access to Trading Sniper Panel and its trading tools, automation features, and educational resources."
       sections:
         - title: "1. Agreement to These Terms"
           paragraphs:
@@ -208,7 +224,7 @@ en:
             - "If you use the Service on behalf of an organization, you represent that you have authority to bind that organization to these Terms."
         - title: "2. The Service"
           paragraphs:
-            - "The Service provides dashboards, documentation, downloads, and subscription access related to Expert Advisors and trading tools."
+            - "The Service is a software platform that provides access to trading workflow tools and resources, including web dashboards/panels, automation utilities, trading tools, downloadable software or scripts (including Expert Advisors (EAs) for MetaTrader 5 (MT5) where offered), indicators, templates, strategy materials, courses, documentation, and subscription-based features."
             - "We may modify, suspend, or discontinue any part of the Service at any time, including features, content, and availability."
         - title: "3. Eligibility and Accounts"
           paragraphs:
@@ -231,7 +247,7 @@ en:
             - "Do not use the Service for unlawful, harmful, or deceptive activity."
         - title: "6. Trading Risk Disclaimer (Not Financial Advice)"
           paragraphs:
-            - "The Service and any related Expert Advisors, dashboards, and documentation are provided for informational and automation purposes only and do not constitute financial, investment, legal, or tax advice."
+            - "The Service and any related tools, automation features, educational content, and downloadable software (including trading tools, indicators, scripts, and Expert Advisors (EAs) for MT5 where offered) are provided for informational and automation purposes only and do not constitute financial, investment, legal, or tax advice."
             - "Trading involves risk and may result in significant losses. You are solely responsible for your trading decisions, configurations, and risk management."
             - "Past performance is not indicative of future results."
         - title: "7. Third-Party Services"
@@ -253,7 +269,12 @@ en:
         - title: "11. Termination"
           paragraphs:
             - "You may stop using the Service at any time. We may suspend or terminate your access if we reasonably believe you have violated these Terms or if required to protect the Service."
-        - title: "12. Changes and Contact"
+        - title: "12. Business Information"
+          paragraphs:
+            - "%{brand_display_name} operates the Service."
+            - "Business address: %{brand_address}."
+            - "Contact: %{support_email}."
+        - title: "13. Changes and Contact"
           paragraphs:
             - "We may update these Terms from time to time. Continued use of the Service after an update becomes effective constitutes acceptance of the updated Terms."
             - "Questions about these Terms can be sent to %{support_email}."
@@ -297,9 +318,37 @@ en:
         - title: "8. International Transfers"
           paragraphs:
             - "Your information may be processed in countries other than your own. Where required, we take steps to provide appropriate safeguards."
-        - title: "9. Changes"
+        - title: "9. Contact"
+          paragraphs:
+            - "If you have questions about this Privacy Policy or your data, email %{support_email}."
+            - "Business address: %{brand_address}."
+        - title: "10. Changes"
           paragraphs:
             - "We may update this Privacy Policy from time to time. Continued use of the Service after an update becomes effective constitutes acceptance of the updated policy."
+    refunds_and_cancellations:
+      title: "Refund & Cancellation Policy"
+      subtitle: "This policy explains how cancellations work and when refunds are available."
+      sections:
+        - title: "1. Overview"
+          paragraphs:
+            - "This policy applies to all subscriptions and one-time digital purchases made through %{brand_display_name}."
+        - title: "2. Subscriptions"
+          paragraphs:
+            - "You can cancel your subscription at any time from your billing settings or by contacting support."
+            - "Your subscription remains active until the end of the current billing period; we do not provide prorated refunds for unused time unless required by law."
+            - "After cancellation, you will not be charged for future billing periods."
+        - title: "3. One-Time Purchases"
+          paragraphs:
+            - "One-time purchases (including digital downloads and access passes) are final and non-refundable once delivered, except where required by law."
+        - title: "4. Refund Exceptions"
+          paragraphs:
+            - "We may issue refunds if required by law, for billing errors, or at our discretion in exceptional cases."
+        - title: "5. Delivery & Access"
+          paragraphs:
+            - "Digital products and subscription access are delivered electronically via your account. If you experience access issues, contact %{support_email}."
+        - title: "6. How to Contact Us"
+          paragraphs:
+            - "If you have questions about cancellations or refunds, email %{support_email}."
   landing:
     neon:
       nav:
@@ -459,7 +508,7 @@ en:
       hero:
         title_prefix: "Trader Sintético, trade with a complete forex "
         title_highlight: "ecosystem"
-        subtitle_line1: "Courses, templates, bots, and a premium signals channel"
+        subtitle_line1: "Courses, templates, bots, and a premium community hub"
         subtitle_line2: "to execute with rules, risk management, and consistency in MT5."
       cta:
         primary: "Get started now"
@@ -467,13 +516,13 @@ en:
         title: "Join Trader Sintético today"
         support: "Talk to support"
       media:
-        hero_image_alt: "Panel/Signals (Synthetic Indices)"
+        hero_image_alt: "Panel/Tools (Synthetic Indices)"
         footer_illustration_alt: "Footer illustration"
       section1:
         items:
           signals:
-            title: "Premium signals"
-            body: "Paid channel with entries, SL/TP, and sessions focused on synthetics. Execute quickly and with confidence."
+            title: "Execution playbooks"
+            body: "Guided workflows with checklists and session planning focused on synthetics. Execute with clarity and confidence."
           academy:
             title: "Academy"
             body: "A clear learning path: strategy, psychology, and risk management applied to synthetic indices."
@@ -482,7 +531,7 @@ en:
             body: "MT5 templates, utilities, and EAs to automate tasks and maintain disciplined trading."
       section2:
         title: "Build your synthetic indices trading with clear rules"
-        body: "Learn to read context, define scenarios, and execute a plan. Our approach blends education, signals, and tools so you trade with structure."
+        body: "Learn to read context, define scenarios, and execute a plan. Our approach blends education, workflows, and tools so you trade with structure."
         quote:
           text: '"I stopped improvising. With Trader Sintético''s ecosystem I have a plan, execution, and follow-up. Now I trade synthetics more calmly and precisely."'
           author_alt: "Testimonial author 01"
@@ -501,7 +550,7 @@ en:
           include:
             title: "Includes"
             items:
-              - "Signals"
+              - "Playbooks"
               - "Courses"
               - "Sessions"
               - "Community"
@@ -523,15 +572,15 @@ en:
         image_alt: "Feature 04"
       section5:
         title: "Get started in minutes and trade synthetics with structure"
-        body: "We guide you step by step so you have a clear process: from MT5 setup to executing with signals and rules."
+        body: "We guide you step by step so you have a clear process: from MT5 setup to executing with playbooks and rules."
         image_alt: "Logos"
         steps:
           - title: "Access the ecosystem"
             body: "Choose your plan and receive onboarding with resources, links, and an installation guide."
           - title: "Set up MT5 and templates"
             body: "Install templates and indicators, set your risk, and prepare your setups."
-          - title: "Receive signals and execute"
-            body: "Follow the premium channel with clear SL/TP and trade with discipline."
+          - title: "Apply the playbook and execute"
+            body: "Use the execution playbook with clear steps and trade with discipline."
       section6:
         title: "Discipline, risk, and consistency for synthetic traders"
         body: "We prioritize rules and risk management. The tools are designed to help you make simple, repeatable decisions."
@@ -559,7 +608,7 @@ en:
             role: "CEO & Co-Founder"
       section7:
         title: "Choose your plan and access the ecosystem"
-        body: "Plans designed for your stage: learn, execute, and scale with signals, tools, and automation."
+        body: "Plans designed for your stage: learn, execute, and scale with workflows, tools, and automation."
         subscribe_cta: "Subscribe"
         plans:
           - name: "Basic"
@@ -571,7 +620,7 @@ en:
             badge: ""
             features_title: "Includes"
             features:
-              - "Access to the signals channel"
+              - "Access to the workflow library"
               - "Base synthetic indices course"
               - "Essential MT5 templates"
               - "Installation guide"
@@ -625,7 +674,7 @@ en:
         items:
           - question: "What are synthetic indices and where do you trade them?"
             answer: "We answer the most common questions before you get started. If you need help, contact support."
-          - question: "What is included in the signals channel subscription?"
+          - question: "What is included in the workflow library access?"
             answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
           - question: "Do I need prior experience to join the courses?"
             answer: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam."
