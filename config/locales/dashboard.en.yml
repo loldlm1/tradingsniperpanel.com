@@ -494,7 +494,7 @@ en:
       show_cta: "View details"
       show_page_title: "%{name} | %{app}"
       show:
-        back: "Back to Expert Advisors"
+        back: "← Back to Expert Advisors"
         system_info: "System information"
         description_label: "Detailed description"
         description_missing: "No description provided yet."

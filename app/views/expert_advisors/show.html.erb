@@ -7,9 +7,6 @@
   <div class="mb-4 sm:mb-0">
     <div class="mb-6">
       <%= link_to dashboard_expert_advisors_path(locale: I18n.locale), class: "inline-flex items-center gap-2 text-sm font-semibold text-violet-400 hover:text-violet-300" do %>
-        <svg class="h-3.5 w-3.5 fill-current" width="7" height="12" viewBox="0 0 7 12" aria-hidden="true">
-          <path d="M5.4.6 6.8 2l-4 4 4 4-1.4 1.4L0 6z" />
-        </svg>
         <span><%= t("dashboard.expert_advisors.show.back") %></span>
       <% end %>
     </div>
@@ -37,9 +34,10 @@
           <span class="inline-flex items-center rounded-full font-medium px-2.5 py-1 <%= presenter.status_badge_class %>">
             <%= presenter.system_status_label %>
           </span>
-          <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 font-medium px-2.5 py-1">
-            <%= t("dashboard.expert_advisors.show.type_label", type: presenter.type_label) %>
-          </span>
+          <%= render "dashboard/shared/filter_chip",
+            label: t("dashboard.expert_advisors.show.type_label", type: presenter.type_label),
+            interactive: false,
+            extra_class: "text-xs" %>
         </div>
       </div>
 
@@ -99,6 +97,9 @@
         <% end %>
       </div>
     </div>
+
+    <!-- Item 5 -->
+    <%= render "expert_advisors/show_addons", presenter: presenter %>
   </div>
 
   <!-- Sidebar column -->
@@ -173,6 +174,4 @@
     </div>
   </div>
 
-  <!-- Item 5 -->
-  <%= render "expert_advisors/show_addons", presenter: presenter %>
 </div>

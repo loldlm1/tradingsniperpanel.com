@@ -494,7 +494,7 @@ es:
       show_cta: "Ver detalles"
       show_page_title: "%{name} | %{app}"
       show:
-        back: "Regresar a Expert Advisors"
+        back: "← Regresar a Expert Advisors"
         system_info: "Informacion del sistema"
         description_label: "Descripcion detallada"
         description_missing: "Aun no hay descripcion disponible."
