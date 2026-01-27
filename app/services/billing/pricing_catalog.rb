@@ -8,7 +8,7 @@ module Billing
       plans = BillingPlan.subscription.active
       return {} if plans.empty?
 
-      cache_key = "billing/pricing_catalog/v#{CACHE_VERSION}/#{Digest::SHA256.hexdigest(cache_signature(plans))}"
+      cache_key = "billing/pricing_catalog/v#{CACHE_VERSION}/#{I18n.locale}/#{Digest::SHA256.hexdigest(cache_signature(plans))}"
       Rails.cache.fetch(cache_key, expires_in: 12.hours) do
         build_catalog(plans)
       end

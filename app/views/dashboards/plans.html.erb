@@ -118,9 +118,6 @@
                     <span class="text-gray-500 font-medium text-sm" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:per_label] %></span>
                   <% end %>
                 </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                  <%= t("checkout.subscription_notice_html", refunds_link: link_to(t("legal.links.refunds_and_cancellations"), refunds_and_cancellations_path, class: "underline")).html_safe %>
-                </div>
 
                 <% cta_label = subscribed ? t("dashboard.plans.cta.upgrade") : t("dashboard.plans.cta.subscribe") %>
                 <% intervals.each do |interval| %>
@@ -163,6 +160,9 @@
                 <% intervals.each do |interval| %>
                   <% next if interval[:billed_label].blank? %>
                   <div class="text-xs text-gray-500 mt-3" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:billed_label] %></div>
+                  <div class="text-xs text-gray-500 mt-3" x-show="period === '<%= interval[:key] %>'" x-cloak>
+                    <%= t("checkout.subscription_notice_html", refunds_link: link_to(t("legal.links.refunds_and_cancellations"), refunds_and_cancellations_path, class: "underline")).html_safe %>
+                  </div>
                 <% end %>
               </div>
               <div class="px-5 pt-4 pb-5">

@@ -52,6 +52,7 @@
 - Replace “signals” marketing copy with “playbooks/workflows” language in EN/ES.
 - Subscription checkout will use inline refund/cancellation notice (no checkbox) for Stripe alignment.
 - Add dedicated Refund & Cancellation policy at `/refunds-and-cancellations` and link in footer/legal.
+- Price interval labels are cached per locale to avoid mixed-language UI.
 
 # Stripe Policy Notes (research)
 - Website checklist requires multiple, direct contact methods (email + phone/live chat/etc) and clear fulfillment policies including refund, delivery, and cancellation.
@@ -185,3 +186,39 @@
 - PASS: `sed -n '1,200p' app/views/shared/_marketing_footer.html.erb`
 - PASS: `sed -n '1,200p' app/views/templates/fintech/shared/_marketing_footer.html.erb`
 - PASS: `sed -n '70,170p' app/views/dashboards/plans.html.erb`
+- PASS: `rg -n "class LocaleResolver|LocaleResolver" app lib`
+- PASS: `sed -n '1,200p' app/services/locale_resolver.rb`
+- PASS: `rg -n "Facturado|Facturada|Billed" app config db lib`
+- PASS: `rg -n "PricingCatalog|IntervalLabeler|billed_label" app lib`
+- PASS: `sed -n '1,140p' app/services/billing/interval_labeler.rb`
+- PASS: `sed -n '1,200p' app/services/billing/pricing_catalog.rb`
+- PASS: `bin/rails runner "u = User.find_by(email: 'qa@example.com'); puts(u&.preferred_locale || '(nil)')"`
+- PASS: `SUPPORT_EMAIL=qa@example.com SUPPORT_PHONE=+1-555-0100 SUPPORT_CHAT_URL=https://example.com/chat SUPPORT_DISCORD_URL=https://discord.gg/example SUPPORT_TELEGRAM_URL=https://t.me/example BRAND_LEGAL_NAME="QA Trading LLC" BRAND_TRADE_NAME="QA Trading" BRAND_ADDRESS_LINE1="123 Market St" BRAND_ADDRESS_LINE2="Suite 500" BRAND_CITY="Miami" BRAND_STATE="FL" BRAND_POSTAL="33101" BRAND_COUNTRY="US" LANDING_TEMPLATE=neon bin/rails server -p 3000 -e development -P /tmp/rails_neon.pid > tmp/rails-server.log 2>&1 & echo $!`
+- PASS: `sleep 4`
+- PASS: `curl -H "Accept: text/html" -H "Accept-Language: en" -A "Mozilla/5.0" -s -c /tmp/cookies_neon.txt -b /tmp/cookies_neon.txt -o /tmp/signin_neon.html -L http://localhost:3000/users/sign_in`
+- PASS: `token=$(perl -ne 'if(/name="authenticity_token" value="([^"]+)"/){print $1; exit}' /tmp/signin_neon.html); curl -H "Accept-Language: en" -s -c /tmp/cookies_neon.txt -b /tmp/cookies_neon.txt -L -X POST http://localhost:3000/users/sign_in -H "Content-Type: application/x-www-form-urlencoded" --data "authenticity_token=${token}&user[email]=qa%40example.com&user[password]=Password123%21&user[remember_me]=0" -o /tmp/signin_post_neon.html`
+- PASS: `curl -H "Accept-Language: en" -s -b /tmp/cookies_neon.txt -o /tmp/plans_neon.html -w "%{http_code}\n" http://localhost:3000/dashboard/plans`
+- PASS: `rg -n "Billed|Facturado" /tmp/plans_neon.html`
+- PASS: `sed -n '628,640p' /tmp/plans_neon.html`
+- FAIL: `kill 105277`
+- PASS: `bundle exec rspec`
+- PASS: `SUPPORT_EMAIL=qa@example.com SUPPORT_PHONE=+1-555-0100 SUPPORT_CHAT_URL=https://example.com/chat SUPPORT_DISCORD_URL=https://discord.gg/example SUPPORT_TELEGRAM_URL=https://t.me/example BRAND_LEGAL_NAME="QA Trading LLC" BRAND_TRADE_NAME="QA Trading" BRAND_ADDRESS_LINE1="123 Market St" BRAND_ADDRESS_LINE2="Suite 500" BRAND_CITY="Miami" BRAND_STATE="FL" BRAND_POSTAL="33101" BRAND_COUNTRY="US" LANDING_TEMPLATE=neon bin/rails server -p 3000 -e development -P /tmp/rails_neon.pid > tmp/rails-server.log 2>&1 & echo $!`
+- PASS: `sleep 4`
+- PASS: `curl -H "Accept: text/html" -H "Accept-Language: en" -A "Mozilla/5.0" -s -o /tmp/refunds_neon.html -w "%{http_code}\n" http://localhost:3000/refunds-and-cancellations`
+- PASS: `curl -H "Accept: text/html" -H "Accept-Language: en" -A "Mozilla/5.0" -s -o /tmp/home_neon.html -w "%{http_code}\n" http://localhost:3000/`
+- PASS: `curl -H "Accept: text/html" -H "Accept-Language: en" -A "Mozilla/5.0" -s -c /tmp/cookies_neon.txt -b /tmp/cookies_neon.txt -o /tmp/signin_neon.html -L http://localhost:3000/users/sign_in`
+- PASS: `token=$(perl -ne 'if(/name="authenticity_token" value="([^"]+)"/){print $1; exit}' /tmp/signin_neon.html); curl -H "Accept-Language: en" -s -c /tmp/cookies_neon.txt -b /tmp/cookies_neon.txt -L -X POST http://localhost:3000/users/sign_in -H "Content-Type: application/x-www-form-urlencoded" --data "authenticity_token=${token}&user[email]=qa%40example.com&user[password]=Password123%21&user[remember_me]=0" -o /tmp/signin_post_neon.html`
+- PASS: `curl -H "Accept-Language: en" -s -b /tmp/cookies_neon.txt -o /tmp/plans_neon.html -w "%{http_code}\n" http://localhost:3000/dashboard/plans`
+- PASS: `rg -n "Billed daily|Refund &amp; Cancellation Policy" /tmp/plans_neon.html`
+- PASS: `rg -n "refunds-and-cancellations" /tmp/home_neon.html`
+- FAIL: `kill 106636`
+- PASS: `SUPPORT_EMAIL=qa@example.com SUPPORT_PHONE=+1-555-0100 SUPPORT_CHAT_URL=https://example.com/chat SUPPORT_DISCORD_URL=https://discord.gg/example SUPPORT_TELEGRAM_URL=https://t.me/example BRAND_LEGAL_NAME="QA Trading LLC" BRAND_TRADE_NAME="QA Trading" BRAND_ADDRESS_LINE1="123 Market St" BRAND_ADDRESS_LINE2="Suite 500" BRAND_CITY="Miami" BRAND_STATE="FL" BRAND_POSTAL="33101" BRAND_COUNTRY="US" LANDING_TEMPLATE=fintech bin/rails server -p 3000 -e development -P /tmp/rails_fintech.pid > tmp/rails-server.log 2>&1 & echo $!`
+- PASS: `sleep 4`
+- PASS: `curl -H "Accept: text/html" -H "Accept-Language: en" -A "Mozilla/5.0" -s -o /tmp/refunds_fintech.html -w "%{http_code}\n" http://localhost:3000/refunds-and-cancellations`
+- PASS: `curl -H "Accept: text/html" -H "Accept-Language: en" -A "Mozilla/5.0" -s -o /tmp/home_fintech.html -w "%{http_code}\n" http://localhost:3000/`
+- PASS: `curl -H "Accept: text/html" -H "Accept-Language: en" -A "Mozilla/5.0" -s -c /tmp/cookies_fintech.txt -b /tmp/cookies_fintech.txt -o /tmp/signin_fintech.html -L http://localhost:3000/users/sign_in`
+- PASS: `token=$(perl -ne 'if(/name="authenticity_token" value="([^"]+)"/){print $1; exit}' /tmp/signin_fintech.html); curl -H "Accept-Language: en" -s -c /tmp/cookies_fintech.txt -b /tmp/cookies_fintech.txt -L -X POST http://localhost:3000/users/sign_in -H "Content-Type: application/x-www-form-urlencoded" --data "authenticity_token=${token}&user[email]=qa%40example.com&user[password]=Password123%21&user[remember_me]=0" -o /tmp/signin_post_fintech.html`
+- PASS: `curl -H "Accept-Language: en" -s -b /tmp/cookies_fintech.txt -o /tmp/plans_fintech.html -w "%{http_code}\n" http://localhost:3000/dashboard/plans`
+- PASS: `rg -n "Billed daily|Refund &amp; Cancellation Policy" /tmp/plans_fintech.html`
+- PASS: `rg -n "refunds-and-cancellations" /tmp/home_fintech.html`
+- FAIL: `kill 107439`
