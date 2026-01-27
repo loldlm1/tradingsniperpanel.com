@@ -59,8 +59,13 @@ Rebuild `expert_advisors#show` to match the Mosaic mock-up (`mosaic-html/dashboa
    - Fix `yes/no` translation keys in EN/ES locale files.
    - Adjust layout to reduce the gap between columns when heights differ.
    - Update specs impacted by copy/layout changes.
-9. **Verify**: manual smoke check in browser; run specs.
-10. **Post-implementation**: update this plan with additional test-coverage next steps, then archive per AGENTS.md.
+9. **Dark-mode QA + layout polish**:
+   - Use the license section styling from the EA index card for dark-mode contrast.
+   - Use the shared filter chip for broker account type badges.
+   - Choose a dashboard-standard layout to avoid large column whitespace.
+   - Update AGENTS.md with enabled MCP servers list.
+10. **Verify**: manual smoke check in browser (dark theme); run specs.
+11. **Post-implementation**: update this plan with additional test-coverage next steps, then archive per AGENTS.md.
 
 ## Open Questions
 - None.
@@ -76,6 +81,27 @@ Rebuild `expert_advisors#show` to match the Mosaic mock-up (`mosaic-html/dashboa
   - apply_patch spec/requests/expert_advisors_spec.rb (PASS)
   - apply_patch spec/services/expert_advisors/show_presenter_spec.rb (PASS)
   - bundle exec rspec spec/services/expert_advisors/show_presenter_spec.rb spec/requests/expert_advisors_spec.rb (PASS)
+  - bin/rails runner QA seed + broker results (PASS)
+  - mcp__playwright__browser_navigate (FAIL)
+  - mcp__playwright__browser_install (FAIL)
+  - apply_patch AGENTS.md (PASS)
+  - bin/rails server -p 3000 -d (PASS)
+  - agent-browser open http://localhost:3000/en/users/sign_in (PASS)
+  - agent-browser snapshot -i (PASS)
+  - agent-browser fill @email/@password (PASS)
+  - agent-browser click Sign in (PASS)
+  - agent-browser open http://localhost:3000/en/dashboard/expert_advisors/sniper_advanced_panel (PASS)
+  - agent-browser screenshot --full /tmp/ea-show.png (PASS)
+  - apply_patch AGENTS.md (PASS)
+  - apply_patch app/views/expert_advisors/show.html.erb (PASS)
+  - apply_patch app/views/expert_advisors/_show_license_card.html.erb (PASS)
+  - bin/rails runner qa@example.com seed + broker results (FAIL)
+  - bin/rails runner qa@example.com seed + broker results (PASS)
+  - agent-browser open http://localhost:3000/en/dashboard/expert_advisors/sniper_advanced_panel (PASS)
+  - agent-browser set dark-mode (PASS)
+  - agent-browser screenshot --full /tmp/ea-show-dark-v2.png (PASS)
+  - bundle exec rspec (PASS)
+  - kill puma 7.1.0 (PASS)
   - apply_patch app/controllers/expert_advisors_controller.rb (PASS)
   - cat > app/services/expert_advisors/show_presenter.rb (PASS)
   - apply_patch app/services/expert_advisors/show_presenter.rb (PASS)

@@ -23,9 +23,9 @@
   <!-- Section: License key -->
   <div class="mt-4">
     <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.expert_advisors.show.license_key_label") %></div>
-    <div class="mt-2 flex items-center gap-3">
+    <div class="flex items-center gap-3 mt-2">
       <div class="flex-1 min-w-0">
-        <div class="flex items-center rounded-lg border border-gray-200 dark:border-gray-700/60 bg-white dark:bg-gray-900/40 px-3 py-2 font-mono text-sm text-gray-800 dark:text-gray-100">
+        <div class="flex items-center rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 font-mono text-sm text-gray-800 dark:text-gray-100">
           <span class="truncate" data-license-value title="<%= presenter.license_key_display %>"><%= presenter.license_key_display %></span>
         </div>
       </div>
@@ -48,7 +48,7 @@
         ><%= copy_label %></button>
       <% end %>
     </div>
-    <div class="mt-2 text-xs text-gray-500 dark:text-gray-400"><%= license_hint %></div>
+    <div class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= license_hint %></div>
   </div>
 
   <!-- Section: Latest broker account -->
@@ -60,9 +60,10 @@
           <div class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate"><%= latest_account.name.presence || t("dashboard.broker_accounts.unnamed") %></div>
           <div class="text-xs text-gray-500 dark:text-gray-400"><%= latest_account.company %> · <%= latest_account.account_number %></div>
         </div>
-        <span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700/60 text-gray-700 dark:text-gray-200">
-          <%= t("dashboard.broker_accounts.account_type.#{latest_account.account_type}") %>
-        </span>
+        <%= render "dashboard/shared/filter_chip",
+          label: t("dashboard.broker_accounts.account_type.#{latest_account.account_type}"),
+          interactive: false,
+          extra_class: "text-xs px-2 py-0.5" %>
       </div>
     <% else %>
       <div class="mt-2 text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.broker_accounts.none") %></div>
