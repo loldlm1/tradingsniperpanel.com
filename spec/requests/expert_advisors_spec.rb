@@ -76,6 +76,19 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(response).to be_successful
     expect(response.body).to include(expert_advisor.name)
     expect(response.body).to include("Sniper Advanced Panel")
+    expect(response.body).to include(I18n.t("dashboard.expert_advisors.license.locked_value", locale: :en))
+  end
+
+  it "renders the EA show page with license details when accessible" do
+    license = create(:license, user: user, expert_advisor: expert_advisor, status: "active", last_synced_at: Time.utc(2025, 1, 20))
+    create(:broker_account, license: license, company: "BrokerX", account_number: 987654)
+
+    get dashboard_expert_advisor_path(expert_advisor, locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include(license.encrypted_key)
+    expect(response.body).to include("BrokerX")
+    expect(response.body).to include(I18n.t("dashboard.expert_advisors.show.values.broker_accounts_count", count: 1, locale: :en))
   end
 
   it "returns not found when user does not own the EA" do
