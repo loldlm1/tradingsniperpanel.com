@@ -10,9 +10,18 @@
   - Delete it after copying a 5–10 line “Post-Implementation Summary” into the PR description.
   - `docs/plans/` should contain only active work.
 
-# Skills playbooks
-- See `agents/skills/README.md` for selector policy and role playbooks.
-- Default playbook: `agents/skills/fullstack.md`, switch to specialist playbooks as needed.
+# Skills (auto-detect)
+- **Check first**: before planning, identify applicable Codex skills; if the task matches a skill’s description, use it even if not named.
+- **Follow the skill**: open the relevant `SKILL.md` and follow its workflow; keep any skill-specific files/tools usage minimal and on-scope.
+- **Available skills**: `rails-expert`, `frontend-design`, `unix-macos-engineer`, `find-skills`, `agent-browser`, `ui-ux-pro-max`.
+
+# MCP (enabled)
+- **Postgres MCP**: database queries via `mcp__postgres__*` (configured with `DATABASE_URL`).
+- **Playwright MCP**: browser automation via `mcp__playwright__*`.
+- **Fetch MCP**: readable page fetch via `mcp__fetch__*`.
+- **Tavily MCP**: web search via `mcp__tavily__*`.
+- **Context7 MCP**: documentation lookup via `mcp__context7__*`.
+- **Disabled**: open-websearch MCP (disabled in config).
 
 # Engineering Notes (Ruby/Rails)
 
