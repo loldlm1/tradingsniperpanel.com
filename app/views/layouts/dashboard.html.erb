@@ -332,7 +332,7 @@
                     <ul>
                       <li>
                         <%= link_to url_for(locale: :en), class: "font-medium text-sm #{I18n.locale == :en ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200'} flex items-center py-1 px-3" do %>
-                          <span class="mr-2">EN</span>
+                          <span class="mr-2"><%= t("dashboard.header.language_en") %></span>
                           <% if I18n.locale == :en %>
                             <svg class="w-3 h-3 fill-current text-violet-500 shrink-0 ml-auto" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
                               <path d="M10.28 2.28L3.99 8.58 1.7 6.28A1 1 0 0 0 .28 7.7l3 3a1 1 0 0 0 1.41 0l7-7a1 1 0 1 0-1.41-1.41Z" />
@@ -342,7 +342,7 @@
                       </li>
                       <li>
                         <%= link_to url_for(locale: :es), class: "font-medium text-sm #{I18n.locale == :es ? 'text-violet-500 dark:text-violet-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-200'} flex items-center py-1 px-3" do %>
-                          <span class="mr-2">ES</span>
+                          <span class="mr-2"><%= t("dashboard.header.language_es") %></span>
                           <% if I18n.locale == :es %>
                             <svg class="w-3 h-3 fill-current text-violet-500 shrink-0 ml-auto" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
                               <path d="M10.28 2.28L3.99 8.58 1.7 6.28A1 1 0 0 0 .28 7.7l3 3a1 1 0 0 0 1.41 0l7-7a1 1 0 1 0-1.41-1.41Z" />

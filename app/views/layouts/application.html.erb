@@ -33,12 +33,7 @@
       <%= stylesheet_link_tag "neon/css/vendors/aos" %>
       <%= stylesheet_link_tag "neon/style" %>
     <% end %>
-    <style>[x-cloak]{display:none !important}</style>
-    <style>
-      @keyframes loading-spin { to { transform: rotate(360deg); } }
-      .loading-spinner { animation: loading-spin 0.8s linear infinite; }
-      .btn-sm, .btn, button, a { cursor: pointer; }
-    </style>
+    <%= stylesheet_link_tag "marketing" %>
     <%= yield :head %>
   </head>
 
