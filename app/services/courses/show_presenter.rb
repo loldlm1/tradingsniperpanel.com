@@ -8,6 +8,7 @@ module Courses
       :url,
       :accessible,
       :completed,
+      :started,
       keyword_init: true
     )
 
@@ -126,6 +127,7 @@ module Courses
     end
 
     def access_source_label
+      return I18n.t("dashboard.courses.access_source.free") if course.free_access?
       return I18n.t("dashboard.courses.access_source.one_time") if enrollment&.access_source_one_time?
       return I18n.t("dashboard.courses.access_source.subscription") if accessible?
 
@@ -198,7 +200,8 @@ module Courses
           duration_label: ApplicationController.helpers.format_duration(lesson.duration_seconds),
           url: lesson_url(lesson),
           accessible: accessible?,
-          completed: lesson_completed?(lesson)
+          completed: lesson_completed?(lesson),
+          started: lesson_started?(lesson)
         )
       end
     end
@@ -206,6 +209,10 @@ module Courses
     def lesson_completed?(lesson)
       progress = lesson_progresses[lesson.id]
       progress&.completed?
+    end
+
+    def lesson_started?(lesson)
+      lesson_progresses.key?(lesson.id)
     end
 
     def module_progress_percent(course_module)
