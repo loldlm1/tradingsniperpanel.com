@@ -4,7 +4,7 @@
 <% rating_count = number_with_delimiter(card.rating_count.to_i) %>
 <% summary = card.summary.to_s %>
 
-<div class="col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-xs rounded-xl overflow-hidden">
+<div class="col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-xs rounded-xl overflow-hidden transition-shadow duration-200 hover:shadow-md">
   <div class="flex flex-col h-full">
     <!-- Image -->
     <div class="relative">
@@ -28,7 +28,7 @@
         <!-- Header -->
         <header class="mb-2">
           <h3 class="text-lg text-gray-800 dark:text-gray-100 font-semibold mb-1">
-            <%= link_to card.title, card.detail_url, class: "hover:text-violet-600 dark:hover:text-violet-300" %>
+            <%= link_to card.title, card.detail_url, class: "hover:text-teal-600 dark:hover:text-teal-300" %>
           </h3>
           <% if summary.present? %>
             <div class="text-sm"><%= truncate(summary, length: 120) %></div>
