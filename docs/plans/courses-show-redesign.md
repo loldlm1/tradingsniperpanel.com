@@ -49,6 +49,8 @@ Clone the `mosaic-html/dashboard_courses_show.html` layout into `courses#show`, 
 5. Add module-card pagination (4 per page) for module cards grid via a reusable JS helper.
 6. Add/adjust I18n keys in `config/locales/dashboard.en.yml` and `config/locales/dashboard.es.yml` for new labels and badges.
 7. Add lightweight request specs for locked vs. accessible courses (and module progress display) or confirm existing coverage.
+8. Perform a visual review (Playwright) of the courses show page and adjust UI polish per design system guidance.
+9. Add request specs for the new show view behaviors (pagination markers, access labels, progress display).
 
 ## Optional Enhancements (if desired)
 - Display per-lesson completion (checkmarks) using `course_lesson_progresses`.
@@ -62,3 +64,11 @@ Clone the `mosaic-html/dashboard_courses_show.html` layout into `courses#show`, 
 
 ## Execution Log
 - PASS: `python3 /home/loldlm/.agents/skills/ui-ux-pro-max/scripts/search.py "trading education SaaS dashboard course detail Mosaic" --design-system --persist -p "Trading Sniper Panel" --page "courses-show" -f markdown`
+- FAIL: `bin/rails runner -` (FK violation on course_enrollments.last_lesson)
+- PASS: `bin/rails runner -` (seed visual-course + progress for visual@example.com)
+- PASS: `agent-browser open http://localhost:3000/dashboard/courses/visual-course?locale=en`
+- PASS: `agent-browser screenshot --full tmp/visual-courses-show.png`
+- PASS: `agent-browser screenshot --full tmp/visual-courses-show-modules-page2.png`
+- PASS: `agent-browser screenshot --full tmp/visual-courses-show-lessons-page2.png`
+- FAIL: `bin/rspec spec/requests/courses_spec.rb` (bin/rspec missing)
+- PASS: `bundle exec rspec spec/requests/courses_spec.rb`
