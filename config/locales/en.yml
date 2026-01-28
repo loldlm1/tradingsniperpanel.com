@@ -152,6 +152,56 @@ en:
     hero_illustration_alt: "Hero illustration"
     auth_illustration_alt: "Authentication illustration"
     sign_in_notice: "To support you during the launch, pro features are available while we roll out billing."
+    links:
+      log_in: "Log in"
+      sign_up: "Sign up"
+      forgot_password: "Forgot your password?"
+      resend_confirmation: "Didn't receive confirmation instructions?"
+      resend_unlock: "Didn't receive unlock instructions?"
+      sign_in_with_provider: "Sign in with %{provider}"
+    registrations:
+      edit:
+        title: "Edit %{resource}"
+        pending_reconfirmation: "Currently waiting confirmation for: %{email}"
+        password_hint: "leave blank if you don't want to change it"
+        current_password_hint: "we need your current password to confirm your changes"
+        update_cta: "Update"
+        cancel_title: "Cancel my account"
+        cancel_prompt: "Unhappy?"
+        cancel_cta: "Cancel my account"
+        cancel_confirm: "Are you sure?"
+        back: "Back"
+    confirmations:
+      new:
+        title: "Resend confirmation instructions"
+        submit: "Resend confirmation instructions"
+    unlocks:
+      new:
+        title: "Resend unlock instructions"
+        submit: "Resend unlock instructions"
+    mailer:
+      confirmation_instructions:
+        greeting: "Welcome %{email}!"
+        instructions: "You can confirm your account email through the link below:"
+        cta: "Confirm my account"
+      reset_password_instructions:
+        greeting: "Hello %{email}!"
+        instructions: "Someone has requested a link to change your password. You can do this through the link below."
+        cta: "Change my password"
+        ignore_notice: "If you didn't request this, please ignore this email."
+        change_notice: "Your password won't change until you access the link above and create a new one."
+      unlock_instructions:
+        greeting: "Hello %{email}!"
+        locked_notice: "Your account has been locked due to an excessive number of unsuccessful sign in attempts."
+        instructions: "Click the link below to unlock your account:"
+        cta: "Unlock my account"
+      email_changed:
+        greeting: "Hello %{email}!"
+        unconfirmed_notice: "We're contacting you to notify you that your email is being changed to %{email}."
+        confirmed_notice: "We're contacting you to notify you that your email has been changed to %{email}."
+      password_change:
+        greeting: "Hello %{email}!"
+        notice: "We're contacting you to notify you that your password has been changed."
   footer:
     tagline: "Built for disciplined MQL5 traders."
     terms: "Terms"
