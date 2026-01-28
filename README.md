@@ -35,24 +35,22 @@ bin/dev
 
 ### Recommended: setup scripts
 1) Add your server SSH key to GitHub for `git@github.com:loldlm1/tradingsniperpanel.com.git`.
-2) Clone once to get the setup scripts:
+2) Copy the deploy scripts somewhere outside the repo (example path below). Copy/paste from this repo or `scp` them in:
 ```
-git clone git@github.com:loldlm1/tradingsniperpanel.com.git /home/$USER/tradingsniperpanel.com
+sudo install -d /opt/tradingsniperpanel-deploy
+# Copy these files into /opt/tradingsniperpanel-deploy: setup_common.sh, setup_production.sh, setup_staging.sh
+sudo chmod +x /opt/tradingsniperpanel-deploy/setup_production.sh /opt/tradingsniperpanel-deploy/setup_staging.sh
 ```
-3) Create production `.envrc`:
+3) Run production setup from the external script (it will clone the repo and self-update the local scripts if needed):
 ```
-cp /home/$USER/tradingsniperpanel.com/.envrc.example /home/$USER/tradingsniperpanel.com/.envrc
-```
-Set at minimum: `APP_HOST=tradingsniperpanel.com`, `APP_HOST_PROTOCOL=https`, `PORT=48501`, `REDIS_URL=redis://localhost:6379/0`, `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, and all `DB_NAME_PRODUCTION*` values.
-4) Run production setup:
-```
-sudo bash /home/$USER/tradingsniperpanel.com/script/setup_production.sh
+sudo bash /opt/tradingsniperpanel-deploy/setup_production.sh
 ```
 If SSL files are not installed yet, the script will stop after setup; install certs and rerun.
 If your SSH key has a passphrase, load it into ssh-agent before running the script (for example: `eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519`). The scripts try to detect your agent; if they still complain, run with `sudo -E` to preserve `SSH_AUTH_SOCK`.
-5) Run staging setup:
+On first run it will create `/home/$USER/tradingsniperpanel.com/.envrc` and exit. Fill it with production values (`APP_HOST=tradingsniperpanel.com`, `APP_HOST_PROTOCOL=https`, `PORT=48501`, `REDIS_URL=redis://localhost:6379/0`, `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, and all `DB_NAME_PRODUCTION*` values), then rerun the same command.
+4) Run staging setup:
 ```
-sudo bash /home/$USER/tradingsniperpanel.com/script/setup_staging.sh
+sudo bash /opt/tradingsniperpanel-deploy/setup_staging.sh
 ```
 On first run, it will create `/home/$USER/tradingsniperpanel.com-staging/.envrc` and exit. Fill it with staging values (`APP_HOST=<staging-host>`, `APP_HOST_PROTOCOL=http`, `PORT=48502`, `REDIS_URL=redis://localhost:6379/1`, `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME_STAGING*`, `STAGING_ALLOWLIST=<your_client_ip>`), then rerun.
 If `config/database.yml` on the staging branch does not include a `staging:` entry, add it before rerunning.
@@ -105,7 +103,7 @@ echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://pack
 ```
 2) Install system packages (copy/paste):
 ```
-sudo apt update && sudo apt install -y build-essential git curl libssl-dev libreadline-dev zlib1g-dev libyaml-dev libffi-dev libgdbm-dev libncurses5-dev libpq-dev postgresql postgresql-contrib redis nginx unzip
+sudo apt update && sudo apt install -y build-essential git curl libssl-dev libreadline-dev zlib1g-dev libyaml-dev libffi-dev libgdbm-dev libncurses5-dev libncursesw5-dev libbz2-dev libsqlite3-dev liblzma-dev libdb-dev libexpat1-dev tk-dev libpq-dev postgresql postgresql-contrib redis nginx unzip
 ```
 3) Install asdf as your admin user:
 ```
@@ -122,6 +120,8 @@ cd /home/your_admin_user/tradingsniperpanel.com && git checkout main
 cd /home/your_admin_user/tradingsniperpanel.com-staging && git checkout staging
 asdf plugin add ruby
 asdf plugin add nodejs
+asdf plugin add python
+asdf plugin add uv
 bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
 cd /home/your_admin_user/tradingsniperpanel.com && asdf install
 cd /home/your_admin_user/tradingsniperpanel.com-staging && asdf install

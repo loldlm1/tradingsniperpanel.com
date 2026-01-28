@@ -77,6 +77,76 @@ run_as_app_user() {
   fi
 }
 
+reexec_from_repo_if_needed() {
+  local app_dir="$1"
+  local script_name="$2"
+  local current_script="$3"
+  shift 3
+  local args=("$@")
+  local script_dir repo_script repo_common local_script local_common
+  local updated=0
+
+  if [[ "${SKIP_REEXEC:-0}" == "1" ]]; then
+    return 0
+  fi
+
+  if [[ "${SETUP_REEXECED:-0}" == "1" ]]; then
+    return 0
+  fi
+
+  if [[ -z "${app_dir}" || -z "${script_name}" || -z "${current_script}" ]]; then
+    warn "Missing arguments for reexec; skipping self-update."
+    return 0
+  fi
+
+  if [[ ! -d "${app_dir}/script" ]]; then
+    warn "Repo scripts missing at ${app_dir}/script; skipping self-update."
+    return 0
+  fi
+
+  repo_script="${app_dir}/script/${script_name}"
+  repo_common="${app_dir}/script/setup_common.sh"
+  if [[ ! -f "${repo_script}" || ! -f "${repo_common}" ]]; then
+    warn "Repo scripts not found for self-update; skipping."
+    return 0
+  fi
+
+  script_dir="$(cd "$(dirname "${current_script}")" && pwd)"
+  local_script="${script_dir}/${script_name}"
+  local_common="${script_dir}/setup_common.sh"
+
+  if [[ "$(readlink -f "${current_script}")" == "$(readlink -f "${repo_script}")" ]]; then
+    warn "Running ${script_name} from repo. Prefer the external deploy script for auto-updates."
+    return 0
+  fi
+
+  if [[ ! -w "${script_dir}" ]]; then
+    warn "Cannot write to ${script_dir}; skipping self-update."
+    return 0
+  fi
+
+  if [[ ! -f "${local_script}" ]] || ! cmp -s "${repo_script}" "${local_script}"; then
+    if install -m 0755 "${repo_script}" "${local_script}"; then
+      updated=1
+    else
+      warn "Failed to update ${local_script}; continuing with current script."
+    fi
+  fi
+
+  if [[ ! -f "${local_common}" ]] || ! cmp -s "${repo_common}" "${local_common}"; then
+    if install -m 0644 "${repo_common}" "${local_common}"; then
+      updated=1
+    else
+      warn "Failed to update ${local_common}; continuing with current script."
+    fi
+  fi
+
+  if (( updated )); then
+    log "Updated deploy scripts from repo. Re-running ${local_script}."
+    exec env SETUP_REEXECED=1 "${local_script}" "${args[@]}"
+  fi
+}
+
 ensure_redis_repo() {
   local list="/etc/apt/sources.list.d/redis.list"
   local keyring="/usr/share/keyrings/redis-archive-keyring.gpg"
@@ -139,7 +209,7 @@ ensure_packages() {
   if ensure_redis_repo; then
     apt-get update
   fi
-  apt-get install -y build-essential ca-certificates git curl gnupg libssl-dev libreadline-dev zlib1g-dev libyaml-dev libffi-dev libgdbm-dev libncurses5-dev libpq-dev postgresql postgresql-contrib nginx unzip
+  apt-get install -y build-essential ca-certificates git curl gnupg libssl-dev libreadline-dev zlib1g-dev libyaml-dev libffi-dev libgdbm-dev libncurses5-dev libncursesw5-dev libbz2-dev libsqlite3-dev liblzma-dev libdb-dev libexpat1-dev tk-dev libpq-dev postgresql postgresql-contrib nginx unzip
   install_redis
   ensure_redis_version
 }
@@ -155,20 +225,33 @@ ensure_asdf() {
 }
 
 ensure_asdf_plugins() {
-  if ! run_as_app_user "asdf plugin list | grep -qx ruby"; then
-    log "Adding asdf ruby plugin"
-    run_as_app_user "asdf plugin add ruby"
+  local tool_versions_file="${1:-}"
+  local plugins=()
+  local plugin
+
+  if [[ -n "${tool_versions_file}" && -f "${tool_versions_file}" ]]; then
+    mapfile -t plugins < <(awk 'NF && $1 !~ /^#/ {print $1}' "${tool_versions_file}")
   fi
 
-  if ! run_as_app_user "asdf plugin list | grep -qx nodejs"; then
-    log "Adding asdf nodejs plugin"
-    run_as_app_user "asdf plugin add nodejs"
-    if run_as_app_user "test -f ~/.asdf/plugins/nodejs/bin/import-release-team-keyring"; then
-      run_as_app_user "bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring"
-    else
-      warn "Nodejs keyring script not found; skipping import."
-    fi
+  if (( ${#plugins[@]} == 0 )); then
+    warn "No tools found in ${tool_versions_file:-.tool-versions}; defaulting to ruby and nodejs."
+    plugins=(ruby nodejs)
   fi
+
+  for plugin in "${plugins[@]}"; do
+    if ! run_as_app_user "asdf plugin list | grep -qx ${plugin}"; then
+      log "Adding asdf ${plugin} plugin"
+      run_as_app_user "asdf plugin add ${plugin}"
+    fi
+
+    if [[ "${plugin}" == "nodejs" ]]; then
+      if run_as_app_user "test -f ~/.asdf/plugins/nodejs/bin/import-release-team-keyring"; then
+        run_as_app_user "bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring"
+      else
+        warn "Nodejs keyring script not found; skipping import."
+      fi
+    fi
+  done
 }
 
 ensure_repo() {
