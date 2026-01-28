@@ -9,6 +9,8 @@ es:
     header:
       open_sidebar: "Abrir sidebar"
       language: "Idioma"
+      language_en: "EN"
+      language_es: "ES"
       toggle_theme: "Cambiar tema claro/oscuro"
       user_avatar_alt: "Usuario"
       role: "Administrador"
