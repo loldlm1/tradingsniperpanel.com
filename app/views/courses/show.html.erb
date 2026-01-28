@@ -1,119 +1,261 @@
-<% entry = @course_entry %>
-<% course = @course %>
-<% accessible = entry&.accessible || course.free_access? %>
-<% unlock_url = @unlock_url %>
-<% progress_percent = entry&.progress_percent %>
-<% lessons = course.course_lessons %>
+<% presenter = @course_presenter %>
+<% course = presenter.course %>
+<% module_cards = presenter.module_cards %>
+<% module_pages = (module_cards.size.to_f / 4).ceil %>
+<% content_for :title, t("dashboard.courses.show_page_title", course: presenter.title) %>
 
-<% content_for :title, t("dashboard.courses.show_page_title", course: course.title_for(I18n.locale)) %>
-
-<div class="mb-6 flex items-start justify-between flex-wrap gap-4">
-  <div>
-    <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.courses.categories.#{course.category}", default: course.category.to_s.humanize) %></div>
-    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= course.title_for(I18n.locale) %></h1>
-    <% summary = course.summary_for(I18n.locale).presence || course.description_for(I18n.locale) %>
-    <% if summary.present? %>
-      <p class="text-gray-600 dark:text-gray-300 max-w-3xl"><%= summary %></p>
-    <% end %>
+<!-- Page header -->
+<div class="sm:flex sm:justify-between sm:items-center mb-6">
+  <div class="mb-4 sm:mb-0">
+    <div class="mb-4">
+      <%= link_to dashboard_courses_path, class: "btn-sm px-3 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300" do %>
+        <svg class="fill-current text-gray-400 dark:text-gray-500 mr-2" width="7" height="12" viewBox="0 0 7 12">
+          <path d="M5.4.6 6.8 2l-4 4 4 4-1.4 1.4L0 6z" />
+        </svg>
+        <span><%= t("dashboard.courses.back_to_courses") %></span>
+      <% end %>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 text-xs uppercase text-gray-500 dark:text-gray-400 tracking-wide">
+      <span><%= t("dashboard.courses.breadcrumbs.course") %></span>
+      <span class="text-gray-300 dark:text-gray-600">/</span>
+      <span><%= presenter.category_label %></span>
+    </div>
+    <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold mt-2">
+      <%= presenter.title %>
+    </h1>
   </div>
-  <div class="flex items-center gap-2">
-    <% badge_label = if course.free_access?
-                      t("dashboard.courses.badges.free")
-                    elsif accessible
-                      t("dashboard.courses.badges.unlocked")
-                    else
-                      t("dashboard.courses.badges.locked")
-                    end %>
-    <% badge_class = if course.free_access?
-                      "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"
-                    elsif accessible
-                      "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
-                    else
-                      "bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-200"
-                    end %>
-    <%= render "dashboard/shared/badge",
-               label: badge_label,
-               padding_class: "px-2 py-1",
-               class_name: badge_class %>
-    <% if unlock_url.present? %>
-      <%= link_to t("dashboard.courses.unlock_cta"), unlock_url, class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
-    <% end %>
+  <div class="flex flex-wrap items-center gap-2 text-xs">
+    <span class="inline-flex items-center rounded-full <%= presenter.status_badge_class %> font-medium px-2.5 py-1"><%= presenter.status_label %></span>
+    <span class="inline-flex items-center rounded-full <%= presenter.access_badge_class %> font-medium px-2.5 py-1"><%= presenter.access_badge_label %></span>
   </div>
 </div>
 
-<div class="grid gap-6 lg:grid-cols-3">
-  <div class="lg:col-span-2 space-y-6">
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-      <div class="flex items-center justify-between mb-3">
-        <div>
-          <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.courses.modules_title") %></div>
-          <p class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.modules_copy") %></p>
-        </div>
-        <% if progress_percent.present? %>
-          <div class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.progress_label", percent: progress_percent) %></div>
+<!-- Cards -->
+<div class="grid grid-cols-12 gap-6">
+
+  <!-- Card 1 -->
+  <article class="col-span-full xl:col-span-8 bg-white dark:bg-gray-800 shadow-xs rounded-xl p-6">
+    <!-- Section 1: Course Summary -->
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+        <div class="text-xs uppercase text-gray-500 dark:text-gray-400 tracking-wide"><%= t("dashboard.courses.summary.overview_label") %></div>
+        <h2 class="text-xl md:text-2xl text-gray-800 dark:text-gray-100 font-semibold">
+          <%= presenter.title %>
+        </h2>
+        <% if presenter.summary_text.present? %>
+          <div class="text-sm font-semibold text-gray-700 dark:text-gray-200 mt-3"><%= t("dashboard.courses.summary.summary_title") %></div>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= presenter.summary_text %></p>
+        <% end %>
+        <% if presenter.outcomes_text.present? %>
+          <div class="text-sm font-semibold text-gray-700 dark:text-gray-200 mt-4"><%= t("dashboard.courses.summary.outcomes_title") %></div>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= presenter.outcomes_text %></p>
         <% end %>
       </div>
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 font-medium px-2.5 py-1"><%= t("dashboard.courses.summary.level_label", level: presenter.category_label) %></span>
+        <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 font-medium px-2.5 py-1"><%= t("dashboard.courses.summary.language_label", language: I18n.locale.to_s.upcase) %></span>
+        <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 font-medium px-2.5 py-1"><%= t("dashboard.courses.summary.status_label", status: presenter.status_label) %></span>
+      </div>
+    </div>
 
-      <% if !accessible %>
-        <div class="text-sm text-gray-500 dark:text-gray-400 mb-4"><%= t("dashboard.courses.locked_teaser") %></div>
-      <% end %>
+    <div class="mt-6 border border-gray-100 dark:border-gray-700/60 rounded-lg p-4">
+      <div class="text-sm font-semibold text-gray-700 dark:text-gray-200"><%= t("dashboard.courses.details_title") %></div>
+      <div class="mt-3 grid gap-3 sm:grid-cols-2">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.details.modules_label") %></span>
+          <span class="font-medium text-gray-800 dark:text-gray-100"><%= presenter.modules_count %></span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.details.lessons_label") %></span>
+          <span class="font-medium text-gray-800 dark:text-gray-100"><%= presenter.lessons_count %></span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.details.duration_label") %></span>
+          <span class="font-medium text-gray-800 dark:text-gray-100"><%= format_duration(presenter.total_duration_seconds) %></span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.details.access_source_label") %></span>
+          <span class="font-medium text-gray-800 dark:text-gray-100"><%= presenter.access_source_label %></span>
+        </div>
+      </div>
+      <div class="mt-3 text-sm <%= presenter.accessible? ? "text-emerald-700 dark:text-emerald-300" : "text-gray-500 dark:text-gray-400" %>">
+        <%= presenter.course_access_label %>
+      </div>
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <% if presenter.resume_url.present? %>
+          <%= link_to t("dashboard.courses.resume_cta"), presenter.resume_url, class: "btn-sm bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+        <% elsif presenter.unlock_url.present? %>
+          <%= link_to t("dashboard.courses.unlock_cta"), presenter.unlock_url, class: "btn-sm bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+        <% end %>
+      </div>
+    </div>
+  </article>
 
-      <div class="space-y-4">
-        <% @course_modules.each_with_index do |course_module, module_index| %>
-          <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-            <div class="flex items-start justify-between gap-3">
-              <div>
-                <div class="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold"><%= t("dashboard.courses.module_label", number: module_index + 1) %></div>
-                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= course_module.title_for(I18n.locale) %></div>
-                <% module_summary = course_module.summary_for(I18n.locale) %>
-                <% if module_summary.present? %>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= module_summary %></p>
-                <% end %>
-              </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.meta.lessons", count: course_module.course_lessons.size) %></div>
-            </div>
-
-            <ul class="mt-3 space-y-2">
-              <% course_module.course_lessons.ordered.each_with_index do |lesson, lesson_index| %>
-                <li class="flex items-center justify-between gap-3 text-sm">
-                  <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= lesson_index + 1 %></span>
-                    <% if accessible %>
-                      <%= link_to lesson.title_for(I18n.locale), dashboard_course_lesson_path(course, lesson, locale: I18n.locale), class: "text-gray-800 dark:text-gray-100 hover:text-violet-600 dark:hover:text-violet-300" %>
-                    <% else %>
-                      <span class="text-gray-500 dark:text-gray-400"><%= lesson.title_for(I18n.locale) %></span>
-                    <% end %>
+  <!-- Card 2 -->
+  <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+    <!-- Section 2: Course Progress -->
+    <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
+      <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.courses.progress.module_title") %></h2>
+    </header>
+    <div class="grow p-4">
+      <div class="flex flex-col h-full">
+        <div class="grow">
+          <% if module_cards.any? %>
+            <ul class="space-y-2 text-sm text-gray-800 dark:text-gray-100">
+              <% module_cards.each do |card| %>
+                <% percent = card.progress_percent.to_i %>
+                <li class="relative px-3 py-1.5">
+                  <div class="absolute inset-0 bg-violet-100 dark:bg-violet-500/20 rounded-r" aria-hidden="true" style="width: <%= percent %>%;"></div>
+                  <div class="relative flex justify-between space-x-2">
+                    <div><%= t("dashboard.courses.module_label", number: card.index) %> - <%= card.title %></div>
+                    <div class="font-medium"><%= percent %>%</div>
                   </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400"><%= format_duration(lesson.duration_seconds) %></div>
                 </li>
               <% end %>
             </ul>
+          <% else %>
+            <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.modules_empty") %></div>
+          <% end %>
+        </div>
+        <div class="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700/60">
+          <div class="flex items-center justify-between text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide">
+            <span><%= t("dashboard.courses.progress.overall_label") %></span>
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400"><%= presenter.course_progress_percent_label %>%</span>
           </div>
-        <% end %>
-        <% if @course_modules.empty? %>
-          <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.modules_empty") %></div>
-        <% end %>
+          <div class="mt-2 w-full h-2 bg-gray-100 dark:bg-gray-700/60 rounded-full">
+            <div class="h-2 rounded-full bg-violet-500" style="width: <%= presenter.course_progress_percent_label %>%;"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <aside class="space-y-6">
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
-      <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.courses.details_title") %></div>
-      <div class="flex flex-wrap gap-2">
-        <%= render "dashboard/shared/filter_chip", label: t("dashboard.courses.meta.modules", count: @course_modules.size) %>
-        <%= render "dashboard/shared/filter_chip", label: t("dashboard.courses.meta.lessons", count: lessons.size) %>
-        <%= render "dashboard/shared/filter_chip",
-                   label: t("dashboard.courses.meta.duration", duration: format_duration(lessons.sum { |lesson| lesson.duration_seconds.to_i })) %>
+  <% if module_cards.any? %>
+    <div
+      class="col-span-full"
+      data-pagination-container
+      data-page-size="4"
+      data-current-page="1"
+      data-active-class="bg-violet-500 text-white"
+      data-inactive-class="border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300"
+      data-disabled-class="opacity-50 pointer-events-none"
+    >
+      <div class="grid grid-cols-12 gap-6">
+        <% module_cards.each do |card| %>
+          <!-- Card <%= card.index + 2 %> -->
+          <article class="col-span-full xl:col-span-6 bg-white dark:bg-gray-800 shadow-xs rounded-xl p-6" data-pagination-item>
+            <!-- Section <%= card.index + 2 %>: <%= t("dashboard.courses.module_label", number: card.index) %> -->
+            <div class="flex flex-col gap-4">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="text-xs uppercase text-gray-500 dark:text-gray-400 tracking-wide"><%= t("dashboard.courses.module_label", number: card.index) %></div>
+                  <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= card.title %></h3>
+                  <% if card.summary.present? %>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= card.summary %></p>
+                  <% end %>
+                </div>
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 inline-flex items-center gap-1 whitespace-nowrap"><span><%= card.lessons_count %></span><span><%= t("dashboard.courses.meta.lessons_label") %></span></div>
+              </div>
+              <div>
+                <div class="flex items-center justify-between">
+                  <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.courses.module_progress_label") %></div>
+                  <div class="text-xs font-medium text-gray-500 dark:text-gray-400"><%= card.progress_percent %>%</div>
+                </div>
+                <div class="mt-2 w-full h-2 bg-gray-100 dark:bg-gray-700/60 rounded-full">
+                  <div class="h-2 rounded-full bg-violet-500" style="width: <%= card.progress_percent %>%;"></div>
+                </div>
+              </div>
+              <% lesson_pages = (card.lessons.size.to_f / 3).ceil %>
+              <div
+                data-pagination-container
+                data-page-size="3"
+                data-current-page="1"
+                data-active-class="bg-violet-500 text-white"
+                data-inactive-class="border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300"
+                data-disabled-class="opacity-50 pointer-events-none"
+              >
+                <ul class="mt-2 space-y-2">
+                  <% card.lessons.each do |lesson| %>
+                    <li class="flex items-center justify-between text-sm" data-pagination-item>
+                      <div class="flex items-center gap-3">
+                        <span class="text-gray-700 dark:text-gray-300 min-w-0 truncate"><%= lesson.index %>. <%= lesson.title %></span>
+                        <% if lesson.accessible && lesson.url.present? %>
+                          <%= link_to t("dashboard.courses.lesson_cta"), lesson.url, class: "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600/60" %>
+                        <% else %>
+                          <button class="inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-400 dark:text-gray-500 cursor-not-allowed" type="button" disabled>
+                            <%= t("dashboard.courses.lesson_locked_cta") %>
+                          </button>
+                        <% end %>
+                      </div>
+                      <span class="text-gray-500 dark:text-gray-400"><%= lesson.duration_label %></span>
+                    </li>
+                  <% end %>
+                </ul>
+                <% if lesson_pages > 1 %>
+                  <div class="mt-3">
+                    <nav class="flex items-center justify-between" aria-label="<%= t("dashboard.courses.lesson_pagination_label") %>" data-pagination-nav>
+                      <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" type="button" data-pagination-prev>
+                        <span class="sr-only"><%= t("dashboard.pagination.prev") %></span>
+                        <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
+                          <path d="M9.4 13.4l1.4-1.4-4-4 4-4-1.4-1.4L4 8z" />
+                        </svg>
+                      </button>
+                      <div class="flex items-center gap-2 text-sm font-medium">
+                        <% (1..lesson_pages).each do |page| %>
+                          <button
+                            class="w-9 h-9 rounded-lg <%= page == 1 ? "bg-violet-500 text-white" : "border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300" %>"
+                            type="button"
+                            data-pagination-page="<%= page %>"
+                          ><%= page %></button>
+                        <% end %>
+                      </div>
+                      <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" type="button" data-pagination-next>
+                        <span class="sr-only"><%= t("dashboard.pagination.next") %></span>
+                        <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
+                          <path d="M6.6 13.4L5.2 12l4-4-4-4 1.4-1.4L12 8z" />
+                        </svg>
+                      </button>
+                    </nav>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </article>
+        <% end %>
       </div>
-      <% if accessible %>
-        <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.access_granted") %></div>
-      <% else %>
-        <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.access_locked") %></div>
-      <% end %>
-      <% if unlock_url.present? %>
-        <%= link_to t("dashboard.courses.unlock_cta"), unlock_url, class: "btn bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full" %>
+      <% if module_pages > 1 %>
+        <div class="mt-6">
+          <nav class="flex items-center justify-between" aria-label="<%= t("dashboard.courses.module_pagination_label") %>" data-pagination-nav>
+            <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" type="button" data-pagination-prev>
+              <span class="sr-only"><%= t("dashboard.pagination.prev") %></span>
+              <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
+                <path d="M9.4 13.4l1.4-1.4-4-4 4-4-1.4-1.4L4 8z" />
+              </svg>
+            </button>
+            <div class="flex items-center gap-2 text-sm font-medium">
+              <% (1..module_pages).each do |page| %>
+                <button
+                  class="w-9 h-9 rounded-lg <%= page == 1 ? "bg-violet-500 text-white" : "border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300" %>"
+                  type="button"
+                  data-pagination-page="<%= page %>"
+                ><%= page %></button>
+              <% end %>
+            </div>
+            <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" type="button" data-pagination-next>
+              <span class="sr-only"><%= t("dashboard.pagination.next") %></span>
+              <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
+                <path d="M6.6 13.4L5.2 12l4-4-4-4 1.4-1.4L12 8z" />
+              </svg>
+            </button>
+          </nav>
+        </div>
       <% end %>
     </div>
-  </aside>
+  <% end %>
+
+  <% if module_cards.empty? %>
+    <article class="col-span-full bg-white dark:bg-gray-800 shadow-xs rounded-xl p-6">
+      <div class="text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.courses.modules_empty") %></div>
+    </article>
+  <% end %>
 </div>
