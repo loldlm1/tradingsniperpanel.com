@@ -110,7 +110,7 @@
   </article>
 
   <!-- Card 2 -->
-  <div class="flex flex-col col-span-full sm:col-span-6 xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl transition-shadow duration-200 hover:shadow-md">
+  <div class="flex flex-col col-span-full xl:col-span-4 bg-white dark:bg-gray-800 shadow-xs rounded-xl transition-shadow duration-200 hover:shadow-md">
     <!-- Section 2: Course Progress -->
     <header class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
       <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.courses.progress.module_title") %></h2>
@@ -223,7 +223,7 @@
                             <span class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600" aria-hidden="true"></span>
                           <% end %>
                         </span>
-                        <span class="text-gray-700 dark:text-gray-300 min-w-0 truncate flex-1"><%= lesson.index %>. <%= lesson.title %></span>
+                        <span class="text-gray-700 dark:text-gray-300 min-w-0 truncate flex-1 ml-1"><%= lesson.index %>. <%= lesson.title %></span>
                       </div>
                       <div class="flex items-center gap-3 shrink-0">
                         <% if lesson.accessible && lesson.url.present? %>
@@ -233,7 +233,7 @@
                             <%= t("dashboard.courses.lesson_locked_cta") %>
                           </button>
                         <% end %>
-                        <span class="text-gray-500 dark:text-gray-400 whitespace-nowrap"><%= lesson.duration_label %></span>
+                        <span class="text-gray-500 dark:text-gray-400 whitespace-nowrap ml-1"><%= lesson.duration_label %></span>
                       </div>
                     </li>
                   <% end %>
