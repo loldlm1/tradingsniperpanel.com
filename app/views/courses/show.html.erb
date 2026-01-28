@@ -8,11 +8,9 @@
 <div class="sm:flex sm:justify-between sm:items-center mb-6">
   <div class="mb-4 sm:mb-0">
     <div class="mb-4">
-      <%= link_to dashboard_courses_path, class: "btn-sm px-3 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300" do %>
-        <svg class="fill-current text-gray-400 dark:text-gray-500 mr-2" width="7" height="12" viewBox="0 0 7 12">
-          <path d="M5.4.6 6.8 2l-4 4 4 4-1.4 1.4L0 6z" />
-        </svg>
-        <span><%= t("dashboard.courses.back_to_courses") %></span>
+      <%= link_to dashboard_courses_path, class: "text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" do %>
+        <span aria-hidden="true">&larr;</span>
+        <span class="ml-1"><%= t("dashboard.courses.back_to_courses") %></span>
       <% end %>
     </div>
     <div class="flex flex-wrap items-center gap-2 text-xs uppercase text-gray-500 dark:text-gray-400 tracking-wide">
@@ -25,8 +23,16 @@
     </h1>
   </div>
   <div class="flex flex-wrap items-center gap-2 text-xs">
-    <span class="inline-flex items-center rounded-full <%= presenter.status_badge_class %> font-medium px-2.5 py-1"><%= presenter.status_label %></span>
-    <span class="inline-flex items-center rounded-full <%= presenter.access_badge_class %> font-medium px-2.5 py-1"><%= presenter.access_badge_label %></span>
+    <%= render "dashboard/shared/filter_chip",
+      label: presenter.status_label,
+      interactive: false,
+      extra_class: "text-xs #{presenter.status_badge_class}"
+    %>
+    <%= render "dashboard/shared/filter_chip",
+      label: presenter.access_badge_label,
+      interactive: false,
+      extra_class: "text-xs #{presenter.access_badge_class}"
+    %>
   </div>
 </div>
 
@@ -37,7 +43,7 @@
   <article class="col-span-full xl:col-span-8 bg-white dark:bg-gray-800 shadow-xs rounded-xl p-6 transition-shadow duration-200 hover:shadow-md">
     <!-- Section 1: Course Summary -->
     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div class="max-w-3xl">
+      <div class="flex-1 min-w-0">
         <div class="text-xs uppercase text-gray-500 dark:text-gray-400 tracking-wide"><%= t("dashboard.courses.summary.overview_label") %></div>
         <h2 class="text-xl md:text-2xl text-gray-800 dark:text-gray-100 font-semibold">
           <%= presenter.title %>
@@ -51,7 +57,7 @@
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= presenter.outcomes_text %></p>
         <% end %>
       </div>
-      <div class="flex flex-col items-start gap-3 text-xs">
+      <div class="flex flex-col items-start lg:items-end gap-3 text-xs shrink-0">
         <% if course.cover_image.attached? %>
           <div class="w-40 h-24 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700/60 bg-gray-100 dark:bg-gray-900/20 shadow-sm">
             <%= image_tag course.cover_image, class: "object-cover w-full h-full", width: 160, height: 96, alt: presenter.title %>
@@ -166,7 +172,13 @@
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= card.summary %></p>
                   <% end %>
                 </div>
-                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 inline-flex items-center gap-1 whitespace-nowrap"><span><%= card.lessons_count %></span><span><%= t("dashboard.courses.meta.lessons_label") %></span></div>
+                <div class="shrink-0">
+                  <%= render "dashboard/shared/filter_chip",
+                    label: t("dashboard.courses.meta.lessons_count", count: card.lessons_count),
+                    interactive: false,
+                    extra_class: "text-xs"
+                  %>
+                </div>
               </div>
               <div>
                 <div class="flex items-center justify-between">
@@ -188,8 +200,8 @@
               >
                 <ul class="mt-2 space-y-2">
                   <% card.lessons.each do |lesson| %>
-                    <li class="flex items-center justify-between text-sm" data-pagination-item>
-                      <div class="flex items-center gap-3">
+                    <li class="flex items-center justify-between text-sm gap-3" data-pagination-item>
+                      <div class="flex items-center gap-3 min-w-0 flex-1">
                         <% status_label =
                           if lesson.completed
                             t("dashboard.courses.lesson_status.completed")
@@ -211,7 +223,9 @@
                             <span class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600" aria-hidden="true"></span>
                           <% end %>
                         </span>
-                        <span class="text-gray-700 dark:text-gray-300 min-w-0 truncate"><%= lesson.index %>. <%= lesson.title %></span>
+                        <span class="text-gray-700 dark:text-gray-300 min-w-0 truncate flex-1"><%= lesson.index %>. <%= lesson.title %></span>
+                      </div>
+                      <div class="flex items-center gap-3 shrink-0">
                         <% if lesson.accessible && lesson.url.present? %>
                           <%= link_to t("dashboard.courses.lesson_cta"), lesson.url, class: "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600/60" %>
                         <% else %>
@@ -219,15 +233,15 @@
                             <%= t("dashboard.courses.lesson_locked_cta") %>
                           </button>
                         <% end %>
+                        <span class="text-gray-500 dark:text-gray-400 whitespace-nowrap"><%= lesson.duration_label %></span>
                       </div>
-                      <span class="text-gray-500 dark:text-gray-400"><%= lesson.duration_label %></span>
                     </li>
                   <% end %>
                 </ul>
                 <% if lesson_pages > 1 %>
                   <div class="mt-3">
                     <nav class="flex items-center justify-between" aria-label="<%= t("dashboard.courses.lesson_pagination_label") %>" data-pagination-nav>
-                      <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" type="button" data-pagination-prev>
+                      <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40" type="button" data-pagination-prev>
                         <span class="sr-only"><%= t("dashboard.pagination.prev") %></span>
                         <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
                           <path d="M9.4 13.4l1.4-1.4-4-4 4-4-1.4-1.4L4 8z" />
@@ -236,13 +250,13 @@
                       <div class="flex items-center gap-2 text-sm font-medium">
                         <% (1..lesson_pages).each do |page| %>
                           <button
-                            class="w-9 h-9 rounded-lg <%= page == 1 ? "bg-violet-500 text-white" : "border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300" %>"
+                            class="w-9 h-9 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40 <%= page == 1 ? "bg-violet-500 text-white" : "border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300" %>"
                             type="button"
                             data-pagination-page="<%= page %>"
                           ><%= page %></button>
                         <% end %>
                       </div>
-                      <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" type="button" data-pagination-next>
+                      <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40" type="button" data-pagination-next>
                         <span class="sr-only"><%= t("dashboard.pagination.next") %></span>
                         <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
                           <path d="M6.6 13.4L5.2 12l4-4-4-4 1.4-1.4L12 8z" />
@@ -259,7 +273,7 @@
       <% if module_pages > 1 %>
         <div class="mt-6">
           <nav class="flex items-center justify-between" aria-label="<%= t("dashboard.courses.module_pagination_label") %>" data-pagination-nav>
-            <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" type="button" data-pagination-prev>
+            <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40" type="button" data-pagination-prev>
               <span class="sr-only"><%= t("dashboard.pagination.prev") %></span>
               <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
                 <path d="M9.4 13.4l1.4-1.4-4-4 4-4-1.4-1.4L4 8z" />
@@ -268,13 +282,13 @@
             <div class="flex items-center gap-2 text-sm font-medium">
               <% (1..module_pages).each do |page| %>
                 <button
-                  class="w-9 h-9 rounded-lg <%= page == 1 ? "bg-violet-500 text-white" : "border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300" %>"
+                  class="w-9 h-9 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40 <%= page == 1 ? "bg-violet-500 text-white" : "border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300" %>"
                   type="button"
                   data-pagination-page="<%= page %>"
                 ><%= page %></button>
               <% end %>
             </div>
-            <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" type="button" data-pagination-next>
+            <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40" type="button" data-pagination-next>
               <span class="sr-only"><%= t("dashboard.pagination.next") %></span>
               <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
                 <path d="M6.6 13.4L5.2 12l4-4-4-4 1.4-1.4L12 8z" />
