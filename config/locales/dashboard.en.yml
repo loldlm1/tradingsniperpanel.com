@@ -684,6 +684,9 @@ en:
         modules_label: "modules"
         lessons_label: "lessons"
         duration_label: "total"
+        lessons_count:
+          one: "1 lesson"
+          other: "%{count} lessons"
       categories:
         introduction: "Introduction"
         beginner: "Beginner"
