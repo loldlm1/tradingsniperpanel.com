@@ -1,4 +1,4 @@
-<div class="col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+<div class="col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-xs rounded-xl transition-shadow duration-200 hover:shadow-md">
   <div class="flex flex-col h-full text-center p-5">
     <div class="grow mb-1">
       <div class="inline-flex mb-2">
@@ -7,7 +7,7 @@
       <h3 class="text-lg text-gray-800 dark:text-gray-100 font-semibold mb-1"><%= card.title %></h3>
     </div>
     <div>
-      <%= link_to t(card.cta_label_key), card.cta_url, class: "text-sm font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" %>
+      <%= link_to t(card.cta_label_key), card.cta_url, class: "text-sm font-medium text-teal-500 hover:text-teal-600 dark:hover:text-teal-400" %>
     </div>
   </div>
 </div>

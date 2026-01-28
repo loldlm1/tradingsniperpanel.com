@@ -4,7 +4,7 @@
 <% extra_class = local_assigns.fetch(:extra_class, "") %>
 <% interactive = local_assigns.fetch(:interactive, true) %>
 <% data = local_assigns.fetch(:data, {}) %>
-<% base_class = "inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border shadow-xs transition" %>
+<% base_class = "inline-flex items-center justify-center text-sm font-medium leading-5 rounded-full px-3 py-1 border shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900" %>
 <% default_class = "border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400" %>
 <% data = { filter_default_class: default_class }.merge(data) %>
 <% state_class = class_name.presence || default_class %>

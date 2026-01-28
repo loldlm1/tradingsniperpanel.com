@@ -4,7 +4,7 @@
 <% filled_stars = rating_value.round %>
 <% category_label = t("dashboard.courses.categories.#{card.category}", default: card.category.to_s.humanize) %>
 
-<div class="col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-xs rounded-xl overflow-hidden">
+<div class="col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-xs rounded-xl overflow-hidden transition-shadow duration-200 hover:shadow-md">
   <div class="flex flex-col h-full">
     <!-- Image -->
     <% if image.respond_to?(:attached?) && image.attached? %>
@@ -19,7 +19,7 @@
         <!-- Header -->
         <header class="mb-3">
           <h3 class="text-lg text-gray-800 dark:text-gray-100 font-semibold">
-            <%= link_to card.title, card.detail_url, class: "hover:text-violet-600 dark:hover:text-violet-300" %>
+            <%= link_to card.title, card.detail_url, class: "hover:text-teal-600 dark:hover:text-teal-300" %>
           </h3>
         </header>
         <!-- Rating and price -->
@@ -27,14 +27,14 @@
           <!-- Rating -->
           <div class="flex items-center space-x-2 mr-2">
             <!-- Stars -->
-            <div class="flex space-x-1">
+            <div class="flex space-x-1" aria-hidden="true">
               <% 5.times do |index| %>
-                <button type="button">
+                <span class="inline-flex">
                   <span class="sr-only"><%= t("dashboard.marketplace.rating.star", count: index + 1) %></span>
-                  <svg class="fill-current <%= index < filled_stars ? "text-yellow-500" : "text-gray-300 dark:text-gray-600" %>" width="16" height="16" viewBox="0 0 16 16">
+                  <svg class="fill-current <%= index < filled_stars ? "text-yellow-500" : "text-gray-300 dark:text-gray-600" %>" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
                     <path d="M10 5.934L8 0 6 5.934H0l4.89 3.954L2.968 16 8 12.223 13.032 16 11.11 9.888 16 5.934z" />
                   </svg>
-                </button>
+                </span>
               <% end %>
             </div>
             <!-- Rate -->
