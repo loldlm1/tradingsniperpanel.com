@@ -599,19 +599,40 @@ es:
         empty_copy: "Estamos preparando nuevas lecciones. Vuelve pronto o contáctanos para novedades."
         empty_cta: "Contactar soporte"
       show_page_title: "Curso %{course}"
+      back_to_courses: "Regresar a cursos"
       lesson_page_title: "%{lesson} · %{course}"
+      breadcrumbs:
+        course: "Curso"
+      summary:
+        overview_label: "Información general"
+        summary_title: "Resumen del curso"
+        outcomes_title: "Qué verás en este curso"
+        level_label: "Nivel: %{level}"
+        language_label: "Idioma: %{language}"
+        status_label: "Estado: %{status}"
       modules_title: "Módulos del curso"
       modules_copy: "Sigue las lecciones en orden o salta a lo que necesitas."
       modules_empty: "No hay módulos publicados todavía."
       details_title: "Detalles del curso"
+      details:
+        modules_label: "Módulos"
+        lessons_label: "Lecciones"
+        duration_label: "Duración total"
+        access_source_label: "Acceso"
       module_label: "Módulo %{number}"
+      module_progress_label: "Progreso del módulo"
       locked_teaser: "Mira los títulos y duraciones. Suscríbete para desbloquear el contenido."
       access_locked: "Actualiza para desbloquear este curso."
       access_granted: "Tienes acceso a este curso."
       unlock_cta: "Desbloquear curso"
       view_cta: "Ver curso"
+      resume_cta: "Continuar aprendizaje"
       progress_label: "Progreso: %{percent}%"
       back_to_course: "Volver al curso"
+      lesson_cta: "Ver clase"
+      lesson_locked_cta: "Bloqueado"
+      lesson_pagination_label: "Paginación de lecciones"
+      module_pagination_label: "Paginación de módulos"
       lesson_video_title: "Video de la lección"
       video_unavailable: "El video aún no está disponible."
       video_fallback: "Tu navegador no soporta videos embebidos."
@@ -620,8 +641,18 @@ es:
         free: "Gratis"
         unlocked: "Desbloqueado"
         locked: "Bloqueado"
+      access_badges:
+        free: "Acceso gratis"
+        unlocked: "Acceso activo"
+        locked: "Acceso bloqueado"
       status:
         active: "Curso activo"
+        published: "Curso publicado"
+        draft: "Borrador"
+      access_source:
+        one_time: "Pago único"
+        subscription: "Suscripción"
+        locked: "Bloqueado"
       filters:
         all: "Todos"
       sort:
@@ -634,6 +665,8 @@ es:
       progress:
         title: "Progreso"
         aria_label: "Progreso del curso"
+        module_title: "Progreso por módulo"
+        overall_label: "Progreso general"
         status:
           in_progress: "En progreso"
           completed: "Completado"

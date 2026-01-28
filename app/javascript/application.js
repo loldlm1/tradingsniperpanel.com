@@ -3,6 +3,7 @@ import "dashboard_analytics";
 import "dashboard_main";
 import "filterable_cards";
 import "marketplace_show";
+import "paginated_lists";
 import "refund_acknowledgement";
 
 const resetLoadingButtons = () => {

@@ -18,7 +18,23 @@ class CoursesController < ApplicationController
   def show
     @course = @course_entry&.course || Course.published.find_by!(slug: params[:id])
     @course_modules = @course.course_modules.includes(:course_lessons).ordered
+    @course_enrollment = current_user.course_enrollments.includes(:last_lesson).find_by(course_id: @course.id)
+    lesson_ids = @course_modules.flat_map { |course_module| course_module.course_lessons.map(&:id) }
+    @lesson_progresses = if lesson_ids.any?
+      CourseLessonProgress.includes(:course_lesson).where(user: current_user, course_lesson_id: lesson_ids)
+    else
+      CourseLessonProgress.none
+    end
     @unlock_url = unlock_url_for(@course_entry, @course)
+    @course_presenter = Courses::ShowPresenter.new(
+      course: @course,
+      entry: @course_entry,
+      course_modules: @course_modules,
+      enrollment: @course_enrollment,
+      lesson_progresses: @lesson_progresses,
+      unlock_url: @unlock_url,
+      locale: I18n.locale
+    )
   end
 
   private

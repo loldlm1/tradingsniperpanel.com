@@ -13,7 +13,7 @@
 # Skills (auto-detect)
 - **Check first**: before planning, identify applicable Codex skills; if the task matches a skill’s description, use it even if not named.
 - **Follow the skill**: open the relevant `SKILL.md` and follow its workflow; keep any skill-specific files/tools usage minimal and on-scope.
-- **Available skills**: `rails-expert`, `frontend-design`, `unix-macos-engineer`, `find-skills`, `agent-browser`.
+- **Available skills**: `rails-expert`, `frontend-design`, `unix-macos-engineer`, `find-skills`, `agent-browser`, `ui-ux-pro-max`.
 
 # MCP (enabled)
 - **Postgres MCP**: database queries via `mcp__postgres__*` (configured with `DATABASE_URL`).
