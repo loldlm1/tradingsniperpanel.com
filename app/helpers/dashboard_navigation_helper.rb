@@ -3,7 +3,6 @@ module DashboardNavigationHelper
   GROUP_ACTIVE_BG = "bg-brand-500/10 dark:bg-brand-500/20".freeze
   CHILD_SPAN_CLASSES = "text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200".freeze
   SIDEBAR_BADGE_CLASSES = "inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold tabular-nums leading-none shrink-0 bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100".freeze
-  SIDEBAR_BADGE_SPACER_CLASSES = "inline-flex w-6 h-6 shrink-0".freeze
 
   def mosaic_sidebar_li_classes(active:)
     [GROUP_LI_BASE, (GROUP_ACTIVE_BG if active)].compact.join(" ")
@@ -29,9 +28,5 @@ module DashboardNavigationHelper
 
   def mosaic_sidebar_badge_classes
     SIDEBAR_BADGE_CLASSES
-  end
-
-  def mosaic_sidebar_badge_spacer_classes
-    SIDEBAR_BADGE_SPACER_CLASSES
   end
 end

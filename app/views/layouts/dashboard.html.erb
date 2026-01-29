@@ -142,10 +142,7 @@
                     <ul class="pl-8 mt-1 hidden" :class="open ? 'block!' : 'hidden'">
                       <li class="mb-1 last:mb-0">
                         <%= link_to dashboard_expert_advisors_path, class: mosaic_sidebar_child_link_classes(active: current_page?(dashboard_expert_advisors_path)) do %>
-                          <span class="<%= mosaic_sidebar_child_span_classes %> flex items-center gap-2">
-                            <span class="<%= mosaic_sidebar_badge_spacer_classes %>" aria-hidden="true"></span>
-                            <span class="truncate"><%= t("dashboard.nav.expert_advisors_all") %></span>
-                          </span>
+                          <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.expert_advisors_all") %></span>
                         <% end %>
                       </li>
                       <% (@sidebar_recent_eas || @accessible_eas || []).each_with_index do |entry, idx| %>
@@ -185,10 +182,7 @@
                     <ul class="pl-8 mt-1 hidden" :class="open ? 'block!' : 'hidden'">
                       <li class="mb-1 last:mb-0">
                         <%= link_to dashboard_courses_path, class: mosaic_sidebar_child_link_classes(active: current_page?(dashboard_courses_path)) do %>
-                          <span class="<%= mosaic_sidebar_child_span_classes %> flex items-center gap-2">
-                            <span class="<%= mosaic_sidebar_badge_spacer_classes %>" aria-hidden="true"></span>
-                            <span class="truncate"><%= t("dashboard.nav.courses_all", default: "All Courses") %></span>
-                          </span>
+                          <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.courses_all", default: "All Courses") %></span>
                         <% end %>
                       </li>
                       <% (@sidebar_recent_courses || @accessible_courses || []).each_with_index do |entry, idx| %>
@@ -227,11 +221,8 @@
                     <div class="lg:hidden lg:sidebar-expanded:block 2xl:block">
                       <ul class="pl-8 mt-1 hidden" :class="open ? 'block!' : 'hidden'">
                         <li class="mb-1 last:mb-0">
-                          <%= link_to dashboard_marketplace_path, class: mosaic_sidebar_child_link_classes(active: marketplace_group_active) do %>
-                            <span class="<%= mosaic_sidebar_child_span_classes %> flex items-center gap-2">
-                              <span class="<%= mosaic_sidebar_badge_spacer_classes %>" aria-hidden="true"></span>
-                              <span class="truncate"><%= t("dashboard.marketplace.index.link", default: "All Products") %></span>
-                            </span>
+                          <%= link_to dashboard_marketplace_path, class: mosaic_sidebar_child_link_classes(active: current_page?(dashboard_marketplace_path)) do %>
+                            <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.marketplace.index.link", default: "All Products") %></span>
                           <% end %>
                         </li>
                         <% (@marketplace_nav_products || []).each_with_index do |product, idx| %>
