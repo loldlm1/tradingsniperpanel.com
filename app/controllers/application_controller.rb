@@ -174,7 +174,11 @@ class ApplicationController < ActionController::Base
   def set_marketplace_nav_products
     return unless @marketplace_available
 
-    @marketplace_nav_products ||= Marketplace::SidebarProducts.new(limit: 5).call
+    active_slug = controller_path == "marketplace" ? params[:id] : nil
+    @marketplace_nav_products ||= Dashboard::SidebarMarketplaceProducts.new(
+      limit: 5,
+      active_slug: active_slug
+    ).call
   end
 
   def set_sidebar_recent_items
