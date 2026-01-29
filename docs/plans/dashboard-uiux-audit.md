@@ -2,6 +2,7 @@
 
 ## Goal
 - Audit and improve all dashboard UI (layout, sidebar, and dashboard sections) using ui-ux-pro-max guidance and the Mosaic Cruip template guide.
+- Add a dynamic dashboard palette switch (default: Mosaic violet; optional brand palette via env).
 
 ## Definition of Done
 - All dashboard views that use `layout "dashboard"` are inventoried and mapped to Mosaic source sections.
@@ -9,6 +10,7 @@
 - Copy changes are I18n-driven; repeated UI is extracted to partials where it reduces duplication.
 - Manual visual pass at common breakpoints and light/dark modes completed.
 - Full test spec command runs green.
+- Dashboard palette can be switched via env (e.g., `DASHBOARD_PALETTE=teal`) with default violet; no vendor CSS edits.
 
 ## Constraints
 - Follow `docs/cruip_template_guide.md` and preserve Mosaic classes, JS hooks, IDs, and comment blocks.
@@ -21,6 +23,7 @@
 2) Design system alignment: review `design-system/trading-sniper-panel/MASTER.md`; decide to keep or regenerate a dashboard-specific system using ui-ux-pro-max.
 3) Audit pass: assess each dashboard view + sidebar against ui-ux-pro-max priorities (a11y, interaction, layout, typography, motion) and Mosaic guidance; capture issues and target fixes.
 4) Implement improvements: update `app/views/layouts/dashboard.html.erb`, shared partials, and each dashboard page; keep Mosaic structure and hooks intact.
+4b) Dynamic palette: introduce dashboard palette variables + brand utility classes; map palette via env with default violet.
 5) QA + tests: manual UI checks (375/768/1024/1440, light/dark) and run the full test spec.
 6) Update this plan with decisions + command PASS/FAIL; archive when done.
 
@@ -43,6 +46,7 @@
 - Design system: regenerate a dashboard-specific system with ui-ux-pro-max; prioritize best fit for dashboard UX.
 - Tests: run `bundle exec rspec`.
 - Priority order: sidebar → settings → marketplace → courses → expert advisors → main + analytics (ignore partner view).
+- Palette: `DASHBOARD_PALETTE` env (default violet, optional teal) controls full dashboard accents.
 
 ## Open Questions
 - None.
@@ -58,6 +62,10 @@
 - PASS: `apply_patch` (teal utility classes for dashboard overrides in `app/assets/stylesheets/dashboard.css`)
 - PASS: `apply_patch` (use existing hover bg utilities in `app/helpers/dashboard_navigation_helper.rb`)
 - PASS: `agent-browser` (login as QA, dark/light audit of dashboard + sidebar; screenshots saved to `tmp/ui-audit`)
+- PASS: `apply_patch` (brand palette utilities + teal override in `app/assets/stylesheets/dashboard.css`)
+- PASS: `apply_patch` (dashboard palette data attribute + alert palette pass-through in `app/views/layouts/dashboard.html.erb`)
+- PASS: `perl -pi` (swap `teal-*` classes to `brand-*` in dashboard views/helpers)
+- PASS: `apply_patch` (alert palette fallback to violet in `app/views/shared/_alert.html.erb`)
 - PASS: `python3 /home/loldlm/.agents/skills/ui-ux-pro-max/scripts/search.py "trading fintech SaaS analytics dashboard professional clean" --design-system --persist --page dashboard --format markdown --project-name "Trading Sniper Panel" --output-dir design-system/trading-sniper-panel`
 - PASS: `python3 /home/loldlm/.agents/skills/ui-ux-pro-max/scripts/search.py "enterprise analytics SaaS dashboard sidebar navigation data-dense" --design-system --format markdown`
 - PASS: `cat > design-system/trading-sniper-panel/pages/dashboard.md` (dashboard-specific overrides)

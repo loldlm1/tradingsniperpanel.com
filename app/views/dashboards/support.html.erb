@@ -1,7 +1,7 @@
 <% content_for :title, "#{t('dashboard.nav.support', default: 'Support')} | #{app_short_name}" %>
 
 <div class="mb-10">
-  <p class="text-sm text-teal-600 dark:text-teal-300 font-semibold uppercase tracking-wide mb-2"><%= t("dashboard.nav.support", default: "Support") %></p>
+  <p class="text-sm text-brand-600 dark:text-brand-300 font-semibold uppercase tracking-wide mb-2"><%= t("dashboard.nav.support", default: "Support") %></p>
   <h1 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.support_overview") %></h1>
   <p class="text-gray-600 dark:text-gray-300"><%= t("dashboard.support_intro", default: "FAQs, quick links, and a way to reach us.") %></p>
 </div>
@@ -74,15 +74,15 @@
       <ul class="space-y-2 text-sm">
         <li class="flex items-center justify-between">
           <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.docs", default: "Docs") %></span>
-          <%= link_to t("dashboard.support_open", default: "Open"), dashboard_expert_advisors_path, class: "text-teal-600 hover:text-teal-800 dark:text-teal-300 dark:hover:text-teal-100" %>
+          <%= link_to t("dashboard.support_open", default: "Open"), dashboard_expert_advisors_path, class: "text-brand-600 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-100" %>
         </li>
         <li class="flex items-center justify-between">
           <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.billing", default: "Billing") %></span>
-          <%= link_to t("dashboard.support_open", default: "Open"), dashboard_billing_path, class: "text-teal-600 hover:text-teal-800 dark:text-teal-300 dark:hover:text-teal-100" %>
+          <%= link_to t("dashboard.support_open", default: "Open"), dashboard_billing_path, class: "text-brand-600 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-100" %>
         </li>
         <li class="flex items-center justify-between">
           <span class="text-gray-700 dark:text-gray-200"><%= t("dashboard.nav.plans") %></span>
-          <%= link_to t("dashboard.support_open", default: "Open"), dashboard_plans_path, class: "text-teal-600 hover:text-teal-800 dark:text-teal-300 dark:hover:text-teal-100" %>
+          <%= link_to t("dashboard.support_open", default: "Open"), dashboard_plans_path, class: "text-brand-600 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-100" %>
         </li>
       </ul>
     </div>
