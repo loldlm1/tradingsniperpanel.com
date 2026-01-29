@@ -58,6 +58,21 @@ en:
         asset_base_missing: "Marketplace asset must have a base marketplace product before it can be used as an add-on."
         bundle_missing: "Expert advisor is missing bundle files for: %{keys}."
         amount_missing: "Amount is required for marketplace products."
+    billing_plans:
+      created: "Billing plan created."
+      updated: "Billing plan updated."
+      sections:
+        details: "Details"
+        stripe: "Stripe"
+        metadata: "Metadata"
+      hints:
+        key: "For subscriptions, use tier_interval (example: basic_monthly)."
+        metadata: "Optional JSON for internal flags or integrations."
+      errors:
+        metadata_invalid: "Metadata must be valid JSON."
+    plan_entitlements:
+      sections:
+        details: "Details"
     marketplace_assets:
       sections:
         details: "Details"

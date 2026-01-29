@@ -58,6 +58,21 @@ es:
         asset_base_missing: "El asset del marketplace debe tener un producto base antes de usarse como add-on."
         bundle_missing: "El Expert Advisor no tiene bundles para: %{keys}."
         amount_missing: "El monto es obligatorio para productos del marketplace."
+    billing_plans:
+      created: "Plan de billing creado."
+      updated: "Plan de billing actualizado."
+      sections:
+        details: "Detalles"
+        stripe: "Stripe"
+        metadata: "Metadata"
+      hints:
+        key: "Para suscripciones, usa tier_interval (ejemplo: basic_monthly)."
+        metadata: "JSON opcional para flags internos o integraciones."
+      errors:
+        metadata_invalid: "El metadata debe ser JSON válido."
+    plan_entitlements:
+      sections:
+        details: "Detalles"
     marketplace_assets:
       sections:
         details: "Detalles"

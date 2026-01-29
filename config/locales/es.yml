@@ -408,7 +408,7 @@ es:
       hero:
         title: "Trading Sniper"
         title_emphasis: "Panel"
-        subtitle: "Panel para MetaTrader 5 que acelera tu ejecución y calcula el riesgo con precisión. Un ecosistema completo de forex"
+        subtitle: "Panel MetaTrader 5 que mejora la ejecución y calcula entradas precisas. Un ecosistema forex completo."
         cta: "comenzar ahora"
       press_logos:
         binance: "Binance"
@@ -417,26 +417,26 @@ es:
         mql5: "MQL5"
         tradingview: "TradingView"
       features:
-        title: "PORTAFOLIOS COMPLETOS PARA OPERAR"
+        title: "PORTAFOLIOS COMPLETOS PARA FOREX"
         items:
           execution:
-            title: "Ejecución y gestión"
-            body: "Paneles y sistemas para ejecutar y gestionar en MT5 con precisión."
+            title: "Ejecución y control"
+            body: "Panel para MT5 para gestión de órdenes, con herramientas de configuración rápida."
           systems:
             title: "Sistemas y EAs"
             body: "Automatizaciones y módulos con reglas: setups, horarios, salidas."
           indicators:
             title: "Indicadores y plantillas"
-            body: "Plantillas e indicadores para análisis claro y decisiones firmes."
+            body: "Plantillas e indicadores para un análisis claro de forex."
       features2:
-        title: "UN SISTEMA PARA TRADERS"
-        subtitle: "Sniper integra ejecución, riesgo y automatización en un solo portafolio. Empieza con una herramienta y escala."
-        content_title: "Ecosistema Sniper: herramientas que trabajan juntas"
-        content_body: "Un portafolio en expansión de paneles, sistemas, indicadores y recursos diseñados para ejecutar con disciplina, reducir errores y operar con estructura."
+        title: "UNA PLATAFORMA PARA TRADERS"
+        subtitle: "Accede a paneles, plantillas y sistemas (EA) para MT5, con licencias y actualizaciones desde tu cuenta."
+        content_title: "Ecosistema de herramientas para MT5"
+        content_body: "Un catálogo de paneles, sistemas, indicadores y recursos diseñados para estandarizar tu operativa, organizar tu flujo de trabajo y operar con reglas claras."
         bullets:
-          - "Paneles de ejecución y gestión para MT5"
-          - "Sistemas, módulos con reglas setups y automatización"
-          - "Indicadores, plantillas y recursos para análisis claro"
+          - "Paneles de ejecución y gestión para MetaTrader 5"
+          - "Sistemas y módulos con reglas configurables y automatización"
+          - "Indicadores, plantillas y recursos para visualización y análisis"
       pricing:
         title: "ELIGE TU PLAN IDEAL PARA TI"
         subtitle: "Acceso bajo licencia EA para MetaTrader 5. Incluye instalación guiada y soporte según el plan."
@@ -446,13 +446,13 @@ es:
         tiers:
           basic:
             name: "Basic"
-            description: "Para traders que buscan riesgo exacto, parciales y Break Even en un solo panel."
+            description: "Para traders que desean información precisa sobre parciales y puntos de equilibrio en un solo panel."
             features_title: "Incluye:"
             features:
-              - "Riesgo por % / USD / lotaje"
+              - "Control por % / USD / tamaño del lote"
               - "Cierres parciales (33%)"
-              - "Break Even automático"
-              - "Cierre total de compras/ventas"
+              - "Punto de equilibrio automático"
+              - "Cerrar todas las compras/ventas"
           hft:
             name: "HFT"
             description: "Para scalpers y day traders: velocidad, multi-target y órdenes preconfiguradas."
@@ -466,11 +466,11 @@ es:
               - "Atajos para emergencias"
           pro:
             name: "Pro"
-            description: "Para operativa avanzada: capas de riesgo x2/x3 y control superior en setups de alta probabilidad."
+            description: "Para trader avanzado: capas de control x2/x3 y un panel más estricto en configuraciones rapidas."
             features_title: "Todo en HFT, más:"
             features:
-              - "Capas de riesgo Rej x2 y Rej x3"
-              - "Flujos avanzados de ejecución"
+              - "Capas de control Rej x2 y Rej x3"
+              - "Flujos de ejecución avanzados"
               - "Soporte prioritario"
               - "Actualizaciones premium"
           elite:
@@ -492,7 +492,7 @@ es:
               - "Asistencia de facturación y reportes"
               - "Revisiones trimestrales de enablement"
       testimonials:
-        title: "TRADERS REALES"
+        title: "USUARIOS REALES"
         avatar_alt: "Avatar del testimonio %{index}"
         items:
           - quote: "Pasé de improvisar a un flujo completo. Sniper lo ordena todo."
@@ -501,7 +501,7 @@ es:
           - quote: "La suite me da herramientas por etapa: análisis, ejecución y control."
             name: "Valentina M."
             role: "Swing Trader"
-          - quote: "Sniper me cambió la ejecución. Menos clics, menos errores, más velocidad."
+          - quote: "Sniper cambió mi ejecución. Menos clics más velocidad."
             name: "Andrés P."
             role: "Scalper MT5"
           - quote: "Me gusta que todo sea consistente. Mis herramientas hablan el mismo idioma."
@@ -519,7 +519,7 @@ es:
           - quote: "Con el ecosistema, gestiono varias posiciones sin perder el control."
             name: "Julián A."
             role: "Trader Avanzado"
-          - quote: "Es una suite seria: disciplina, riesgo y ejecución en un mismo sistema."
+          - quote: "Es una suite seria: disciplina y ejecución en un solo sistema."
             name: "Lucía C."
             role: "Trader MT5"
       resources:
@@ -538,7 +538,7 @@ es:
           video_tutorial: "Video tutorial"
       cta:
         title: "Únete a Sniper"
-        body: "Herramientas y sistemas para operar con estructura. Empieza con Sniper y escala con el portafolio."
+        body: "Herramientas para MT5 para operar con reglas y estructura: panel, plantillas e indicadores."
         button: "Comenzar ahora"
       media:
         hero_illustration_alt: "Ilustración del hero"
