@@ -31,7 +31,7 @@ Esta guía ayuda a admins de clientes e internos a gestionar el catálogo, suscr
 - **Subidas**: archivos/imágenes se guardan con Active Storage; siempre guarda después de adjuntar.
 
 Captura:
-- `images/es-01-admin-dashboard.png`
+![Panel administrativo](images/es-01-admin-dashboard.png)
 
 ---
 
@@ -44,7 +44,7 @@ Captura:
 - **Entitlements** existen en tres pantallas: Billing Plan Entitlements, Course Plan Entitlements y Asset Plan Entitlements.
 
 Captura:
-- `images/es-02-data-map.png`
+![Mapa de datos](images/es-02-data-map.png)
 
 ---
 
@@ -63,7 +63,7 @@ Captura:
 - Usa tags para filtros y descubrimiento.
 
 Captura:
-- `images/es-03-expert-advisor-form.png`
+![Formulario de Expert Advisor](images/es-03-expert-advisor-form.png)
 
 ---
 
@@ -83,7 +83,7 @@ Los bundles mapean combinaciones de add-ons a archivos descargables.
 Si vendes add-ons, cada combinación requerida debe tener un bundle. El panel del EA muestra cobertura y faltantes.
 
 Captura:
-- `images/es-04-ea-bundles.png`
+![Formulario de bundles EA](images/es-04-ea-bundles.png)
 
 ---
 
@@ -103,7 +103,7 @@ Los add-ons son Marketplace Products que extienden un EA específico.
 - El add-on queda vinculado al EA y afecta la cobertura de bundles.
 
 Captura:
-- `images/es-05-ea-addon-product.png`
+![Add-on de EA](images/es-05-ea-addon-product.png)
 
 ---
 
@@ -120,7 +120,7 @@ Captura:
 **Tip**: deja `status` en `draft` hasta completar módulos/lecciones.
 
 Captura:
-- `images/es-06-course-form.png`
+![Formulario de curso](images/es-06-course-form.png)
 
 ---
 
@@ -139,8 +139,8 @@ Captura:
 4. Guarda.
 
 Capturas:
-- `images/es-07-course-modules.png`
-- `images/es-08-course-lessons.png`
+![Formulario de módulos](images/es-07-course-modules.png)
+![Formulario de lecciones](images/es-08-course-lessons.png)
 
 ---
 
@@ -154,7 +154,7 @@ Capturas:
 4. Guarda.
 
 Captura:
-- `images/es-09-course-addon.png`
+![Add-on de curso](images/es-09-course-addon.png)
 
 ---
 
@@ -169,7 +169,7 @@ Captura:
 5. Guarda.
 
 Captura:
-- `images/es-10-marketplace-asset.png`
+![Formulario de asset](images/es-10-marketplace-asset.png)
 
 ---
 
@@ -191,7 +191,7 @@ Estos productos crean un Billing Plan one‑time y otorgan acceso.
 - Para add-ons de assets, primero debe existir un producto base del asset.
 
 Captura:
-- `images/es-11-marketplace-product.png`
+![Producto de marketplace](images/es-11-marketplace-product.png)
 
 ---
 
@@ -210,7 +210,7 @@ Captura:
 - Cambiar precio/intervalo puede crear un nuevo precio en Stripe.
 
 Captura:
-- `images/es-12-billing-plans.png`
+![Formulario de plan](images/es-12-billing-plans.png)
 
 ---
 
@@ -232,7 +232,7 @@ Captura:
 4. Verifica acceso en el dashboard.
 
 Captura:
-- `images/es-13-plan-entitlements.png`
+![Entitlements de plan](images/es-13-plan-entitlements.png)
 
 ---
 
@@ -252,7 +252,7 @@ Captura:
 4. Guarda.
 
 Captura:
-- `images/es-14-manual-billing.png`
+![Facturación manual](images/es-14-manual-billing.png)
 
 ---
 
@@ -266,7 +266,7 @@ Captura:
 Algunas acciones pueden estar restringidas por rol. Si no ves un botón, contacta al equipo interno.
 
 Captura:
-- `images/es-15-users.png`
+![Usuarios](images/es-15-users.png)
 
 ---
 
@@ -277,7 +277,7 @@ Captura:
 - **Pagos**: registran pagos por período.
 
 Captura:
-- `images/es-16-revenue-splits.png`
+![Revenue split](images/es-16-revenue-splits.png)
 
 ---
 

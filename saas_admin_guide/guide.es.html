@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trading Sniper Panel — Guía de Admin (ES)</title>
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --text: #0f172a;
+        --muted: #475569;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --accent: #2563eb;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+      header {
+        padding: 32px 24px 12px;
+        border-bottom: 1px solid var(--border);
+        background: #fff;
+      }
+      header h1 { margin: 0 0 8px; font-size: 28px; }
+      header p { margin: 0; color: var(--muted); }
+      main { max-width: 980px; margin: 0 auto; padding: 24px; }
+      nav {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 24px;
+      }
+      nav ol { margin: 0; padding-left: 18px; }
+      nav a { color: var(--accent); text-decoration: none; }
+      section {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      section h2 { margin-top: 0; font-size: 22px; }
+      img {
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-top: 12px;
+      }
+      .note { color: var(--muted); font-size: 14px; }
+      .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+      .tag { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #e2e8f0; color: #0f172a; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Trading Sniper Panel — Guía de Admin (ES)</h1>
+      <p>Flujos principales en ActiveAdmin para catálogo, suscripciones y accesos.</p>
+    </header>
+    <main>
+      <nav>
+        <strong>Tabla de contenidos</strong>
+        <ol>
+          <li><a href="#access">Acceso + navegación</a></li>
+          <li><a href="#map">Mapa de datos</a></li>
+          <li><a href="#eas">Expert Advisors</a></li>
+          <li><a href="#bundles">Bundles de EA</a></li>
+          <li><a href="#ea-addons">Add-ons de EA</a></li>
+          <li><a href="#courses">Cursos</a></li>
+          <li><a href="#modules">Módulos + lecciones</a></li>
+          <li><a href="#course-addons">Add-ons de cursos</a></li>
+          <li><a href="#assets">Assets de marketplace</a></li>
+          <li><a href="#products">Productos de marketplace</a></li>
+          <li><a href="#plans">Planes de billing</a></li>
+          <li><a href="#entitlements">Entitlements</a></li>
+          <li><a href="#manual">Facturación manual</a></li>
+          <li><a href="#users">Usuarios</a></li>
+          <li><a href="#revenue">Revenue split</a></li>
+          <li><a href="#checklists">Checklists</a></li>
+          <li><a href="#troubleshooting">Solución de problemas</a></li>
+        </ol>
+      </nav>
+
+      <section id="access">
+        <h2>1) Acceso + navegación básica</h2>
+        <ul>
+          <li><strong>URL admin</strong>: /admin</li>
+          <li><strong>Idioma</strong>: usa el locale preferido (EN/ES).</li>
+          <li><strong>Filtros</strong>: barra lateral para búsqueda y segmentación.</li>
+          <li><strong>Subidas</strong>: guardar después de adjuntar archivos.</li>
+        </ul>
+        <img src="images/es-01-admin-dashboard.png" alt="Panel administrativo" />
+      </section>
+
+      <section id="map">
+        <h2>2) Mapa de datos</h2>
+        <ul>
+          <li>Expert Advisors se conectan a Billing Plans vía entitlements (suscripciones).</li>
+          <li>Marketplace Products crean Billing Plans one-time y dan acceso a EA/Curso/Asset.</li>
+          <li>Add-ons extienden un EA, Curso o Asset específico.</li>
+          <li>Cursos contienen módulos y lecciones.</li>
+        </ul>
+        <img src="images/es-02-data-map.png" alt="Mapa de datos" />
+      </section>
+
+      <section id="eas">
+        <h2>3) Expert Advisors (EAs)</h2>
+        <ol>
+          <li>Crear un Expert Advisor.</li>
+          <li>Completar nombre, descripción, tipo, tier rank, trial, tags.</li>
+          <li>Subir archivo del EA y guías EN/ES.</li>
+        </ol>
+        <img src="images/es-03-expert-advisor-form.png" alt="Formulario de Expert Advisor" />
+      </section>
+
+      <section id="bundles">
+        <h2>4) Bundles de EA</h2>
+        <p>Los bundles mapean combinaciones de add-ons a archivos descargables.</p>
+        <img src="images/es-04-ea-bundles.png" alt="Formulario de bundles EA" />
+      </section>
+
+      <section id="ea-addons">
+        <h2>5) Add-ons de EA (compra única)</h2>
+        <p>Crear un Marketplace Product y configurar el add-on al EA.</p>
+        <img src="images/es-05-ea-addon-product.png" alt="Add-on de EA" />
+      </section>
+
+      <section id="courses">
+        <h2>6) Cursos</h2>
+        <p>Crear cursos con contenido EN/ES y mantener status en draft hasta completar.</p>
+        <img src="images/es-06-course-form.png" alt="Formulario de curso" />
+      </section>
+
+      <section id="modules">
+        <h2>7) Módulos + lecciones</h2>
+        <div class="two-col">
+          <div>
+            <span class="tag">Módulos</span>
+            <img src="images/es-07-course-modules.png" alt="Formulario de módulos" />
+          </div>
+          <div>
+            <span class="tag">Lecciones</span>
+            <img src="images/es-08-course-lessons.png" alt="Formulario de lecciones" />
+          </div>
+        </div>
+      </section>
+
+      <section id="course-addons">
+        <h2>8) Add-ons de cursos (compra única)</h2>
+        <p>Usa Marketplace Products para acceso one-time o add-ons.</p>
+        <img src="images/es-09-course-addon.png" alt="Add-on de curso" />
+      </section>
+
+      <section id="assets">
+        <h2>9) Assets de marketplace</h2>
+        <p>Crear assets descargables con detalles EN/ES.</p>
+        <img src="images/es-10-marketplace-asset.png" alt="Formulario de asset" />
+      </section>
+
+      <section id="products">
+        <h2>10) Productos de marketplace (compra única)</h2>
+        <p>Productos one-time crean su Billing Plan y otorgan acceso.</p>
+        <img src="images/es-11-marketplace-product.png" alt="Producto de marketplace" />
+      </section>
+
+      <section id="plans">
+        <h2>11) Planes de billing (suscripciones)</h2>
+        <p>Usa key tipo tier_interval (ejemplo: basic_monthly).</p>
+        <img src="images/es-12-billing-plans.png" alt="Formulario de plan" />
+      </section>
+
+      <section id="entitlements">
+        <h2>12) Entitlements</h2>
+        <p>Definir accesos por plan a EA, Curso y Asset.</p>
+        <img src="images/es-13-plan-entitlements.png" alt="Entitlements de plan" />
+      </section>
+
+      <section id="manual">
+        <h2>13) Facturación manual</h2>
+        <p>Registrar pagos offline como transacciones o suscripciones.</p>
+        <img src="images/es-14-manual-billing.png" alt="Facturación manual" />
+      </section>
+
+      <section id="users">
+        <h2>14) Usuarios</h2>
+        <p>Crear/editar usuarios y locale preferido.</p>
+        <img src="images/es-15-users.png" alt="Usuarios" />
+      </section>
+
+      <section id="revenue">
+        <h2>15) Reglas + pagos de revenue split</h2>
+        <p>Registrar reglas y pagos por período.</p>
+        <img src="images/es-16-revenue-splits.png" alt="Revenue split" />
+      </section>
+
+      <section id="checklists">
+        <h2>16) Checklists de lanzamiento</h2>
+        <ul>
+          <li><strong>Nuevo EA</strong>: crear EA → add-ons → bundles → entitlements.</li>
+          <li><strong>Nuevo curso</strong>: crear curso → módulos/lecciones → entitlements.</li>
+          <li><strong>Nuevo producto marketplace</strong>: crear producto → entitlements → add-on.</li>
+        </ul>
+      </section>
+
+      <section id="troubleshooting">
+        <h2>17) Solución de problemas</h2>
+        <ul>
+          <li>Dropdown vacío: confirma que el registro existe y está activo.</li>
+          <li>Bundles faltantes: subir bundles requeridos.</li>
+          <li>Error de asset add-on: crear producto base primero.</li>
+          <li>Curso no visible: status en published + published_at.</li>
+          <li>Errores de Stripe: revisar STRIPE_PRIVATE_KEY e IDs.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>
