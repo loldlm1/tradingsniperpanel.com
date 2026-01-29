@@ -8,7 +8,12 @@ module Dashboard
 
     def call
       recent = entries_with_sync.sort_by { |entry| entry.license&.last_synced_at.to_i }.reverse
-      append_active(recent.first(limit))
+      fallback = entries_without_sync.sort_by do |entry|
+        [entry.expert_advisor.tier_rank.to_i, entry.expert_advisor.name.to_s.downcase]
+      end
+      list = (recent + fallback).uniq { |entry| entry.expert_advisor.id }.first(limit)
+
+      append_active(list)
     end
 
     private
@@ -17,6 +22,10 @@ module Dashboard
 
     def entries_with_sync
       entries.select { |entry| entry.license&.last_synced_at.present? }
+    end
+
+    def entries_without_sync
+      entries.reject { |entry| entry.license&.last_synced_at.present? }
     end
 
     def append_active(list)
