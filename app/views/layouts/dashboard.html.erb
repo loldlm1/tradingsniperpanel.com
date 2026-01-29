@@ -61,6 +61,13 @@
           <% expert_advisors_group_active = controller_path == "expert_advisors" %>
           <% courses_group_active = controller_path.in?(%w[courses course_lessons]) %>
           <% marketplace_group_active = controller_path == "marketplace" %>
+          <% active_ea_id = expert_advisors_group_active ? params[:id].to_s : nil %>
+          <% active_course_slug = case controller_path
+             when "courses"
+               params[:id].to_s
+             when "course_lessons"
+               params[:course_id].to_s
+             end %>
 
           <% settings_account_active = current_page?(dashboard_settings_path) %>
           <% settings_plans_active = current_page?(dashboard_plans_path) %>
@@ -138,14 +145,13 @@
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.expert_advisors_all") %></span>
                         <% end %>
                       </li>
-                      <% (@accessible_eas || []).each_with_index do |entry, idx| %>
+                      <% (@sidebar_recent_eas || @accessible_eas || []).each_with_index do |entry, idx| %>
                         <li class="mb-1 last:mb-0">
                           <% show_path = dashboard_expert_advisor_path(entry.expert_advisor, locale: I18n.locale) %>
-                          <% guides_path = dashboard_expert_advisor_guides_path(entry.expert_advisor, locale: I18n.locale) %>
-                          <% active_entry = current_page?(show_path) || current_page?(guides_path) %>
+                          <% active_entry = active_ea_id.present? && active_ea_id == entry.expert_advisor.ea_id.to_s %>
                           <%= link_to show_path, class: mosaic_sidebar_child_link_classes(active: active_entry) do %>
                             <span class="<%= mosaic_sidebar_child_span_classes %> flex items-center gap-2">
-                              <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= idx + 1 %></span>
+                              <span class="<%= mosaic_sidebar_badge_classes %>"><%= idx + 1 %></span>
                               <span class="truncate"><%= entry.expert_advisor.name %></span>
                             </span>
                           <% end %>
@@ -179,12 +185,13 @@
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.courses_all", default: "All Courses") %></span>
                         <% end %>
                       </li>
-                      <% (@accessible_courses || []).each_with_index do |entry, idx| %>
+                      <% (@sidebar_recent_courses || @accessible_courses || []).each_with_index do |entry, idx| %>
                         <li class="mb-1 last:mb-0">
                           <% show_path = dashboard_course_path(entry.course, locale: I18n.locale) %>
-                          <%= link_to show_path, class: mosaic_sidebar_child_link_classes(active: current_page?(show_path)) do %>
+                          <% active_entry = active_course_slug.present? && active_course_slug == entry.course.slug.to_s %>
+                          <%= link_to show_path, class: mosaic_sidebar_child_link_classes(active: active_entry || current_page?(show_path)) do %>
                             <span class="<%= mosaic_sidebar_child_span_classes %> flex items-center gap-2">
-                              <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= idx + 1 %></span>
+                              <span class="<%= mosaic_sidebar_badge_classes %>"><%= idx + 1 %></span>
                               <span class="truncate"><%= entry.course.title_for(I18n.locale) %></span>
                             </span>
                           <% end %>
@@ -223,7 +230,7 @@
                             <% show_path = dashboard_marketplace_product_path(product, locale: I18n.locale) %>
                             <%= link_to show_path, class: mosaic_sidebar_child_link_classes(active: current_page?(show_path)) do %>
                               <span class="<%= mosaic_sidebar_child_span_classes %> flex items-center gap-2">
-                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700/60 dark:text-gray-100 text-[11px] font-semibold"><%= idx + 1 %></span>
+                                <span class="<%= mosaic_sidebar_badge_classes %>"><%= idx + 1 %></span>
                                 <span class="truncate"><%= product.title_for(I18n.locale) %></span>
                               </span>
                             <% end %>
