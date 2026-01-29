@@ -16,6 +16,7 @@ class ApplicationController < ActionController::Base
   before_action :set_accessible_courses, if: :user_signed_in?
   before_action :set_marketplace_availability, if: :user_signed_in?
   before_action :set_marketplace_nav_products, if: :user_signed_in?
+  before_action :set_sidebar_recent_items, if: :user_signed_in?
 
   def after_sign_in_path_for(_resource)
     desired_plan = stored_desired_plan
@@ -174,6 +175,31 @@ class ApplicationController < ActionController::Base
     return unless @marketplace_available
 
     @marketplace_nav_products ||= Marketplace::SidebarProducts.new(limit: 5).call
+  end
+
+  def set_sidebar_recent_items
+    return unless request.path.include?("/dashboard")
+
+    active_ea_id = controller_path == "expert_advisors" ? params[:id] : nil
+    active_course_slug = case controller_path
+                         when "courses"
+                           params[:id]
+                         when "course_lessons"
+                           params[:course_id]
+                         end
+
+    @sidebar_recent_eas = Dashboard::SidebarRecentExpertAdvisors.new(
+      entries: @accessible_eas,
+      limit: 5,
+      active_ea_id: active_ea_id
+    ).call
+
+    @sidebar_recent_courses = Dashboard::SidebarRecentCourses.new(
+      entries: @accessible_courses,
+      user: current_user,
+      limit: 5,
+      active_course_slug: active_course_slug
+    ).call
   end
 
   def ensure_terms_accepted
