@@ -9,8 +9,11 @@ module Dashboard
 
     def call
       recent_entries = entries.select { |entry| last_watched_by_course_id.key?(entry.course.id) }
-      sorted = recent_entries.sort_by { |entry| last_watched_by_course_id[entry.course.id] }.reverse
-      append_active(sorted.first(limit))
+      recent_sorted = recent_entries.sort_by { |entry| last_watched_by_course_id[entry.course.id].to_i }.reverse
+      fallback_sorted = entries_without_watches.sort_by { |entry| published_timestamp(entry).to_i }.reverse
+      list = (recent_sorted + fallback_sorted).uniq { |entry| entry.course.id }.first(limit)
+
+      append_active(list)
     end
 
     private
@@ -27,6 +30,14 @@ module Dashboard
         .where.not(last_watched_at: nil)
         .group("courses.id")
         .maximum("course_lesson_progresses.last_watched_at")
+    end
+
+    def entries_without_watches
+      entries.reject { |entry| last_watched_by_course_id.key?(entry.course.id) }
+    end
+
+    def published_timestamp(entry)
+      entry.course.published_at || entry.course.created_at
     end
 
     def append_active(list)

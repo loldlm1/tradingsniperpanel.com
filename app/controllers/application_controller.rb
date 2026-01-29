@@ -188,14 +188,17 @@ class ApplicationController < ActionController::Base
                            params[:course_id]
                          end
 
+    ea_entries = @accessible_eas || Licenses::AccessibleExpertAdvisors.new(user: current_user).call
+    course_entries = @accessible_courses || Courses::AccessibleCourses.new(user: current_user).call
+
     @sidebar_recent_eas = Dashboard::SidebarRecentExpertAdvisors.new(
-      entries: @accessible_eas,
+      entries: ea_entries,
       limit: 5,
       active_ea_id: active_ea_id
     ).call
 
     @sidebar_recent_courses = Dashboard::SidebarRecentCourses.new(
-      entries: @accessible_courses,
+      entries: course_entries,
       user: current_user,
       limit: 5,
       active_course_slug: active_course_slug
