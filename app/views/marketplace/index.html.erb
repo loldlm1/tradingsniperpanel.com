@@ -32,10 +32,10 @@
 <!-- Filters -->
 <div class="mb-4 border-b border-gray-200 dark:border-gray-700/60">
   <ul class="text-sm font-medium flex flex-nowrap -mx-4 sm:-mx-6 lg:-mx-8 overflow-x-scroll no-scrollbar">
-    <% base_tab_class = "whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900" %>
+    <% base_tab_class = "whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900" %>
     <% @marketplace.tabs.each do |tab| %>
       <% active = @marketplace.selected_tab == tab[:key] %>
-      <% link_class = active ? "text-teal-500 #{base_tab_class}" : "text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 #{base_tab_class}" %>
+      <% link_class = active ? "text-brand-500 #{base_tab_class}" : "text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 #{base_tab_class}" %>
       <li class="pb-3 mr-6 last:mr-0 first:pl-4 sm:first:pl-6 lg:first:pl-8 last:pr-4 sm:last:pr-6 lg:last:pr-8">
         <%= link_to t(tab[:label_key]), dashboard_marketplace_path(locale: I18n.locale, **@marketplace.params_for_tab(tab[:key])), class: link_class %>
       </li>

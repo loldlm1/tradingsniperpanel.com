@@ -63,116 +63,141 @@
   cursor: not-allowed;
 }
 
-/* Dashboard teal utilities (Mosaic CSS omits teal palette). */
+/* Dashboard brand utilities (palette set via data-dashboard-palette). */
 :root {
-  --teal-100: #ccfbf1;
-  --teal-200: #99f6e4;
-  --teal-300: #5eead4;
-  --teal-400: #2dd4bf;
-  --teal-500: #14b8a6;
-  --teal-600: #0d9488;
-  --teal-800: #115e59;
+  --brand-100: var(--color-violet-100);
+  --brand-200: var(--color-violet-200);
+  --brand-300: var(--color-violet-300);
+  --brand-400: var(--color-violet-400);
+  --brand-500: var(--color-violet-500);
+  --brand-600: var(--color-violet-600);
+  --brand-800: var(--color-violet-800);
 }
 
-.text-teal-400 {
-  color: var(--teal-400);
+body[data-dashboard-palette="teal"] {
+  --brand-100: #ccfbf1;
+  --brand-200: #99f6e4;
+  --brand-300: #5eead4;
+  --brand-400: #2dd4bf;
+  --brand-500: #14b8a6;
+  --brand-600: #0d9488;
+  --brand-800: #115e59;
 }
 
-.text-teal-500 {
-  color: var(--teal-500);
+.text-brand-400 {
+  color: var(--brand-400);
 }
 
-.text-teal-600 {
-  color: var(--teal-600);
+.text-brand-500 {
+  color: var(--brand-500);
 }
 
-.text-teal-800 {
-  color: var(--teal-800);
+.text-brand-600 {
+  color: var(--brand-600);
 }
 
-.bg-teal-100 {
-  background-color: var(--teal-100);
+.text-brand-800 {
+  color: var(--brand-800);
 }
 
-.bg-teal-200 {
-  background-color: var(--teal-200);
+.bg-brand-100 {
+  background-color: var(--brand-100);
 }
 
-.bg-teal-500 {
-  background-color: var(--teal-500);
+.bg-brand-200 {
+  background-color: var(--brand-200);
 }
 
-.bg-teal-500\/10 {
-  background-color: rgba(20, 184, 166, 0.1);
+.bg-brand-500 {
+  background-color: var(--brand-500);
 }
 
-.bg-teal-500\/15 {
-  background-color: rgba(20, 184, 166, 0.15);
+.bg-brand-500\/10 {
+  background-color: color-mix(in oklab, var(--brand-500) 10%, transparent);
 }
 
-.bg-teal-500\/20 {
-  background-color: rgba(20, 184, 166, 0.2);
+.bg-brand-500\/15 {
+  background-color: color-mix(in oklab, var(--brand-500) 15%, transparent);
 }
 
-.hover\:text-teal-600:hover {
-  color: var(--teal-600);
+.bg-brand-500\/20 {
+  background-color: color-mix(in oklab, var(--brand-500) 20%, transparent);
 }
 
-.hover\:text-teal-800:hover {
-  color: var(--teal-800);
+.hover\:text-brand-600:hover {
+  color: var(--brand-600);
 }
 
-.focus-visible\:ring-teal-500\/40:focus-visible {
-  --tw-ring-color: rgba(20, 184, 166, 0.4);
+.hover\:text-brand-800:hover {
+  color: var(--brand-800);
 }
 
-.focus\:ring-teal-500:focus {
-  --tw-ring-color: var(--teal-500);
+.focus-visible\:ring-brand-500\/40:focus-visible {
+  --tw-ring-color: color-mix(in oklab, var(--brand-500) 40%, transparent);
 }
 
-.from-teal-500 {
-  --tw-gradient-from: var(--teal-500);
+.focus\:ring-brand-500:focus {
+  --tw-ring-color: var(--brand-500);
+}
+
+.from-brand-500 {
+  --tw-gradient-from: var(--brand-500);
   --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
 }
 
-.to-teal-500 {
-  --tw-gradient-to: var(--teal-500);
+.from-brand-500\/\[0\.12\] {
+  --tw-gradient-from: color-mix(in oklab, var(--brand-500) 12%, transparent);
   --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
 }
 
-.dark .dark\:bg-teal-500\/15 {
-  background-color: rgba(20, 184, 166, 0.15);
+.to-brand-500 {
+  --tw-gradient-to: var(--brand-500);
+  --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
 }
 
-.dark .dark\:bg-teal-500\/20 {
-  background-color: rgba(20, 184, 166, 0.2);
+.to-brand-500\/\[0\.04\] {
+  --tw-gradient-to: color-mix(in oklab, var(--brand-500) 4%, transparent);
+  --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
 }
 
-.dark .dark\:text-teal-100 {
-  color: var(--teal-100);
+.dark .dark\:bg-brand-500\/15 {
+  background-color: color-mix(in oklab, var(--brand-500) 15%, transparent);
 }
 
-.dark .dark\:text-teal-300 {
-  color: var(--teal-300);
+.dark .dark\:bg-brand-500\/20 {
+  background-color: color-mix(in oklab, var(--brand-500) 20%, transparent);
 }
 
-.dark .dark\:text-teal-400 {
-  color: var(--teal-400);
+.dark .dark\:text-brand-100 {
+  color: var(--brand-100);
 }
 
-.dark .dark\:hover\:text-teal-100:hover {
-  color: var(--teal-100);
+.dark .dark\:text-brand-300 {
+  color: var(--brand-300);
 }
 
-.dark .dark\:hover\:text-teal-300:hover {
-  color: var(--teal-300);
+.dark .dark\:text-brand-400 {
+  color: var(--brand-400);
 }
 
-.dark .dark\:hover\:text-teal-400:hover {
-  color: var(--teal-400);
+.dark .dark\:hover\:text-brand-100:hover {
+  color: var(--brand-100);
 }
 
-.dark .dark\:from-teal-500 {
-  --tw-gradient-from: var(--teal-500);
+.dark .dark\:hover\:text-brand-300:hover {
+  color: var(--brand-300);
+}
+
+.dark .dark\:hover\:text-brand-400:hover {
+  color: var(--brand-400);
+}
+
+.dark .dark\:from-brand-500 {
+  --tw-gradient-from: var(--brand-500);
+  --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+}
+
+.dark .dark\:from-brand-500\/\[0\.24\] {
+  --tw-gradient-from: color-mix(in oklab, var(--brand-500) 24%, transparent);
   --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
 }

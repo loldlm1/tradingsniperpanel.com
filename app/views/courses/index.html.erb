@@ -134,12 +134,12 @@
               <button
                 tabindex="0"
                 class="flex items-center w-full hover:bg-gray-50 dark:hover:bg-gray-700/20 py-1 px-3 cursor-pointer"
-                :class="selected === 0 && 'text-teal-500'"
+                :class="selected === 0 && 'text-brand-500'"
                 @click="selected = 0;open = false;setSort(options[0].value)"
                 @focus="open = true"
                 @focusout="open = false"
               >
-                <svg class="shrink-0 mr-2 fill-current text-teal-500" :class="selected !== 0 && 'invisible'" width="12" height="9" viewBox="0 0 12 9">
+                <svg class="shrink-0 mr-2 fill-current text-brand-500" :class="selected !== 0 && 'invisible'" width="12" height="9" viewBox="0 0 12 9">
                   <path d="M10.28.28L3.989 6.575 1.695 4.28A1 1 0 00.28 5.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28.28z" />
                 </svg>
                 <span><%= t("dashboard.courses.sort.recent") %></span>
@@ -147,12 +147,12 @@
               <button
                 tabindex="0"
                 class="flex items-center w-full hover:bg-gray-50 dark:hover:bg-gray-700/20 py-1 px-3 cursor-pointer"
-                :class="selected === 1 && 'text-teal-500'"
+                :class="selected === 1 && 'text-brand-500'"
                 @click="selected = 1;open = false;setSort(options[1].value)"
                 @focus="open = true"
                 @focusout="open = false"
               >
-                <svg class="shrink-0 mr-2 fill-current text-teal-500" :class="selected !== 1 && 'invisible'" width="12" height="9" viewBox="0 0 12 9">
+                <svg class="shrink-0 mr-2 fill-current text-brand-500" :class="selected !== 1 && 'invisible'" width="12" height="9" viewBox="0 0 12 9">
                   <path d="M10.28.28L3.989 6.575 1.695 4.28A1 1 0 00.28 5.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28.28z" />
                 </svg>
                 <span><%= t("dashboard.courses.sort.oldest") %></span>
