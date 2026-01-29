@@ -6,6 +6,7 @@ Create a clear, client-facing admin guide (English + Spanish) that explains how 
 ## Definition of Done
 - A published guide exists in EN + ES with consistent structure and cross-links between related admin objects.
 - Guides live at the repo root in `/saas_admin_guide`, with screenshots stored under `/saas_admin_guide/images`.
+- Standalone HTML versions of the guides exist with embedded images and minimal CSS.
 - The guide covers every ActiveAdmin resource and the most common workflows (EA + bundles + add-ons, courses + modules + lessons, marketplace products + entitlements + addons, manual billing, users/roles, revenue splits/payouts).
 - Admin-panel gaps required for the guide’s workflows are implemented or explicitly documented as “not available in admin yet” with a follow‑up task.
 - A separate, small developer-only guide documents master_admin-only capabilities.
@@ -26,17 +27,23 @@ Create a clear, client-facing admin guide (English + Spanish) that explains how 
 5) Draft a small developer guide for master_admin-only features and limitations.
 6) Implement static guide placement at `/saas_admin_guide` (EN/ES + images).
 7) Capture ES screenshots from the admin using agent-browser and replace placeholders.
-8) Accuracy pass against admin forms/fields and finalize.
+8) Embed screenshot images after each section in both Markdown guides.
+9) Add standalone HTML versions of the guides with minimal CSS and image embeds.
+10) Replace `es-02-data-map.png` with a Spanish-only data map diagram.
+11) Accuracy pass against admin forms/fields and finalize.
 
 ## Open Questions
 None.
 
 ## Decisions
-- Guides are Markdown-only, stored under `/saas_admin_guide`.
+- Guides are Markdown-first under `/saas_admin_guide`, with standalone HTML versions for preview.
 - Screenshots are ES-only.
 - Client guide omits `master_admin`; separate developer guide covers those features.
 - ES screenshots captured from local ActiveAdmin; used a temporary master_admin account to access create forms.
 - Added ransackable allowlists to entitlement models to fix ActiveAdmin filters.
+- Embedded screenshot images inline after each section in the Markdown guides.
+- Added standalone HTML versions of the guides with minimal CSS and Spanish labels.
+- Replaced `es-02-data-map.png` with a Spanish-only data map diagram exported from SVG.
 
 ## Commands Run (PASS/FAIL only)
 - `sed -n '1,200p' /home/loldlm/.agents/skills/technical-writer/SKILL.md` (PASS)
@@ -123,3 +130,12 @@ None.
 - `agent-browser screenshot --full saas_admin_guide/images/es-16-revenue-splits.png` (PASS)
 - `ls -lh saas_admin_guide/images` (PASS)
 - `agent-browser close` (PASS)
+- `sed -n '1,200p' /home/loldlm/.agents/skills/technical-writer/SKILL.md` (PASS)
+- `ls -la saas_admin_guide` (PASS)
+- `sed -n '1,200p' docs/plans/admin-user-guide.md` (PASS)
+- `sed -n '1,200p' saas_admin_guide/README.es.md` (PASS)
+- `sed -n '1,200p' saas_admin_guide/guide.es.html` (PASS)
+- `sed -n '1,80p' saas_admin_guide/README.md` (PASS)
+- `ls -la saas_admin_guide/images` (PASS)
+- `sed -n '1,120p' saas_admin_guide/guide.en.html` (PASS)
+- `git status --short` (PASS)

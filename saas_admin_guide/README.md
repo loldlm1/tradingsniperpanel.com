@@ -33,7 +33,7 @@ This guide helps client and internal admins manage the Trading Sniper Panel cata
 - **Uploads**: File/image uploads are stored via Active Storage; always save after attaching.
 
 Screenshot (ES):
-- `images/es-01-admin-dashboard.png`
+![Admin dashboard](images/es-01-admin-dashboard.png)
 
 ---
 
@@ -47,7 +47,7 @@ Use this to understand dependencies before creating records:
 - **Entitlements** live in three admin screens: Billing Plan Entitlements, Course Plan Entitlements, and Asset Plan Entitlements.
 
 Screenshot (ES):
-- `images/es-02-data-map.png`
+![Data map](images/es-02-data-map.png)
 
 ---
 
@@ -66,7 +66,7 @@ Screenshot (ES):
 - Use tags for filtering and marketplace discovery.
 
 Screenshot (ES):
-- `images/es-03-expert-advisor-form.png`
+![Expert Advisor form](images/es-03-expert-advisor-form.png)
 
 ---
 
@@ -86,7 +86,7 @@ Use bundles to map add-on combinations to downloadable files.
 If add-ons are sold, every required add-on combination needs a bundle file. The EA show page includes a bundle coverage panel to highlight missing combinations.
 
 Screenshot (ES):
-- `images/es-04-ea-bundles.png`
+![EA bundles form](images/es-04-ea-bundles.png)
 
 ---
 
@@ -107,7 +107,7 @@ Add-ons are Marketplace Products that extend a specific EA.
 - If bundle coverage shows missing keys, add bundle files in EA Bundles.
 
 Screenshot (ES):
-- `images/es-05-ea-addon-product.png`
+![EA add-on product](images/es-05-ea-addon-product.png)
 
 ---
 
@@ -124,7 +124,7 @@ Screenshot (ES):
 **Tip**: Keep `status` as `draft` until modules/lessons are ready.
 
 Screenshot (ES):
-- `images/es-06-course-form.png`
+![Course form](images/es-06-course-form.png)
 
 ---
 
@@ -143,8 +143,8 @@ Screenshot (ES):
 4. Save.
 
 Screenshot (ES):
-- `images/es-07-course-modules.png`
-- `images/es-08-course-lessons.png`
+![Course modules form](images/es-07-course-modules.png)
+![Course lessons form](images/es-08-course-lessons.png)
 
 ---
 
@@ -160,7 +160,7 @@ Use Marketplace Products to sell one-time course access or add-ons.
 4. Save.
 
 Screenshot (ES):
-- `images/es-09-course-addon.png`
+![Course add-on](images/es-09-course-addon.png)
 
 ---
 
@@ -175,7 +175,7 @@ Screenshot (ES):
 5. Save.
 
 Screenshot (ES):
-- `images/es-10-marketplace-asset.png`
+![Marketplace asset form](images/es-10-marketplace-asset.png)
 
 ---
 
@@ -197,7 +197,7 @@ Marketplace Products are one-time items that create a Billing Plan and grant acc
 - For marketplace asset add-ons, a base product must exist first.
 
 Screenshot (ES):
-- `images/es-11-marketplace-product.png`
+![Marketplace product form](images/es-11-marketplace-product.png)
 
 ---
 
@@ -218,7 +218,7 @@ Use Billing Plans for subscription tiers (e.g., basic/monthly).
 - Changing amount/interval may create a new Stripe price and deactivate the old one.
 
 Screenshot (ES):
-- `images/es-12-billing-plans.png`
+![Billing plan form](images/es-12-billing-plans.png)
 
 ---
 
@@ -242,7 +242,7 @@ Use entitlements to define what a plan grants.
 4. Verify access in the public dashboard or by checking entitlements lists.
 
 Screenshot (ES):
-- `images/es-13-plan-entitlements.png`
+![Plan entitlements](images/es-13-plan-entitlements.png)
 
 ---
 
@@ -264,7 +264,7 @@ Use these to record offline payments.
 4. Save.
 
 Screenshot (ES):
-- `images/es-14-manual-billing.png`
+![Manual billing form](images/es-14-manual-billing.png)
 
 ---
 
@@ -279,7 +279,7 @@ Screenshot (ES):
 Some actions may be restricted by role. If a button is missing, contact your internal admin team.
 
 Screenshot (ES):
-- `images/es-15-users.png`
+![Users index](images/es-15-users.png)
 
 ---
 
@@ -295,7 +295,7 @@ Use these to track revenue split logic and payout records.
 - Record and track payouts per period.
 
 Screenshot (ES):
-- `images/es-16-revenue-splits.png`
+![Revenue split rules](images/es-16-revenue-splits.png)
 
 ---
 
