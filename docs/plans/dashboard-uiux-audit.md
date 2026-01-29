@@ -45,7 +45,7 @@
 - Priority order: sidebar → settings → marketplace → courses → expert advisors → main + analytics (ignore partner view).
 
 ## Open Questions
-- Need local login/seeded user to complete agent-browser visual review in both themes.
+- None.
 
 ## QA Findings (Manual)
 - Sidebar: active states, collapse/expand, focus rings, and hover states are incorrect in both light and dark themes.
@@ -55,6 +55,9 @@
 - PASS: `apply_patch` (sidebar nav state classes + focus ring offsets in `app/helpers/dashboard_navigation_helper.rb`)
 - PASS: `apply_patch` (sidebar active background + group link state adjustments in `app/helpers/dashboard_navigation_helper.rb`)
 - PASS: `apply_patch` (expand/collapse toggle button in `app/views/layouts/dashboard.html.erb`)
+- PASS: `apply_patch` (teal utility classes for dashboard overrides in `app/assets/stylesheets/dashboard.css`)
+- PASS: `apply_patch` (use existing hover bg utilities in `app/helpers/dashboard_navigation_helper.rb`)
+- PASS: `agent-browser` (login as QA, dark/light audit of dashboard + sidebar; screenshots saved to `tmp/ui-audit`)
 - PASS: `python3 /home/loldlm/.agents/skills/ui-ux-pro-max/scripts/search.py "trading fintech SaaS analytics dashboard professional clean" --design-system --persist --page dashboard --format markdown --project-name "Trading Sniper Panel" --output-dir design-system/trading-sniper-panel`
 - PASS: `python3 /home/loldlm/.agents/skills/ui-ux-pro-max/scripts/search.py "enterprise analytics SaaS dashboard sidebar navigation data-dense" --design-system --format markdown`
 - PASS: `cat > design-system/trading-sniper-panel/pages/dashboard.md` (dashboard-specific overrides)
