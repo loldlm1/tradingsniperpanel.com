@@ -26,7 +26,7 @@ Esta guía ayuda a admins de clientes e internos a gestionar el catálogo, suscr
 ## 1) Acceso + navegación básica
 - **URL admin**: `/admin` (requiere cuenta admin).
 - **Idioma**: usa el locale preferido del usuario; hay soporte EN/ES.
-- **Filtros**: cada pantalla tiene filtros para búsqueda y segmentación.
+- **Filtros**: cada pantalla tiene filtros en la barra lateral para búsqueda y segmentación.
 - **Acciones**: usa `New`, `Edit`, `Delete` y acciones masivas.
 - **Subidas**: archivos/imágenes se guardan con Active Storage; siempre guarda después de adjuntar.
 
@@ -41,6 +41,7 @@ Captura:
 - **Add-ons** son Marketplace Products que extienden un EA/Curso/Asset.
 - **Cursos** tienen **Módulos** y **Lecciones**, y pueden venderse por suscripción o compra única.
 - **Marketplace Assets** son descargables one‑time (PDFs, plantillas, etc.).
+- **Entitlements** existen en tres pantallas: Billing Plan Entitlements, Course Plan Entitlements y Asset Plan Entitlements.
 
 Captura:
 - `images/es-02-data-map.png`
@@ -52,7 +53,7 @@ Captura:
 
 **Crear un EA**
 1. Click en `New Expert Advisor`.
-2. Completa: nombre, descripción, tipo (EA/tool/indicator/script), tier rank, trial enabled, tags.
+2. Completa: nombre, descripción, tipo (EA/tool/indicator/script), tier rank (orden), trial enabled, tags.
 3. Sube el archivo del EA (`ea_files`).
 4. Agrega guías EN/ES en la sección “Guides”.
 5. Guarda.
@@ -93,7 +94,7 @@ Los add-ons son Marketplace Products que extienden un EA específico.
 
 **Crear un add-on de EA**
 1. Click en `New Marketplace Product`.
-2. Completa detalles del producto (slug, título, resumen, descripción, imagen).
+2. Completa detalles del producto (slug, status, sort order, título, resumen, descripción, imagen).
 3. Configura precios (monto, moneda, IDs de Stripe si aplica).
 4. En **Add-on**, elige el EA objetivo y la clave del add-on.
 5. Guarda.
@@ -179,7 +180,7 @@ Estos productos crean un Billing Plan one‑time y otorgan acceso.
 
 **Crear un producto**
 1. Click en `New Marketplace Product`.
-2. Completa detalles e imagen.
+2. Completa detalles (incluyendo status/sort order) e imagen.
 3. Configura precio (monto/moneda + IDs de Stripe si aplica).
 4. Agrega **Entitlements** (EA/Curso/Asset).
 5. Configura **Add-on** solo si extiende otro item.
@@ -205,6 +206,7 @@ Captura:
 5. Guarda.
 
 **Nota**
+- Los planes de suscripción requieren `tier`, `interval` y `interval_count`.
 - Cambiar precio/intervalo puede crear un nuevo precio en Stripe.
 
 Captura:
@@ -225,8 +227,9 @@ Captura:
 
 **Flujo recomendado**
 1. Crea o confirma Billing Plans.
-2. Agrega entitlements para cada plan.
-3. Verifica acceso en el dashboard.
+2. Agrega entitlements para cada plan de suscripción.
+3. Para productos one‑time, gestiona entitlements desde el formulario de Marketplace Product.
+4. Verifica acceso en el dashboard.
 
 Captura:
 - `images/es-13-plan-entitlements.png`

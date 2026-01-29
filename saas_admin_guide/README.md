@@ -1,6 +1,6 @@
 # Trading Sniper Panel — Admin Guide (EN)
 
-This guide helps client and internal admins manage the Trading Sniper Panel catalog, subscriptions, and access. It focuses on the ActiveAdmin back office and the main workflows you’ll use to publish EAs, courses, and marketplace products.
+This guide helps client and internal admins manage the Trading Sniper Panel catalog, subscriptions, and access. It focuses on the ActiveAdmin back office and the main workflows used to publish EAs, courses, and marketplace products.
 
 > Note: Screenshots are currently in Spanish only. They still match the same screens/fields.
 
@@ -28,7 +28,7 @@ This guide helps client and internal admins manage the Trading Sniper Panel cata
 ## 1) Access + navigation basics
 - **Admin URL**: `/admin` (requires an admin account).
 - **Language**: Use the account’s preferred locale; the UI supports EN/ES.
-- **Filters**: Each screen has filters (left sidebar) for search and scoping.
+- **Filters**: Each screen has filters in the sidebar for search and scoping.
 - **Actions**: Use `New`, `Edit`, `Delete`, and bulk actions where available.
 - **Uploads**: File/image uploads are stored via Active Storage; always save after attaching.
 
@@ -44,6 +44,7 @@ Use this to understand dependencies before creating records:
 - **Add-ons** are special Marketplace Products that extend an EA/Course/Asset.
 - **Courses** have **Modules** and **Lessons** and can be granted via subscriptions or one-time purchases.
 - **Marketplace Assets** are one-time downloadable items (PDFs, templates, etc.).
+- **Entitlements** live in three admin screens: Billing Plan Entitlements, Course Plan Entitlements, and Asset Plan Entitlements.
 
 Screenshot (ES):
 - `images/es-02-data-map.png`
@@ -55,7 +56,7 @@ Screenshot (ES):
 
 **Create an EA**
 1. Click `New Expert Advisor`.
-2. Fill in: name, description, type (EA/tool/indicator/script), tier rank, trial enabled, tags.
+2. Fill in: name, description, type (EA/tool/indicator/script), tier rank (ordering), trial enabled, tags.
 3. Upload the EA bundle file (`ea_files`).
 4. Add EN/ES guides in the “Guides” section.
 5. Save.
@@ -96,7 +97,7 @@ Add-ons are Marketplace Products that extend a specific EA.
 
 **Create an EA add-on product**
 1. Click `New Marketplace Product`.
-2. Fill product details (slug, title, summary, description, image).
+2. Fill product details (slug, status, sort order, title, summary, description, image).
 3. Set pricing (amount, currency, Stripe IDs if needed).
 4. In **Add-on**, choose the target EA and add-on key.
 5. Save.
@@ -185,7 +186,7 @@ Marketplace Products are one-time items that create a Billing Plan and grant acc
 
 **Create a product**
 1. Click `New Marketplace Product`.
-2. Fill product details and image.
+2. Fill product details (including status/sort order) and image.
 3. Set pricing (amount/currency + Stripe IDs if required).
 4. Add **Entitlements** (EAs, Courses, Assets) that the purchase unlocks.
 5. Configure **Add-on** only if this product extends another item.
@@ -213,6 +214,7 @@ Use Billing Plans for subscription tiers (e.g., basic/monthly).
 5. Save.
 
 **Notes**
+- Subscription plans require `tier`, `interval`, and `interval_count`.
 - Changing amount/interval may create a new Stripe price and deactivate the old one.
 
 Screenshot (ES):
@@ -235,8 +237,9 @@ Use entitlements to define what a plan grants.
 
 **Recommended flow**
 1. Create or confirm Billing Plans.
-2. Add entitlements for each plan.
-3. Verify access in the public dashboard or by checking entitlements lists.
+2. Add entitlements for each subscription plan.
+3. For one-time products, manage entitlements inside the Marketplace Product form.
+4. Verify access in the public dashboard or by checking entitlements lists.
 
 Screenshot (ES):
 - `images/es-13-plan-entitlements.png`
