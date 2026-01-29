@@ -9,7 +9,7 @@ module DashboardNavigationHelper
 
   def mosaic_sidebar_group_link_classes(active:)
     base = "block rounded-lg text-gray-800 dark:text-gray-100 truncate transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-800"
-    active ? "#{base} text-gray-900 dark:text-white" : "#{base} hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/70 dark:hover:bg-gray-700/50"
+    active ? "#{base} text-gray-900 dark:text-white" : "#{base} hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700/50"
   end
 
   def mosaic_sidebar_icon_classes(active:)
@@ -18,7 +18,7 @@ module DashboardNavigationHelper
 
   def mosaic_sidebar_child_link_classes(active:)
     base = "block rounded-md px-2 py-1 transition-colors truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-800"
-    active ? "#{base} text-teal-600 dark:text-teal-300 bg-teal-500/10 dark:bg-teal-500/15" : "#{base} text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100/70 dark:hover:bg-gray-700/50"
+    active ? "#{base} text-teal-600 dark:text-teal-300 bg-teal-500/10 dark:bg-teal-500/15" : "#{base} text-gray-500/90 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50"
   end
 
   def mosaic_sidebar_child_span_classes

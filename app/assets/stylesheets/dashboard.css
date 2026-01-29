@@ -62,3 +62,117 @@
 .btn-xs:disabled {
   cursor: not-allowed;
 }
+
+/* Dashboard teal utilities (Mosaic CSS omits teal palette). */
+:root {
+  --teal-100: #ccfbf1;
+  --teal-200: #99f6e4;
+  --teal-300: #5eead4;
+  --teal-400: #2dd4bf;
+  --teal-500: #14b8a6;
+  --teal-600: #0d9488;
+  --teal-800: #115e59;
+}
+
+.text-teal-400 {
+  color: var(--teal-400);
+}
+
+.text-teal-500 {
+  color: var(--teal-500);
+}
+
+.text-teal-600 {
+  color: var(--teal-600);
+}
+
+.text-teal-800 {
+  color: var(--teal-800);
+}
+
+.bg-teal-100 {
+  background-color: var(--teal-100);
+}
+
+.bg-teal-200 {
+  background-color: var(--teal-200);
+}
+
+.bg-teal-500 {
+  background-color: var(--teal-500);
+}
+
+.bg-teal-500\/10 {
+  background-color: rgba(20, 184, 166, 0.1);
+}
+
+.bg-teal-500\/15 {
+  background-color: rgba(20, 184, 166, 0.15);
+}
+
+.bg-teal-500\/20 {
+  background-color: rgba(20, 184, 166, 0.2);
+}
+
+.hover\:text-teal-600:hover {
+  color: var(--teal-600);
+}
+
+.hover\:text-teal-800:hover {
+  color: var(--teal-800);
+}
+
+.focus-visible\:ring-teal-500\/40:focus-visible {
+  --tw-ring-color: rgba(20, 184, 166, 0.4);
+}
+
+.focus\:ring-teal-500:focus {
+  --tw-ring-color: var(--teal-500);
+}
+
+.from-teal-500 {
+  --tw-gradient-from: var(--teal-500);
+  --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+}
+
+.to-teal-500 {
+  --tw-gradient-to: var(--teal-500);
+  --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+}
+
+.dark .dark\:bg-teal-500\/15 {
+  background-color: rgba(20, 184, 166, 0.15);
+}
+
+.dark .dark\:bg-teal-500\/20 {
+  background-color: rgba(20, 184, 166, 0.2);
+}
+
+.dark .dark\:text-teal-100 {
+  color: var(--teal-100);
+}
+
+.dark .dark\:text-teal-300 {
+  color: var(--teal-300);
+}
+
+.dark .dark\:text-teal-400 {
+  color: var(--teal-400);
+}
+
+.dark .dark\:hover\:text-teal-100:hover {
+  color: var(--teal-100);
+}
+
+.dark .dark\:hover\:text-teal-300:hover {
+  color: var(--teal-300);
+}
+
+.dark .dark\:hover\:text-teal-400:hover {
+  color: var(--teal-400);
+}
+
+.dark .dark\:from-teal-500 {
+  --tw-gradient-from: var(--teal-500);
+  --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+}
