@@ -408,7 +408,7 @@ en:
       hero:
         title: "Trading Sniper"
         title_emphasis: "Panel"
-        subtitle: "MetaTrader 5 panel that speeds up execution and calculates risk with precision. A complete forex ecosystem."
+        subtitle: "MetaTrader 5 panel that improves execution and calculates precise entries. A complete forex ecosystem."
         cta: "Get started"
       press_logos:
         binance: "Binance"
@@ -417,26 +417,26 @@ en:
         mql5: "MQL5"
         tradingview: "TradingView"
       features:
-        title: "COMPLETE PORTFOLIOS FOR TRADING"
+        title: "COMPLETE FOREX PORTFOLIOS"
         items:
           execution:
-            title: "Execution and management"
-            body: "Panels and systems to execute and manage in MT5 with precision."
+            title: "Execution and control"
+            body: "MT5 order management panel with quick-setup tools."
           systems:
             title: "Systems and EAs"
             body: "Automation modules with rules: setups, schedules, exits."
           indicators:
             title: "Indicators and templates"
-            body: "Templates and indicators for clear analysis and confident decisions."
+            body: "Templates and indicators for clear forex analysis."
       features2:
-        title: "A SYSTEM FOR TRADERS"
-        subtitle: "Sniper integrates execution, risk, and automation in a single portfolio. Start with one tool and scale."
-        content_title: "Sniper ecosystem: tools that work together"
-        content_body: "An expanding portfolio of panels, systems, indicators, and resources designed to execute with discipline, reduce mistakes, and trade with structure."
+        title: "A PLATFORM FOR TRADERS"
+        subtitle: "Access panels, templates, and systems (EAs) for MT5, with licenses and updates from your account."
+        content_title: "MT5 tools ecosystem"
+        content_body: "A catalog of panels, systems, indicators, and resources designed to standardize your trading, organize your workflow, and operate with clear rules."
         bullets:
-          - "Execution and management panels for MT5"
-          - "Systems and modules with setup rules and automation"
-          - "Indicators, templates, and resources for clear analysis"
+          - "Execution and management panels for MetaTrader 5"
+          - "Systems and modules with configurable rules and automation"
+          - "Indicators, templates, and resources for visualization and analysis"
       pricing:
         title: "CHOOSE YOUR IDEAL PLAN"
         subtitle: "EA license access for MetaTrader 5. Includes guided installation and support by plan."
@@ -446,10 +446,10 @@ en:
         tiers:
           basic:
             name: "Basic"
-            description: "For traders who want precise risk, partials, and break-even in a single panel."
+            description: "For traders who want precise information on partial closes and break-even points in a single panel."
             features_title: "Includes:"
             features:
-              - "Risk by % / USD / lot size"
+              - "Control by % / USD / lot size"
               - "Partial closes (33%)"
               - "Automatic break-even"
               - "Close all buys/sells"
@@ -466,10 +466,10 @@ en:
               - "Emergency shortcuts"
           pro:
             name: "Pro"
-            description: "For advanced trading: risk layers x2/x3 and tighter control on high-probability setups."
+            description: "For advanced traders: x2/x3 control layers and a stricter panel for fast setups."
             features_title: "Everything in HFT, plus:"
             features:
-              - "Rej risk layers x2 and Rej x3"
+              - "Rej control layers x2 and Rej x3"
               - "Advanced execution flows"
               - "Priority support"
               - "Premium updates"
@@ -492,7 +492,7 @@ en:
               - "Billing assistance and reporting"
               - "Quarterly enablement reviews"
       testimonials:
-        title: "REAL TRADERS"
+        title: "REAL USERS"
         avatar_alt: "Testimonial avatar %{index}"
         items:
           - quote: "I went from improvising to a complete workflow. Sniper puts everything in order."
@@ -501,7 +501,7 @@ en:
           - quote: "The suite gives me tools for each stage: analysis, execution, and control."
             name: "Valentina M."
             role: "Swing Trader"
-          - quote: "Sniper changed my execution. Fewer clicks, fewer errors, more speed."
+          - quote: "Sniper changed my execution. Fewer clicks, more speed."
             name: "Andrés P."
             role: "MT5 Scalper"
           - quote: "I like that everything is consistent. My tools speak the same language."
@@ -519,7 +519,7 @@ en:
           - quote: "With the ecosystem, I manage multiple positions without losing control."
             name: "Julián A."
             role: "Advanced Trader"
-          - quote: "It’s a serious suite: discipline, risk, and execution in one system."
+          - quote: "It’s a serious suite: discipline and execution in one system."
             name: "Lucía C."
             role: "MT5 Trader"
       resources:
@@ -538,7 +538,7 @@ en:
           video_tutorial: "Video tutorial"
       cta:
         title: "Join Sniper"
-        body: "Tools and systems to trade with structure. Start with Sniper and scale with the portfolio."
+        body: "MT5 tools to trade with rules and structure: panel, templates, and indicators."
         button: "Get started"
       media:
         hero_illustration_alt: "Hero Illustration"

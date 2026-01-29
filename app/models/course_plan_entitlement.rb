@@ -5,6 +5,14 @@ class CoursePlanEntitlement < ApplicationRecord
   validates :billing_plan_id, uniqueness: { scope: :course_id }
   validate :billing_plan_is_supported
 
+  def self.ransackable_associations(_auth_object = nil)
+    %w[billing_plan course]
+  end
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[billing_plan_id course_id created_at id updated_at]
+  end
+
   private
 
   def billing_plan_is_supported
