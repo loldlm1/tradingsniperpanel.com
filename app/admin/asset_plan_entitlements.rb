@@ -2,18 +2,8 @@ ActiveAdmin.register AssetPlanEntitlement do
   permit_params :billing_plan_id, :marketplace_asset_id
 
   controller do
-    before_action :require_master_admin!, only: %i[new create edit update destroy]
-
     def scoped_collection
       super.includes(:billing_plan, :marketplace_asset)
-    end
-
-    private
-
-    def require_master_admin!
-      return if master_admin?
-
-      redirect_to admin_asset_plan_entitlements_path, alert: t("active_admin.users.role_forbidden")
     end
   end
 

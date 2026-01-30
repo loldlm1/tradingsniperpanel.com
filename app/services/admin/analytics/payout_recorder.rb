@@ -15,7 +15,7 @@ module Admin
       end
 
       def call
-        return Result.new(payout: nil, errors: ["Unauthorized"]) unless actor&.master_admin?
+        return Result.new(payout: nil, errors: ["Unauthorized"]) unless admin_actor?
 
         period = PeriodResolver.new(key: period_key, as_of: parsed_as_of).call
         payout = RevenueSplitPayout.find_or_initialize_by(
@@ -52,6 +52,10 @@ module Admin
       private
 
       attr_reader :period_key, :as_of, :actor, :notes
+
+      def admin_actor?
+        actor&.admin? || actor&.master_admin?
+      end
 
       def parsed_as_of
         return Time.current if as_of.blank?

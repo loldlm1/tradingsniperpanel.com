@@ -2,18 +2,8 @@ ActiveAdmin.register CoursePlanEntitlement do
   permit_params :billing_plan_id, :course_id
 
   controller do
-    before_action :require_master_admin!, only: %i[new create edit update destroy]
-
     def scoped_collection
       super.includes(:billing_plan, :course)
-    end
-
-    private
-
-    def require_master_admin!
-      return if master_admin?
-
-      redirect_to admin_course_plan_entitlements_path, alert: t("active_admin.users.role_forbidden")
     end
   end
 

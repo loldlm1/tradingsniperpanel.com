@@ -31,6 +31,8 @@ Create a clear, client-facing admin guide (English + Spanish) that explains how 
 9) Add standalone HTML versions of the guides with minimal CSS and image embeds.
 10) Replace `es-02-data-map.png` with a Mermaid-based Spanish data map diagram (store `.mmd` source + render PNG).
 11) Add additional Mermaid diagrams for purchase flows, EA bundles/add-ons, and entitlements; render PNG/SVG and embed in guides.
+12) Align admin permissions so admins can CRUD all resources; only user role updates differ.
+13) Update specs for new permission rules and run full test suite.
 11) Accuracy pass against admin forms/fields and finalize.
 
 ## Open Questions
@@ -47,6 +49,7 @@ None.
 - Replaced `es-02-data-map.png` with a Spanish-only data map diagram exported from SVG.
 - Use Mermaid (`.mmd`) as the source of truth for data map diagrams.
 - Use Mermaid (`.mmd`) as the source of truth for additional guide diagrams.
+- Admins can CRUD all ActiveAdmin resources; only master_admin can change user roles.
 
 ## Commands Run (PASS/FAIL only)
 - `sed -n '1,200p' /home/loldlm/.agents/skills/technical-writer/SKILL.md` (PASS)
@@ -165,3 +168,49 @@ None.
 - `sed -n '180,230p' saas_admin_guide/guide.en.html` (PASS)
 - `sed -n '160,190p' saas_admin_guide/guide.en.html` (PASS)
 - `git status --short` (PASS)
+- `rg -n "master_admin|admin" app config | head -n 200` (PASS)
+- `rg -n "require_master_admin!|master_admin" app/admin` (PASS)
+- `sed -n '1,120p' app/admin/users.rb` (PASS)
+- `rg -n "class RoleGuard|RoleGuard" app -g"*.rb"` (PASS)
+- `sed -n '1,200p' app/services/admin/users/role_guard.rb` (PASS)
+- `sed -n '1,140p' app/admin/billing_plans.rb` (PASS)
+- `sed -n '1,80p' app/admin/expert_advisors.rb` (PASS)
+- `sed -n '1,160p' app/admin/revenue_split_payouts.rb` (PASS)
+- `sed -n '1,80p' app/admin/expert_advisor_bundles.rb` (PASS)
+- `sed -n '1,200p' app/models/revenue_split_payout.rb` (PASS)
+- `sed -n '1,200p' app/services/admin/analytics/payout_recorder.rb` (PASS)
+- `rg -n "master_admin\\?|master_admin" app/services app/admin app/models app/controllers` (PASS)
+- `ls -la spec` (PASS)
+- `rg -n "RoleGuard|master_admin|admin" spec` (PASS)
+- `sed -n '1,200p' spec/services/admin/users/role_guard_spec.rb` (PASS)
+- `sed -n '1,200p' spec/requests/admin_marketplace_linking_spec.rb` (PASS)
+- `sed -n '1,220p' spec/requests/admin_marketplace_products_spec.rb` (PASS)
+- `sed -n '1,120p' spec/requests/admin_expert_advisor_bundles_spec.rb` (PASS)
+- `sed -n '1,120p' spec/requests/admin_revenue_split_payouts_spec.rb` (PASS)
+- `sed -n '1,120p' spec/services/admin/analytics/payout_recorder_spec.rb` (PASS)
+- `sed -n '1,120p' spec/models/revenue_split_payout_spec.rb` (PASS)
+- `rg -n "blocks admins|blocks admin|forbid|role_forbidden|master_admin" spec/requests spec/services spec/models` (PASS)
+- `sed -n '1,220p' app/services/admin/marketplace_product_upsert.rb` (PASS)
+- `rg -n "COMPLETE PORTFOLIOS|Execution playbooks" -g"*"` (PASS)
+- `sed -n '1,120p' app/views/templates/neon/pages/home.html.erb` (PASS)
+- `rg -n "landing" config/locales` (PASS)
+- `sed -n '402,520p' config/locales/en.yml` (PASS)
+- `sed -n '1,120p' spec/requests/admin_access_spec.rb` (PASS)
+- `sed -n '1,160p' spec/requests/landing_template_locale_branding_spec.rb` (PASS)
+- `rg -n "require_master_admin!" app/admin` (FAIL)
+- `bin/rspec` (FAIL)
+- `ls -la bin` (PASS)
+- `bundle exec rspec` (FAIL)
+- `bundle exec rspec` (FAIL)
+- `bundle exec rspec` (PASS)
+- `sed -n '1,200p' app/models/user.rb` (PASS)
+- `rg -n "create_table \\\"users\\\"" -n db/schema.rb` (PASS)
+- `sed -n '658,720p' db/schema.rb` (PASS)
+- `sed -n '1,120p' app/admin/courses.rb` (PASS)
+- `sed -n '1,120p' app/admin/marketplace_assets.rb` (PASS)
+- `sed -n '1,120p' app/admin/billing_plan_entitlements.rb` (PASS)
+- `sed -n '1,120p' app/admin/course_plan_entitlements.rb` (PASS)
+- `sed -n '1,120p' app/admin/asset_plan_entitlements.rb` (PASS)
+- `rg -n "role|admin" saas_admin_guide/README.md saas_admin_guide/README.es.md saas_admin_guide/master_admin_guide.md` (PASS)
+- `sed -n '260,320p' saas_admin_guide/README.md` (PASS)
+- `sed -n '250,320p' saas_admin_guide/README.es.md` (PASS)

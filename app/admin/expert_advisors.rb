@@ -3,16 +3,9 @@ ActiveAdmin.register ExpertAdvisor do
                 :ea_files, :tag_list
 
   controller do
-    before_action :require_master_admin!, only: %i[new create edit update destroy]
     after_action :sync_marketplace_products, only: %i[create update]
 
     private
-
-    def require_master_admin!
-      return if master_admin?
-
-      redirect_to admin_expert_advisors_path, alert: t("active_admin.users.role_forbidden")
-    end
 
     def find_resource
       scoped_collection.find_by!(ea_id: params[:id])

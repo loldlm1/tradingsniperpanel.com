@@ -268,11 +268,11 @@ Captura:
 ## 14) Usuarios
 **Dónde:** Admin → Users
 
-- Configura email, nombre, rol, idioma preferido y zona horaria.
+- Configura email, nombre, idioma preferido y zona horaria.
 - Contraseña solo al crear.
 
 **Nota**
-Algunas acciones pueden estar restringidas por rol. Si no ves un botón, contacta al equipo interno.
+Los cambios de rol requieren soporte interno. Si no ves un botón, contacta al equipo interno.
 
 Captura:
 ![Usuarios](images/es-15-users.png)

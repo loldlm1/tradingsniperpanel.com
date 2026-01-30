@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Expert advisor bundles admin", type: :request do
-  it "blocks admins from creating bundles" do
+  it "allows admins to create bundles" do
     admin = create(:user, :admin)
     expert_advisor = create(:expert_advisor)
     sign_in admin, scope: :user
@@ -15,15 +15,16 @@ RSpec.describe "Expert advisor bundles admin", type: :request do
           sort_order: 0
         }
       }
-    }.not_to change(ExpertAdvisorBundle, :count)
+    }.to change(ExpertAdvisorBundle, :count).by(1)
 
-    expect(response).to redirect_to(admin_expert_advisor_bundles_path)
+    bundle = ExpertAdvisorBundle.last
+    expect(bundle.bundle_key).to eq("addon_a")
   end
 
-  it "derives bundle_key from required add-on keys for master admins" do
-    master_admin = create(:user, :master_admin)
+  it "derives bundle_key from required add-on keys" do
+    admin = create(:user, :admin)
     expert_advisor = create(:expert_advisor)
-    sign_in master_admin, scope: :user
+    sign_in admin, scope: :user
 
     expect {
       post admin_expert_advisor_bundles_path, params: {

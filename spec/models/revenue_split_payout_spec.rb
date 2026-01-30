@@ -9,12 +9,11 @@ RSpec.describe RevenueSplitPayout, type: :model do
     expect(payout.errors[:paid_by_admin]).to be_present
   end
 
-  it "rejects non-master admins as paid_by_admin" do
+  it "allows admins as paid_by_admin" do
     admin = create(:user, :admin)
     payout = build(:revenue_split_payout, paid_by_admin: admin, status: :paid, paid_at: Time.current)
 
-    expect(payout).not_to be_valid
-    expect(payout.errors[:paid_by_admin]).to be_present
+    expect(payout).to be_valid
   end
 
   it "requires split amounts to match net" do

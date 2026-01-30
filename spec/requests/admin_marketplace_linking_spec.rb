@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Marketplace product linking admin", type: :request do
-  it "blocks admins from updating expert advisors" do
+  it "allows admins to update expert advisors" do
     admin = create(:user, :admin)
     expert_advisor = create(:expert_advisor)
     sign_in admin, scope: :user
@@ -10,10 +10,10 @@ RSpec.describe "Marketplace product linking admin", type: :request do
       expert_advisor: { marketplace_product_ids: [] }
     }
 
-    expect(response).to redirect_to(admin_expert_advisors_path)
+    expect(response).to redirect_to(admin_expert_advisor_path(expert_advisor))
   end
 
-  it "blocks admins from updating courses" do
+  it "allows admins to update courses" do
     admin = create(:user, :admin)
     course = create(:course)
     sign_in admin, scope: :user
@@ -22,10 +22,10 @@ RSpec.describe "Marketplace product linking admin", type: :request do
       course: { marketplace_product_ids: [] }
     }
 
-    expect(response).to redirect_to(admin_courses_path)
+    expect(response).to redirect_to(admin_course_path(course))
   end
 
-  it "blocks admins from updating marketplace assets" do
+  it "allows admins to update marketplace assets" do
     admin = create(:user, :admin)
     asset = create(:marketplace_asset)
     sign_in admin, scope: :user
@@ -34,7 +34,7 @@ RSpec.describe "Marketplace product linking admin", type: :request do
       marketplace_asset: { marketplace_product_ids: [] }
     }
 
-    expect(response).to redirect_to(admin_marketplace_assets_path)
+    expect(response).to redirect_to(admin_marketplace_asset_path(asset))
   end
 
   it "syncs expert advisor entitlements and keeps subscription access" do

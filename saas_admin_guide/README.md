@@ -281,11 +281,11 @@ Screenshot (ES):
 **Where:** Admin → Users
 
 **Create or edit users**
-- Set email, name, role, preferred locale, time zone.
+- Set email, name, preferred locale, time zone.
 - Passwords are only required on create.
 
 **Role notes**
-Some actions may be restricted by role. If a button is missing, contact your internal admin team.
+Role changes require internal admin support. If a button is missing, contact your internal admin team.
 
 Screenshot (ES):
 ![Users index](images/es-15-users.png)
