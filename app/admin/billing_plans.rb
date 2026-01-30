@@ -3,8 +3,6 @@ ActiveAdmin.register BillingPlan do
                 :currency, :active, :sort_order, :stripe_product_id, :stripe_price_id, :metadata
 
   controller do
-    before_action :require_master_admin!, only: %i[new create edit update destroy]
-
     def create
       result = Admin::BillingPlanUpsert.new(attributes: plan_params).call
 
@@ -30,12 +28,6 @@ ActiveAdmin.register BillingPlan do
     end
 
     private
-
-    def require_master_admin!
-      return if master_admin?
-
-      redirect_to admin_billing_plans_path, alert: t("active_admin.users.role_forbidden")
-    end
 
     def plan_params
       params.require(:billing_plan).permit(

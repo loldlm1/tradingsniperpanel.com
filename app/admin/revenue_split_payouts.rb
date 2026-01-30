@@ -4,15 +4,11 @@ ActiveAdmin.register RevenueSplitPayout do
   config.clear_action_items!
 
   action_item :new, only: :index do
-    if master_admin?
-      link_to t("active_admin.new_model", model: RevenueSplitPayout.model_name.human), new_admin_revenue_split_payout_path
-    end
+    link_to t("active_admin.new_model", model: RevenueSplitPayout.model_name.human), new_admin_revenue_split_payout_path
   end
 
   action_item :edit, only: :show do
-    if master_admin?
-      link_to t("active_admin.edit_model", model: RevenueSplitPayout.model_name.human), edit_admin_revenue_split_payout_path(resource)
-    end
+    link_to t("active_admin.edit_model", model: RevenueSplitPayout.model_name.human), edit_admin_revenue_split_payout_path(resource)
   end
 
   index do
@@ -36,9 +32,7 @@ ActiveAdmin.register RevenueSplitPayout do
     column :created_at
     actions defaults: false do |payout|
       item t("active_admin.view"), admin_revenue_split_payout_path(payout)
-      if master_admin?
-        item t("active_admin.edit"), edit_admin_revenue_split_payout_path(payout)
-      end
+      item t("active_admin.edit"), edit_admin_revenue_split_payout_path(payout)
     end
   end
 
@@ -72,8 +66,6 @@ ActiveAdmin.register RevenueSplitPayout do
   end
 
   controller do
-    before_action :require_master_admin!, only: %i[new create edit update destroy]
-
     def create
       result = Admin::Analytics::PayoutRecorder.new(
         period_key: payout_params[:period_key],
@@ -110,10 +102,5 @@ ActiveAdmin.register RevenueSplitPayout do
       params.require(:revenue_split_payout).permit(:notes)
     end
 
-    def require_master_admin!
-      return if master_admin?
-
-      redirect_to admin_revenue_split_payouts_path, alert: t("active_admin.users.role_forbidden")
-    end
   end
 end

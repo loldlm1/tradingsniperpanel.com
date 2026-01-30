@@ -20,7 +20,7 @@ class RevenueSplitPayout < ApplicationRecord
   validate :starts_before_ends
   validate :split_matches_net
   validate :paid_details_present
-  validate :paid_by_admin_is_master_admin
+  validate :paid_by_admin_is_admin_user
 
   scope :for_period, ->(period) { where(period_key: period.key, starts_at: period.starts_at, ends_at: period.ends_at) }
 
@@ -47,9 +47,9 @@ class RevenueSplitPayout < ApplicationRecord
     errors.add(:paid_by_admin, :blank) if paid_by_admin.blank?
   end
 
-  def paid_by_admin_is_master_admin
+  def paid_by_admin_is_admin_user
     return if paid_by_admin.blank?
-    return if paid_by_admin.master_admin?
+    return if paid_by_admin.admin? || paid_by_admin.master_admin?
 
     errors.add(:paid_by_admin, :invalid)
   end

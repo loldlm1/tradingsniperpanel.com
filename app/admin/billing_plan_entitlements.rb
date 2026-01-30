@@ -2,18 +2,8 @@ ActiveAdmin.register BillingPlanEntitlement do
   permit_params :billing_plan_id, :expert_advisor_id
 
   controller do
-    before_action :require_master_admin!, only: %i[new create edit update destroy]
-
     def scoped_collection
       super.includes(:billing_plan, :expert_advisor)
-    end
-
-    private
-
-    def require_master_admin!
-      return if master_admin?
-
-      redirect_to admin_billing_plan_entitlements_path, alert: t("active_admin.users.role_forbidden")
     end
   end
 

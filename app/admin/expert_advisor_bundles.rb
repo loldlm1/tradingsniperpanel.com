@@ -2,16 +2,9 @@ ActiveAdmin.register ExpertAdvisorBundle do
   permit_params :expert_advisor_id, :required_addon_keys, :bundle_key, :active, :sort_order, :bundle_file
 
   controller do
-    before_action :require_master_admin!, only: %i[new create edit update destroy]
     before_action :assign_bundle_key, only: %i[create update]
 
     private
-
-    def require_master_admin!
-      return if master_admin?
-
-      redirect_to admin_expert_advisor_bundles_path, alert: t("active_admin.users.role_forbidden")
-    end
 
     def assign_bundle_key
       return unless params[:expert_advisor_bundle].is_a?(ActionController::Parameters)

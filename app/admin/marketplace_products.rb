@@ -3,8 +3,6 @@ ActiveAdmin.register MarketplaceProduct do
                 :description_en, :description_es, :image
 
   controller do
-    before_action :require_master_admin!, only: %i[new create edit update destroy]
-
     def create
       result = Admin::MarketplaceProductUpsert.new(
         product_attributes: product_params,
@@ -43,12 +41,6 @@ ActiveAdmin.register MarketplaceProduct do
     end
 
     private
-
-    def require_master_admin!
-      return if master_admin?
-
-      redirect_to admin_marketplace_products_path, alert: t("active_admin.users.role_forbidden")
-    end
 
     def find_resource
       scoped_collection.find_by!(slug: params[:id])

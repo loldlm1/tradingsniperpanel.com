@@ -1,16 +1,9 @@
 # Master Admin Features (Developer Guide)
 
-This short guide lists admin-only capabilities that require the `master_admin` role. These areas are intentionally restricted because they affect billing, entitlements, and payout logic.
+This short guide lists admin-only capabilities that require the `master_admin` role. The current policy is that admins can CRUD all resources; only role changes are restricted.
 
 ## Restricted areas
-- **Expert Advisors**: create/edit/delete
-- **Expert Advisor Bundles**: create/edit/delete
-- **Courses**: create/edit/delete
-- **Marketplace Assets**: create/edit/delete
-- **Marketplace Products**: create/edit/delete (affects Stripe one‑time products)
-- **Billing Plans**: create/edit/delete (affects Stripe subscription products)
-- **Plan Entitlements**: create/edit/delete for EA/Course/Asset access
-- **Revenue Split Payouts**: create/edit (record paid periods)
+- **User roles**: only `master_admin` can change a user’s `role` (including assigning `admin` or `master_admin`).
 
 ## Operational notes
 - **Stripe sync**
@@ -20,9 +13,10 @@ This short guide lists admin-only capabilities that require the `master_admin` r
   - Marketplace Asset add-ons require an existing base product.
   - EA add-on keys must be covered by bundle files for all combinations.
 - **Roles**
-  - Only `master_admin` can grant or edit admin-level roles.
+  - `admin` users can create/edit users but cannot change the `role` field.
+  - `master_admin` can assign or update all roles.
 
 ## Where to review code
-- Access gates live in ActiveAdmin resources (`app/admin/...`).
+- Role change gates live in `app/services/admin/users/role_guard.rb` and `app/admin/users.rb`.
 - Stripe sync for subscriptions: `app/services/billing/plan_creator.rb`.
 - Stripe sync for marketplace products: `app/services/marketplace/product_manager.rb`.

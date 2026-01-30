@@ -31,13 +31,33 @@ RSpec.describe Admin::Analytics::PayoutRecorder do
     expect(payout.ends_at.to_i).to eq(Time.zone.parse("2026-01-15").end_of_day.to_i)
   end
 
-  it "rejects non-master admins" do
+  it "allows admins to create payouts" do
     admin = create(:user, :admin)
+    create(:revenue_split_rule, effective_at: Time.zone.parse("2026-01-01"), us_percent: 40, client_percent: 60)
+    create(
+      :manual_transaction,
+      amount_cents: 10_000,
+      paid_at: Time.zone.parse("2026-01-10"),
+      recorded_by_admin: admin
+    )
 
     result = described_class.new(
       period_key: "first_half",
       as_of: Time.zone.parse("2026-01-10"),
       actor: admin
+    ).call
+
+    expect(result).to be_ok
+    expect(RevenueSplitPayout.count).to eq(1)
+  end
+
+  it "rejects non-admin actors" do
+    trader = create(:user)
+
+    result = described_class.new(
+      period_key: "first_half",
+      as_of: Time.zone.parse("2026-01-10"),
+      actor: trader
     ).call
 
     expect(result.ok?).to be(false)

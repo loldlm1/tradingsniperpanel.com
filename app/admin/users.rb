@@ -2,7 +2,6 @@ ActiveAdmin.register User do
   permit_params :email, :password, :password_confirmation, :name, :role, :preferred_locale, :time_zone
 
   controller do
-    before_action :restrict_master_admin_access, only: %i[show edit update destroy]
     before_action :clear_blank_passwords, only: :update
 
     def scoped_collection
@@ -31,12 +30,6 @@ ActiveAdmin.register User do
 
     def role_guard
       @role_guard ||= Admin::Users::RoleGuard.new(actor: current_user)
-    end
-
-    def restrict_master_admin_access
-      return if role_guard.can_access_record?(resource)
-
-      redirect_to admin_users_path, alert: t("active_admin.users.master_admin_hidden")
     end
 
     def clear_blank_passwords

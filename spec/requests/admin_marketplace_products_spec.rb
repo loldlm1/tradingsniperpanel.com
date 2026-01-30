@@ -44,17 +44,21 @@ RSpec.describe "Marketplace products admin", type: :request do
   end
 
   describe "POST /admin/marketplace_products" do
-    it "blocks admins from creating marketplace products" do
+    it "allows admins to create marketplace products" do
       admin = create(:user, :admin)
       sign_in admin, scope: :user
 
-      expect {
-        post admin_marketplace_products_path, params: {
-          marketplace_product: base_product_params
-        }
-      }.not_to change(MarketplaceProduct, :count)
+      with_stripe_key do
+        stub_stripe_product_and_price(amount_cents: 4900)
 
-      expect(response).to redirect_to(admin_marketplace_products_path)
+        expect {
+          post admin_marketplace_products_path, params: {
+            marketplace_product: base_product_params
+          }
+        }.to change(MarketplaceProduct, :count).by(1)
+      end
+
+      expect(response).to redirect_to(admin_marketplace_product_path(MarketplaceProduct.last))
     end
 
     it "allows master admins to create marketplace products with entitlements and add-ons" do
@@ -175,16 +179,24 @@ RSpec.describe "Marketplace products admin", type: :request do
   end
 
   describe "PATCH /admin/marketplace_products/:id" do
-    it "blocks admins from updating marketplace products" do
+    it "allows admins to update marketplace products" do
       admin = create(:user, :admin)
       product = create(:marketplace_product)
       sign_in admin, scope: :user
 
-      patch admin_marketplace_product_path(product), params: {
-        marketplace_product: update_params_for(product)
-      }
+      with_stripe_key do
+        stub_stripe_product_and_price(
+          amount_cents: product.billing_plan.amount_cents,
+          product_id: product.billing_plan.stripe_product_id,
+          price_id: product.billing_plan.stripe_price_id
+        )
 
-      expect(response).to redirect_to(admin_marketplace_products_path)
+        patch admin_marketplace_product_path(product), params: {
+          marketplace_product: update_params_for(product)
+        }
+      end
+
+      expect(response).to redirect_to(admin_marketplace_product_path(product))
     end
 
     it "updates entitlements and removes unselected ones" do
