@@ -1,0 +1,23 @@
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#e2e8f0"
+    primaryTextColor: "#0f172a"
+    primaryBorderColor: "#94a3b8"
+    lineColor: "#64748b"
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+---
+flowchart LR
+  START(["Compra iniciada"]) --> CHOICE{Tipo de compra}
+
+  CHOICE -->|"Suscripcion"| PLAN["Plan de billing (suscripcion)"]
+  PLAN --> SUB["Suscripcion activa"]
+  SUB --> PLANENT["Entitlements de plan"]
+  PLANENT --> ACCESS["Acceso a EA/Curso/Asset"]
+
+  CHOICE -->|"Pago unico"| PRODUCT["Producto de marketplace"]
+  PRODUCT --> OTP["Billing Plan one-time"]
+  OTP --> ENT["Entitlements (one-time)"]
+  ENT --> ACCESS

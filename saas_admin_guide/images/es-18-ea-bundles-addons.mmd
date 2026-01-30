@@ -1,0 +1,18 @@
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#e2e8f0"
+    primaryTextColor: "#0f172a"
+    primaryBorderColor: "#94a3b8"
+    lineColor: "#64748b"
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+---
+flowchart LR
+  EA["Expert Advisor"] --> ADDONS["Add-ons (Marketplace Products)"]
+  ADDONS --> KEY["Add-on key"]
+  KEY --> BUNDLE["Bundle de EA"]
+  BUNDLE --> FILE["Archivo descargable"]
+
+  EA --> BUNDLE
