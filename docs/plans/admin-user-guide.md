@@ -29,7 +29,8 @@ Create a clear, client-facing admin guide (English + Spanish) that explains how 
 7) Capture ES screenshots from the admin using agent-browser and replace placeholders.
 8) Embed screenshot images after each section in both Markdown guides.
 9) Add standalone HTML versions of the guides with minimal CSS and image embeds.
-10) Replace `es-02-data-map.png` with a Spanish-only data map diagram.
+10) Replace `es-02-data-map.png` with a Mermaid-based Spanish data map diagram (store `.mmd` source + render PNG).
+11) Add additional Mermaid diagrams for purchase flows, EA bundles/add-ons, and entitlements; render PNG/SVG and embed in guides.
 11) Accuracy pass against admin forms/fields and finalize.
 
 ## Open Questions
@@ -44,6 +45,8 @@ None.
 - Embedded screenshot images inline after each section in the Markdown guides.
 - Added standalone HTML versions of the guides with minimal CSS and Spanish labels.
 - Replaced `es-02-data-map.png` with a Spanish-only data map diagram exported from SVG.
+- Use Mermaid (`.mmd`) as the source of truth for data map diagrams.
+- Use Mermaid (`.mmd`) as the source of truth for additional guide diagrams.
 
 ## Commands Run (PASS/FAIL only)
 - `sed -n '1,200p' /home/loldlm/.agents/skills/technical-writer/SKILL.md` (PASS)
@@ -138,4 +141,27 @@ None.
 - `sed -n '1,80p' saas_admin_guide/README.md` (PASS)
 - `ls -la saas_admin_guide/images` (PASS)
 - `sed -n '1,120p' saas_admin_guide/guide.en.html` (PASS)
+- `git status --short` (PASS)
+- `command -v mmdc` (FAIL)
+- `node -v` (PASS)
+- `npm -v` (PASS)
+- `cat <<'EOF' > saas_admin_guide/images/es-02-data-map.mmd` (PASS)
+- `npx -y @mermaid-js/mermaid-cli -i saas_admin_guide/images/es-02-data-map.mmd -o saas_admin_guide/images/es-02-data-map.svg` (FAIL)
+- `npx -y @mermaid-js/mermaid-cli -i saas_admin_guide/images/es-02-data-map.mmd -o saas_admin_guide/images/es-02-data-map.svg` (PASS)
+- `npx -y @mermaid-js/mermaid-cli -i saas_admin_guide/images/es-02-data-map.mmd -o saas_admin_guide/images/es-02-data-map.png` (PASS)
+- `ls -lh saas_admin_guide/images/es-02-data-map.*` (PASS)
+- `git status --short` (PASS)
+- `cat <<'EOF' > saas_admin_guide/images/es-17-purchase-flow.mmd` (PASS)
+- `cat <<'EOF' > saas_admin_guide/images/es-18-ea-bundles-addons.mmd` (PASS)
+- `cat <<'EOF' > saas_admin_guide/images/es-19-entitlements-map.mmd` (PASS)
+- `npx -y @mermaid-js/mermaid-cli -i saas_admin_guide/images/es-17-purchase-flow.mmd -o saas_admin_guide/images/es-17-purchase-flow.svg` (PASS)
+- `npx -y @mermaid-js/mermaid-cli -i saas_admin_guide/images/es-17-purchase-flow.mmd -o saas_admin_guide/images/es-17-purchase-flow.png` (PASS)
+- `npx -y @mermaid-js/mermaid-cli -i saas_admin_guide/images/es-18-ea-bundles-addons.mmd -o saas_admin_guide/images/es-18-ea-bundles-addons.svg` (PASS)
+- `npx -y @mermaid-js/mermaid-cli -i saas_admin_guide/images/es-18-ea-bundles-addons.mmd -o saas_admin_guide/images/es-18-ea-bundles-addons.png` (PASS)
+- `npx -y @mermaid-js/mermaid-cli -i saas_admin_guide/images/es-19-entitlements-map.mmd -o saas_admin_guide/images/es-19-entitlements-map.svg` (PASS)
+- `npx -y @mermaid-js/mermaid-cli -i saas_admin_guide/images/es-19-entitlements-map.mmd -o saas_admin_guide/images/es-19-entitlements-map.png` (PASS)
+- `rg -n "ea-addons|add-on" saas_admin_guide/guide.en.html` (PASS)
+- `sed -n '120,150p' saas_admin_guide/guide.en.html` (PASS)
+- `sed -n '180,230p' saas_admin_guide/guide.en.html` (PASS)
+- `sed -n '160,190p' saas_admin_guide/guide.en.html` (PASS)
 - `git status --short` (PASS)

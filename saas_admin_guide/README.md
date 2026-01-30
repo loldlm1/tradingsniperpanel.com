@@ -109,6 +109,9 @@ Add-ons are Marketplace Products that extend a specific EA.
 Screenshot (ES):
 ![EA add-on product](images/es-05-ea-addon-product.png)
 
+Diagram:
+![EA, add-ons, and bundles](images/es-18-ea-bundles-addons.png)
+
 ---
 
 ## 6) Courses
@@ -220,6 +223,9 @@ Use Billing Plans for subscription tiers (e.g., basic/monthly).
 Screenshot (ES):
 ![Billing plan form](images/es-12-billing-plans.png)
 
+Diagram:
+![Purchase flow (subscription vs one-time)](images/es-17-purchase-flow.png)
+
 ---
 
 ## 12) Plan entitlements (EA/Course/Asset access)
@@ -243,6 +249,9 @@ Use entitlements to define what a plan grants.
 
 Screenshot (ES):
 ![Plan entitlements](images/es-13-plan-entitlements.png)
+
+Diagram:
+![Entitlements by plan vs product](images/es-19-entitlements-map.png)
 
 ---
 

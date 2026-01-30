@@ -105,6 +105,9 @@ Los add-ons son Marketplace Products que extienden un EA específico.
 Captura:
 ![Add-on de EA](images/es-05-ea-addon-product.png)
 
+Diagrama:
+![Relación EA, add-ons y bundles](images/es-18-ea-bundles-addons.png)
+
 ---
 
 ## 6) Cursos
@@ -212,6 +215,9 @@ Captura:
 Captura:
 ![Formulario de plan](images/es-12-billing-plans.png)
 
+Diagrama:
+![Flujo de compra (suscripción vs pago único)](images/es-17-purchase-flow.png)
+
 ---
 
 ## 12) Entitlements de planes (EA/Curso/Asset)
@@ -233,6 +239,9 @@ Captura:
 
 Captura:
 ![Entitlements de plan](images/es-13-plan-entitlements.png)
+
+Diagrama:
+![Entitlements por plan vs producto](images/es-19-entitlements-map.png)
 
 ---
 

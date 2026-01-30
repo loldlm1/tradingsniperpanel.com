@@ -1,0 +1,31 @@
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#e2e8f0"
+    primaryTextColor: "#0f172a"
+    primaryBorderColor: "#94a3b8"
+    lineColor: "#64748b"
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+---
+flowchart LR
+  EA["Expert Advisors"] --> BUNDLE["Bundles de EA"]
+  COURSE["Cursos"] --> MODULE["Modulos"]
+  MODULE --> LESSON["Lecciones"]
+
+  MP["Productos de marketplace"] --> OTP["Planes de billing (pago unico)"]
+  MP --> ADDON["Add-ons (EA/Curso/Asset)"]
+  MP --> ENTITLE["Entitlements (EA/Curso/Asset)"]
+
+  SUBPLAN["Planes de billing (suscripcion)"] --> PLANENT["Entitlements de planes"]
+  PLANENT --> EA
+  PLANENT --> COURSE
+  PLANENT --> ASSET["Assets de marketplace"]
+
+  ENTITLE --> EA
+  ENTITLE --> COURSE
+  ENTITLE --> ASSET
+  ADDON --> EA
+  ADDON --> COURSE
+  ADDON --> ASSET
