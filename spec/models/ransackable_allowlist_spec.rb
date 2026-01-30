@@ -37,6 +37,16 @@ RSpec.describe "Ransack allowlists" do
                    MarketplaceProduct,
                    attributes: %w[slug status title_en title_es],
                    associations: []
+
+  include_examples "ransackable model",
+                   BillingPlan,
+                   attributes: %w[key name kind interval interval_count tier active],
+                   associations: []
+
+  include_examples "ransackable model",
+                   ExpertAdvisorBundle,
+                   attributes: %w[bundle_key active],
+                   associations: %w[expert_advisor]
 end
 
 RSpec.describe ActsAsTaggableOn::Tag, type: :model do

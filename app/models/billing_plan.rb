@@ -48,6 +48,32 @@ class BillingPlan < ApplicationRecord
     ordered.sort_by { |plan| [plan.sort_order.to_i, plan.amount_cents.to_i, plan.tier.to_s] }
   end
 
+  def self.ransackable_associations(_auth_object = nil)
+    []
+  end
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[
+      active
+      amount_cents
+      created_at
+      currency
+      description
+      id
+      interval
+      interval_count
+      key
+      kind
+      metadata
+      name
+      sort_order
+      stripe_price_id
+      stripe_product_id
+      tier
+      updated_at
+    ]
+  end
+
   validates :key, presence: true, uniqueness: true, format: { with: /\A[a-z0-9_]+\z/ }
   validates :name, presence: true, uniqueness: true
   validates :kind, presence: true
