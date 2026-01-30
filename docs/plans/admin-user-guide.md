@@ -32,7 +32,8 @@ Create a clear, client-facing admin guide (English + Spanish) that explains how 
 10) Replace `es-02-data-map.png` with a Mermaid-based Spanish data map diagram (store `.mmd` source + render PNG).
 11) Add additional Mermaid diagrams for purchase flows, EA bundles/add-ons, and entitlements; render PNG/SVG and embed in guides.
 12) Align admin permissions so admins can CRUD all resources; only user role updates differ.
-13) Update specs for new permission rules and run full test suite.
+13) Fix ransackable allowlists for BillingPlan and ExpertAdvisorBundle to prevent 500s in admin.
+14) Update specs for new permission rules and ransackable allowlists, then run full test suite.
 11) Accuracy pass against admin forms/fields and finalize.
 
 ## Open Questions
@@ -214,3 +215,11 @@ None.
 - `rg -n "role|admin" saas_admin_guide/README.md saas_admin_guide/README.es.md saas_admin_guide/master_admin_guide.md` (PASS)
 - `sed -n '260,320p' saas_admin_guide/README.md` (PASS)
 - `sed -n '250,320p' saas_admin_guide/README.es.md` (PASS)
+- `sed -n '1,80p' /home/loldlm/.agents/skills/rails-expert/SKILL.md` (PASS)
+- `rg -n "class BillingPlan|ransackable" app/models` (PASS)
+- `sed -n '1,200p' app/models/billing_plan.rb` (PASS)
+- `sed -n '1,200p' app/models/expert_advisor_bundle.rb` (PASS)
+- `ls -la spec/models` (PASS)
+- `sed -n '1,120p' spec/models/billing_plan_spec.rb` (PASS)
+- `sed -n '1,200p' spec/models/ransackable_allowlist_spec.rb` (PASS)
+- `bundle exec rspec` (PASS)

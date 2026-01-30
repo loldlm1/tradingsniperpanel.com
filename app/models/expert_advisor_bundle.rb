@@ -20,6 +20,23 @@ class ExpertAdvisorBundle < ApplicationRecord
     keys.empty? ? "base" : keys.join("__")
   end
 
+  def self.ransackable_associations(_auth_object = nil)
+    ["expert_advisor"]
+  end
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[
+      active
+      bundle_key
+      created_at
+      expert_advisor_id
+      id
+      required_addon_keys
+      sort_order
+      updated_at
+    ]
+  end
+
   private
 
   def bundle_key_matches_required_addons
