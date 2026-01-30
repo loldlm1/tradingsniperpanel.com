@@ -75,10 +75,25 @@ Scripts run `db:seed` on each deploy; staging seeds reuse the production seed se
 ```
 sudo install -d /etc/ssl/tradingsniperpanel
 sudo unzip tradingsniperpanel.com-certificates.zip -d /etc/ssl/tradingsniperpanel
-sudo cp tradingsniperpanel.com-PrivateKey.pem /etc/ssl/tradingsniperpanel/privkey.pem
-sudo cat /etc/ssl/tradingsniperpanel/tradingsniperpanel.com.crt /etc/ssl/tradingsniperpanel/ca_bundle.crt > /etc/ssl/tradingsniperpanel/fullchain.crt
+sudo cp /etc/ssl/tradingsniperpanel/tradingsniperpanel.com-PrivateKey.pem /etc/ssl/tradingsniperpanel/privkey.pem
+sudo sh -c 'cat \
+  /etc/ssl/tradingsniperpanel/tradingsniperpanel.com-certificate.crt \
+  /etc/ssl/tradingsniperpanel/tradingsniperpanel.com-intermediate.pem \
+  /etc/ssl/tradingsniperpanel/tradingsniperpanel.com-root.pem \
+  > /etc/ssl/tradingsniperpanel/fullchain.crt'
 ```
+If your certificate bundle does not include a root file, omit it; `fullchain.crt` must include the leaf cert plus any intermediates.
 Rerun the production script to apply Nginx SSL.
+
+### Rails console (staging + production)
+Staging:
+```
+sudo -u "$USER" -H bash -lc 'cd /home/$USER/tradingsniperpanel.com-staging && set -a && source /etc/tradingsniperpanel/staging.env && set +a && bin/rails c -e staging'
+```
+Production:
+```
+sudo -u "$USER" -H bash -lc 'cd /home/$USER/tradingsniperpanel.com && set -a && source /etc/tradingsniperpanel/production.env && set +a && bin/rails c -e production'
+```
 
 ### Staging reset (QA)
 This will wipe staging data and rebuild all databases, then reseed:

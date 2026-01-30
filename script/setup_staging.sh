@@ -135,6 +135,7 @@ log "Rails logs (staging): sudo journalctl -u tradingsniperpanel-staging.service
 log "Sidekiq logs (staging): sudo journalctl -u tradingsniperpanel-sidekiq-staging.service -f"
 log "Nginx access log: sudo tail -f /var/log/nginx/access.log"
 log "Nginx error log: sudo tail -f /var/log/nginx/error.log"
+log "Rails console (staging): sudo -u ${APP_USER} -H bash -lc 'cd /home/${APP_USER}/tradingsniperpanel.com-staging && set -a && source /etc/tradingsniperpanel/staging.env && set +a && bin/rails c -e staging'"
 
 if (( verify_failed )); then
   die "Staging verification failed. Check the logs above."

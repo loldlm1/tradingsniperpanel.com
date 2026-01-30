@@ -116,6 +116,7 @@ log "Rails logs (production): sudo journalctl -u tradingsniperpanel-production.s
 log "Sidekiq logs (production): sudo journalctl -u tradingsniperpanel-sidekiq-production.service -f"
 log "Nginx access log: sudo tail -f /var/log/nginx/access.log"
 log "Nginx error log: sudo tail -f /var/log/nginx/error.log"
+log "Rails console (production): sudo -u ${APP_USER} -H bash -lc 'cd /home/${APP_USER}/tradingsniperpanel.com && set -a && source /etc/tradingsniperpanel/production.env && set +a && bin/rails c -e production'"
 
 if (( verify_failed )); then
   die "Production verification failed. Check the logs above."
