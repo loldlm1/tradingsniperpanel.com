@@ -3,9 +3,16 @@
   <head>
     <meta charset="utf-8">
     <title><%= content_for(:title) || "#{app_name} Dashboard" %></title>
+    <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+
+    <link rel="icon" href="<%= landing_favicon_href %>" type="image/png">
+    <% if landing_favicon_svg_href.present? %>
+      <link rel="icon" href="<%= landing_favicon_svg_href %>" type="image/svg+xml">
+    <% end %>
+    <link rel="apple-touch-icon" href="<%= landing_favicon_href %>">
 
     <%= stylesheet_link_tag "mosaic/css/vendors/flatpickr.min" %>
     <%= stylesheet_link_tag "mosaic/style" %>

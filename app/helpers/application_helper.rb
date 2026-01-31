@@ -118,6 +118,59 @@ module ApplicationHelper
     I18n.t("landing.#{template}.brand.logo_alt", default: app_name)
   end
 
+  def landing_favicon_href
+    template = Marketing::LandingTemplate.current
+    case template
+    when "neon"
+      image_path("neon/images/logo_oficial.png")
+    else
+      "/icon.png"
+    end
+  end
+
+  def landing_favicon_svg_href
+    template = Marketing::LandingTemplate.current
+    return nil if template == "neon"
+
+    "/icon.svg"
+  end
+
+  def seo_title
+    raw_title = content_for?(:title) ? content_for(:title) : app_name
+    strip_tags(raw_title.to_s).squish
+  end
+
+  def seo_description
+    raw_description = content_for?(:meta_description) ? content_for(:meta_description) : I18n.t("app.tagline", default: app_name)
+    strip_tags(raw_description.to_s).squish
+  end
+
+  def seo_canonical_url
+    return content_for(:canonical_url).to_s if content_for?(:canonical_url)
+
+    "#{request.base_url}#{request.path}"
+  end
+
+  def seo_image_path
+    return content_for(:meta_image).to_s if content_for?(:meta_image)
+
+    landing_favicon_href
+  end
+
+  def seo_image_url
+    path = seo_image_path
+    return "" if path.blank?
+    return path if path.start_with?("http://", "https://")
+
+    "#{request.base_url}#{path}"
+  end
+
+  def seo_robots
+    return "noindex, nofollow" if devise_controller?
+
+    "index, follow"
+  end
+
   def format_duration(seconds)
     total = seconds.to_i
     return "0:00" if total <= 0
