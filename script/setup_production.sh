@@ -109,6 +109,7 @@ prod_port="$(get_env_value PORT "${ENV_FILE}")"
 check_service_active "tradingsniperpanel-production.service" || verify_failed=1
 check_service_active "tradingsniperpanel-sidekiq-production.service" || verify_failed=1
 check_service_active "nginx" || verify_failed=1
+check_ssl_files "${SSL_DIR}/fullchain.crt" "${SSL_DIR}/privkey.pem" || verify_failed=1
 check_http_status "Production app (direct)" "http://127.0.0.1:${prod_port}" "^[23][0-9]{2}$" -H "Host: ${prod_domain}" || verify_failed=1
 check_http_status "Production app (via Nginx)" "http://127.0.0.1/" "^(200|204|301|302)$" -H "Host: ${prod_domain}" || verify_failed=1
 

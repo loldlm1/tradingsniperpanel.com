@@ -472,6 +472,46 @@ check_http_status() {
   return 1
 }
 
+check_ssl_files() {
+  local cert="$1"
+  local key="$2"
+
+  if [[ ! -s "${cert}" ]]; then
+    warn "SSL certificate file missing or empty: ${cert}"
+    return 1
+  fi
+
+  if [[ ! -s "${key}" ]]; then
+    warn "SSL private key file missing or empty: ${key}"
+    return 1
+  fi
+
+  if ! command -v openssl >/dev/null 2>&1; then
+    warn "openssl not found; skipping SSL certificate validation."
+    return 0
+  fi
+
+  if ! openssl x509 -in "${cert}" -noout >/dev/null 2>&1; then
+    warn "SSL certificate file is not valid PEM: ${cert}"
+    return 1
+  fi
+
+  local begin_count end_count
+  begin_count="$(grep -c "BEGIN CERTIFICATE" "${cert}" || true)"
+  end_count="$(grep -c "END CERTIFICATE" "${cert}" || true)"
+  if [[ "${begin_count}" -eq 0 || "${begin_count}" -ne "${end_count}" ]]; then
+    warn "SSL certificate chain malformed (BEGIN/END mismatch: ${begin_count}/${end_count})."
+    return 1
+  fi
+
+  if ! openssl pkey -in "${key}" -noout >/dev/null 2>&1; then
+    warn "SSL private key is invalid or encrypted: ${key}"
+    return 1
+  fi
+
+  log "SSL certificate validated (${begin_count} certs) and private key loaded."
+}
+
 install_app_deps() {
   local app_dir="$1"
 
