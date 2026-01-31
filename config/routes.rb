@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  get "/sitemap.xml", to: "sitemaps#show", defaults: { format: :xml }
+  get "/robots.txt", to: "sitemaps#robots", defaults: { format: :text }
+
   ActiveAdmin.routes(self)
   # Pay Stripe webhooks (outside locale scope)
   post "/webhooks/stripe", to: "pay/webhooks/stripe#create"

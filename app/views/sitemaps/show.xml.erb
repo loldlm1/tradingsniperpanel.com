@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <% base_url = request.base_url %>
+  <% @urls.each do |entry| %>
+    <url>
+      <loc><%= "#{base_url}#{entry[:path]}" %></loc>
+      <% entry[:alternates].each do |alt| %>
+        <xhtml:link rel="alternate" hreflang="<%= alt[:locale] %>" href="<%= "#{base_url}#{alt[:path]}" %>" />
+      <% end %>
+      <% if entry[:alternates].any? { |alt| alt[:default] } %>
+        <% default_alt = entry[:alternates].find { |alt| alt[:default] } %>
+        <xhtml:link rel="alternate" hreflang="x-default" href="<%= "#{base_url}#{default_alt[:path]}" %>" />
+      <% end %>
+    </url>
+  <% end %>
+</urlset>
