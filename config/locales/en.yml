@@ -4,6 +4,9 @@ en:
     short_name: "Sniper Panel"
     tagline: "Precision execution for MQL5 traders."
     docs_path: "/docs/sniper_advanced_panel"
+  seo:
+    title: "Trading Sniper Panel | Trading workflow tools for MT5"
+    description: "Trading Sniper Panel provides trading workflow tools, automation utilities, and educational resources for MetaTrader 5. Not financial advice."
   errors:
     messages:
       billing_conflict: "Manual billing conflicts with an active Stripe purchase for this plan."

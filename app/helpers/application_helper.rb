@@ -119,36 +119,43 @@ module ApplicationHelper
   end
 
   def landing_favicon_href
-    template = Marketing::LandingTemplate.current
-    case template
-    when "neon"
-      image_path("neon/images/logo_oficial.png")
-    else
-      "/icon.png"
-    end
+    candidate = landing_favicon_logical_path
+    asset_exists?(candidate) ? image_path(candidate) : "/icon.png"
   end
 
   def landing_favicon_svg_href
-    template = Marketing::LandingTemplate.current
-    return nil if template == "neon"
+    candidate = landing_favicon_logical_path
+    asset_exists?(candidate) ? nil : "/icon.svg"
+  end
 
-    "/icon.svg"
+  def landing_favicon_logical_path
+    template = Marketing::LandingTemplate.current
+    "#{template}/images/logo_oficial.png"
   end
 
   def seo_title
-    raw_title = content_for?(:title) ? content_for(:title) : app_name
+    raw_title = content_for?(:title) ? content_for(:title) : I18n.t("seo.title", default: app_name)
     strip_tags(raw_title.to_s).squish
   end
 
   def seo_description
-    raw_description = content_for?(:meta_description) ? content_for(:meta_description) : I18n.t("app.tagline", default: app_name)
+    raw_description = if content_for?(:meta_description)
+      content_for(:meta_description)
+    else
+      I18n.t("seo.description", default: I18n.t("app.tagline", default: app_name))
+    end
     strip_tags(raw_description.to_s).squish
   end
 
   def seo_canonical_url
     return content_for(:canonical_url).to_s if content_for?(:canonical_url)
 
-    "#{request.base_url}#{request.path}"
+    path = request.path
+    locale_prefix = "/#{I18n.locale}"
+    if I18n.locale.present? && I18n.locale != I18n.default_locale && !path.start_with?(locale_prefix)
+      path = path == "/" ? locale_prefix : "#{locale_prefix}#{path}"
+    end
+    "#{request.base_url}#{path}"
   end
 
   def seo_image_path
@@ -170,6 +177,16 @@ module ApplicationHelper
 
     "index, follow"
   end
+
+  def asset_exists?(logical_path)
+    if Rails.application.assets
+      Rails.application.assets.find_asset(logical_path).present?
+    else
+      manifest = Rails.application.assets_manifest
+      manifest && manifest.assets[logical_path].present?
+    end
+  end
+  private :asset_exists?
 
   def format_duration(seconds)
     total = seconds.to_i
