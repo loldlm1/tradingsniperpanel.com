@@ -31,6 +31,9 @@
 - PASS: apply_patch app/helpers/application_helper.rb
 - PASS: apply_patch config/locales/en.yml
 - PASS: apply_patch config/locales/es.yml
+- PASS: apply_patch app/helpers/application_helper.rb (propshaft asset lookup)
+- PASS: apply_patch spec/views/layouts/application.html.erb_spec.rb
+- PASS: bundle exec rspec
 
 ## Open Questions
 - None.

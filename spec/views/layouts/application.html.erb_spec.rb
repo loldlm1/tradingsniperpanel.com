@@ -23,6 +23,6 @@ RSpec.describe "layouts/application", type: :view do
 
     expect(rendered).to include(%(lang="es"))
     expect(rendered).to include(I18n.t("landing.neon.nav.sign_in"))
-    expect(rendered).to include("logo_snipe_oficial")
+    expect(rendered).to include("logo_oficial")
   end
 end

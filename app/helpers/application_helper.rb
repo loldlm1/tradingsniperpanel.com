@@ -179,12 +179,18 @@ module ApplicationHelper
   end
 
   def asset_exists?(logical_path)
-    if Rails.application.assets
-      Rails.application.assets.find_asset(logical_path).present?
-    else
-      manifest = Rails.application.assets_manifest
-      manifest && manifest.assets[logical_path].present?
+    assembly = Rails.application.assets
+    if assembly
+      if assembly.respond_to?(:resolver)
+        return assembly.resolver.resolve(logical_path).present?
+      end
+      if assembly.respond_to?(:find_asset)
+        return assembly.find_asset(logical_path).present?
+      end
     end
+
+    manifest = Rails.application.assets_manifest
+    manifest && manifest.assets[logical_path].present?
   end
   private :asset_exists?
 
