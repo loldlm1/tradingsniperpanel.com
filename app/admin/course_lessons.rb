@@ -17,7 +17,9 @@ ActiveAdmin.register CourseLesson do
 
   filter :course_module,
          as: :select,
-         collection: CourseModule.ordered.includes(:course).map { |mod| ["#{mod.course&.title_en} - #{mod.title_en}", mod.id] }
+         collection: -> {
+           CourseModule.ordered.includes(:course).map { |mod| ["#{mod.course&.title_en} - #{mod.title_en}", mod.id] }
+         }
   filter :title_en
   filter :title_es
   filter :stream_uid

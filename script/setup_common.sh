@@ -489,11 +489,14 @@ prepare_app_assets() {
   local app_dir="$1"
   local rails_env="$2"
 
+  log "Preparing database and seeds"
+  run_as_app_user "cd '${app_dir}' && set -a && source .envrc && set +a && RAILS_ENV='${rails_env}' bin/rails db:prepare db:seed"
+
   log "Building CSS assets"
   run_as_app_user "cd '${app_dir}' && set -a && source .envrc && set +a && RAILS_ENV='${rails_env}' npm run build:css"
 
-  log "Preparing database, seeds, and assets"
-  run_as_app_user "cd '${app_dir}' && set -a && source .envrc && set +a && RAILS_ENV='${rails_env}' bin/rails db:prepare db:seed assets:precompile"
+  log "Precompiling assets"
+  run_as_app_user "cd '${app_dir}' && set -a && source .envrc && set +a && RAILS_ENV='${rails_env}' bin/rails assets:precompile"
 }
 
 write_file_if_changed() {
