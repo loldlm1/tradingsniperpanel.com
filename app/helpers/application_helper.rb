@@ -107,7 +107,7 @@ module ApplicationHelper
     template = Marketing::LandingTemplate.current
     case template
     when "neon"
-      "neon/images/logo_snipe_oficial.png"
+      "neon/images/logo_oficial.png"
     else
       "/docs/sniper_advanced_panel/Dark_SAP_logo.png"
     end
