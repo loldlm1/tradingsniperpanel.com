@@ -662,6 +662,7 @@ server {
 server {
   listen 443 ssl http2;
   server_name ${prod_domain} www.${prod_domain};
+  client_max_body_size 10m;
 
   ssl_certificate ${cert};
   ssl_certificate_key ${key};
@@ -687,6 +688,7 @@ EOF
 server {
   listen 80;
   server_name ${staging_domain};
+  client_max_body_size 10m;
 
   location = /webhooks/stripe {
     proxy_pass http://app_staging;

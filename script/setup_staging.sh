@@ -118,6 +118,7 @@ systemctl enable --now tradingsniperpanel-sidekiq-staging.service
 systemctl restart tradingsniperpanel-staging.service
 systemctl restart tradingsniperpanel-sidekiq-staging.service
 
+log "Staging does not require SSL; production Nginx block is skipped if certs are missing."
 ensure_nginx_config "${ENV_DIR}/production.env" "${ENV_FILE}" 0
 
 verify_failed=0
