@@ -73,16 +73,19 @@ Run the scripts with `sudo` from your admin user; they will use `$SUDO_USER` as 
 Scripts run `db:seed` on each deploy; staging seeds reuse the production seed set and are safe to re-run.
 7) SSL files (production only):
 ```
+CERT_SRC_DIR="$(pwd)"
 sudo install -d /etc/ssl/tradingsniperpanel
-sudo unzip tradingsniperpanel.com-certificates.zip -d /etc/ssl/tradingsniperpanel
-sudo cp /etc/ssl/tradingsniperpanel/tradingsniperpanel.com-PrivateKey.pem /etc/ssl/tradingsniperpanel/privkey.pem
-sudo sh -c 'cat \
+sudo unzip -o "${CERT_SRC_DIR}/tradingsniperpanel.com-certificates.zip" -d /etc/ssl/tradingsniperpanel
+# If the provider supplied a private key file in this folder, copy it. Otherwise use the key you generated with the CSR.
+# Example (GoDaddy-style): sudo install -m 600 "${CERT_SRC_DIR}/tradingsniperpanel.com-PrivateKey.pem" /etc/ssl/tradingsniperpanel/privkey.pem
+# Example (CSR key): sudo install -m 600 /path/to/tradingsniperpanel.com.key /etc/ssl/tradingsniperpanel/privkey.pem
+sudo sh -c 'awk "1" \
   /etc/ssl/tradingsniperpanel/tradingsniperpanel.com-certificate.crt \
   /etc/ssl/tradingsniperpanel/tradingsniperpanel.com-intermediate.pem \
   /etc/ssl/tradingsniperpanel/tradingsniperpanel.com-root.pem \
   > /etc/ssl/tradingsniperpanel/fullchain.crt'
 ```
-If your certificate bundle does not include a root file, omit it; `fullchain.crt` must include the leaf cert plus any intermediates.
+If your certificate bundle does not include a root file, omit it; `fullchain.crt` must include the leaf cert plus any intermediates. This step is safe to rerun and will rebuild the chain with proper newlines.
 Rerun the production script to apply Nginx SSL.
 
 ### Rails console (staging + production)
