@@ -34,4 +34,12 @@ RSpec.describe Marketplace::AssetAccess do
     refreshed = described_class.new(user: user, asset: asset).call
     expect(refreshed).to be_allowed
   end
+
+  it "grants access for privileged users without purchases" do
+    privileged_user = create(:user, :full_trader)
+
+    result = described_class.new(user: privileged_user, asset: asset).call
+
+    expect(result).to be_allowed
+  end
 end

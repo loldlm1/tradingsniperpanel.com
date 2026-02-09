@@ -21,7 +21,7 @@ module Seeds
           ea_id: "sniper_advanced_panel",
           description: "Risk-first trading panel with crosshair scope, grid depth control, and hotkey-driven execution.",
           ea_type: :ea_tool,
-          trial_enabled: true,
+          trial_enabled: false,
           allowed_subscription_tiers: %w[basic hft pro],
           doc_guide_en: manual_en,
           doc_guide_es: manual_es,
@@ -33,7 +33,7 @@ module Seeds
           ea_id: "pandora_box",
           description: "Adaptive multi-symbol EA with protective filters and dynamic risk throttling.",
           ea_type: :ea_robot,
-          trial_enabled: true,
+          trial_enabled: false,
           allowed_subscription_tiers: %w[hft pro],
           doc_guide_en: manual_en,
           doc_guide_es: manual_es,
@@ -1063,8 +1063,9 @@ module Seeds
       upsert_license(
         user: user,
         expert_advisor: qa_map["qa_trial_ea"],
-        status: "trial",
-        trial_ends_at: now + 3.days,
+        status: "active",
+        plan_interval: "monthly",
+        expires_at: now + 30.days,
         encoder: encoder
       )
 

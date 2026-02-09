@@ -86,6 +86,16 @@ RSpec.describe "Marketplace", type: :request do
     expect(flash[:alert]).to eq(I18n.t("dashboard.marketplace.errors.already_purchased"))
   end
 
+  it "blocks dashboard checkout for privileged users" do
+    privileged_user = create(:user, :full_trader)
+    sign_in privileged_user, scope: :user
+
+    post dashboard_checkout_path(locale: :en, price_key: marketplace_product.billing_plan.key)
+
+    expect(response).to redirect_to(dashboard_plans_path(locale: :en))
+    expect(flash[:alert]).to eq(I18n.t("dashboard.billing.privileged_checkout_blocked", locale: :en))
+  end
+
   it "blocks add-on purchases without base access" do
     expert_advisor = create(:expert_advisor, name: "Addon Base EA")
     addon = create(:addon, addonable: expert_advisor)
@@ -171,6 +181,19 @@ RSpec.describe "Marketplace", type: :request do
     expect(response).to have_http_status(:found)
     expect(response.headers["Location"]).to include("/dashboard/marketplace/#{base_product.slug}")
     expect(flash[:alert]).to eq(I18n.t("dashboard.marketplace.errors.already_purchased"))
+  end
+
+  it "blocks marketplace product checkout for privileged users" do
+    base_plan = create(:billing_plan, :one_time, key: "marketplace_privileged_base")
+    base_product = create(:marketplace_product, billing_plan: base_plan, title_en: "Privileged Base")
+    privileged_user = create(:user, :full_trader)
+    sign_in privileged_user, scope: :user
+
+    post dashboard_marketplace_product_checkout_path(base_product, locale: :en),
+         params: { refund_acknowledged: "1" }
+
+    expect(response).to redirect_to(dashboard_marketplace_product_path(base_product, locale: :en))
+    expect(flash[:alert]).to eq(I18n.t("dashboard.marketplace.errors.privileged_checkout_blocked", locale: :en))
   end
 
   it "creates a checkout session with add-ons only when base is owned" do

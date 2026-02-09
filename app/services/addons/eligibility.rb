@@ -14,6 +14,7 @@ module Addons
     def call
       return Result.new(allowed: false, reason: :missing_user, addon: addon, addonable: addonable) unless user
       return Result.new(allowed: false, reason: :missing_addon, addon: addon, addonable: addonable) unless addon
+      return Result.new(allowed: true, addon: addon, addonable: addonable) if Access::PrivilegedRolePolicy.full_access?(user)
 
       case addonable
       when ExpertAdvisor

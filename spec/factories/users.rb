@@ -22,5 +22,9 @@ FactoryBot.define do
     trait :master_admin do
       role { :master_admin }
     end
+
+    trait :full_trader do
+      role { :full_trader }
+    end
   end
 end

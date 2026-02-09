@@ -256,9 +256,9 @@ en:
   checkout:
     refund_acknowledgement:
       label: "I acknowledge that purchases are final and no refunds are offered (except where required by law)."
-      helper: "You can cancel your subscription anytime to avoid future charges."
+      helper: "Subscription renewals can be canceled anytime; one-time purchases are charged once."
       required: "Please acknowledge the no-refunds policy to continue."
-    subscription_notice_html: "No refunds. You can cancel anytime to stop future charges. See the %{refunds_link}."
+    subscription_notice_html: "No refunds. Subscription renewals can be canceled anytime, and one-time digital purchases are final except where required by law. See the %{refunds_link}."
   legal:
     links:
       terms: "Terms of Service"
@@ -277,17 +277,18 @@ en:
             - "If you use the Service on behalf of an organization, you represent that you have authority to bind that organization to these Terms."
         - title: "2. The Service"
           paragraphs:
-            - "The Service is a software platform that provides access to trading workflow tools and resources, including web dashboards/panels, automation utilities, trading tools, downloadable software or scripts (including Expert Advisors (EAs) for MetaTrader 5 (MT5) where offered), indicators, templates, strategy materials, courses, documentation, and subscription-based features."
+            - "The Service is a software platform that provides access to trading workflow tools and resources, including web dashboards/panels, automation utilities, trading tools, downloadable software or scripts (including Expert Advisors (EAs) for MetaTrader 5 (MT5) where offered), indicators, templates, strategy materials, courses, documentation, recurring subscription features, and one-time digital products where offered."
             - "We may modify, suspend, or discontinue any part of the Service at any time, including features, content, and availability."
         - title: "3. Eligibility and Accounts"
           paragraphs:
             - "You must be at least 18 years old (or the age of majority where you live) to use the Service."
             - "You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account."
             - "You agree to provide accurate information and to keep it up to date."
-        - title: "4. Subscriptions, Billing, and Refunds"
+        - title: "4. Subscriptions, One-Time Purchases, Billing, and Refunds"
           paragraphs:
-            - "Some features require a paid subscription. Payments are processed by third-party payment processors (currently Stripe). We do not store full payment card details."
+            - "Certain features require paid access through recurring subscriptions and/or one-time digital purchases. Payments are processed by third-party payment processors (currently Stripe). We do not store full payment card details."
             - "Subscriptions may renew automatically until canceled. You can manage or cancel your subscription from the billing portal when available."
+            - "One-time purchases are charged once and do not renew."
             - "Except where required by law, fees are non-refundable. If you believe you were billed in error, contact us promptly."
         - title: "5. License and Acceptable Use"
           paragraphs:
@@ -442,9 +443,9 @@ en:
           - "Indicators, templates, and resources for visualization and analysis"
       pricing:
         title: "CHOOSE YOUR IDEAL PLAN"
-        subtitle: "EA license access for MetaTrader 5. Includes guided installation and support by plan."
+        subtitle: "Recurring plans for ongoing access, plus one-time marketplace products for extra tools and digital assets."
         per_month: "/mo"
-        cta: "Subscribe"
+        cta: "View plans"
         most_popular: "Most popular"
         tiers:
           basic:
@@ -661,8 +662,8 @@ en:
             role: "CEO & Co-Founder"
       section7:
         title: "Choose your plan and access the ecosystem"
-        body: "Plans designed for your stage: learn, execute, and scale with workflows, tools, and automation."
-        subscribe_cta: "Subscribe"
+        body: "Choose recurring plans and one-time products for your stage: learn, execute, and scale with workflows, tools, and automation."
+        subscribe_cta: "View plans"
         plans:
           - name: "Basic"
             image: "fintech/images/package_basic.png"

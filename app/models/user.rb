@@ -18,7 +18,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable,
          :omniauthable, omniauth_providers: [:google_oauth2]
 
-  enum :role, { trader: 0, partner: 1, admin: 2, master_admin: 3 }
+  enum :role, { trader: 0, partner: 1, admin: 2, master_admin: 3, full_trader: 4 }
 
   attr_accessor :terms_of_service
 
@@ -29,7 +29,7 @@ class User < ApplicationRecord
   after_commit :ensure_referral_code_for_new_partner, if: -> { saved_change_to_role? && partner? }
   after_commit :ensure_partner_profile_for_partner, on: :create
   after_commit :ensure_partner_profile_for_new_partner, if: -> { saved_change_to_role? && partner? }
-  after_commit :enqueue_trial_licenses, on: :create
+  after_commit :sync_role_based_access, if: :saved_change_to_role?
 
   def pay_customer_name
     name.presence || email
@@ -75,6 +75,10 @@ class User < ApplicationRecord
     preferred_locale.presence || I18n.default_locale
   end
 
+  def privileged_full_access?
+    admin? || master_admin? || full_trader?
+  end
+
   def self.ransackable_associations(_auth_object = nil)
     []
   end
@@ -99,7 +103,7 @@ class User < ApplicationRecord
     errors.add(:terms_of_service, :accepted)
   end
 
-  def enqueue_trial_licenses
-    Licenses::CreateTrialLicensesJob.perform_later(id)
+  def sync_role_based_access
+    Licenses::PrivilegedAccess.new(user: self).sync_all
   end
 end
