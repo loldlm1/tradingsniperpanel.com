@@ -14,6 +14,7 @@ module Licenses
 
     def call
       return Result.new(allowed: true, required: [], missing: []) if addon_keys.empty?
+      return Result.new(allowed: true, required: addon_keys, missing: []) if Access::PrivilegedRolePolicy.full_access?(user)
 
       addons = Addon.where(key: addon_keys, addonable: expert_advisor)
       addons_by_key = addons.index_by(&:key)

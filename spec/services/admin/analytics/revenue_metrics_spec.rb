@@ -29,7 +29,14 @@ RSpec.describe Admin::Analytics::RevenueMetrics, type: :service do
 
     manual_user = create(:user)
     create(:manual_transaction, user: manual_user, paid_at: starts_at + 2.days, amount_cents: 500)
-    create(:manual_subscription, user: manual_user, paid_at: starts_at + 3.days, amount_cents: 1200, ends_at: ends_at + 2.days)
+    create(
+      :manual_subscription,
+      user: manual_user,
+      paid_at: starts_at + 3.days,
+      starts_at: starts_at + 3.days,
+      amount_cents: 1200,
+      ends_at: ends_at + 2.days
+    )
 
     partner = create(:user, :partner)
     partner_profile = partner.partner_profile || PartnerProfile.create!(user: partner)

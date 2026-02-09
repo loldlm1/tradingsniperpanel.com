@@ -37,6 +37,16 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(flash[:alert]).to eq(I18n.t("dashboard.plans.manual_unavailable"))
   end
 
+  it "blocks subscription checkout for privileged users" do
+    privileged_user = create(:user, :full_trader)
+    sign_in privileged_user, scope: :user
+
+    post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+
+    expect(response).to redirect_to(dashboard_plans_path(locale: :en))
+    expect(flash[:alert]).to eq(I18n.t("dashboard.billing.privileged_checkout_blocked"))
+  end
+
   it "swaps an existing subscription instead of creating a new one" do
     existing = customer.subscriptions.create!(
       name: "default",

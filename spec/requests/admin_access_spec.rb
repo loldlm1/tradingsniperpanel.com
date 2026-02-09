@@ -31,12 +31,34 @@ RSpec.describe "ActiveAdmin access", type: :request do
     expect(user.reload.role).to eq("partner")
   end
 
+  it "allows master admins to assign the full_trader role" do
+    master_admin = create(:user, :master_admin)
+    user = create(:user, role: :trader)
+    sign_in master_admin, scope: :user
+
+    patch admin_user_path(user), params: { user: { role: "full_trader" } }
+
+    expect(response).to have_http_status(:found)
+    expect(user.reload.role).to eq("full_trader")
+  end
+
   it "blocks admins from updating roles" do
     admin = create(:user, :admin)
     user = create(:user, role: :trader)
     sign_in admin, scope: :user
 
     patch admin_user_path(user), params: { user: { role: "partner" } }
+
+    expect(response).to redirect_to(edit_admin_user_path(user))
+    expect(user.reload.role).to eq("trader")
+  end
+
+  it "blocks admins from assigning full_trader" do
+    admin = create(:user, :admin)
+    user = create(:user, role: :trader)
+    sign_in admin, scope: :user
+
+    patch admin_user_path(user), params: { user: { role: "full_trader" } }
 
     expect(response).to redirect_to(edit_admin_user_path(user))
     expect(user.reload.role).to eq("trader")

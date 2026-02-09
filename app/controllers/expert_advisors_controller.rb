@@ -60,6 +60,8 @@ class ExpertAdvisorsController < ApplicationController
   end
 
   def ensure_guide_access!
+    return if Access::PrivilegedRolePolicy.full_access?(current_user)
+
     has_license = @expert_advisor_entry&.license.present?
     has_user_ea = current_user.user_expert_advisors.where(expert_advisor_id: @expert_advisor.id).exists?
     head :not_found unless has_license || has_user_ea

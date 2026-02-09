@@ -159,7 +159,7 @@ RSpec.describe "Marketplace seeds" do
       ea.tier_rank = 1
       ea.doc_guide_en = "Guide"
       ea.doc_guide_es = "Guia"
-      ea.trial_enabled = true
+      ea.trial_enabled = false
     end
 
     ExpertAdvisor.find_or_create_by!(ea_id: "pandora_box") do |ea|
@@ -170,7 +170,7 @@ RSpec.describe "Marketplace seeds" do
       ea.tier_rank = 2
       ea.doc_guide_en = "Guide"
       ea.doc_guide_es = "Guia"
-      ea.trial_enabled = true
+      ea.trial_enabled = false
     end
 
     ExpertAdvisor.find_or_create_by!(ea_id: "momentum_pulse_indicator") do |ea|

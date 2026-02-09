@@ -61,4 +61,12 @@ RSpec.describe Courses::AccessibleCourses do
 
     expect(entry.accessible).to be(true)
   end
+
+  it "unlocks all courses for privileged roles" do
+    privileged_user = create(:user, :full_trader)
+
+    entries = described_class.new(user: privileged_user, tier: nil).call
+
+    expect(entries).to all(have_attributes(accessible: true))
+  end
 end

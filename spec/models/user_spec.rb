@@ -72,6 +72,19 @@ RSpec.describe User, type: :model do
       expect(user.role).to eq("trader")
       expect(user).to be_trader
     end
+
+    it "supports full_trader as a role" do
+      user = create(:user, :full_trader)
+
+      expect(user).to be_full_trader
+    end
+
+    it "flags privileged full-access roles" do
+      expect(create(:user, :admin).privileged_full_access?).to be(true)
+      expect(create(:user, :master_admin).privileged_full_access?).to be(true)
+      expect(create(:user, :full_trader).privileged_full_access?).to be(true)
+      expect(create(:user).privileged_full_access?).to be(false)
+    end
   end
 
   describe "terms acceptance" do

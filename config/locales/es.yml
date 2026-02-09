@@ -256,9 +256,9 @@ es:
   checkout:
     refund_acknowledgement:
       label: "Reconozco que las compras son finales y no se ofrecen reembolsos (salvo que la ley lo exija)."
-      helper: "Puedes cancelar tu suscripción en cualquier momento para evitar cargos futuros."
+      helper: "Las renovaciones de suscripción se pueden cancelar en cualquier momento; las compras únicas se cobran una sola vez."
       required: "Confirma la política de no reembolsos para continuar."
-    subscription_notice_html: "No ofrecemos reembolsos. Puedes cancelar en cualquier momento para detener cargos futuros. Consulta la %{refunds_link}."
+    subscription_notice_html: "No ofrecemos reembolsos. Las renovaciones de suscripción se pueden cancelar en cualquier momento y las compras digitales únicas son finales salvo que la ley exija lo contrario. Consulta la %{refunds_link}."
   legal:
     links:
       terms: "Términos del servicio"
@@ -277,17 +277,18 @@ es:
             - "Si usas el Servicio en nombre de una organización, declaras que tienes autoridad para obligar a dicha organización a estos Términos."
         - title: "2. El servicio"
           paragraphs:
-            - "El Servicio es una plataforma de software que brinda acceso a herramientas y recursos para flujos de trabajo de trading, incluidos paneles web, utilidades de automatización, herramientas de trading, software o scripts descargables (incluidos Expert Advisors (EAs) para MetaTrader 5 (MT5) cuando estén disponibles), indicadores, plantillas, materiales de estrategia, cursos, documentación y funciones por suscripción."
+            - "El Servicio es una plataforma de software que brinda acceso a herramientas y recursos para flujos de trabajo de trading, incluidos paneles web, utilidades de automatización, herramientas de trading, software o scripts descargables (incluidos Expert Advisors (EAs) para MetaTrader 5 (MT5) cuando estén disponibles), indicadores, plantillas, materiales de estrategia, cursos, documentación, funciones por suscripción recurrente y productos digitales de compra única cuando estén disponibles."
             - "Podemos modificar, suspender o discontinuar cualquier parte del Servicio en cualquier momento, incluyendo funciones, contenido y disponibilidad."
         - title: "3. Elegibilidad y cuentas"
           paragraphs:
             - "Debes tener al menos 18 años (o la mayoría de edad en tu país) para usar el Servicio."
             - "Eres responsable de mantener la confidencialidad de tus credenciales y de toda la actividad que ocurra en tu cuenta."
             - "Aceptas proporcionar información precisa y mantenerla actualizada."
-        - title: "4. Suscripciones, facturación y reembolsos"
+        - title: "4. Suscripciones, compras únicas, facturación y reembolsos"
           paragraphs:
-            - "Algunas funciones requieren una suscripción de pago. Los pagos se procesan mediante terceros (actualmente Stripe). No almacenamos los datos completos de tu tarjeta."
+            - "Algunas funciones requieren acceso de pago mediante suscripciones recurrentes y/o compras digitales únicas. Los pagos se procesan mediante terceros (actualmente Stripe). No almacenamos los datos completos de tu tarjeta."
             - "Las suscripciones pueden renovarse automáticamente hasta que las canceles. Puedes gestionar o cancelar tu suscripción desde el portal de facturación cuando esté disponible."
+            - "Las compras únicas se cobran una sola vez y no se renuevan."
             - "Salvo que la ley exija lo contrario, las tarifas no son reembolsables. Si crees que hubo un cobro erróneo, contáctanos lo antes posible."
         - title: "5. Licencia y uso permitido"
           paragraphs:
@@ -442,9 +443,9 @@ es:
           - "Indicadores, plantillas y recursos para visualización y análisis"
       pricing:
         title: "ELIGE TU PLAN IDEAL PARA TI"
-        subtitle: "Acceso bajo licencia EA para MetaTrader 5. Incluye instalación guiada y soporte según el plan."
+        subtitle: "Planes recurrentes para acceso continuo, más productos de compra única en marketplace para herramientas y recursos digitales."
         per_month: "/mes"
-        cta: "Suscribirse"
+        cta: "Ver planes"
         most_popular: "Más popular"
         tiers:
           basic:
@@ -661,8 +662,8 @@ es:
             role: "CEO & Co-Founder"
       section7:
         title: "Elige tu plan y accede al ecosistema"
-        body: "Planes pensados para tu etapa: aprende, ejecuta y escala con flujos, herramientas y automatización."
-        subscribe_cta: "Subcribirse"
+        body: "Elige planes recurrentes y productos de compra única según tu etapa: aprende, ejecuta y escala con flujos, herramientas y automatización."
+        subscribe_cta: "Ver planes"
         plans:
           - name: "Básico"
             image: "fintech/images/package_basic.png"

@@ -25,6 +25,14 @@ RSpec.describe Addons::Eligibility do
   end
 
   describe "expert advisor add-ons" do
+    it "allows privileged users without base purchases" do
+      privileged_user = create(:user, :full_trader)
+
+      result = described_class.new(user: privileged_user, addon: addon).call
+
+      expect(result).to be_allowed
+    end
+
     it "allows one-time licenses" do
       create(:license, :one_time, user: user, expert_advisor: expert_advisor)
 
@@ -96,6 +104,14 @@ RSpec.describe Addons::Eligibility do
       expect(result.allowed?).to be(false)
       expect(result.reason).to eq(:missing_base)
     end
+
+    it "allows privileged users without course entitlements" do
+      privileged_user = create(:user, :full_trader)
+
+      result = described_class.new(user: privileged_user, addon: course_addon).call
+
+      expect(result).to be_allowed
+    end
   end
 
   describe "asset add-ons" do
@@ -120,6 +136,14 @@ RSpec.describe Addons::Eligibility do
 
       expect(result.allowed?).to be(false)
       expect(result.reason).to eq(:missing_base)
+    end
+
+    it "allows privileged users without asset purchases" do
+      privileged_user = create(:user, :full_trader)
+
+      result = described_class.new(user: privileged_user, addon: asset_addon).call
+
+      expect(result).to be_allowed
     end
   end
 end

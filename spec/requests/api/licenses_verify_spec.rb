@@ -112,4 +112,29 @@ RSpec.describe "Licenses API", type: :request do
     body = JSON.parse(response.body)
     expect(body["ok"]).to eq(true)
   end
+
+  it "allows privileged users with role-based access and no addon purchases" do
+    privileged_user = create(:user, :full_trader, email: "privileged-api@example.com")
+    privileged_ea = create(:expert_advisor, ea_id: "ea-privileged-api")
+    addon = create(:addon, key: "risk_guard", addonable: privileged_ea)
+    privileged_key = Licenses::PrivilegedAccess.generated_key_for(
+      user: privileged_user,
+      expert_advisor: privileged_ea,
+      encoder: encoder
+    )
+
+    post "/api/v1/licenses/verify", params: {
+      source: source_id,
+      email: privileged_user.email,
+      ea_id: privileged_ea.ea_id,
+      license_key: privileged_key,
+      addons: addon.key
+    }
+
+    expect(response).to have_http_status(:ok)
+    body = JSON.parse(response.body)
+    expect(body["ok"]).to eq(true)
+    expect(body["trial"]).to eq(false)
+    expect(privileged_user.licenses.find_by(expert_advisor: privileged_ea)&.source).to eq("role_access")
+  end
 end

@@ -6,8 +6,11 @@
 <% base_available = marketplace.base_entry.present? %>
 <% addon_progress = marketplace.add_on_progress %>
 <% cart_total_cents = marketplace.cart_total_cents %>
-<% button_disabled = cart_total_cents.zero? || !base_available %>
-<% button_label = if button_disabled
+<% privileged_full_access = Access::PrivilegedRolePolicy.full_access?(current_user) %>
+<% button_disabled = privileged_full_access || cart_total_cents.zero? || !base_available %>
+<% button_label = if privileged_full_access
+                    t("dashboard.marketplace.show.privileged_button")
+                  elsif button_disabled
                     t("dashboard.marketplace.show.select_addons")
                   else
                     t("dashboard.marketplace.show.buy_now", total: marketplace.cart_total_display)
@@ -128,6 +131,12 @@
         <%= hidden_field_tag :base_plan_key, marketplace.base_plan_key %>
         <%= hidden_field_tag :addon_keys, marketplace.selected_addon_keys.join(","), data: { addon_keys_input: true } %>
 
+        <% if privileged_full_access %>
+          <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-xs text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+            <%= t("dashboard.marketplace.show.privileged_notice") %>
+          </div>
+        <% end %>
+
         <!-- Section: Header -->
         <div class="pb-4 mb-4 border-b border-gray-100 dark:border-gray-700/60">
           <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.marketplace.show.sidebar_product_label") %></div>
@@ -184,18 +193,20 @@
           </div>
         </div>
 
-        <div class="mb-3">
-          <label class="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <input type="checkbox"
-                   name="refund_acknowledged"
-                   value="1"
-                   required
-                   class="mt-0.5 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
-                   data-refund-ack-checkbox>
-            <span><%= t("checkout.refund_acknowledgement.label") %></span>
-          </label>
-          <p class="mt-2 text-xs text-gray-400 dark:text-gray-500"><%= t("checkout.refund_acknowledgement.helper") %></p>
-        </div>
+        <% unless privileged_full_access %>
+          <div class="mb-3">
+            <label class="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <input type="checkbox"
+                     name="refund_acknowledged"
+                     value="1"
+                     required
+                     class="mt-0.5 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                     data-refund-ack-checkbox>
+              <span><%= t("checkout.refund_acknowledgement.label") %></span>
+            </label>
+            <p class="mt-2 text-xs text-gray-400 dark:text-gray-500"><%= t("checkout.refund_acknowledgement.helper") %></p>
+          </div>
+        <% end %>
 
         <!-- Section: Comprar -->
         <div class="mb-3">
