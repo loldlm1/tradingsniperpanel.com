@@ -79,6 +79,39 @@ RSpec.describe ExpertAdvisors::ShowPresenter, type: :service do
     expect(values).to include(I18n.t("dashboard.expert_advisors.show.values.broker_accounts_count", count: 1, locale: :en))
   end
 
+  it "marks all addons as owned for privileged users" do
+    privileged_user = create(:user, :full_trader)
+    privileged_license = create(:license, user: privileged_user, expert_advisor: expert_advisor, status: "active")
+    privileged_entry = Licenses::AccessibleExpertAdvisors::Entry.new(
+      expert_advisor: expert_advisor,
+      license: privileged_license,
+      status: :active,
+      accessible: true,
+      expires_at: privileged_license.expires_at,
+      license_key: privileged_license.encrypted_key,
+      allowed_tiers: ["starter"]
+    )
+
+    addon_product_one = create(:marketplace_product, title_en: "Addon Privileged A")
+    addon_product_two = create(:marketplace_product, title_en: "Addon Privileged B")
+    create(:addon, addonable: expert_advisor, billing_plan: addon_product_one.billing_plan)
+    create(:addon, addonable: expert_advisor, billing_plan: addon_product_two.billing_plan)
+
+    presenter = described_class.new(
+      user: privileged_user,
+      expert_advisor: expert_advisor,
+      entry: privileged_entry,
+      locale: :en,
+      marketplace_available: true
+    )
+    summary = presenter.addons_summary
+
+    expect(summary[:total_count]).to eq(2)
+    expect(summary[:owned_count]).to eq(2)
+    expect(summary[:progress_percent]).to eq(100)
+    expect(summary[:items].map(&:owned)).to all(be(true))
+  end
+
   it "selects the latest broker account by sync activity" do
     account_a = create(:broker_account, license: license, company: "BrokerA", account_number: 111111)
     account_b = create(:broker_account, license: license, company: "BrokerB", account_number: 222222)

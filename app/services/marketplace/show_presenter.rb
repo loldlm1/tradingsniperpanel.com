@@ -193,8 +193,13 @@ module Marketplace
                     .includes(:marketplace_product, :billing_plan)
                     .order("marketplace_products.sort_order ASC, marketplace_products.title_en ASC")
 
-      owned_plan_ids = MarketplacePurchase.where(user: user, billing_plan_id: addons.select(:billing_plan_id))
-                                          .pluck(:billing_plan_id)
+      owned_plan_ids =
+        if Access::PrivilegedRolePolicy.full_access?(user)
+          addons.map(&:billing_plan_id).compact.uniq
+        else
+          MarketplacePurchase.where(user: user, billing_plan_id: addons.select(:billing_plan_id))
+                             .pluck(:billing_plan_id)
+        end
 
       preselected_keys = []
       if entry.addon? && entry.plan&.key.present? && !owned_plan_ids.include?(entry.plan.id)
