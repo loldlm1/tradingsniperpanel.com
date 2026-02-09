@@ -365,6 +365,7 @@ module ExpertAdvisors
 
       plan_ids = @addons.map(&:billing_plan_id).compact.uniq
       return Set.new if plan_ids.empty?
+      return plan_ids.to_set if Access::PrivilegedRolePolicy.full_access?(user)
 
       MarketplacePurchase.where(user: user, billing_plan_id: plan_ids).pluck(:billing_plan_id).to_set
     end

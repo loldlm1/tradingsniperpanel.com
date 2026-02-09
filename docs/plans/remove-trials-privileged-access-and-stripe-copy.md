@@ -48,3 +48,11 @@ Remove signup trial behavior and introduce privileged role-based full access (`a
 - PASS: Added request specs for privileged checkout blocking in `spec/requests/subscription_upgrade_spec.rb` and `spec/requests/marketplace_spec.rb`.
 - PASS: `bundle exec rspec spec/requests/subscription_upgrade_spec.rb spec/requests/marketplace_spec.rb`
 - PASS: `bundle exec rspec` (final: `423 examples, 0 failures`)
+- PASS: QA follow-up: identified privileged add-on ownership gap in EA add-on presenters/bundle resolver (purchase-only logic).
+- PASS: Implemented privileged add-on ownership in `app/services/expert_advisors/bundle_resolver.rb`.
+- PASS: Implemented privileged add-on ownership in `app/services/expert_advisors/index_presenter.rb` and `app/services/expert_advisors/show_presenter.rb`.
+- PASS: Implemented privileged add-on ownership in marketplace product addon rows in `app/services/marketplace/show_presenter.rb`.
+- PASS: Added specs for privileged add-on coverage in `spec/services/expert_advisors/bundle_resolver_spec.rb`, `spec/services/expert_advisors/show_presenter_spec.rb`, `spec/services/expert_advisors/index_presenter_spec.rb`, and `spec/services/marketplace/show_presenter_spec.rb`.
+- PASS: `bundle exec rspec spec/services/expert_advisors/bundle_resolver_spec.rb spec/services/expert_advisors/show_presenter_spec.rb spec/services/expert_advisors/index_presenter_spec.rb spec/services/marketplace/show_presenter_spec.rb`
+- PASS: `bundle exec rspec spec/requests/expert_advisors_spec.rb spec/requests/api/licenses_verify_spec.rb`
+- PASS: `bundle exec rspec` (final after QA follow-up: `427 examples, 0 failures`)
