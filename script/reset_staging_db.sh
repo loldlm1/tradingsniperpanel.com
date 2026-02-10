@@ -7,30 +7,135 @@ source "${SCRIPT_DIR}/setup_common.sh"
 
 usage() {
   cat <<'EOF'
-Usage: reset_staging_db.sh [reset|migrate|seed|migrate-seed]
+Usage: reset_staging_db.sh [ACTION] [--target staging|production] [--confirm-production-reset]
 
 Actions:
-  reset         Drop and recreate staging databases, then db:prepare and db:seed (default).
+  reset         Drop and recreate databases, then db:prepare and db:seed (default).
   migrate       Run db:migrate only.
   seed          Run db:seed only.
   migrate-seed  Run db:migrate followed by db:seed.
+
+Options:
+  --target <env>              Target environment: staging (default) or production.
+  --confirm-production-reset  Required for production reset. Also requires typing a confirmation token.
+  -h, --help                  Show this help message.
+
+Examples:
+  reset_staging_db.sh
+  reset_staging_db.sh migrate --target staging
+  reset_staging_db.sh reset --target production --confirm-production-reset
 EOF
 }
+
+confirm_production_reset() {
+  local token="RESET_PRODUCTION_DATABASES"
+  local typed_token
+
+  if [[ "${CONFIRM_PRODUCTION_RESET}" -ne 1 ]]; then
+    warn "Production reset requested without explicit confirmation."
+    die "Re-run with --confirm-production-reset to acknowledge the destructive action."
+  fi
+
+  if [[ ! -t 0 ]]; then
+    die "Production reset requires an interactive shell for typed confirmation."
+  fi
+
+  warn "DANGER: This will permanently drop and recreate all production databases."
+  warn "Databases: ${db_primary}, ${db_cache}, ${db_queue}, ${db_cable}"
+  printf "Type %s to continue: " "${token}"
+  read -r typed_token
+  if [[ "${typed_token}" != "${token}" ]]; then
+    die "Confirmation token mismatch. Aborting."
+  fi
+}
+
+ACTION="reset"
+TARGET="staging"
+CONFIRM_PRODUCTION_RESET=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    reset|migrate|seed|migrate-seed)
+      ACTION="$1"
+      shift
+      ;;
+    --target)
+      [[ $# -ge 2 ]] || die "Missing value for --target."
+      TARGET="$2"
+      shift 2
+      ;;
+    --target=*)
+      TARGET="${1#*=}"
+      shift
+      ;;
+    --confirm-production-reset)
+      CONFIRM_PRODUCTION_RESET=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage
+      die "Unknown argument: $1"
+      ;;
+  esac
+done
+
+case "${TARGET}" in
+  staging|production) ;;
+  *)
+    usage
+    die "Unknown target: ${TARGET}. Use staging or production."
+    ;;
+esac
 
 require_root
 init_app_user
 
-APP_DIR="/home/${APP_USER}/tradingsniperpanel.com-staging"
-ENV_FILE="${ENV_DIR}/staging.env"
 BUNDLE_BIN="${APP_HOME}/.asdf/shims/bundle"
-ACTION="${1:-reset}"
+APP_DIR=""
+ENV_FILE=""
+ENV_SETUP_HINT=""
+db_primary_key=""
+db_cache_key=""
+db_queue_key=""
+db_cable_key=""
+web_service=""
+sidekiq_service=""
+
+case "${TARGET}" in
+  staging)
+    APP_DIR="/home/${APP_USER}/tradingsniperpanel.com-staging"
+    ENV_FILE="${ENV_DIR}/staging.env"
+    ENV_SETUP_HINT="staging"
+    db_primary_key="DB_NAME_STAGING"
+    db_cache_key="DB_NAME_STAGING_CACHE"
+    db_queue_key="DB_NAME_STAGING_QUEUE"
+    db_cable_key="DB_NAME_STAGING_CABLE"
+    web_service="tradingsniperpanel-staging.service"
+    sidekiq_service="tradingsniperpanel-sidekiq-staging.service"
+    ;;
+  production)
+    APP_DIR="/home/${APP_USER}/tradingsniperpanel.com"
+    ENV_FILE="${ENV_DIR}/production.env"
+    ENV_SETUP_HINT="production"
+    db_primary_key="DB_NAME_PRODUCTION"
+    db_cache_key="DB_NAME_PRODUCTION_CACHE"
+    db_queue_key="DB_NAME_PRODUCTION_QUEUE"
+    db_cable_key="DB_NAME_PRODUCTION_CABLE"
+    web_service="tradingsniperpanel-production.service"
+    sidekiq_service="tradingsniperpanel-sidekiq-production.service"
+    ;;
+esac
 
 if [[ ! -f "${ENV_FILE}" ]]; then
-  die "Missing ${ENV_FILE}. Run staging setup first."
+  die "Missing ${ENV_FILE}. Run ${ENV_SETUP_HINT} setup first."
 fi
 
 if [[ ! -d "${APP_DIR}" ]]; then
-  die "Missing ${APP_DIR}. Run staging setup first."
+  die "Missing ${APP_DIR}. Run ${ENV_SETUP_HINT} setup first."
 fi
 
 if [[ ! -x "${BUNDLE_BIN}" ]]; then
@@ -39,10 +144,6 @@ fi
 
 case "${ACTION}" in
   reset|migrate|seed|migrate-seed) ;;
-  -h|--help)
-    usage
-    exit 0
-    ;;
   *)
     usage
     die "Unknown action: ${ACTION}"
@@ -54,17 +155,21 @@ chmod 0640 "${ENV_FILE}"
 
 db_user="$(get_env_value DB_USERNAME "${ENV_FILE}")"
 db_password="$(get_env_value DB_PASSWORD "${ENV_FILE}")"
-db_primary="$(get_env_value DB_NAME_STAGING "${ENV_FILE}")"
-db_cache="$(get_env_value DB_NAME_STAGING_CACHE "${ENV_FILE}")"
-db_queue="$(get_env_value DB_NAME_STAGING_QUEUE "${ENV_FILE}")"
-db_cable="$(get_env_value DB_NAME_STAGING_CABLE "${ENV_FILE}")"
+db_primary="$(get_env_value "${db_primary_key}" "${ENV_FILE}")"
+db_cache="$(get_env_value "${db_cache_key}" "${ENV_FILE}")"
+db_queue="$(get_env_value "${db_queue_key}" "${ENV_FILE}")"
+db_cable="$(get_env_value "${db_cable_key}" "${ENV_FILE}")"
 
-log "Stopping staging services"
-systemctl stop tradingsniperpanel-staging.service tradingsniperpanel-sidekiq-staging.service
+if [[ "${TARGET}" == "production" && "${ACTION}" == "reset" ]]; then
+  confirm_production_reset
+fi
+
+log "Stopping ${TARGET} services"
+systemctl stop "${web_service}" "${sidekiq_service}"
 
 ensure_postgres_role "${db_user}" "${db_password}"
 if [[ "${ACTION}" == "reset" ]]; then
-  log "Resetting staging databases"
+  log "Resetting ${TARGET} databases"
   drop_postgres_db "${db_cable}"
   drop_postgres_db "${db_queue}"
   drop_postgres_db "${db_cache}"
@@ -91,7 +196,7 @@ case "${ACTION}" in
     ;;
 esac
 
-log "Starting staging services"
-systemctl start tradingsniperpanel-staging.service tradingsniperpanel-sidekiq-staging.service
+log "Starting ${TARGET} services"
+systemctl start "${web_service}" "${sidekiq_service}"
 
-log "Staging ${ACTION} complete."
+log "${TARGET^} ${ACTION} complete."
