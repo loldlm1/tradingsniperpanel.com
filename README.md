@@ -70,7 +70,7 @@ Run the scripts with `sudo` from your admin user; they will use `$SUDO_USER` as 
   - `invoice.payment_action_required`
   - `payment_intent.succeeded`
   - `payment_intent.payment_failed`
-Scripts run `db:seed` on each deploy; staging seeds reuse the production seed set and are safe to re-run.
+Scripts run `db:seed` on each deploy. Seed profiles default to `prod_mirror` in production and `full_qa` in staging/development, and are safe to re-run.
 7) SSL files (production only):
 ```
 CERT_SRC_DIR="$(pwd)"
@@ -98,10 +98,14 @@ Production:
 sudo -u "$USER" -H bash -lc 'cd /home/$USER/tradingsniperpanel.com && set -a && source /etc/tradingsniperpanel/production.env && set +a && bin/rails c -e production'
 ```
 
-### Staging reset (QA)
-This will wipe staging data and rebuild all databases, then reseed:
+### Staging reset (QA default)
+This wipes staging data, rebuilds all databases, then reseeds with the full QA dataset:
 ```
 sudo bash /home/$USER/tradingsniperpanel.com-staging/script/reset_staging_db.sh
+```
+To reseed staging with production-mirror data only:
+```
+sudo bash /home/$USER/tradingsniperpanel.com-staging/script/reset_staging_db.sh --prod-mirror-seed
 ```
 
 ### Staging Sidekiq cleanup (QA)
@@ -408,6 +412,7 @@ See `.envrc.example` for the full list. Key server variables:
 - Host: `APP_HOST`, `APP_HOST_PROTOCOL`.
 - Postgres: `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DATABASE_URL`, `DB_NAME_PRODUCTION*`, `DB_NAME_STAGING*`.
 - Redis: `REDIS_URL`.
+- Seeds: optional `SEED_PROFILE` override (`prod_mirror` or `full_qa`). Defaults are `prod_mirror` in production and `full_qa` in staging/development.
 - Staging: `STAGING_ALLOWLIST` (space-separated IPs, wrap in quotes if multiple).
 - Branding: `APP_NAME`, `APP_SHORT_NAME`, `LANDING_TEMPLATE`.
 - OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_HD`.
@@ -421,7 +426,6 @@ See `.envrc.example` for the full list. Key server variables:
 ## Frontend notes
 - Marketing/auth pages use Neon assets (`app/assets/templates/neon/...`), dashboard uses Mosaic (`app/assets/templates/mosaic/...`).
 - Marketing pricing/resources live on the landing page sections; `/pricing` and `/docs` routes are removed.
-- Docs/manuals are exposed under `public/docs/sniper_advanced_panel/` (EN/ES Markdown + PDFs).
 - Default layouts: marketing (`application.html.erb`) and dashboard (`dashboard.html.erb`); locale toggle is in the header.
 
 ## Testing

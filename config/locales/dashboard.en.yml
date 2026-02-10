@@ -286,7 +286,7 @@ en:
       tiers:
         basic:
           name: "Basic"
-          description: "Ideal for getting started with the core toolkit."
+          description: "For traders who need precision, execution speed, and full control in every setup."
         hft:
           name: "HFT"
           description: "Built for faster workflows and advanced tools."
@@ -397,12 +397,13 @@ en:
       tiers:
         basic:
           name: "Basic"
-          description: "Core Sniper Panel controls for focused, single-trader workflows."
+          description: "For traders who need precision, execution speed, and full control in every setup."
           features:
-            - "Core Sniper Panel toolkit"
-            - "Access to essential Expert Advisors"
-            - "Dashboard downloads & updates"
-            - "Billing portal and invoices"
+            - "Control by % / USD / lot size"
+            - "Execution speed controls"
+            - "Multi-target take profit"
+            - "Automatic break-even protection"
+            - "Preconfigured order workflows"
         hft:
           name: "HFT"
           description: "Advanced execution workflows and broader EA access for active traders."

@@ -450,13 +450,14 @@ es:
         tiers:
           basic:
             name: "Basic"
-            description: "Para traders que desean información precisa sobre parciales y puntos de equilibrio en un solo panel."
+            description: "Para traders que buscan precisión, velocidad de ejecución y control total en su operativa."
             features_title: "Incluye:"
             features:
               - "Control por % / USD / tamaño del lote"
-              - "Cierres parciales (33%)"
-              - "Punto de equilibrio automático"
-              - "Cerrar todas las compras/ventas"
+              - "Velocidad de ejecución"
+              - "Multi-target"
+              - "Punto de equilibrio automático (Break Even)"
+              - "Órdenes preconfiguradas"
           hft:
             name: "HFT"
             description: "Para scalpers y day traders: velocidad, multi-target y órdenes preconfiguradas."

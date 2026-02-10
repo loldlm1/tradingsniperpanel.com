@@ -450,13 +450,14 @@ en:
         tiers:
           basic:
             name: "Basic"
-            description: "For traders who want precise information on partial closes and break-even points in a single panel."
+            description: "For traders who need precision, execution speed, and full control in every setup."
             features_title: "Includes:"
             features:
               - "Control by % / USD / lot size"
-              - "Partial closes (33%)"
-              - "Automatic break-even"
-              - "Close all buys/sells"
+              - "Execution speed controls"
+              - "Multi-target take profit"
+              - "Automatic break-even protection"
+              - "Preconfigured order workflows"
           hft:
             name: "HFT"
             description: "For scalpers and day traders: speed, multi-target, and preconfigured orders."

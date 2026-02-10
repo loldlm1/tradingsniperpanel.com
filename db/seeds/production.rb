@@ -1,1 +1,1 @@
-# Production seeds are intentionally minimal. Admin bootstrap runs in db/seeds.rb.
+Seeds::Runner.seed_for_environment!(environment: :production)

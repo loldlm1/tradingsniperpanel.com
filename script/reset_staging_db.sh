@@ -7,7 +7,7 @@ source "${SCRIPT_DIR}/setup_common.sh"
 
 usage() {
   cat <<'EOF'
-Usage: reset_staging_db.sh [ACTION] [--target staging|production] [--confirm-production-reset]
+Usage: reset_staging_db.sh [ACTION] [--target staging|production] [--confirm-production-reset] [--prod-mirror-seed]
 
 Actions:
   reset         Drop and recreate databases, then db:prepare and db:seed (default).
@@ -18,10 +18,12 @@ Actions:
 Options:
   --target <env>              Target environment: staging (default) or production.
   --confirm-production-reset  Required for production reset. Also requires typing a confirmation token.
+  --prod-mirror-seed          Run seeded actions with SEED_PROFILE=prod_mirror for this invocation only.
   -h, --help                  Show this help message.
 
 Examples:
   reset_staging_db.sh
+  reset_staging_db.sh --prod-mirror-seed
   reset_staging_db.sh migrate --target staging
   reset_staging_db.sh reset --target production --confirm-production-reset
 EOF
@@ -52,6 +54,7 @@ confirm_production_reset() {
 ACTION="reset"
 TARGET="staging"
 CONFIRM_PRODUCTION_RESET=0
+PROD_MIRROR_SEED=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -70,6 +73,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --confirm-production-reset)
       CONFIRM_PRODUCTION_RESET=1
+      shift
+      ;;
+    --prod-mirror-seed)
+      PROD_MIRROR_SEED=1
       shift
       ;;
     -h|--help)
@@ -150,6 +157,11 @@ case "${ACTION}" in
     ;;
 esac
 
+SEED_PROFILE_PREFIX=""
+if [[ "${PROD_MIRROR_SEED}" -eq 1 ]]; then
+  SEED_PROFILE_PREFIX="SEED_PROFILE=prod_mirror "
+fi
+
 chown root:"${APP_USER}" "${ENV_FILE}"
 chmod 0640 "${ENV_FILE}"
 
@@ -183,16 +195,16 @@ ensure_postgres_db "${db_cable}" "${db_user}"
 
 case "${ACTION}" in
   reset)
-    run_as_app_user "set -a && source '${ENV_FILE}' && set +a && cd '${APP_DIR}' && '${BUNDLE_BIN}' exec rails db:prepare db:seed"
+    run_as_app_user "set -a && source '${ENV_FILE}' && set +a && cd '${APP_DIR}' && ${SEED_PROFILE_PREFIX}'${BUNDLE_BIN}' exec rails db:prepare db:seed"
     ;;
   migrate)
     run_as_app_user "set -a && source '${ENV_FILE}' && set +a && cd '${APP_DIR}' && '${BUNDLE_BIN}' exec rails db:migrate"
     ;;
   seed)
-    run_as_app_user "set -a && source '${ENV_FILE}' && set +a && cd '${APP_DIR}' && '${BUNDLE_BIN}' exec rails db:seed"
+    run_as_app_user "set -a && source '${ENV_FILE}' && set +a && cd '${APP_DIR}' && ${SEED_PROFILE_PREFIX}'${BUNDLE_BIN}' exec rails db:seed"
     ;;
   migrate-seed)
-    run_as_app_user "set -a && source '${ENV_FILE}' && set +a && cd '${APP_DIR}' && '${BUNDLE_BIN}' exec rails db:migrate db:seed"
+    run_as_app_user "set -a && source '${ENV_FILE}' && set +a && cd '${APP_DIR}' && ${SEED_PROFILE_PREFIX}'${BUNDLE_BIN}' exec rails db:migrate db:seed"
     ;;
 esac
 

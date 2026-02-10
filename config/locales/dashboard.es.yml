@@ -286,7 +286,7 @@ es:
       tiers:
         basic:
           name: "Básico"
-          description: "Ideal para comenzar con el toolkit principal."
+          description: "Para traders que buscan precisión, velocidad de ejecución y control total en su operativa."
         hft:
           name: "HFT"
           description: "Creado para flujos más rápidos y herramientas avanzadas."
@@ -397,12 +397,13 @@ es:
       tiers:
         basic:
           name: "Basic"
-          description: "Controles esenciales del Sniper Panel para flujos de trabajo individuales."
+          description: "Para traders que buscan precisión, velocidad de ejecución y control total en su operativa."
           features:
-            - "Kit principal del Sniper Panel"
-            - "Acceso a Asesores Expertos esenciales"
-            - "Descargas y actualizaciones desde el panel"
-            - "Portal de facturación y facturas"
+            - "Control por % / USD / tamaño del lote"
+            - "Velocidad de ejecución"
+            - "Multi-target"
+            - "Punto de equilibrio automático (Break Even)"
+            - "Órdenes preconfiguradas"
         hft:
           name: "HFT"
           description: "Flujos de ejecución avanzados y mayor acceso a EAs para traders activos."

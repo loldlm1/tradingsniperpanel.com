@@ -13,7 +13,42 @@ module Seeds
       @manual_es ||= manual_for(locale: :es)
     end
 
-    def core_definitions
+    def core_definitions(profile: Seeds::Profiles.current)
+      profile.to_s == Seeds::Profiles::PROD_MIRROR ? prod_mirror_definitions : full_qa_definitions
+    end
+
+    def prune_for_profile!(profile: Seeds::Profiles.current)
+      return unless defined?(ExpertAdvisor)
+
+      keep_ids = core_definitions(profile: profile).map { |attrs| attrs[:ea_id] }
+      keep_ids += qa_definitions.map { |attrs| attrs[:ea_id] } if profile.to_s == Seeds::Profiles::FULL_QA
+      keep_ids = keep_ids.uniq
+      return if keep_ids.empty?
+
+      ExpertAdvisor.unscoped.where.not(ea_id: keep_ids).where(deleted_at: nil).update_all(
+        deleted_at: Time.current,
+        updated_at: Time.current
+      )
+    end
+
+    def prod_mirror_definitions
+      [
+        {
+          name: "Sniper Advanced Panel",
+          tier_rank: 1,
+          ea_id: "sniper_advanced_panel",
+          description: "Risk-first trading panel with precision execution, multi-targets, and preconfigured order workflows.",
+          ea_type: :ea_tool,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[basic],
+          doc_guide_en: manual_en,
+          doc_guide_es: manual_es,
+          tags: %w[panel execution risk]
+        }
+      ]
+    end
+
+    def full_qa_definitions
       [
         {
           name: "Sniper Advanced Panel",
@@ -149,17 +184,28 @@ module Seeds
       end
 
       extension = File.extname(bundle_path.to_s)
-      filename = "#{record.ea_id}#{extension.presence || ".rar"}"
+      filename = "#{record.ea_id}#{extension.presence || ".zip"}"
 
       File.open(bundle_path) do |file|
         record.ea_files.attach(
           io: file,
           filename: filename,
-          content_type: "application/x-rar-compressed"
+          content_type: bundle_content_type(bundle_path)
         )
       end
 
       record.ensure_bundle_filename!
+    end
+
+    def bundle_content_type(bundle_path)
+      case File.extname(bundle_path.to_s).downcase
+      when ".zip"
+        "application/zip"
+      when ".rar"
+        "application/x-rar-compressed"
+      else
+        "application/octet-stream"
+      end
     end
 
     def manual_for(locale:)
@@ -173,11 +219,21 @@ module Seeds
     end
 
     def manual_en_path
-      Rails.root.join("docs_eas", "sniper_advanced_panel", "Manual_EN.md")
+      first_existing_path(
+        Rails.root.join("docs_eas", "sniper_advanced_panel", "sniper_advanced_panel_guide_en.md"),
+        Rails.root.join("docs_eas", "sniper_advanced_panel", "Manual_EN.md")
+      )
     end
 
     def manual_es_path
-      Rails.root.join("docs_eas", "sniper_advanced_panel", "Manual_ES.md")
+      first_existing_path(
+        Rails.root.join("docs_eas", "sniper_advanced_panel", "sniper_advanced_panel_guide_es.md"),
+        Rails.root.join("docs_eas", "sniper_advanced_panel", "Manual_ES.md")
+      )
+    end
+
+    def first_existing_path(*paths)
+      paths.find(&:exist?) || paths.first
     end
 
     def inject_media_tokens(markdown)
@@ -883,23 +939,30 @@ module Seeds
     module_function
 
     DEFAULT_CURRENCY = "usd"
-    TIER_DEFINITIONS = [
+    FULL_QA_TIER_DEFINITIONS = [
       { tier: "basic", sort_order: 1, monthly_cents: 2000 },
       { tier: "hft", sort_order: 2, monthly_cents: 4000 },
       { tier: "pro", sort_order: 3, monthly_cents: 6000 },
       { tier: "elite", sort_order: 4, monthly_cents: 8000 },
       { tier: "enterprise", sort_order: 5, monthly_cents: 10_000 }
     ].freeze
-    INTERVAL_DEFINITIONS = [
+    FULL_QA_INTERVAL_DEFINITIONS = [
       { interval: "day", interval_count: 1, multiplier: (12.0 / 365) },
       { interval: "week", interval_count: 1, multiplier: (12.0 / 52) },
       { interval: "month", interval_count: 1, multiplier: 1.0 },
       { interval: "year", interval_count: 1, multiplier: 9.0 }
     ].freeze
+    PROD_MIRROR_TIER_DEFINITIONS = [
+      { tier: "basic", sort_order: 1, monthly_cents: 2000 }
+    ].freeze
+    PROD_MIRROR_INTERVAL_DEFINITIONS = [
+      { interval: "month", interval_count: 1, multiplier: 1.0 },
+      { interval: "year", interval_count: 1, multiplier: 9.0 }
+    ].freeze
 
-    def definitions
-      TIER_DEFINITIONS.flat_map do |tier_def|
-        INTERVAL_DEFINITIONS.map do |interval_def|
+    def definitions(profile: Seeds::Profiles.current)
+      tier_definitions(profile: profile).flat_map do |tier_def|
+        interval_definitions(profile: profile).map do |interval_def|
           amount = interval_amount(
             base_cents: tier_def[:monthly_cents],
             multiplier: interval_def[:multiplier]
@@ -915,11 +978,11 @@ module Seeds
       end
     end
 
-    def seed_plans!(allow_local: false)
+    def seed_plans!(allow_local: false, profile: Seeds::Profiles.current)
       if stripe_configured?
         return unless defined?(Billing::PlanCreator)
 
-        definitions.each do |attrs|
+        definitions(profile: profile).each do |attrs|
           Billing::PlanCreator.new(attrs).call
         end
         return
@@ -927,14 +990,50 @@ module Seeds
 
       return unless allow_local
 
-      seed_local_plans!
+      seed_local_plans!(profile: profile)
     end
 
-    def seed_local_plans!
+    def seed_local_plans!(profile: Seeds::Profiles.current)
       return unless defined?(BillingPlan)
 
-      definitions.each do |attrs|
+      definitions(profile: profile).each do |attrs|
         upsert_local_plan(attrs)
+      end
+    end
+
+    def prune_for_profile!(profile: Seeds::Profiles.current)
+      return unless defined?(BillingPlan)
+
+      keep_keys = definitions(profile: profile).map { |attrs| attrs[:key] }
+      return if keep_keys.empty?
+
+      BillingPlan.subscription.where.not(key: keep_keys).where(active: true).update_all(
+        active: false,
+        updated_at: Time.current
+      )
+    end
+
+    def prune_entitlements!(billing_plan_ids:, expert_advisor_ids:)
+      return unless defined?(BillingPlanEntitlement)
+      return if billing_plan_ids.blank? || expert_advisor_ids.blank?
+
+      BillingPlanEntitlement.where.not(billing_plan_id: billing_plan_ids).delete_all
+      BillingPlanEntitlement.where.not(expert_advisor_id: expert_advisor_ids).delete_all
+    end
+
+    def tier_definitions(profile:)
+      if profile.to_s == Seeds::Profiles::PROD_MIRROR
+        PROD_MIRROR_TIER_DEFINITIONS
+      else
+        FULL_QA_TIER_DEFINITIONS
+      end
+    end
+
+    def interval_definitions(profile:)
+      if profile.to_s == Seeds::Profiles::PROD_MIRROR
+        PROD_MIRROR_INTERVAL_DEFINITIONS
+      else
+        FULL_QA_INTERVAL_DEFINITIONS
       end
     end
 
