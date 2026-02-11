@@ -1,6 +1,7 @@
 <% copy_label = t("dashboard.expert_advisors.copy_code") %>
 <% copied_label = t("dashboard.expert_advisors.copied") %>
-<% copy_button_class = "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 min-w-[88px]" %>
+<% copy_failed_label = t("dashboard.expert_advisors.copy_failed") %>
+<% copy_button_class = "inline-flex shrink-0 items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 min-w-[88px]" %>
 <% copy_button_disabled_class = "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700/60 text-gray-400 dark:text-gray-500 cursor-not-allowed min-w-[88px]" %>
 <% license_hint = presenter.license_copy_enabled? ? t("dashboard.expert_advisors.license.hint") : t("dashboard.expert_advisors.license.locked_hint") %>
 <% latest_account = presenter.latest_broker_account %>
@@ -9,9 +10,11 @@
   <!-- Header: Title -->
   <div class="flex items-center justify-between">
     <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.expert_advisors.show.license_title") %></h2>
-    <span class="inline-flex items-center rounded-full text-xs font-medium px-2.5 py-1 <%= presenter.status_badge_class %>">
-      <%= presenter.license_status_label %>
-    </span>
+    <%= render "dashboard/shared/filter_chip",
+      label: presenter.license_status_label,
+      class_name: "#{presenter.status_badge_class} border-gray-200 dark:border-gray-700/60",
+      extra_class: "text-xs px-2 py-0.5 leading-4 whitespace-nowrap",
+      interactive: false %>
   </div>
   <!-- Section: Summary -->
   <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
@@ -23,7 +26,7 @@
   <!-- Section: License key -->
   <div class="mt-4">
     <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.expert_advisors.show.license_key_label") %></div>
-    <div class="flex items-center gap-3 mt-2">
+    <div class="flex items-center gap-4 mt-2">
       <div class="flex-1 min-w-0">
         <div class="flex items-center rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 font-mono text-sm text-gray-800 dark:text-gray-100">
           <span class="truncate" data-license-value title="<%= presenter.license_key_display %>"><%= presenter.license_key_display %></span>
@@ -36,8 +39,9 @@
           data-copy-text="<%= j presenter.license_key %>"
           data-default-text="<%= copy_label %>"
           data-copied-text="<%= copied_label %>"
+          data-copy-failed-text="<%= copy_failed_label %>"
           data-reset-after-ms="3000"
-          onclick="copyToClipboard(this)"
+          data-copy-button="true"
           aria-live="polite"
         ><%= copy_label %></button>
       <% else %>

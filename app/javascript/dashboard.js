@@ -7,32 +7,101 @@ const applySidebarState = () => {
   }
 };
 
+const COPY_SUCCESS_CLASSES = ["text-emerald-600", "dark:text-emerald-200"];
+const COPY_FAILURE_CLASSES = ["text-rose-600", "dark:text-rose-300"];
+
+const copyTextToClipboard = (text) => {
+  if (!text) return Promise.reject(new Error("empty_copy_text"));
+
+  if (window.isSecureContext && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+    return navigator.clipboard.writeText(text);
+  }
+
+  return new Promise((resolve, reject) => {
+    const fallback = document.createElement("textarea");
+    fallback.value = text;
+    fallback.setAttribute("readonly", "");
+    fallback.style.position = "fixed";
+    fallback.style.top = "-9999px";
+    fallback.style.left = "-9999px";
+    document.body.appendChild(fallback);
+    fallback.focus();
+    fallback.select();
+
+    let copied = false;
+    try {
+      copied = document.execCommand("copy");
+    } catch (error) {
+      copied = false;
+    } finally {
+      document.body.removeChild(fallback);
+    }
+
+    if (copied) {
+      resolve();
+    } else {
+      reject(new Error("clipboard_unavailable"));
+    }
+  });
+};
+
+const applyCopyFeedback = ({ button, label, classes, resetAfterMs, defaultText }) => {
+  button.textContent = label;
+  button.classList.remove(...COPY_SUCCESS_CLASSES, ...COPY_FAILURE_CLASSES);
+  button.classList.add(...classes);
+
+  window.setTimeout(() => {
+    button.textContent = defaultText;
+    button.classList.remove(...COPY_SUCCESS_CLASSES, ...COPY_FAILURE_CLASSES);
+    button.disabled = false;
+  }, resetAfterMs);
+};
+
 const setupCopyHelper = () => {
-  window.copyToClipboard = function(button) {
+  const copyFromButton = (button) => {
     if (!button || !button.dataset) return;
 
     const text = button.dataset.copyText;
-    if (!text || !navigator.clipboard || !navigator.clipboard.writeText) return;
+    if (!text) return;
 
     const defaultText = button.dataset.defaultText || button.textContent;
     const copiedText = button.dataset.copiedText || "Copied";
-    const resetAfterMs = parseInt(button.dataset.resetAfterMs || "1500", 10);
+    const copyFailedText = button.dataset.copyFailedText || "Copy failed";
+    const parsedResetMs = parseInt(button.dataset.resetAfterMs || "1500", 10);
+    const resetAfterMs = Number.isFinite(parsedResetMs) ? parsedResetMs : 1500;
 
     button.disabled = true;
+    button.classList.remove(...COPY_SUCCESS_CLASSES, ...COPY_FAILURE_CLASSES);
 
-    navigator.clipboard.writeText(text).then(() => {
-      button.textContent = copiedText;
-      button.classList.add("text-emerald-600", "dark:text-emerald-200");
-
-      setTimeout(() => {
-        button.textContent = defaultText;
-        button.classList.remove("text-emerald-600", "dark:text-emerald-200");
-        button.disabled = false;
-      }, resetAfterMs);
+    copyTextToClipboard(text).then(() => {
+      applyCopyFeedback({
+        button,
+        label: copiedText,
+        classes: COPY_SUCCESS_CLASSES,
+        resetAfterMs,
+        defaultText
+      });
     }).catch(() => {
-      button.disabled = false;
+      applyCopyFeedback({
+        button,
+        label: copyFailedText,
+        classes: COPY_FAILURE_CLASSES,
+        resetAfterMs,
+        defaultText
+      });
     });
   };
+
+  window.copyToClipboard = function(button) {
+    copyFromButton(button);
+  };
+
+  document.querySelectorAll("[data-copy-button='true']").forEach((button) => {
+    if (button.dataset.copyBound === "true") return;
+
+    button.dataset.copyBound = "true";
+    button.addEventListener("click", () => copyFromButton(button));
+  });
 };
 
 const setupGuideCodeCopy = () => {

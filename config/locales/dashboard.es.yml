@@ -577,6 +577,7 @@ es:
       performance_placeholder: "Las estadísticas se sincronizarán de las cuentas de broker cuando lancemos la función."
       copy_code: "Copiar"
       copied: "Copiado"
+      copy_failed: "No se pudo copiar"
       addons:
         title: "Progreso de Adons"
         progress: "%{owned}/%{total}"

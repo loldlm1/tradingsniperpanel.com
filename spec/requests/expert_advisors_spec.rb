@@ -50,6 +50,10 @@ RSpec.describe "Expert advisor guides", type: :request do
     card.css("button").find { |button| button.text.strip == label }
   end
 
+  def chip_in(doc, label)
+    doc.css("span[data-filter-default-class]").find { |chip| chip.text.strip == label }
+  end
+
   it "renders the Expert Advisors index page with guide copy" do
     create(:user_expert_advisor, user:, expert_advisor:)
 
@@ -77,6 +81,14 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(response.body).to include(expert_advisor.name)
     expect(response.body).to include(I18n.t("dashboard.expert_advisors.show.guide_copy", locale: :en))
     expect(response.body).to include(I18n.t("dashboard.expert_advisors.license.locked_value", locale: :en))
+
+    doc = parsed_body
+    system_chip = chip_in(doc, I18n.t("dashboard.expert_advisors.show.system_status.locked", locale: :en))
+    license_chip = chip_in(doc, I18n.t("dashboard.expert_advisors.status.locked", locale: :en))
+    expect(system_chip).to be_present
+    expect(license_chip).to be_present
+    expect(system_chip["class"]).to include("border")
+    expect(license_chip["class"]).to include("border")
   end
 
   it "renders the EA show page with license details when accessible" do
@@ -89,6 +101,19 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(response.body).to include(license.encrypted_key)
     expect(response.body).to include("BrokerX")
     expect(response.body).to include(I18n.t("dashboard.expert_advisors.show.values.broker_accounts_count", count: 1, locale: :en))
+
+    doc = parsed_body
+    system_chip = chip_in(doc, I18n.t("dashboard.expert_advisors.show.system_status.active", locale: :en))
+    license_chip = chip_in(doc, I18n.t("dashboard.expert_advisors.status.active", locale: :en))
+    expect(system_chip).to be_present
+    expect(license_chip).to be_present
+    expect(system_chip["class"]).to include("border")
+    expect(license_chip["class"]).to include("border")
+
+    copy_button = doc.at_css("button[data-copy-button='true']")
+    expect(copy_button).to be_present
+    expect(copy_button["data-copy-text"]).to eq(license.encrypted_key)
+    expect(copy_button["data-copy-failed-text"]).to eq(I18n.t("dashboard.expert_advisors.copy_failed", locale: :en))
   end
 
   it "returns not found when user does not own the EA" do
@@ -254,6 +279,7 @@ RSpec.describe "Expert advisor guides", type: :request do
     purchase_label = I18n.t("dashboard.expert_advisors.addons.purchase_cta", locale: :en)
     owned_label = I18n.t("dashboard.expert_advisors.addons.owned_cta", locale: :en)
     copy_label = I18n.t("dashboard.expert_advisors.copy_code", locale: :en)
+    copy_failed_label = I18n.t("dashboard.expert_advisors.copy_failed", locale: :en)
     locked_license = I18n.t("dashboard.expert_advisors.license.locked_value", locale: :en)
     addons_progress = I18n.t("dashboard.expert_advisors.addons.progress", owned: 1, total: 3, locale: :en)
     zero_progress = I18n.t("dashboard.expert_advisors.addons.progress", owned: 0, total: 0, locale: :en)
@@ -271,8 +297,17 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(accessible_card.text).to include(addons_progress)
     expect(accessible_card.css("a").any? { |link| link.text.strip == purchase_label }).to be(true)
     expect(accessible_card.css("button").any? { |button| button.text.strip == owned_label }).to be(true)
+    guide_actions_row = accessible_card.at_css("[data-guide-actions-row]")
+    expect(guide_actions_row).to be_present
+    expect(guide_actions_row["class"]).to include("flex")
+    expect(link_in(guide_actions_row, guide_label)["href"])
+      .to eq(dashboard_expert_advisor_guides_path(accessible_ea, locale: :en))
+    expect(link_in(guide_actions_row, details_label)["href"])
+      .to eq(dashboard_expert_advisor_path(accessible_ea, locale: :en))
     copy_button = button_in(accessible_card, copy_label)
     expect(copy_button["data-copy-text"]).to eq(license.encrypted_key)
+    expect(copy_button["data-copy-button"]).to eq("true")
+    expect(copy_button["data-copy-failed-text"]).to eq(copy_failed_label)
     expect(copy_button["disabled"]).to be_nil
 
     marketplace_card = card_for(doc, locked_marketplace_ea.name)
@@ -284,6 +319,7 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(marketplace_card.at_css("[data-license-value]").text).to include(locked_license)
     locked_copy_button = button_in(marketplace_card, copy_label)
     expect(locked_copy_button["disabled"]).to eq("disabled")
+    expect(locked_copy_button["data-copy-button"]).to be_nil
     expect(locked_copy_button["data-copy-text"]).to be_nil
 
     plan_card = card_for(doc, locked_plan_ea.name)

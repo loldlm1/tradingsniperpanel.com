@@ -27,9 +27,11 @@
             <h2 class="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= presenter.expert_advisor.name %></h2>
             <!-- Header: Right side -->
             <div class="flex flex-wrap items-center gap-2 text-xs">
-              <span class="inline-flex items-center rounded-full font-medium px-2.5 py-1 <%= presenter.status_badge_class %>">
-                <%= presenter.system_status_label %>
-              </span>
+              <%= render "dashboard/shared/filter_chip",
+                label: presenter.system_status_label,
+                class_name: "#{presenter.status_badge_class} border-gray-200 dark:border-gray-700/60",
+                extra_class: "text-xs px-2 py-0.5 leading-4 whitespace-nowrap",
+                interactive: false %>
               <%= render "dashboard/shared/filter_chip",
                 label: t("dashboard.expert_advisors.show.type_label", type: presenter.type_label),
                 interactive: false,

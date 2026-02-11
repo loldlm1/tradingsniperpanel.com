@@ -7,6 +7,8 @@
 <% download_label = t("dashboard.expert_advisors.download_bundle") %>
 <% download_class = "btn w-full justify-center bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
 <% download_disabled_class = "btn w-full justify-center bg-gray-900 text-gray-100 dark:bg-gray-100 dark:text-gray-800 opacity-60 cursor-not-allowed" %>
+<% guide_action_primary_class = "btn flex-1 min-w-0 justify-center text-center bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
+<% guide_action_secondary_class = "btn flex-1 min-w-0 justify-center text-center bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600" %>
 <% addon_purchase_class = "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
 <% addon_owned_class = "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-700/60 text-gray-400 dark:text-gray-500" %>
 <% tag_chip_class = "border-gray-200 dark:border-gray-700/60 bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300" %>
@@ -15,7 +17,8 @@
 <% status_chip_extra_class = "text-xs px-2 py-0.5 leading-4 whitespace-nowrap" %>
 <% copy_label = t("dashboard.expert_advisors.copy_code") %>
 <% copied_label = t("dashboard.expert_advisors.copied") %>
-<% copy_button_class = "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 min-w-[88px]" %>
+<% copy_failed_label = t("dashboard.expert_advisors.copy_failed") %>
+<% copy_button_class = "inline-flex shrink-0 items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 min-w-[88px]" %>
 <% copy_button_disabled_class = "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700/60 text-gray-400 dark:text-gray-500 cursor-not-allowed min-w-[88px]" %>
 
 <!-- Item <%= card.index + 1 %> -->
@@ -66,9 +69,9 @@
         <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.expert_advisors.index.guide_title") %></div>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"><%= card.guide_copy %></p>
         <div class="mt-4 flex flex-col gap-2">
-          <div class="grid grid-cols-2 gap-2">
-            <%= link_to card.guide_cta_label, card.guide_url, class: "btn w-full justify-center bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
-            <%= link_to t("dashboard.expert_advisors.show_cta"), card.details_url, class: "btn w-full justify-center bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600" %>
+          <div class="flex items-center gap-2" data-guide-actions-row>
+            <%= link_to card.guide_cta_label, card.guide_url, class: guide_action_primary_class %>
+            <%= link_to t("dashboard.expert_advisors.show_cta"), card.details_url, class: guide_action_secondary_class %>
           </div>
           <% if card.download_enabled %>
             <%= link_to download_label, card.download_url, class: download_class %>
@@ -109,7 +112,7 @@
   <div class="p-5">
     <div class="flex flex-col gap-2">
       <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.expert_advisors.license.title") %></div>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-4">
         <div class="flex-1 min-w-0">
           <div class="flex items-center rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 font-mono text-sm text-gray-800 dark:text-gray-100">
             <span class="truncate" data-license-value title="<%= card.license_display %>"><%= card.license_display %></span>
@@ -122,8 +125,9 @@
             data-copy-text="<%= j card.license_copy_text %>"
             data-default-text="<%= copy_label %>"
             data-copied-text="<%= copied_label %>"
+            data-copy-failed-text="<%= copy_failed_label %>"
             data-reset-after-ms="3000"
-            onclick="copyToClipboard(this)"
+            data-copy-button="true"
             aria-live="polite"
           ><%= copy_label %></button>
         <% else %>

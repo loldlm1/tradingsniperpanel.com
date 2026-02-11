@@ -577,6 +577,7 @@ en:
       performance_placeholder: "Live stats will sync from broker accounts once the feature ships."
       copy_code: "Copy"
       copied: "Copied"
+      copy_failed: "Copy failed"
       addons:
         title: "Add-ons progress"
         progress: "%{owned}/%{total}"
