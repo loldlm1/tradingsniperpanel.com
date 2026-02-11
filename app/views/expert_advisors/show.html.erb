@@ -1,5 +1,6 @@
 <% content_for :title, t("dashboard.expert_advisors.show_page_title", name: @expert_advisor.name, app: app_short_name) %>
 <% presenter = @show_presenter %>
+<% status_chip_class_name = presenter.status.to_s == "locked" ? "" : "#{presenter.status_badge_class} border-gray-200 dark:border-gray-700/60" %>
 
 <!-- Page header -->
 <div class="sm:flex sm:justify-between sm:items-center mb-5">
@@ -29,7 +30,7 @@
             <div class="flex flex-wrap items-center gap-2 text-xs">
               <%= render "dashboard/shared/filter_chip",
                 label: presenter.system_status_label,
-                class_name: "#{presenter.status_badge_class} border-gray-200 dark:border-gray-700/60",
+                class_name: status_chip_class_name,
                 extra_class: "text-xs px-2 py-0.5 leading-4 whitespace-nowrap",
                 interactive: false %>
               <%= render "dashboard/shared/filter_chip",

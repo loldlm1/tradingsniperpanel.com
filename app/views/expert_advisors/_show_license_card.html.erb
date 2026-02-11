@@ -5,6 +5,7 @@
 <% copy_button_disabled_class = "inline-flex items-center justify-center text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700/60 text-gray-400 dark:text-gray-500 cursor-not-allowed min-w-[88px]" %>
 <% license_hint = presenter.license_copy_enabled? ? t("dashboard.expert_advisors.license.hint") : t("dashboard.expert_advisors.license.locked_hint") %>
 <% latest_account = presenter.latest_broker_account %>
+<% status_chip_class_name = presenter.status.to_s == "locked" ? "" : "#{presenter.status_badge_class} border-gray-200 dark:border-gray-700/60" %>
 
 <div class="flex flex-col bg-white dark:bg-gray-800 shadow-xs rounded-xl p-4">
   <!-- Header: Title -->
@@ -12,7 +13,7 @@
     <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.expert_advisors.show.license_title") %></h2>
     <%= render "dashboard/shared/filter_chip",
       label: presenter.license_status_label,
-      class_name: "#{presenter.status_badge_class} border-gray-200 dark:border-gray-700/60",
+      class_name: status_chip_class_name,
       extra_class: "text-xs px-2 py-0.5 leading-4 whitespace-nowrap",
       interactive: false %>
   </div>

@@ -89,6 +89,8 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(license_chip).to be_present
     expect(system_chip["class"]).to include("border")
     expect(license_chip["class"]).to include("border")
+    expect(system_chip["class"]).to include("dark:bg-gray-800")
+    expect(license_chip["class"]).to include("dark:bg-gray-800")
   end
 
   it "renders the EA show page with license details when accessible" do

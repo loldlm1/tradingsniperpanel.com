@@ -38,3 +38,6 @@ Implement a consistent and reliable UX for Expert Advisors index/show by keeping
 - PASS: Added EN/ES copy-failure locale keys in `config/locales/dashboard.en.yml` and `config/locales/dashboard.es.yml`.
 - PASS: Expanded request coverage in `spec/requests/expert_advisors_spec.rb` for chip rendering and copy wiring.
 - PASS: `bundle exec rspec spec/requests/expert_advisors_spec.rb spec/services/expert_advisors/index_presenter_spec.rb spec/services/expert_advisors/show_presenter_spec.rb` (20 examples, 0 failures).
+- PASS: Follow-up tweak: use default `filter_chip` styling specifically for locked status badges in `app/views/expert_advisors/show.html.erb` and `app/views/expert_advisors/_show_license_card.html.erb`.
+- PASS: Added locked-chip class assertions in `spec/requests/expert_advisors_spec.rb`.
+- PASS: `bundle exec rspec spec/requests/expert_advisors_spec.rb` (14 examples, 0 failures).
