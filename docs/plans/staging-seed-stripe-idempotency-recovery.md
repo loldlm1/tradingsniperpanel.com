@@ -29,3 +29,5 @@
 - PASS: `sed -n '1,260p' app/services/marketplace/plan_sync.rb`
 - PASS: `sed -n '1,260p' app/services/marketplace/product_manager.rb`
 - PASS: `bundle exec rspec spec/services/billing/plan_creator_spec.rb spec/seeds/runner_spec.rb spec/seeds/marketplace_seed_spec.rb`
+- FAIL: `bundle exec rspec` (1 failure: `spec/seeds/marketplace_seed_spec.rb` NameError `Seeds::Profiles`)
+- PASS: `bundle exec rspec` (437 examples, 0 failures)

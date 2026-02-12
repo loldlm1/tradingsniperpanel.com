@@ -1,3 +1,6 @@
+profiles_seed_path = Rails.root.join("db", "seeds", "profiles.rb")
+load(profiles_seed_path) if !defined?(Seeds::Profiles) && profiles_seed_path.exist?
+
 module Seeds
   module ExpertAdvisors
     module_function
