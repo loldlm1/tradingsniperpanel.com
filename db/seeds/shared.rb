@@ -4,13 +4,44 @@ module Seeds
 
     INTRO_VIDEO_TOKEN = "[[video:docs/videos/video.mp4]]"
     OUTRO_YOUTUBE_TOKEN = "[[youtube:https://www.youtube.com/watch?v=dQw4w9WgXcQ]]"
+    DEFAULT_GUIDE_EA_ID = "sniper_advanced_panel".freeze
+    GUIDE_PATHS = {
+      "sniper_advanced_panel" => {
+        en: [
+          Rails.root.join("docs_eas", "sniper_advanced_panel", "sniper_advanced_panel_guide_en.md"),
+          Rails.root.join("docs_eas", "sniper_advanced_panel", "Manual_EN.md")
+        ],
+        es: [
+          Rails.root.join("docs_eas", "sniper_advanced_panel", "sniper_advanced_panel_guide_es.md"),
+          Rails.root.join("docs_eas", "sniper_advanced_panel", "Manual_ES.md")
+        ]
+      },
+      "pandora_box" => {
+        en: [
+          Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_guide_en.md")
+        ],
+        es: [
+          Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_guide_es.md")
+        ]
+      }
+    }.freeze
+
+    def guide_for(ea_id:, locale:)
+      @guide_cache ||= {}
+      key = [ea_id.to_s, locale.to_s]
+      @guide_cache[key] ||= begin
+        path = guide_path(ea_id: ea_id, locale: locale)
+        content = path.exist? ? File.read(path) : ""
+        inject_media_tokens(content)
+      end
+    end
 
     def manual_en
-      @manual_en ||= manual_for(locale: :en)
+      @manual_en ||= guide_for(ea_id: DEFAULT_GUIDE_EA_ID, locale: :en)
     end
 
     def manual_es
-      @manual_es ||= manual_for(locale: :es)
+      @manual_es ||= guide_for(ea_id: DEFAULT_GUIDE_EA_ID, locale: :es)
     end
 
     def core_definitions(profile: Seeds::Profiles.current)
@@ -41,9 +72,21 @@ module Seeds
           ea_type: :ea_tool,
           trial_enabled: false,
           allowed_subscription_tiers: %w[basic],
-          doc_guide_en: manual_en,
-          doc_guide_es: manual_es,
+          doc_guide_en: guide_for(ea_id: "sniper_advanced_panel", locale: :en),
+          doc_guide_es: guide_for(ea_id: "sniper_advanced_panel", locale: :es),
           tags: %w[panel execution risk]
+        },
+        {
+          name: "PANDORA BOX EA",
+          tier_rank: 2,
+          ea_id: "pandora_box",
+          description: "Breakout EA for MT5 with configurable direction modes and grid controls.",
+          ea_type: :ea_robot,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[pandora_pro],
+          doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en),
+          doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es),
+          tags: %w[automation breakout]
         }
       ]
     end
@@ -58,8 +101,8 @@ module Seeds
           ea_type: :ea_tool,
           trial_enabled: false,
           allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en,
-          doc_guide_es: manual_es,
+          doc_guide_en: guide_for(ea_id: "sniper_advanced_panel", locale: :en),
+          doc_guide_es: guide_for(ea_id: "sniper_advanced_panel", locale: :es),
           tags: %w[panel execution risk]
         },
         {
@@ -70,8 +113,8 @@ module Seeds
           ea_type: :ea_robot,
           trial_enabled: false,
           allowed_subscription_tiers: %w[hft pro],
-          doc_guide_en: manual_en,
-          doc_guide_es: manual_es,
+          doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en),
+          doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es),
           tags: %w[automation filters]
         },
         {
@@ -208,28 +251,11 @@ module Seeds
       end
     end
 
-    def manual_for(locale:)
-      path = manual_path(locale)
-      content = path.exist? ? File.read(path) : ""
-      inject_media_tokens(content)
-    end
-
-    def manual_path(locale)
-      locale.to_s == "es" ? manual_es_path : manual_en_path
-    end
-
-    def manual_en_path
-      first_existing_path(
-        Rails.root.join("docs_eas", "sniper_advanced_panel", "sniper_advanced_panel_guide_en.md"),
-        Rails.root.join("docs_eas", "sniper_advanced_panel", "Manual_EN.md")
-      )
-    end
-
-    def manual_es_path
-      first_existing_path(
-        Rails.root.join("docs_eas", "sniper_advanced_panel", "sniper_advanced_panel_guide_es.md"),
-        Rails.root.join("docs_eas", "sniper_advanced_panel", "Manual_ES.md")
-      )
+    def guide_path(ea_id:, locale:)
+      locale_key = locale.to_s == "es" ? :es : :en
+      configured_paths = GUIDE_PATHS.dig(ea_id.to_s, locale_key)
+      configured_paths ||= GUIDE_PATHS.dig(DEFAULT_GUIDE_EA_ID, locale_key)
+      first_existing_path(*Array(configured_paths))
     end
 
     def first_existing_path(*paths)
@@ -953,7 +979,8 @@ module Seeds
       { interval: "year", interval_count: 1, multiplier: 9.0 }
     ].freeze
     PROD_MIRROR_TIER_DEFINITIONS = [
-      { tier: "basic", sort_order: 1, monthly_cents: 2000 }
+      { tier: "basic", sort_order: 1, monthly_cents: 2000 },
+      { tier: "pandora_pro", sort_order: 2, monthly_cents: 3000 }
     ].freeze
     PROD_MIRROR_INTERVAL_DEFINITIONS = [
       { interval: "month", interval_count: 1, multiplier: 1.0 },
@@ -979,7 +1006,7 @@ module Seeds
     end
 
     def seed_plans!(allow_local: false, profile: Seeds::Profiles.current)
-      if stripe_configured?
+      if stripe_seeding_enabled?
         return unless defined?(Billing::PlanCreator)
 
         definitions(profile: profile).each do |attrs|
@@ -1045,7 +1072,7 @@ module Seeds
       plan.save!
     end
 
-    def seed_entitlements!
+    def seed_entitlements!(profile: Seeds::Profiles.current)
       return unless defined?(BillingPlanEntitlement)
 
       plans = BillingPlan.subscription.active
@@ -1054,7 +1081,11 @@ module Seeds
       plans_by_tier = plans.group_by(&:tier)
 
       ExpertAdvisor.active.find_each do |expert_advisor|
-        tiers = Array(expert_advisor.allowed_subscription_tiers).presence || plans_by_tier.keys
+        tiers = entitlement_tiers_for(
+          expert_advisor: expert_advisor,
+          plans_by_tier: plans_by_tier,
+          profile: profile
+        )
         tiers.each do |tier|
           Array(plans_by_tier[tier]).each do |plan|
             BillingPlanEntitlement.find_or_create_by!(
@@ -1064,6 +1095,29 @@ module Seeds
           end
         end
       end
+    end
+
+    def entitlement_tiers_for(expert_advisor:, plans_by_tier:, profile:)
+      tiers = Array(expert_advisor.allowed_subscription_tiers).presence || plans_by_tier.keys
+      expand_tiers_for_profile(tiers: tiers, profile: profile)
+    end
+
+    def expand_tiers_for_profile(tiers:, profile:)
+      normalized = Array(tiers).map(&:to_s).reject(&:blank?)
+      return normalized if normalized.empty?
+      return normalized.uniq unless profile.to_s == Seeds::Profiles::PROD_MIRROR
+
+      ordered_tiers = ordered_tiers_for_profile(profile: profile)
+      return normalized.uniq if ordered_tiers.empty?
+
+      normalized.flat_map do |tier|
+        index = ordered_tiers.index(tier)
+        index ? ordered_tiers[index..] : tier
+      end.uniq
+    end
+
+    def ordered_tiers_for_profile(profile:)
+      tier_definitions(profile: profile).sort_by { |tier_def| tier_def[:sort_order].to_i }.map { |tier_def| tier_def[:tier].to_s }
     end
 
     def plan_definition(tier:, interval:, interval_count:, amount_cents:, sort_order:)
@@ -1087,11 +1141,11 @@ module Seeds
       amount.positive? ? amount : 1
     end
 
-    def stripe_configured?
+    def stripe_seeding_enabled?
       return true if ENV["STRIPE_PRIVATE_KEY"].present?
+      return false if Rails.env.test?
 
-      Rails.logger.warn("Skipping billing plan seed because STRIPE_PRIVATE_KEY is not set.")
-      false
+      raise ArgumentError, "STRIPE_PRIVATE_KEY is required to seed billing plans outside test."
     end
   end
 
@@ -1525,7 +1579,44 @@ module Seeds
   module MarketplaceProducts
     module_function
 
-    def definitions
+    def definitions(profile: Seeds::Profiles.current)
+      profile.to_s == Seeds::Profiles::PROD_MIRROR ? prod_mirror_definitions : full_qa_definitions
+    end
+
+    def prune_for_profile!(profile: Seeds::Profiles.current)
+      return unless defined?(MarketplaceProduct)
+
+      keep_slugs = definitions(profile: profile).map { |attrs| attrs[:slug] }
+      return if keep_slugs.empty?
+
+      MarketplaceProduct.where.not(slug: keep_slugs).includes(:billing_plan).find_each do |product|
+        product.update!(status: "draft") if product.active?
+        product.billing_plan&.update!(active: false) if product.billing_plan&.active?
+      end
+    end
+
+    def prod_mirror_definitions
+      [
+        {
+          slug: "ea_pandora_box",
+          sort_order: 1,
+          title_en: "Pandora Box EA",
+          title_es: "Pandora Box EA",
+          summary_en: "Breakout EA for MT5 with directional modes and configurable risk controls.",
+          summary_es: "EA de breakout para MT5 con modos de direccion y controles de riesgo configurables.",
+          description_en: pandora_marketplace_markdown_en,
+          description_es: pandora_marketplace_markdown_es,
+          amount_cents: 29_900,
+          image: Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_marketplace_img.jpg"),
+          ea_ids: %w[pandora_box],
+          course_slugs: [],
+          asset_slugs: [],
+          stripe_required: false
+        }
+      ]
+    end
+
+    def full_qa_definitions
       [
         {
           slug: "ea_starter_bundle",
@@ -1687,19 +1778,25 @@ module Seeds
       ]
     end
 
-    def seed_products!
+    def seed_products!(profile: Seeds::Profiles.current)
       return unless defined?(MarketplaceProduct)
       return unless defined?(BillingPlan)
+
+      enforce_stripe_requirement!
       stripe_available = ENV["STRIPE_PRIVATE_KEY"].present?
+      force_stripe = !Rails.env.test?
       stripe_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
       local_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: false)
 
-      definitions.each do |attrs|
+      definitions(profile: profile).each do |attrs|
         attrs = attrs.dup
-        stripe_required = attrs.delete(:stripe_required) { true }
+        stripe_required = force_stripe || attrs.delete(:stripe_required) { true }
         if stripe_required && !stripe_available
-          Rails.logger.warn("[Seeds::MarketplaceProducts] skipped slug=#{attrs[:slug]}: STRIPE_PRIVATE_KEY is not set")
-          next
+          if Rails.env.test?
+            stripe_required = false
+          else
+            raise ArgumentError, "[Seeds::MarketplaceProducts] STRIPE_PRIVATE_KEY is required for slug=#{attrs[:slug]}"
+          end
         end
 
         manager = stripe_required ? stripe_manager : local_manager
@@ -1738,6 +1835,49 @@ module Seeds
       plan_attrs[:stripe_product_id] = attrs[:stripe_product_id] || stripe_product_id
       plan_attrs[:stripe_price_id] = attrs[:stripe_price_id] || stripe_price_id
       plan_attrs
+    end
+
+    def enforce_stripe_requirement!
+      return if ENV["STRIPE_PRIVATE_KEY"].present?
+      return if Rails.env.test?
+
+      raise ArgumentError, "STRIPE_PRIVATE_KEY is required to seed marketplace products outside test."
+    end
+
+    def pandora_marketplace_markdown_en
+      <<~MARKDOWN.strip
+        # Pandora Box EA
+
+        Pandora Box EA is an Expert Advisor for MetaTrader 5 focused on breakout execution with configurable direction modes and risk controls.
+
+        ## Detailed behavior
+
+        Pandora Box builds a price box over a selected session window and monitors breakouts above and below that range. When a breakout happens, the EA executes in one direction according to its configuration and stops once the configured profit behavior is reached.
+
+        ## Key capabilities
+
+        - Full automation for breakout execution.
+        - Configurable setup for range window, stop loss, and take profit.
+        - Direction controls and operation flow tuning.
+      MARKDOWN
+    end
+
+    def pandora_marketplace_markdown_es
+      path = Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_ea_marketplace.md")
+      markdown = path.exist? ? File.read(path) : ""
+      cleaned = strip_markdown_images(markdown)
+      return cleaned if cleaned.present?
+
+      <<~MARKDOWN.strip
+        # Pandora Box EA
+
+        Pandora Box EA es un Asesor Experto para MetaTrader 5 enfocado en breakouts con configuracion flexible de direccion y riesgo.
+      MARKDOWN
+    end
+
+    def strip_markdown_images(markdown)
+      cleaned = markdown.to_s.gsub(/!\[[^\]]*\]\([^)]+\)/, "")
+      cleaned.gsub(/\n{3,}/, "\n\n").strip
     end
 
     def seed_stripe_ids(slug)
@@ -1864,16 +2004,22 @@ module Seeds
       return unless defined?(Addon)
       return unless defined?(MarketplaceProduct)
       return unless defined?(BillingPlan)
+
+      enforce_stripe_requirement!
       stripe_available = ENV["STRIPE_PRIVATE_KEY"].present?
+      force_stripe = !Rails.env.test?
       stripe_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
       local_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: false)
 
       definitions.each do |attrs|
         attrs = attrs.dup
-        stripe_required = attrs.delete(:stripe_required) { true }
+        stripe_required = force_stripe || attrs.delete(:stripe_required) { true }
         if stripe_required && !stripe_available
-          Rails.logger.warn("[Seeds::Addons] skipped addon=#{attrs[:key]}: STRIPE_PRIVATE_KEY is not set")
-          next
+          if Rails.env.test?
+            stripe_required = false
+          else
+            raise ArgumentError, "[Seeds::Addons] STRIPE_PRIVATE_KEY is required for addon=#{attrs[:key]}"
+          end
         end
 
         addonable = resolve_addonable(attrs)
@@ -1911,6 +2057,13 @@ module Seeds
       plan_attrs[:stripe_product_id] = attrs[:stripe_product_id] || stripe_product_id
       plan_attrs[:stripe_price_id] = attrs[:stripe_price_id] || stripe_price_id
       plan_attrs
+    end
+
+    def enforce_stripe_requirement!
+      return if ENV["STRIPE_PRIVATE_KEY"].present?
+      return if Rails.env.test?
+
+      raise ArgumentError, "STRIPE_PRIVATE_KEY is required to seed add-ons outside test."
     end
 
     def resolve_addonable(attrs)

@@ -18,6 +18,7 @@ module Seeds
     def seed_prod_mirror!(allow_local: true)
       Seeds::BillingPlans.prune_for_profile!(profile: Seeds::Profiles::PROD_MIRROR)
       Seeds::ExpertAdvisors.prune_for_profile!(profile: Seeds::Profiles::PROD_MIRROR)
+      Seeds::MarketplaceProducts.prune_for_profile!(profile: Seeds::Profiles::PROD_MIRROR)
 
       Seeds::BillingPlans.seed_plans!(
         allow_local: allow_local,
@@ -31,7 +32,8 @@ module Seeds
         Seeds::ExpertAdvisors.upsert_expert_advisor(attrs.dup, bundle_path: bundle_path)
       end
 
-      Seeds::BillingPlans.seed_entitlements!
+      Seeds::MarketplaceProducts.seed_products!(profile: Seeds::Profiles::PROD_MIRROR)
+      Seeds::BillingPlans.seed_entitlements!(profile: Seeds::Profiles::PROD_MIRROR)
       Seeds::BillingPlans.prune_entitlements!(
         billing_plan_ids: BillingPlan.active.pluck(:id),
         expert_advisor_ids: ExpertAdvisor.active.pluck(:id)
@@ -56,10 +58,10 @@ module Seeds
         Seeds::ExpertAdvisors.upsert_expert_advisor(attrs.dup, bundle_path: qa_bundle_path)
       end
 
-      Seeds::BillingPlans.seed_entitlements!
+      Seeds::BillingPlans.seed_entitlements!(profile: Seeds::Profiles::FULL_QA)
       Seeds::Courses.seed_courses!
       Seeds::MarketplaceAssets.seed_assets!
-      Seeds::MarketplaceProducts.seed_products!
+      Seeds::MarketplaceProducts.seed_products!(profile: Seeds::Profiles::FULL_QA)
       Seeds::Addons.seed_addons!
       Seeds::ExpertAdvisorBundles.seed_bundles!
 
@@ -81,11 +83,12 @@ module Seeds
 
     def core_bundle_paths(profile:)
       paths = {
-        "sniper_advanced_panel" => sniper_bundle_path
+        "sniper_advanced_panel" => sniper_bundle_path,
+        "pandora_box" => pandora_bundle_path
       }
       return paths if profile.to_s == Seeds::Profiles::PROD_MIRROR
 
-      paths.merge("pandora_box" => pandora_bundle_path)
+      paths
     end
     private_class_method :core_bundle_paths
 
@@ -95,9 +98,18 @@ module Seeds
     private_class_method :sniper_bundle_path
 
     def pandora_bundle_path
-      Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_ea.rar")
+      first_existing_path(
+        Rails.root.join("docs_eas", "pandora_box_ea", "PANDORA_BOX_EA.zip"),
+        Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_ea.zip"),
+        Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_ea.rar")
+      )
     end
     private_class_method :pandora_bundle_path
+
+    def first_existing_path(*paths)
+      paths.find(&:exist?) || paths.first
+    end
+    private_class_method :first_existing_path
 
     def qa_bundle_path
       Rails.root.join("db", "seeds", "fixtures", "ea_bundle.rar")

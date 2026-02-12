@@ -458,6 +458,16 @@ en:
               - "Multi-target take profit"
               - "Automatic break-even protection"
               - "Preconfigured order workflows"
+          pandora_pro:
+            name: "Pandora Pro"
+            description: "For traders who want all Basic benefits plus breakout automation and directional execution controls."
+            features_title: "Everything in Basic, plus:"
+            features:
+              - "Breakout strategy automation"
+              - "Direction modes"
+              - "Flexible parameter configuration"
+              - "Complete operation control"
+              - "Entry and exit optimization"
           hft:
             name: "HFT"
             description: "For scalpers and day traders: speed, multi-target, and preconfigured orders."

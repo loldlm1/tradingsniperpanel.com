@@ -404,6 +404,16 @@ en:
             - "Multi-target take profit"
             - "Automatic break-even protection"
             - "Preconfigured order workflows"
+        pandora_pro:
+          name: "Pandora Pro"
+          description: "Everything in Basic plus breakout-focused automation and deeper execution control."
+          features:
+            - "Everything in Basic"
+            - "Breakout strategy automation"
+            - "Direction modes"
+            - "Flexible parameter configuration"
+            - "Complete operation control"
+            - "Entry and exit optimization"
         hft:
           name: "HFT"
           description: "Advanced execution workflows and broader EA access for active traders."

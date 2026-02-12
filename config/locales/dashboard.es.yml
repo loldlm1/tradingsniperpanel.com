@@ -404,6 +404,16 @@ es:
             - "Multi-target"
             - "Punto de equilibrio automático (Break Even)"
             - "Órdenes preconfiguradas"
+        pandora_pro:
+          name: "Pandora Pro"
+          description: "Todo lo de Basic, más automatización breakout y mayor control sobre la ejecución."
+          features:
+            - "Todo lo de Basic"
+            - "Breakout"
+            - "Modos de Dirección"
+            - "Configuración Flexible"
+            - "Control Total sobre las Operaciones"
+            - "Optimización de Entradas y Salidas"
         hft:
           name: "HFT"
           description: "Flujos de ejecución avanzados y mayor acceso a EAs para traders activos."
