@@ -29,4 +29,21 @@ RSpec.describe "Home pricing CTAs", type: :request do
 
     expect(response.body).to include("x-bind:href")
   end
+
+  it "detects interval suffixes for underscore-tier price keys" do
+    create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1)
+    create(:billing_plan, tier: "basic", key: "basic_annual", interval: "year", interval_count: 1)
+    create(:billing_plan, tier: "pandora_pro", key: "pandora_pro_monthly", interval: "month", interval_count: 1)
+    create(:billing_plan, tier: "pandora_pro", key: "pandora_pro_annual", interval: "year", interval_count: 1)
+
+    get root_path(price_key: "pandora_pro_annual")
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("x-data=\"{ period: 'annual' }\"")
+
+    get root_path(price_key: "pandora_pro_invalid")
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("x-data=\"{ period: 'monthly' }\"")
+  end
 end

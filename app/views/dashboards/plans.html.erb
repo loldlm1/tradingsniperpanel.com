@@ -13,8 +13,16 @@
 <% scheduled_change = plan[:scheduled_change] || {} %>
 <% scheduled_price_key = scheduled_change[:price_key] %>
 <% requested_price_key = @requested_price_key.to_s.presence %>
-<% requested_tier = requested_price_key&.split("_")&.first %>
-<% requested_interval = requested_price_key&.split("_")&.drop(1)&.join("_") %>
+<% sorted_interval_keys = interval_keys.sort_by { |key| -key.to_s.length } %>
+<% requested_interval = if requested_price_key.present?
+                          sorted_interval_keys.find do |interval_key|
+                            requested_price_key == interval_key || requested_price_key.end_with?("_#{interval_key}")
+                          end
+                        end %>
+<% requested_tier = if requested_price_key.present? && requested_interval.present?
+                      suffix = "_#{requested_interval}"
+                      requested_price_key.end_with?(suffix) ? requested_price_key.delete_suffix(suffix).presence : nil
+                    end %>
 <% plan_states = plan[:states] || {} %>
 <% upgrade_confirm = t("dashboard.plans.upgrade_confirm") %>
 <% privileged_full_access = Access::PrivilegedRolePolicy.full_access?(current_user) %>
