@@ -19,6 +19,7 @@ class MarketplaceController < ApplicationController
       entry: @entry,
       locale: I18n.locale
     ).call
+    @description_html = render_marketplace_description(@marketplace.description)
   end
 
   def checkout
@@ -78,5 +79,11 @@ class MarketplaceController < ApplicationController
 
     redirect_to dashboard_marketplace_product_path(@entry.product, locale: I18n.locale),
                 alert: t("dashboard.marketplace.errors.privileged_checkout_blocked")
+  end
+
+  def render_marketplace_description(markdown)
+    return nil if markdown.blank?
+
+    MarkdownRenderer.render(markdown)
   end
 end

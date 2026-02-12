@@ -29,33 +29,33 @@ module Seeds
       }
     }.freeze
 
-    def guide_for(ea_id:, locale:)
+    def guide_for(ea_id:, locale:, profile: Seeds::Profiles.current)
       @guide_cache ||= {}
-      key = [ea_id.to_s, locale.to_s]
+      key = [ea_id.to_s, locale.to_s, profile.to_s]
       @guide_cache[key] ||= begin
         path = guide_path(ea_id: ea_id, locale: locale)
         content = path.exist? ? File.read(path) : ""
-        inject_media_tokens(content)
+        profile.to_s == Seeds::Profiles::PROD_MIRROR ? content : inject_media_tokens(content)
       end
     end
 
-    def manual_en
-      @manual_en ||= guide_for(ea_id: DEFAULT_GUIDE_EA_ID, locale: :en)
+    def manual_en(profile: Seeds::Profiles.current)
+      guide_for(ea_id: DEFAULT_GUIDE_EA_ID, locale: :en, profile: profile)
     end
 
-    def manual_es
-      @manual_es ||= guide_for(ea_id: DEFAULT_GUIDE_EA_ID, locale: :es)
+    def manual_es(profile: Seeds::Profiles.current)
+      guide_for(ea_id: DEFAULT_GUIDE_EA_ID, locale: :es, profile: profile)
     end
 
     def core_definitions(profile: Seeds::Profiles.current)
-      profile.to_s == Seeds::Profiles::PROD_MIRROR ? prod_mirror_definitions : full_qa_definitions
+      profile.to_s == Seeds::Profiles::PROD_MIRROR ? prod_mirror_definitions(profile: profile) : full_qa_definitions(profile: profile)
     end
 
     def prune_for_profile!(profile: Seeds::Profiles.current)
       return unless defined?(ExpertAdvisor)
 
       keep_ids = core_definitions(profile: profile).map { |attrs| attrs[:ea_id] }
-      keep_ids += qa_definitions.map { |attrs| attrs[:ea_id] } if profile.to_s == Seeds::Profiles::FULL_QA
+      keep_ids += qa_definitions(profile: profile).map { |attrs| attrs[:ea_id] } if profile.to_s == Seeds::Profiles::FULL_QA
       keep_ids = keep_ids.uniq
       return if keep_ids.empty?
 
@@ -65,7 +65,7 @@ module Seeds
       )
     end
 
-    def prod_mirror_definitions
+    def prod_mirror_definitions(profile: Seeds::Profiles.current)
       [
         {
           name: "Sniper Advanced Panel",
@@ -75,8 +75,8 @@ module Seeds
           ea_type: :ea_tool,
           trial_enabled: false,
           allowed_subscription_tiers: %w[basic],
-          doc_guide_en: guide_for(ea_id: "sniper_advanced_panel", locale: :en),
-          doc_guide_es: guide_for(ea_id: "sniper_advanced_panel", locale: :es),
+          doc_guide_en: guide_for(ea_id: "sniper_advanced_panel", locale: :en, profile: profile),
+          doc_guide_es: guide_for(ea_id: "sniper_advanced_panel", locale: :es, profile: profile),
           tags: %w[panel execution risk]
         },
         {
@@ -87,14 +87,14 @@ module Seeds
           ea_type: :ea_robot,
           trial_enabled: false,
           allowed_subscription_tiers: %w[pandora_pro],
-          doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en),
-          doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es),
+          doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en, profile: profile),
+          doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es, profile: profile),
           tags: %w[automation breakout]
         }
       ]
     end
 
-    def full_qa_definitions
+    def full_qa_definitions(profile: Seeds::Profiles.current)
       [
         {
           name: "Sniper Advanced Panel",
@@ -104,8 +104,8 @@ module Seeds
           ea_type: :ea_tool,
           trial_enabled: false,
           allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: guide_for(ea_id: "sniper_advanced_panel", locale: :en),
-          doc_guide_es: guide_for(ea_id: "sniper_advanced_panel", locale: :es),
+          doc_guide_en: guide_for(ea_id: "sniper_advanced_panel", locale: :en, profile: profile),
+          doc_guide_es: guide_for(ea_id: "sniper_advanced_panel", locale: :es, profile: profile),
           tags: %w[panel execution risk]
         },
         {
@@ -116,8 +116,8 @@ module Seeds
           ea_type: :ea_robot,
           trial_enabled: false,
           allowed_subscription_tiers: %w[hft pro],
-          doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en),
-          doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es),
+          doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en, profile: profile),
+          doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es, profile: profile),
           tags: %w[automation filters]
         },
         {
@@ -128,8 +128,8 @@ module Seeds
           ea_type: :indicator,
           trial_enabled: false,
           allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en,
-          doc_guide_es: manual_es,
+          doc_guide_en: manual_en(profile: profile),
+          doc_guide_es: manual_es(profile: profile),
           tags: %w[indicator momentum]
         },
         {
@@ -140,14 +140,14 @@ module Seeds
           ea_type: :script,
           trial_enabled: false,
           allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en,
-          doc_guide_es: manual_es,
+          doc_guide_en: manual_en(profile: profile),
+          doc_guide_es: manual_es(profile: profile),
           tags: %w[script session]
         }
       ]
     end
 
-    def qa_definitions
+    def qa_definitions(profile: Seeds::Profiles.current)
       [
         {
           name: "QA Trial EA",
@@ -157,8 +157,8 @@ module Seeds
           ea_type: :ea_robot,
           trial_enabled: false,
           allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en,
-          doc_guide_es: manual_es
+          doc_guide_en: manual_en(profile: profile),
+          doc_guide_es: manual_es(profile: profile)
         },
         {
           name: "QA Active EA",
@@ -168,8 +168,8 @@ module Seeds
           ea_type: :ea_robot,
           trial_enabled: false,
           allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en,
-          doc_guide_es: manual_es
+          doc_guide_en: manual_en(profile: profile),
+          doc_guide_es: manual_es(profile: profile)
         },
         {
           name: "QA Expired EA",
@@ -179,8 +179,8 @@ module Seeds
           ea_type: :ea_robot,
           trial_enabled: false,
           allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en,
-          doc_guide_es: manual_es
+          doc_guide_en: manual_en(profile: profile),
+          doc_guide_es: manual_es(profile: profile)
         },
         {
           name: "QA Revoked EA",
@@ -190,8 +190,8 @@ module Seeds
           ea_type: :ea_robot,
           trial_enabled: false,
           allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en,
-          doc_guide_es: manual_es
+          doc_guide_en: manual_en(profile: profile),
+          doc_guide_es: manual_es(profile: profile)
         },
         {
           name: "QA Locked EA",
@@ -201,8 +201,8 @@ module Seeds
           ea_type: :ea_robot,
           trial_enabled: false,
           allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en,
-          doc_guide_es: manual_es
+          doc_guide_en: manual_en(profile: profile),
+          doc_guide_es: manual_es(profile: profile)
         }
       ]
     end

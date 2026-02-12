@@ -82,6 +82,14 @@ RSpec.describe "Seeds::Runner" do
 
       expect(ExpertAdvisor.active.pluck(:ea_id)).to match_array(%w[pandora_box sniper_advanced_panel])
       expect(stale_ea.reload.deleted_at).to be_present
+      sniper_ea = ExpertAdvisor.find_by!(ea_id: "sniper_advanced_panel")
+      pandora_ea = ExpertAdvisor.find_by!(ea_id: "pandora_box")
+      expect(sniper_ea.doc_guide_en).to eq(File.read(Rails.root.join("docs_eas", "sniper_advanced_panel", "sniper_advanced_panel_guide_en.md")))
+      expect(sniper_ea.doc_guide_es).to eq(File.read(Rails.root.join("docs_eas", "sniper_advanced_panel", "sniper_advanced_panel_guide_es.md")))
+      expect(pandora_ea.doc_guide_en).to eq(File.read(Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_guide_en.md")))
+      expect(pandora_ea.doc_guide_es).to eq(File.read(Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_guide_es.md")))
+      expect(pandora_ea.doc_guide_en).not_to include(Seeds::ExpertAdvisors::INTRO_VIDEO_TOKEN)
+      expect(pandora_ea.doc_guide_en).not_to include(Seeds::ExpertAdvisors::OUTRO_YOUTUBE_TOKEN)
 
       pandora_product = MarketplaceProduct.find_by(slug: "ea_pandora_box")
       expect(pandora_product).to be_present

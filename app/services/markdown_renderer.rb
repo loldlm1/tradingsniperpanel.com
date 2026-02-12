@@ -154,7 +154,7 @@ class MarkdownRenderer
     <<~HTML.strip
       <div class="ea-guide-media my-2 flex justify-center" data-guide-embed="video">
         <div class="w-full max-w-2xl">
-          <video class="w-full aspect-video rounded-sm bg-slate-900" autoplay muted controls loop playsinline aria-label="#{title}">
+          <video class="w-full aspect-video rounded-sm bg-slate-900" controls playsinline preload="metadata" aria-label="#{title}">
             <source src="#{safe_url}" type="#{mime_type}" />
             #{fallback}
           </video>
@@ -173,12 +173,12 @@ class MarkdownRenderer
 
     title = ERB::Util.html_escape(I18n.t("dashboard.expert_advisors.guide_video_title"))
     safe_id = ERB::Util.html_escape(video_id)
-    src = "https://www.youtube.com/embed/#{safe_id}?autoplay=1&mute=1&playsinline=1&rel=0"
+    src = "https://www.youtube.com/embed/#{safe_id}?playsinline=1&rel=0"
 
     <<~HTML.strip
       <div class="ea-guide-media my-2 flex justify-center" data-guide-embed="youtube">
         <div class="w-full max-w-2xl">
-          <iframe class="w-full aspect-video rounded-sm bg-slate-900" src="#{src}" title="#{title}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+          <iframe class="w-full aspect-video rounded-sm bg-slate-900" src="#{src}" title="#{title}" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
         </div>
       </div>
     HTML

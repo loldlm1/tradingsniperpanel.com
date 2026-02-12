@@ -184,7 +184,11 @@
 <% tiers = pricing[:tiers] || [] %>
 <% intervals = pricing[:intervals] || [] %>
 <% interval_keys = intervals.map { |interval| interval[:key] } %>
-<% requested_interval = [params[:price_key], params[:plan], params[:desired_plan]].compact.map { |key| key.to_s.split('_').drop(1).join('_') }.find { |interval| interval.in?(interval_keys) } %>
+<% requested_interval = [params[:price_key], params[:plan], params[:desired_plan]].compact.map(&:to_s).filter_map do |key|
+                          interval_keys.sort_by { |interval| -interval.to_s.length }.find do |interval|
+                            key == interval || key.end_with?("_#{interval}")
+                          end
+                        end.first %>
 <% initial_period = requested_interval || interval_keys.first || "monthly" %>
 
 <!-- Pricing -->

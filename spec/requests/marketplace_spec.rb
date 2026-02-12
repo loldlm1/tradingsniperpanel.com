@@ -64,6 +64,26 @@ RSpec.describe "Marketplace", type: :request do
     expect(response.body).to include("Pro Bundle")
   end
 
+  it "renders marketplace overview markdown as HTML" do
+    markdown_plan = create(:billing_plan, :one_time, key: "marketplace_markdown_overview")
+    markdown_product = create(
+      :marketplace_product,
+      billing_plan: markdown_plan,
+      title_en: "Markdown Product",
+      description_en: "# Overview\n\n## Detailed behavior\n\n- First item\n- Second item"
+    )
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_product_path(markdown_product, locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include("id=\"overview\"")
+    expect(response.body).to include("id=\"detailed-behavior\"")
+    expect(response.body).to include("<li class=\"leading-relaxed\">First item</li>")
+    expect(response.body).not_to include("# Overview")
+    expect(response.body).not_to include("## Detailed behavior")
+  end
+
   it "blocks repurchase attempts for the same marketplace plan" do
     create(:marketplace_purchase, user: user, billing_plan: marketplace_product.billing_plan)
     sign_in user, scope: :user
