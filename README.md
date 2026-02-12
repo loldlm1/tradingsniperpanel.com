@@ -107,6 +107,19 @@ To reseed staging with production-mirror data only:
 ```
 sudo bash /home/$USER/tradingsniperpanel.com-staging/script/reset_staging_db.sh --prod-mirror-seed
 ```
+For explicit `prod_mirror` modes:
+- With DB clear (destructive): drop/recreate DBs, then `db:prepare db:seed`.
+```
+sudo bash /home/$USER/tradingsniperpanel.com-staging/script/reset_staging_db.sh reset --prod-mirror-seed
+```
+- Without DB clear (non-destructive): run `db:seed` only.
+```
+sudo bash /home/$USER/tradingsniperpanel.com-staging/script/reset_staging_db.sh seed --prod-mirror-seed
+```
+- Optional: apply migrations + reseed without dropping DBs.
+```
+sudo bash /home/$USER/tradingsniperpanel.com-staging/script/reset_staging_db.sh migrate-seed --prod-mirror-seed
+```
 
 ### Staging Sidekiq cleanup (QA)
 Clears Sidekiq retry/dead sets on staging:
