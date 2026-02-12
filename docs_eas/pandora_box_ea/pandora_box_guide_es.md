@@ -116,7 +116,3 @@ Antes de ejecutar **Pandora Box** en una cuenta real, asegúrate de verificar lo
 - El filtro de sesión está configurado correctamente si `Pandora_Box_Use_Session_Filter = true`.
 - Verifica el estado en el gráfico para asegurarte de que no haya errores de configuración.
 
----
-
-## 7. Notas Finales
-- La visualización de Pandora Box y colores/estilos actualmente son parámetros de nivel de código (no variables de entrada en MT5). Si se desea editarlos desde el panel de entrada, se debe actualizar el código.

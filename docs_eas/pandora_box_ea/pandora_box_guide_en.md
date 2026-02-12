@@ -115,8 +115,3 @@ Before running **Pandora Box** on a live account, make sure to check the followi
 - The breakout direction is aligned with your bias.
 - The session filter is configured properly if `Pandora_Box_Use_Session_Filter = true`.
 - Check the chart for any error messages.
-
----
-
-## 7. Final Notes
-- Pandora Box visualization and colors/styles are currently code-level parameters (not MT5 input fields). If you want them editable from the input panel, the code should be updated.
