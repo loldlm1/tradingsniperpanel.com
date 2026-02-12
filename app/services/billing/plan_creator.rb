@@ -75,6 +75,13 @@ module Billing
 
       Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
       Stripe::Product.retrieve(product_id)
+    rescue StandardError => e
+      raise unless missing_resource_error?(e, resource: :product)
+
+      logger.warn(
+        "[Billing::PlanCreator] missing Stripe product key=#{attributes[:key]} product_id=#{product_id}; rebuilding mapping"
+      )
+      nil
     end
 
     def find_product_by_name(name)
@@ -114,6 +121,13 @@ module Billing
 
       Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
       Stripe::Price.retrieve(price_id)
+    rescue StandardError => e
+      raise unless missing_resource_error?(e, resource: :price)
+
+      logger.warn(
+        "[Billing::PlanCreator] missing Stripe price key=#{attributes[:key]} price_id=#{price_id}; rebuilding mapping"
+      )
+      nil
     end
 
     def create_price(plan, product_id)
@@ -170,6 +184,22 @@ module Billing
       return if ENV["STRIPE_PRIVATE_KEY"].present?
 
       raise ArgumentError, "STRIPE_PRIVATE_KEY is not set"
+    end
+
+    def missing_resource_error?(error, resource:)
+      return false unless defined?(Stripe::InvalidRequestError)
+      return false unless error.is_a?(Stripe::InvalidRequestError)
+      return true if error.respond_to?(:code) && error.code.to_s == "resource_missing"
+
+      message = error.message.to_s
+      case resource
+      when :product
+        message.include?("No such product")
+      when :price
+        message.include?("No such price")
+      else
+        message.include?("No such")
+      end
     end
   end
 end
