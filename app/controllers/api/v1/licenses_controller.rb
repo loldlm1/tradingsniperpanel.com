@@ -12,28 +12,34 @@ module Api
           license_key: params[:license_key]
         )
 
-      if result.ok?
-        addon_access = Licenses::AddonAccess.new(
-          user: result.license.user,
-          expert_advisor: result.license.expert_advisor,
-          addon_keys: params[:addons]
-        ).call
+        if result.ok?
+          addon_access = Licenses::AddonAccess.new(
+            user: result.license.user,
+            expert_advisor: result.license.expert_advisor,
+            addon_keys: params[:addons]
+          ).call
 
-        unless addon_access.allowed?
+          unless addon_access.allowed?
+            render json: {
+              ok: false,
+              error: :addons_required,
+              required_addons: addon_access.required.join(","),
+              missing_addons: addon_access.missing.join(",")
+            }, status: :unauthorized and return
+          end
+
+          granted_addons = Licenses::GrantedAddons.new(
+            user: result.license.user,
+            expert_advisor: result.license.expert_advisor
+          ).call
+
+          broker_account = upsert_broker_account(result.license)
           render json: {
-            ok: false,
-            error: :addons_required,
-            required_addons: addon_access.required.join(","),
-            missing_addons: addon_access.missing.join(",")
-          }, status: :unauthorized and return
-        end
-
-        broker_account = upsert_broker_account(result.license)
-        render json: {
-          ok: true,
+            ok: true,
             plan_interval: result.plan_interval,
             trial: result.trial,
             expires_at: result.expires_at&.to_i,
+            granted_addons: granted_addons,
             broker_account: broker_account ? serialize_broker_account(broker_account) : nil
           }
         else

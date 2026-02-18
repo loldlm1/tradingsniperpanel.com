@@ -26,6 +26,14 @@ module Seeds
         es: [
           Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_guide_es.md")
         ]
+      },
+      "fibonacci_elite" => {
+        en: [
+          Rails.root.join("docs_eas", "fibonacci_ea", "addons", "product_copy", "en", "base-ea.md")
+        ],
+        es: [
+          Rails.root.join("docs_eas", "fibonacci_ea", "addons", "product_copy", "es", "base-ea.md")
+        ]
       }
     }.freeze
 
@@ -90,6 +98,18 @@ module Seeds
           doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en, profile: profile),
           doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es, profile: profile),
           tags: %w[automation breakout]
+        },
+        {
+          name: "Fibonacci Elite EA",
+          tier_rank: 3,
+          ea_id: "fibonacci_elite",
+          description: "Automated Fibonacci structure strategy with configurable risk controls and precision execution rules.",
+          ea_type: :ea_robot,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[fibonacci_elite],
+          doc_guide_en: guide_for(ea_id: "fibonacci_elite", locale: :en, profile: profile),
+          doc_guide_es: guide_for(ea_id: "fibonacci_elite", locale: :es, profile: profile),
+          tags: %w[fibonacci automation structure]
         }
       ]
     end
@@ -121,8 +141,20 @@ module Seeds
           tags: %w[automation filters]
         },
         {
-          name: "Momentum Pulse Indicator",
+          name: "Fibonacci Elite EA",
           tier_rank: 3,
+          ea_id: "fibonacci_elite",
+          description: "Automated Fibonacci structure strategy with configurable risk controls and precision execution rules.",
+          ea_type: :ea_robot,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[fibonacci_elite],
+          doc_guide_en: guide_for(ea_id: "fibonacci_elite", locale: :en, profile: profile),
+          doc_guide_es: guide_for(ea_id: "fibonacci_elite", locale: :es, profile: profile),
+          tags: %w[fibonacci automation structure]
+        },
+        {
+          name: "Momentum Pulse Indicator",
+          tier_rank: 4,
           ea_id: "momentum_pulse_indicator",
           description: "Momentum indicator with visual alerts for high-probability setups.",
           ea_type: :indicator,
@@ -134,7 +166,7 @@ module Seeds
         },
         {
           name: "Session Break Script",
-          tier_rank: 4,
+          tier_rank: 5,
           ea_id: "session_break_script",
           description: "Session management script with risk and timing controls.",
           ea_type: :script,
@@ -973,7 +1005,8 @@ module Seeds
       { tier: "hft", sort_order: 2, monthly_cents: 4000 },
       { tier: "pro", sort_order: 3, monthly_cents: 6000 },
       { tier: "elite", sort_order: 4, monthly_cents: 8000 },
-      { tier: "enterprise", sort_order: 5, monthly_cents: 10_000 }
+      { tier: "enterprise", sort_order: 5, monthly_cents: 10_000 },
+      { tier: "fibonacci_elite", sort_order: 6, monthly_cents: 4000 }
     ].freeze
     FULL_QA_INTERVAL_DEFINITIONS = [
       { interval: "day", interval_count: 1, multiplier: (12.0 / 365) },
@@ -983,7 +1016,8 @@ module Seeds
     ].freeze
     PROD_MIRROR_TIER_DEFINITIONS = [
       { tier: "basic", sort_order: 1, monthly_cents: 2000 },
-      { tier: "pandora_pro", sort_order: 2, monthly_cents: 3000 }
+      { tier: "pandora_pro", sort_order: 2, monthly_cents: 3000 },
+      { tier: "fibonacci_elite", sort_order: 3, monthly_cents: 4000 }
     ].freeze
     PROD_MIRROR_INTERVAL_DEFINITIONS = [
       { interval: "month", interval_count: 1, multiplier: 1.0 },
@@ -1896,8 +1930,23 @@ module Seeds
         product.image.attach(
           io: file,
           filename: File.basename(image_path),
-          content_type: "image/jpeg"
+          content_type: image_content_type(image_path)
         )
+      end
+    end
+
+    def image_content_type(image_path)
+      case File.extname(image_path.to_s).downcase
+      when ".png"
+        "image/png"
+      when ".webp"
+        "image/webp"
+      when ".svg"
+        "image/svg+xml"
+      when ".jpg", ".jpeg"
+        "image/jpeg"
+      else
+        "application/octet-stream"
       end
     end
 
@@ -1937,7 +1986,17 @@ module Seeds
   module Addons
     module_function
 
-    def definitions
+    FIBONACCI_ADDONABLE_KEY = "fibonacci_elite".freeze
+
+    def definitions(profile: Seeds::Profiles.current)
+      if profile.to_s == Seeds::Profiles::PROD_MIRROR
+        fibonacci_definitions
+      else
+        legacy_full_qa_definitions + fibonacci_definitions
+      end
+    end
+
+    def legacy_full_qa_definitions
       [
         {
           key: "sniper_panel_news_filter",
@@ -2003,7 +2062,120 @@ module Seeds
       ]
     end
 
-    def seed_addons!
+    def fibonacci_definitions
+      [
+        fibonacci_addon(
+          key: "addon_session_time_filter",
+          slug: "addon_fibonacci_session_time_filter",
+          sort_order: 20,
+          title: "Time Filter Session Manager",
+          amount_cents: 29_900,
+          image_name: "Time Filter Session Manager.png",
+          copy_slug: "addon-session-time-filter"
+        ),
+        fibonacci_addon(
+          key: "addon_grid_strategy_config",
+          slug: "addon_fibonacci_grid_strategy_config",
+          sort_order: 21,
+          title: "Grid Strategy Settings",
+          amount_cents: 29_900,
+          image_name: "Grid Strategy Settings.png",
+          copy_slug: "addon-grid-strategy-settings"
+        ),
+        fibonacci_addon(
+          key: "addon_candle_structure",
+          slug: "addon_fibonacci_candle_structure_filter",
+          sort_order: 22,
+          title: "Candle Structure Filter",
+          amount_cents: 29_900,
+          image_name: "Candle Structure Filter.png",
+          copy_slug: "addon-candle-structure-filter"
+        ),
+        fibonacci_addon(
+          key: "addon_compound_trend_ride",
+          slug: "addon_fibonacci_compound_trend_ride",
+          sort_order: 23,
+          title: "Compound Mode - Trend Ride",
+          amount_cents: 29_900,
+          image_name: "Compound Mode - Trend Ride.png",
+          copy_slug: "addon-compound-trend-ride"
+        ),
+        fibonacci_addon(
+          key: "addon_compound_pullback_continue",
+          slug: "addon_fibonacci_compound_pullback_continue",
+          sort_order: 24,
+          title: "Compound Mode - Pullback Continue",
+          amount_cents: 19_900,
+          image_name: "Compound Mode - Pullback Continue.png",
+          copy_slug: "addon-compound-pullback-continue"
+        ),
+        fibonacci_addon(
+          key: "addon_compound_reversal_early",
+          slug: "addon_fibonacci_compound_reversal_early",
+          sort_order: 25,
+          title: "Compound Mode - Reversal Early",
+          amount_cents: 19_900,
+          image_name: "Compound Mode - Reversal Early.png",
+          copy_slug: "addon-compound-reversal-early"
+        ),
+        fibonacci_addon(
+          key: "addon_compound_breakout_ready",
+          slug: "addon_fibonacci_compound_breakout_ready",
+          sort_order: 26,
+          title: "Compound Mode - Breakout Ready",
+          amount_cents: 29_900,
+          image_name: "Compound Mode - Breakout Ready.png",
+          copy_slug: "addon-compound-breakout-ready"
+        ),
+        fibonacci_addon(
+          key: "addon_compound_volatility_trap",
+          slug: "addon_fibonacci_compound_volatility_trap",
+          sort_order: 27,
+          title: "Compound Mode - Volatility Trap",
+          amount_cents: 19_900,
+          image_name: "Compound Mode - Volatility Trap.png",
+          copy_slug: "addon-compound-volatility-trap"
+        )
+      ]
+    end
+
+    def fibonacci_addon(key:, slug:, sort_order:, title:, amount_cents:, image_name:, copy_slug:)
+      description_en = fibonacci_markdown(locale: :en, copy_slug: copy_slug)
+      description_es = fibonacci_markdown(locale: :es, copy_slug: copy_slug)
+
+      {
+        key: key,
+        slug: slug,
+        sort_order: sort_order,
+        title_en: title,
+        title_es: title,
+        summary_en: summary_from_markdown(description_en, fallback: "#{title} add-on for Fibonacci Elite."),
+        summary_es: summary_from_markdown(description_es, fallback: "Add-on #{title} para Fibonacci Elite."),
+        description_en: description_en,
+        description_es: description_es,
+        amount_cents: amount_cents,
+        image: Rails.root.join("docs_eas", "fibonacci_ea", "addons", "product_addons_images", image_name),
+        addonable_type: "ExpertAdvisor",
+        addonable_key: FIBONACCI_ADDONABLE_KEY
+      }
+    end
+
+    def fibonacci_markdown(locale:, copy_slug:)
+      path = Rails.root.join("docs_eas", "fibonacci_ea", "addons", "product_copy", locale.to_s, "#{copy_slug}.md")
+      return "" unless path.exist?
+
+      File.read(path)
+    end
+
+    def summary_from_markdown(markdown, fallback:)
+      quoted_line = markdown.to_s.each_line.map(&:strip).find do |line|
+        line.start_with?("`") && line.end_with?("`") && line.length > 2
+      end
+      summary = quoted_line.to_s.delete_prefix("`").delete_suffix("`").strip
+      summary.presence || fallback
+    end
+
+    def seed_addons!(profile: Seeds::Profiles.current)
       return unless defined?(Addon)
       return unless defined?(MarketplaceProduct)
       return unless defined?(BillingPlan)
@@ -2014,7 +2186,7 @@ module Seeds
       stripe_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
       local_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: false)
 
-      definitions.each do |attrs|
+      definitions(profile: profile).each do |attrs|
         attrs = attrs.dup
         stripe_required = force_stripe || attrs.delete(:stripe_required) { true }
         if stripe_required && !stripe_available
@@ -2224,6 +2396,96 @@ module Seeds
     def addon_combinations(addon_keys)
       keys = addon_keys.sort
       (1..keys.size).flat_map { |size| keys.combination(size).to_a }
+    end
+  end
+
+  module FibonacciQaAccess
+    module_function
+
+    BASE_ONLY_EMAIL = "qa.fibonacci.base@example.com".freeze
+    PARTIAL_OWNED_EMAIL = "qa.fibonacci.partial@example.com".freeze
+    PARTIAL_OWNED_ADDON_KEYS = %w[
+      addon_session_time_filter
+      addon_compound_pullback_continue
+    ].freeze
+
+    def seed!
+      return {} unless defined?(User)
+      return {} unless defined?(License)
+      return {} unless defined?(MarketplacePurchase)
+
+      expert_advisor = ExpertAdvisor.find_by(ea_id: "fibonacci_elite")
+      return {} unless expert_advisor
+
+      encoder = Licenses::LicenseKeyEncoder.new
+      unless encoder.configured?
+        Rails.logger.warn("[Seeds::FibonacciQaAccess] skipped: EA license keys are not configured.")
+        return {}
+      end
+
+      base_only_user = QaUsers.upsert_user(
+        email: BASE_ONLY_EMAIL,
+        name: "QA Fibonacci Base",
+        role: :trader,
+        password: QaUsers::DEFAULT_PASSWORD
+      )
+      partial_owned_user = QaUsers.upsert_user(
+        email: PARTIAL_OWNED_EMAIL,
+        name: "QA Fibonacci Partial",
+        role: :trader,
+        password: QaUsers::DEFAULT_PASSWORD
+      )
+
+      upsert_fibonacci_license(user: base_only_user, expert_advisor: expert_advisor, encoder: encoder)
+      upsert_fibonacci_license(user: partial_owned_user, expert_advisor: expert_advisor, encoder: encoder)
+
+      remove_fibonacci_addon_purchases(user: base_only_user, expert_advisor: expert_advisor)
+      seed_partial_fibonacci_addons(user: partial_owned_user, expert_advisor: expert_advisor)
+
+      {
+        base_only: base_only_user,
+        partial_owned: partial_owned_user
+      }
+    end
+
+    def upsert_fibonacci_license(user:, expert_advisor:, encoder:)
+      expires_at = Time.current + 60.days
+      license = License.find_or_initialize_by(user: user, expert_advisor: expert_advisor)
+      license.status = "active"
+      license.plan_interval = "monthly"
+      license.trial_ends_at = nil
+      license.expires_at = expires_at
+      license.source = "seed"
+      license.last_synced_at = Time.current
+      license.encrypted_key = encoder.generate(
+        email: user.email,
+        ea_id: expert_advisor.ea_id,
+        expires_at: expires_at
+      )
+      license.save!
+      license
+    end
+
+    def seed_partial_fibonacci_addons(user:, expert_advisor:)
+      addon_scope = Addon.where(addonable: expert_advisor)
+      plan_ids = addon_scope.pluck(:billing_plan_id).compact.uniq
+      return if plan_ids.empty?
+
+      desired_plan_ids = addon_scope.where(key: PARTIAL_OWNED_ADDON_KEYS).pluck(:billing_plan_id).compact.uniq
+      MarketplacePurchase.where(user: user, billing_plan_id: plan_ids - desired_plan_ids).delete_all
+
+      desired_plan_ids.each_with_index do |plan_id, index|
+        purchase = MarketplacePurchase.find_or_initialize_by(user: user, billing_plan_id: plan_id)
+        purchase.purchased_at ||= Time.current - (index + 1).days
+        purchase.save!
+      end
+    end
+
+    def remove_fibonacci_addon_purchases(user:, expert_advisor:)
+      plan_ids = Addon.where(addonable: expert_advisor).pluck(:billing_plan_id).compact.uniq
+      return if plan_ids.empty?
+
+      MarketplacePurchase.where(user: user, billing_plan_id: plan_ids).delete_all
     end
   end
 

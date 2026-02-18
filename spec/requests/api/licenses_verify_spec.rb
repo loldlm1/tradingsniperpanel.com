@@ -32,6 +32,7 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["ok"]).to eq(true)
     expect(body["trial"]).to eq(false)
     expect(body["expires_at"]).to eq(expires_at.to_i)
+    expect(body["granted_addons"]).to eq([])
   end
 
   it "rejects invalid sources" do
@@ -111,6 +112,7 @@ RSpec.describe "Licenses API", type: :request do
     expect(response).to have_http_status(:ok)
     body = JSON.parse(response.body)
     expect(body["ok"]).to eq(true)
+    expect(body["granted_addons"]).to eq([addon.key])
   end
 
   it "allows privileged users with role-based access and no addon purchases" do
@@ -135,6 +137,7 @@ RSpec.describe "Licenses API", type: :request do
     body = JSON.parse(response.body)
     expect(body["ok"]).to eq(true)
     expect(body["trial"]).to eq(false)
+    expect(body["granted_addons"]).to eq([addon.key])
     expect(privileged_user.licenses.find_by(expert_advisor: privileged_ea)&.source).to eq("role_access")
   end
 end

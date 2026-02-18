@@ -16,16 +16,16 @@ RSpec.describe ExpertAdvisors::ShowPresenter, type: :service do
     )
   end
 
-  it "orders addons with unowned first and caps to three" do
+  it "orders owned addons first and includes all add-ons" do
     product_a = create(:marketplace_product, title_en: "Addon A", sort_order: 1)
     product_b = create(:marketplace_product, title_en: "Addon B", sort_order: 2)
     product_c = create(:marketplace_product, title_en: "Addon C", sort_order: 3)
     product_d = create(:marketplace_product, title_en: "Addon D", sort_order: 4)
 
-    create(:addon, addonable: expert_advisor, billing_plan: product_a.billing_plan)
-    create(:addon, addonable: expert_advisor, billing_plan: product_b.billing_plan)
-    create(:addon, addonable: expert_advisor, billing_plan: product_c.billing_plan)
-    create(:addon, addonable: expert_advisor, billing_plan: product_d.billing_plan)
+    addon_a = create(:addon, addonable: expert_advisor, billing_plan: product_a.billing_plan)
+    addon_b = create(:addon, addonable: expert_advisor, billing_plan: product_b.billing_plan)
+    addon_c = create(:addon, addonable: expert_advisor, billing_plan: product_c.billing_plan)
+    addon_d = create(:addon, addonable: expert_advisor, billing_plan: product_d.billing_plan)
 
     create(:marketplace_purchase, user: user, billing_plan: product_b.billing_plan)
 
@@ -38,8 +38,16 @@ RSpec.describe ExpertAdvisors::ShowPresenter, type: :service do
     )
     items = presenter.addons_summary[:items]
 
-    expect(items.size).to eq(3)
-    expect(items.count(&:owned)).to eq(0)
+    expect(items.size).to eq(4)
+    expect(items.first.owned).to eq(true)
+    expect(items.first.guide_url).to eq(
+      Rails.application.routes.url_helpers.dashboard_expert_advisor_addon_guide_path(
+        expert_advisor,
+        addon_key: addon_b.key,
+        locale: :en
+      )
+    )
+    expect(items.map(&:title)).to eq([addon_b, addon_a, addon_c, addon_d].map { |addon| addon.marketplace_product.title_en })
   end
 
   it "builds pnl and balance charts for the last 30 days" do

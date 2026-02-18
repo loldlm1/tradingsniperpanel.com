@@ -468,6 +468,16 @@ en:
               - "Flexible parameter configuration"
               - "Complete operation control"
               - "Entry and exit optimization"
+          fibonacci_elite:
+            name: "Fibonacci Elite"
+            description: "For traders who want automated Fibonacci structure execution with flexible controls."
+            features_title: "Everything in Pro, plus:"
+            features:
+              - "Automated Fibonacci structure workflow"
+              - "Drawdown measurement modes"
+              - "Flexible parameter configuration"
+              - "Total control for manual operations"
+              - "Entry and exit optimization"
           hft:
             name: "HFT"
             description: "For scalpers and day traders: speed, multi-target, and preconfigured orders."

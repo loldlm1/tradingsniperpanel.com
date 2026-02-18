@@ -414,6 +414,16 @@ es:
             - "Configuración Flexible"
             - "Control Total sobre las Operaciones"
             - "Optimización de Entradas y Salidas"
+        fibonacci_elite:
+          name: "Fibonacci Elite"
+          description: "Trading estructural Fibonacci automatizado con controles precisos y configuración flexible."
+          features:
+            - "Todo lo de Pro"
+            - "Flujo Fibonacci estructural automatizado"
+            - "Modos para medir drawdown"
+            - "Configuración Flexible"
+            - "Control Total para operaciones humanas"
+            - "Optimización de Entradas y Salidas"
         hft:
           name: "HFT"
           description: "Flujos de ejecución avanzados y mayor acceso a EAs para traders activos."
@@ -506,6 +516,8 @@ es:
       trial_countdown: "La prueba termina %{date}"
       docs_copy: "Vista previa en markdown con anclas y código para copiar."
       guides_page_title: "%{name} Guías | %{app}"
+      addon_guide_page_title: "Guía add-on de %{name} | %{app}"
+      addon_guide_base_hint: "Requiere %{base}"
       guides_header: "Guías / Tutoriales"
       guides_label: "Guías"
       guides_cta: "Ver guías"
@@ -591,8 +603,9 @@ es:
       addons:
         title: "Progreso de Adons"
         progress: "%{owned}/%{total}"
-        purchase_cta: "Adquirir"
+        purchase_cta: "Comprar add-on"
         owned_cta: "Adquirido"
+        guide_cta: "Ver guía"
       license:
         title: "Licencia"
         hint: "Copia la licencia completa para activar el sistema."
