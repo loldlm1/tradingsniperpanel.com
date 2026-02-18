@@ -104,14 +104,14 @@ Example failure response:
 - Preserve 24h refresh compatibility: EA revalidates daily and removes itself on failure.
 
 ## Addon keys (server source of truth)
-- `addon_session_time_filter`
-- `addon_grid_strategy_config`
-- `addon_candle_structure`
-- `addon_compound_trend_ride`
-- `addon_compound_pullback_continue`
-- `addon_compound_reversal_early`
-- `addon_compound_breakout_ready`
-- `addon_compound_volatility_trap`
+- `addon_session_time_filter (299$)`
+- `addon_grid_strategy_config (299$)`
+- `addon_candle_structure (299$)`
+- `addon_compound_trend_ride (299$)`
+- `addon_compound_pullback_continue (199$)`
+- `addon_compound_reversal_early (199$)`
+- `addon_compound_breakout_ready (299$)`
+- `addon_compound_volatility_trap (199$)`
 
 ## Strategy Tester behavior
 - Tester mode cannot rely on WebRequest in optimization flows.
