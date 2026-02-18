@@ -38,14 +38,18 @@ module Addons
 
     def eligibility_for_expert_advisor(expert_advisor)
       license = License.find_by(user: user, expert_advisor: expert_advisor)
-      return Result.new(allowed: false, reason: :missing_base, addon: addon, addonable: expert_advisor) unless license
-      return Result.new(allowed: false, reason: :base_trial, addon: addon, addonable: expert_advisor) if license.trial?
-      return Result.new(allowed: false, reason: :base_inactive, addon: addon, addonable: expert_advisor) if license.expired_by_time?
-      return Result.new(allowed: true, addon: addon, addonable: expert_advisor) if license.access_source_one_time?
+      if license
+        return Result.new(allowed: false, reason: :base_trial, addon: addon, addonable: expert_advisor) if license.trial?
+        return Result.new(allowed: false, reason: :base_inactive, addon: addon, addonable: expert_advisor) if license.revoked?
+        return Result.new(allowed: false, reason: :base_inactive, addon: addon, addonable: expert_advisor) if license.expired_by_time?
+        return Result.new(allowed: true, addon: addon, addonable: expert_advisor) if license.access_source_one_time?
+      end
 
-      subscription_status = Billing::SubscriptionStatus.new(active_subscription)
+      subscription = active_subscription
+      subscription_status = Billing::SubscriptionStatus.new(subscription)
       return Result.new(allowed: false, reason: :base_trial, addon: addon, addonable: expert_advisor) if subscription_status.trialing?
       return Result.new(allowed: false, reason: :base_inactive, addon: addon, addonable: expert_advisor) unless subscription_status.paid_active?
+      return Result.new(allowed: false, reason: :missing_base, addon: addon, addonable: expert_advisor) unless expert_advisor.allowed_for_tier?(subscription_tier(subscription))
 
       Result.new(allowed: true, addon: addon, addonable: expert_advisor)
     end

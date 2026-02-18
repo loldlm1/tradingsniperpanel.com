@@ -2168,10 +2168,19 @@ module Seeds
     end
 
     def summary_from_markdown(markdown, fallback:)
-      quoted_line = markdown.to_s.each_line.map(&:strip).find do |line|
-        line.start_with?("`") && line.end_with?("`") && line.length > 2
+      summary = markdown.to_s.each_line.map(&:strip).find do |line|
+        next false if line.blank?
+        next false if line.start_with?("#", "- ", "* ", "```")
+        next false if line.match?(/\A\d+\.\s+/)
+        next false if line.match?(/\A(description|descripcion)\z/i)
+
+        true
+      end.to_s
+
+      if summary.start_with?("`") && summary.end_with?("`") && summary.length > 2
+        summary = summary.delete_prefix("`").delete_suffix("`").strip
       end
-      summary = quoted_line.to_s.delete_prefix("`").delete_suffix("`").strip
+
       summary.presence || fallback
     end
 

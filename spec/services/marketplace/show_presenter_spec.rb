@@ -1,4 +1,5 @@
 require "rails_helper"
+require "securerandom"
 
 RSpec.describe Marketplace::ShowPresenter do
   let(:user) { create(:user) }
@@ -9,6 +10,24 @@ RSpec.describe Marketplace::ShowPresenter do
     base_product = create(:marketplace_product, billing_plan: base_plan, title_en: title)
     create(:billing_plan_entitlement, billing_plan: base_plan, expert_advisor: expert_advisor)
     [base_plan, base_product]
+  end
+
+  def create_active_subscription(user:, tier: "basic")
+    plan = create(:billing_plan, tier: tier)
+    customer = user.pay_customers.create!(
+      processor: "stripe",
+      processor_id: "cus_#{SecureRandom.hex(4)}",
+      default: true
+    )
+    customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: plan.stripe_price_id,
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now
+    )
   end
 
   it "selects the first base product for add-on entries and preselects the add-on" do
@@ -76,6 +95,25 @@ RSpec.describe Marketplace::ShowPresenter do
     expect(presenter.addon_total_cents).to eq(0)
     expect(presenter.cart_total_cents).to eq(base_plan.amount_cents)
     expect(presenter.add_on_progress).to eq(total: 0, selected: 0, percent: 0)
+  end
+
+  it "supports direct addon pages when base access comes from subscription and no base product exists" do
+    expert_advisor.update!(allowed_subscription_tiers: %w[basic])
+    addon_plan = create(:billing_plan, :one_time, amount_cents: 19_900, key: "addon_fibonacci_compound_reversal_early")
+    create(:addon, key: "addon_compound_reversal_early", addonable: expert_advisor, billing_plan: addon_plan)
+    addon_product = create(:marketplace_product, billing_plan: addon_plan, title_en: "Compound Mode - Reversal Early")
+    create_active_subscription(user: user, tier: "basic")
+
+    entry = Marketplace::Catalog.new(user: user, include_eligibility: true).entry_for!(slug: addon_product.slug)
+    presenter = described_class.new(user: user, entry: entry, locale: :en).call
+
+    expect(presenter.base_entry).to be_nil
+    expect(presenter.checkout_base_available?).to be(true)
+    expect(presenter.required_base_label).to eq(expert_advisor.name)
+    expect(presenter.base_required?).to be(false)
+    expect(presenter.selected_addon_keys).to eq([addon_plan.key])
+    expect(presenter.addon_rows.map(&:plan_key)).to eq([addon_plan.key])
+    expect(presenter.cart_total_cents).to eq(addon_plan.amount_cents)
   end
 
   it "excludes purchased items from related items but includes matches by type or tags" do

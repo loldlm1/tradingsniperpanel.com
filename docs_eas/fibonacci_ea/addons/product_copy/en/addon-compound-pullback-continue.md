@@ -6,9 +6,9 @@
 - SKU: `addon_compound_pullback_continue`
 
 ## description
-`Pullback Continue focuses on re-entry after a temporary correction in price movement. It is useful for users who want continuation behavior with pullback timing rather than immediate breakout entries.`
+Pullback Continue focuses on re-entry after a temporary correction in price movement. It is useful for users who want continuation behavior with pullback timing rather than immediate breakout entries.
 
-`For non-traders: this mode waits for a short "step back" before trying to continue in the original direction.`
+For non-traders: this mode waits for a short "step back" before trying to continue in the original direction.
 
 ## Included Modes
 - `COMPOUND_MODE_PULLBACK_CONTINUE_BUY`

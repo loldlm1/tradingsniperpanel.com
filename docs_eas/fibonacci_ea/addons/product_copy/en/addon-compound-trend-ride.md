@@ -6,9 +6,9 @@
 - SKU: `addon_compound_trend_ride`
 
 ## description
-`Trend Ride is a compound context addon for continuation behavior. It is intended for users who want the EA to align with existing trend direction and avoid random counter-move entries.`
+Trend Ride is a compound context addon for continuation behavior. It is intended for users who want the EA to align with existing trend direction and avoid random counter-move entries.
 
-`For non-traders: this mode tells the EA to prefer "go with the moving flow" behavior instead of early reversal attempts.`
+For non-traders: this mode tells the EA to prefer "go with the moving flow" behavior instead of early reversal attempts.
 
 ## Included Modes
 - `COMPOUND_MODE_TREND_RIDE_BUY`

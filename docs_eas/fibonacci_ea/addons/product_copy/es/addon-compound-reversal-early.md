@@ -6,9 +6,9 @@
 - SKU: `addon_compound_reversal_early`
 
 ## Descripcion
-`Reversal Early esta pensado para usuarios que buscan capturar posibles giros antes de tener una confirmacion completa de tendencia. Puede abrir entradas mas tempranas, pero requiere mayor control de riesgo.`
+Reversal Early esta pensado para usuarios que buscan capturar posibles giros antes de tener una confirmacion completa de tendencia. Puede abrir entradas mas tempranas, pero requiere mayor control de riesgo.
 
-`Para usuarios no traders: este modo intenta detectar "el giro" antes que otros modos.`
+Para usuarios no traders: este modo intenta detectar "el giro" antes que otros modos.
 
 ## Modos Incluidos
 - `COMPOUND_MODE_REVERSAL_EARLY_BUY`

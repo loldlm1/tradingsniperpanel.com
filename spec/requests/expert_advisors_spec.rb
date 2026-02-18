@@ -213,6 +213,23 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(location).to include("#{expert_advisor.ea_id}__base.rar")
   end
 
+  it "falls back to the base bundle when addon-specific bundle is missing" do
+    create(:license, user:, expert_advisor:)
+    addon_product = create(:marketplace_product, title_en: "Trend Ride Add-on")
+    addon = create(:addon, key: "addon_compound_trend_ride", addonable: expert_advisor, billing_plan: addon_product.billing_plan)
+    create(:marketplace_purchase, user: user, billing_plan: addon.billing_plan)
+
+    base_bundle = create(:expert_advisor_bundle, expert_advisor: expert_advisor, bundle_key: "base", required_addon_keys: "")
+    attach_ea_bundle(base_bundle, filename: "#{expert_advisor.ea_id}__base.rar")
+
+    get dashboard_expert_advisor_download_path(expert_advisor, locale: :en)
+
+    expect(response).to have_http_status(:found)
+    location = response.headers["Location"]
+    expect(location).to include("/rails/active_storage/blobs/")
+    expect(location).to include("#{expert_advisor.ea_id}__base.rar")
+  end
+
   it "blocks bundle downloads when the matching bundle is missing" do
     create(:license, user:, expert_advisor:)
     create(:expert_advisor_bundle, expert_advisor: expert_advisor, bundle_key: "base", required_addon_keys: "")

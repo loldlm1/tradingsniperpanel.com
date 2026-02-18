@@ -6,9 +6,9 @@
 - SKU: `base_ea`
 
 ## Description
-`The Base EA is the foundation package for Fibonacci EA. It includes the complete core workflow: account-level protections, market context controls, and position sizing settings. This means users can run a solid version of the system without buying addons on day one.`
+The Base EA is the foundation package for Fibonacci EA. It includes the complete core workflow: account-level protections, market context controls, and position sizing settings. This means users can run a solid version of the system without buying addons on day one.
 
-`For non-traders: think of the Base EA as the "main app" and addons as optional feature packs. The base version already manages safety limits and standard strategy behavior.`
+For non-traders: think of the Base EA as the "main app" and addons as optional feature packs. The base version already manages safety limits and standard strategy behavior.
 
 ## Inputs Explained (Plain Language)
 ### License and account

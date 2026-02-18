@@ -70,6 +70,15 @@ RSpec.describe Addons::Eligibility do
 
       expect(result).to be_allowed
     end
+
+    it "allows paid subscriptions even before the subscription license sync creates a license record" do
+      plan = create(:billing_plan, tier: "basic")
+      create_subscription(user: user, plan: plan, status: "active")
+
+      result = described_class.new(user: user, addon: addon).call
+
+      expect(result).to be_allowed
+    end
   end
 
   describe "course add-ons" do

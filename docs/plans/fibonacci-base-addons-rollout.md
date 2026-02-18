@@ -45,6 +45,20 @@
 ## Open Questions
 - None blocking for implementation.
 
+## Phase 2 Fix Scope (Post-QA)
+- Remove backtick-wrapped prose from Fibonacci base/addon product copy files so descriptions render as plain markdown text.
+- Keep addon summary extraction robust after copy normalization (no dependency on backtick-wrapped lines).
+- Fix addon checkout for subscription-based bases where no one-time base marketplace product exists.
+- Ensure addon checkout works when user has paid base access through subscription/manual subscription.
+- Clarify bundle behavior: addon purchases should not require addon bundles; EA download continues to resolve from base EA bundle/file.
+
+## Phase 2 Steps
+1. Normalize Fibonacci EN/ES markdown copy files by converting prose lines from `` `...` `` to plain paragraphs.
+2. Update seed summary extraction to parse first meaningful paragraph text (still fallback-safe).
+3. Refactor marketplace addon checkout path to allow direct addon purchase when base access is validated via entitlement/subscription, even if no base marketplace product is present.
+4. Update marketplace presenter/view computations so addon product pages remain purchasable (and show correct required-base label) in subscription-only base setups.
+5. Add targeted specs for checkout/presenter behavior in no-base-product subscription scenarios and rerun focused test set.
+
 ## Decisions Confirmed
 - All Fibonacci addons remain separately purchased one-time items.
 - Marketplace purchase pages remain unchanged with checkout sidebar.
@@ -69,3 +83,11 @@
 - PASS: `bundle exec rspec spec/seeds/runner_spec.rb`
 - PASS: `bundle exec rspec spec/services/licenses/granted_addons_spec.rb spec/requests/api/licenses_verify_spec.rb spec/services/expert_advisors/show_presenter_spec.rb spec/requests/expert_advisors_spec.rb spec/seeds/runner_spec.rb`
 - PASS: `bundle exec rails routes | rg "dashboard_expert_advisor_addon_guide|api/v1/licenses/verify"`
+- PASS: `bundle exec ruby -c app/services/addons/eligibility.rb`
+- PASS: `bundle exec ruby -c app/services/marketplace/checkout_builder.rb`
+- PASS: `bundle exec ruby -c app/services/marketplace/show_presenter.rb`
+- FAIL: `bundle exec ruby -c app/views/marketplace/show.html.erb`
+- FAIL: `bundle exec rspec spec/services/addons/eligibility_spec.rb spec/services/marketplace/checkout_builder_spec.rb spec/services/marketplace/show_presenter_spec.rb spec/requests/marketplace_spec.rb`
+- PASS: `bundle exec rspec spec/services/addons/eligibility_spec.rb spec/services/marketplace/checkout_builder_spec.rb spec/services/marketplace/show_presenter_spec.rb spec/requests/marketplace_spec.rb`
+- PASS: `bundle exec rspec spec/seeds/runner_spec.rb`
+- PASS: `bundle exec rspec spec/services/addons/eligibility_spec.rb spec/services/marketplace/checkout_builder_spec.rb spec/services/marketplace/show_presenter_spec.rb spec/requests/marketplace_spec.rb spec/services/expert_advisors/bundle_resolver_spec.rb spec/requests/expert_advisors_spec.rb spec/seeds/runner_spec.rb`

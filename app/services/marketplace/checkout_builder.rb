@@ -25,48 +25,68 @@ module Marketplace
       return Result.new(allowed: false, error_key: "dashboard.marketplace.errors.checkout_unavailable") unless user && entry
 
       base_product = resolve_base_product
-      return Result.new(allowed: false, error_key: "dashboard.marketplace.errors.base_missing") unless base_product
+      base_plan = nil
+      base_included = false
+      selected_addons = []
 
-      base_entry = Marketplace::Catalog.new(
-        user: user,
-        scope: MarketplaceProduct.where(id: base_product.id),
-        include_eligibility: true
-      ).call.first
-      base_plan = base_entry&.plan
-      return Result.new(allowed: false, error_key: "dashboard.marketplace.errors.base_missing") unless base_plan&.stripe_price_id
+      if base_product
+        base_entry = Marketplace::Catalog.new(
+          user: user,
+          scope: MarketplaceProduct.where(id: base_product.id),
+          include_eligibility: true
+        ).call.first
+        base_plan = base_entry&.plan
+        return Result.new(allowed: false, error_key: "dashboard.marketplace.errors.base_missing") unless base_plan&.stripe_price_id
 
-      manual_base_purchase = manual_purchase_exists?(base_plan)
-      if manual_base_purchase && !entry.addon? && addon_keys.blank?
-        return Result.new(allowed: false, error_key: "dashboard.marketplace.errors.already_purchased")
-      end
-
-      base_included = !base_entry.purchased && !manual_base_purchase
-
-      addons = addons_for_base(base_entry)
-      addon_map = addons.index_by { |addon| addon.billing_plan.key }
-      selected_addons = addon_keys.filter_map { |key| addon_map[key] }
-
-      purchased_plan_ids = MarketplacePurchase.where(user: user, billing_plan_id: addons.select(:billing_plan_id))
-                                              .pluck(:billing_plan_id)
-      manual_plan_ids = ManualTransaction.where(user: user, billing_plan_id: addons.select(:billing_plan_id))
-                                         .pluck(:billing_plan_id)
-      purchased_plan_ids |= manual_plan_ids
-
-      selected_addons.reject! { |addon| purchased_plan_ids.include?(addon.billing_plan_id) }
-
-      unless base_included
-        ineligible = selected_addons.find do |addon|
-          eligibility = Addons::Eligibility.new(user: user, addon: addon).call
-          !eligibility.allowed?
+        manual_base_purchase = manual_purchase_exists?(base_plan)
+        if manual_base_purchase && !entry.addon? && addon_keys.blank?
+          return Result.new(allowed: false, error_key: "dashboard.marketplace.errors.already_purchased")
         end
-        if ineligible
-          base_label = addonable_label(ineligible.addonable) || I18n.t("dashboard.marketplace.errors.addon_base_default", locale: locale)
+
+        base_included = !base_entry.purchased && !manual_base_purchase
+
+        addons = addons_for_base(base_entry)
+        addon_map = addons.index_by { |addon| addon.billing_plan.key }
+        selected_addons = addon_keys.filter_map { |key| addon_map[key] }
+
+        purchased_plan_ids = purchased_or_manual_plan_ids(addons.pluck(:billing_plan_id))
+        selected_addons.reject! { |addon| purchased_plan_ids.include?(addon.billing_plan_id) }
+
+        unless base_included
+          ineligible = selected_addons.find do |addon|
+            eligibility = Addons::Eligibility.new(user: user, addon: addon).call
+            !eligibility.allowed?
+          end
+          if ineligible
+            base_label = addonable_label(ineligible.addonable) || I18n.t("dashboard.marketplace.errors.addon_base_default", locale: locale)
+            return Result.new(
+              allowed: false,
+              error_key: "dashboard.marketplace.errors.addon_requires_base",
+              error_options: { base: base_label }
+            )
+          end
+        end
+      elsif entry.addon?
+        addon = entry.addon
+        addon_plan = addon&.billing_plan
+        return Result.new(allowed: false, error_key: "dashboard.marketplace.errors.base_missing") unless addon_plan&.stripe_price_id
+
+        eligibility = Addons::Eligibility.new(user: user, addon: addon).call
+        unless eligibility.allowed?
+          base_label = addonable_label(eligibility.addonable) || I18n.t("dashboard.marketplace.errors.addon_base_default", locale: locale)
           return Result.new(
             allowed: false,
             error_key: "dashboard.marketplace.errors.addon_requires_base",
             error_options: { base: base_label }
           )
         end
+
+        purchased_plan_ids = purchased_or_manual_plan_ids([addon_plan.id])
+        return Result.new(allowed: false, error_key: "dashboard.marketplace.errors.already_purchased") if purchased_plan_ids.include?(addon_plan.id)
+
+        selected_addons = [addon]
+      else
+        return Result.new(allowed: false, error_key: "dashboard.marketplace.errors.base_missing")
       end
 
       line_items = []
@@ -196,6 +216,15 @@ module Marketplace
       return false unless user && plan
 
       ManualTransaction.where(user: user, billing_plan_id: plan.id).exists?
+    end
+
+    def purchased_or_manual_plan_ids(plan_ids)
+      ids = Array(plan_ids).compact.uniq
+      return [] if ids.empty?
+
+      purchased_ids = MarketplacePurchase.where(user: user, billing_plan_id: ids).pluck(:billing_plan_id)
+      manual_ids = ManualTransaction.where(user: user, billing_plan_id: ids).pluck(:billing_plan_id)
+      purchased_ids | manual_ids
     end
   end
 end

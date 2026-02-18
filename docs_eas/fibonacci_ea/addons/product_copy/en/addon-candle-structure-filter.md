@@ -6,9 +6,9 @@
 - SKU: `addon_candle_structure`
 
 ## description
-`This addon adds a pre-entry validation layer based on candle structure behavior. It helps users filter signals so entries happen only when recent candle patterns match the selected condition.`
+This addon adds a pre-entry validation layer based on candle structure behavior. It helps users filter signals so entries happen only when recent candle patterns match the selected condition.
 
-`For non-traders: this is a quality gate. The EA checks "does the recent candle behavior look like what we want?" If not, the trade is skipped.`
+For non-traders: this is a quality gate. The EA checks "does the recent candle behavior look like what we want?" If not, the trade is skipped.
 
 ## Inputs Explained (Plain Language)
 - `Candle_Timeframe`: timeframe used for candle-pattern checks.

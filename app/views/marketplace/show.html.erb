@@ -3,7 +3,7 @@
 <% base_product = marketplace.base_product %>
 <% summary = marketplace.summary %>
 <% description_html = @description_html %>
-<% base_available = marketplace.base_entry.present? %>
+<% base_available = marketplace.checkout_base_available? %>
 <% addon_progress = marketplace.add_on_progress %>
 <% cart_total_cents = marketplace.cart_total_cents %>
 <% privileged_full_access = Access::PrivilegedRolePolicy.full_access?(current_user) %>
@@ -150,7 +150,7 @@
             <span class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= marketplace.base_price_display || marketplace.cart_total_display %></span>
           </div>
           <% if marketplace.entry.addon? %>
-            <% base_label = base_product&.title_for(I18n.locale) || t("dashboard.marketplace.errors.addon_base_default") %>
+            <% base_label = marketplace.required_base_label %>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= t("dashboard.marketplace.detail.requires_base", base: base_label) %></p>
           <% end %>
           <% unless base_available %>

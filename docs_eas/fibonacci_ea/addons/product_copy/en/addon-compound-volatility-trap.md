@@ -6,9 +6,9 @@
 - SKU: `addon_compound_volatility_trap`
 
 ## description
-`Volatility Trap is for users who want a defensive compound mode in unstable or noisy conditions. It is intended to reduce low-quality entries when price behavior is erratic.`
+Volatility Trap is for users who want a defensive compound mode in unstable or noisy conditions. It is intended to reduce low-quality entries when price behavior is erratic.
 
-`For non-traders: this mode is a caution profile for "chaotic" market moments.`
+For non-traders: this mode is a caution profile for "chaotic" market moments.
 
 ## Included Modes
 - `COMPOUND_MODE_VOLATILITY_TRAP_BUY`

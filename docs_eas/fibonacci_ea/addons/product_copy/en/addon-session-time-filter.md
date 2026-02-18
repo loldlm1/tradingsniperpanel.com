@@ -6,9 +6,9 @@
 - SKU: `addon_session_time_filter`
 
 ## description
-`This addon gives you scheduling control. You decide in which market sessions the EA can run and when it should stop opening positions. It is useful for users who want to avoid low-liquidity or high-noise hours.`
+This addon gives you scheduling control. You decide in which market sessions the EA can run and when it should stop opening positions. It is useful for users who want to avoid low-liquidity or high-noise hours.
 
-`For non-traders: this is like setting business hours for your bot. Outside those hours, it can pause or close positions depending on your selected mode.`
+For non-traders: this is like setting business hours for your bot. Outside those hours, it can pause or close positions depending on your selected mode.
 
 ## Inputs Explained (Plain Language)
 - `Session_Asia_Filter_Mode`: behavior for Asia session (`OFF`, `ALLOW_RUN`, or `FORCE_CLOSE`).

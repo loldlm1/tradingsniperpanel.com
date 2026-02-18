@@ -6,9 +6,9 @@
 - SKU: `addon_compound_pullback_continue`
 
 ## Descripcion
-`Pullback Continue se enfoca en reentrada despues de una correccion temporal del precio. Es util para usuarios que quieren continuidad con timing de retroceso en vez de entrada inmediata por ruptura.`
+Pullback Continue se enfoca en reentrada despues de una correccion temporal del precio. Es util para usuarios que quieren continuidad con timing de retroceso en vez de entrada inmediata por ruptura.
 
-`Para usuarios no traders: este modo espera un pequeno retroceso antes de continuar en la direccion original.`
+Para usuarios no traders: este modo espera un pequeno retroceso antes de continuar en la direccion original.
 
 ## Modos Incluidos
 - `COMPOUND_MODE_PULLBACK_CONTINUE_BUY`

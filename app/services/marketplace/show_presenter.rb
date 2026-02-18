@@ -79,8 +79,22 @@ module Marketplace
       base_entry.present? && !base_entry.purchased
     end
 
+    def checkout_base_available?
+      return true if base_entry.present?
+      return addon_checkout_allowed_without_base_product? if entry.addon?
+
+      false
+    end
+
     def base_owned?
       base_entry.present? && base_entry.purchased
+    end
+
+    def required_base_label
+      return base_product&.title_for(locale) || product.title_for(locale) if base_entry.present?
+      return addonable_label(entry.addonable) || I18n.t("dashboard.marketplace.errors.addon_base_default", locale: locale) if entry.addon?
+
+      base_product&.title_for(locale) || product.title_for(locale)
     end
 
     def add_on_progress
@@ -181,7 +195,7 @@ module Marketplace
 
     def build_addon_rows
       base = base_entry
-      return [] unless base
+      return fallback_addon_rows_for_entry_addon unless base
 
       addonables = base.expert_advisors + base.courses + base.marketplace_assets
       return [] if addonables.empty?
@@ -193,13 +207,7 @@ module Marketplace
                     .includes(:marketplace_product, :billing_plan)
                     .order("marketplace_products.sort_order ASC, marketplace_products.title_en ASC")
 
-      owned_plan_ids =
-        if Access::PrivilegedRolePolicy.full_access?(user)
-          addons.map(&:billing_plan_id).compact.uniq
-        else
-          MarketplacePurchase.where(user: user, billing_plan_id: addons.select(:billing_plan_id))
-                             .pluck(:billing_plan_id)
-        end
+      owned_plan_ids = owned_plan_ids_for(addons.map(&:billing_plan_id))
 
       preselected_keys = []
       if entry.addon? && entry.plan&.key.present? && !owned_plan_ids.include?(entry.plan.id)
@@ -221,6 +229,60 @@ module Marketplace
           selected: preselected_keys.include?(plan&.key)
         )
       end
+    end
+
+    def fallback_addon_rows_for_entry_addon
+      return [] unless entry.addon?
+
+      addon = entry.addon
+      plan = addon&.billing_plan
+      product = addon&.marketplace_product || entry.product
+      return [] unless addon && plan && product
+
+      owned_plan_ids = owned_plan_ids_for([plan.id])
+      return [] if owned_plan_ids.include?(plan.id)
+
+      [
+        AddonRow.new(
+          addon: addon,
+          product: product,
+          title: product.title_for(locale),
+          price_display: price_display_for(plan),
+          price_cents: plan.amount_cents.to_i,
+          plan_key: plan.key,
+          selected: true
+        )
+      ]
+    end
+
+    def owned_plan_ids_for(plan_ids)
+      ids = Array(plan_ids).compact.uniq
+      return [] if ids.empty?
+      return ids if Access::PrivilegedRolePolicy.full_access?(user)
+
+      purchased_ids = MarketplacePurchase.where(user: user, billing_plan_id: ids).pluck(:billing_plan_id)
+      manual_ids = ManualTransaction.where(user: user, billing_plan_id: ids).pluck(:billing_plan_id)
+      purchased_ids | manual_ids
+    end
+
+    def addon_checkout_allowed_without_base_product?
+      @addon_checkout_allowed_without_base_product ||= begin
+        return false unless entry.addon?
+
+        if !entry.eligible.nil?
+          entry.eligible
+        else
+          Addons::Eligibility.new(user: user, addon: entry.addon).call.allowed?
+        end
+      end
+    end
+
+    def addonable_label(addonable)
+      return nil unless addonable
+      return addonable.name if addonable.is_a?(ExpertAdvisor)
+      return addonable.title_for(locale) if addonable.respond_to?(:title_for)
+
+      addonable.to_s
     end
 
     def build_related_items

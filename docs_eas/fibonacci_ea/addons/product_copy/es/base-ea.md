@@ -6,9 +6,9 @@
 - SKU: `base_ea`
 
 ## Descripcion
-`Base EA es el paquete principal de Fibonacci EA. Incluye el flujo completo del sistema: protecciones de cuenta, filtros de contexto de mercado y configuracion de tamano de posicion. Con esto, el usuario puede operar una version solida sin comprar addons desde el primer dia.`
+Base EA es el paquete principal de Fibonacci EA. Incluye el flujo completo del sistema: protecciones de cuenta, filtros de contexto de mercado y configuracion de tamano de posicion. Con esto, el usuario puede operar una version solida sin comprar addons desde el primer dia.
 
-`Para usuarios no traders: piensa en Base EA como la aplicacion principal, y los addons como funciones extra. La base ya maneja limites de seguridad y comportamiento estandar de estrategia.`
+Para usuarios no traders: piensa en Base EA como la aplicacion principal, y los addons como funciones extra. La base ya maneja limites de seguridad y comportamiento estandar de estrategia.
 
 ## Inputs Explicados (Lenguaje Simple)
 ### Licencia y cuenta

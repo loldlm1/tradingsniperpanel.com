@@ -6,9 +6,9 @@
 - SKU: `addon_compound_trend_ride`
 
 ## Descripcion
-`Trend Ride es un addon de contexto compound orientado a continuidad. Esta pensado para usuarios que quieren alinear entradas con la direccion dominante en vez de buscar giros tempranos.`
+Trend Ride es un addon de contexto compound orientado a continuidad. Esta pensado para usuarios que quieren alinear entradas con la direccion dominante en vez de buscar giros tempranos.
 
-`Para usuarios no traders: este modo prefiere "seguir la corriente" del mercado.`
+Para usuarios no traders: este modo prefiere "seguir la corriente" del mercado.
 
 ## Modos Incluidos
 - `COMPOUND_MODE_TREND_RIDE_BUY`

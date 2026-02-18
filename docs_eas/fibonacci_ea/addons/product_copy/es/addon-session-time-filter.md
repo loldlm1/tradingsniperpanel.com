@@ -6,9 +6,9 @@
 - SKU: `addon_session_time_filter`
 
 ## Descripcion
-`Este addon te da control de horario. Puedes definir en que sesiones el EA puede operar y cuando debe dejar de abrir posiciones. Es util para evitar horas de baja liquidez o ruido de mercado.`
+Este addon te da control de horario. Puedes definir en que sesiones el EA puede operar y cuando debe dejar de abrir posiciones. Es util para evitar horas de baja liquidez o ruido de mercado.
 
-`Para usuarios no traders: es como poner horario laboral al bot. Fuera de ese horario, puede pausar o cerrar posiciones segun el modo elegido.`
+Para usuarios no traders: es como poner horario laboral al bot. Fuera de ese horario, puede pausar o cerrar posiciones segun el modo elegido.
 
 ## Inputs Explicados (Lenguaje Simple)
 - `Session_Asia_Filter_Mode`: comportamiento en sesion Asia (`OFF`, `ALLOW_RUN`, `FORCE_CLOSE`).

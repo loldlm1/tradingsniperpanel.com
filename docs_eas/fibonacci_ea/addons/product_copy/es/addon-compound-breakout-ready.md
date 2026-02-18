@@ -6,9 +6,9 @@
 - SKU: `addon_compound_breakout_ready`
 
 ## Descripcion
-`Breakout Ready esta orientado a usuarios que prefieren momentos de expansion de precio en lugar de entradas por retroceso. Ayuda a alinear entradas con posibles salidas de rango y aceleracion direccional.`
+Breakout Ready esta orientado a usuarios que prefieren momentos de expansion de precio en lugar de entradas por retroceso. Ayuda a alinear entradas con posibles salidas de rango y aceleracion direccional.
 
-`Para usuarios no traders: este modo busca momentos donde el precio puede romper una zona y moverse mas rapido.`
+Para usuarios no traders: este modo busca momentos donde el precio puede romper una zona y moverse mas rapido.
 
 ## Modos Incluidos
 - `COMPOUND_MODE_BREAKOUT_READY_BUY`

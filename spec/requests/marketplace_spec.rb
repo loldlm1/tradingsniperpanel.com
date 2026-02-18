@@ -295,6 +295,37 @@ RSpec.describe "Marketplace", type: :request do
     expect(response.body).to include(I18n.t("dashboard.marketplace.show.base_missing", locale: :en))
   end
 
+  it "allows addon page checkout with paid subscription access when no base marketplace product exists" do
+    expert_advisor = create(:expert_advisor, name: "Fibonacci Elite EA", allowed_subscription_tiers: %w[basic])
+    addon_plan = create(:billing_plan, :one_time, key: "addon_fibonacci_compound_reversal_early")
+    create(:addon, key: "addon_compound_reversal_early", addonable: expert_advisor, billing_plan: addon_plan)
+    addon_product = create(:marketplace_product, billing_plan: addon_plan, title_en: "Compound Mode - Reversal Early")
+
+    subscription_plan = create(:billing_plan, tier: "basic")
+    create(:manual_subscription, user: user, billing_plan: subscription_plan, recorded_by_admin: create(:user, :admin))
+
+    user.pay_customers.create!(processor: "stripe", processor_id: "cus_marketplace_addon_only", default: true)
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_product_path(addon_product, locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).not_to include(I18n.t("dashboard.marketplace.show.base_missing", locale: :en))
+    expect(response.body).to include("data-addon-key=\"#{addon_plan.key}\"")
+
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+    expect(checkout_stub).to receive(:checkout) do |**params|
+      expect(params[:line_items]).to eq([{ price: addon_plan.stripe_price_id, quantity: 1 }])
+      double(url: "https://checkout.test/session")
+    end
+
+    post dashboard_marketplace_product_checkout_path(addon_product, locale: :en),
+         params: { refund_acknowledged: "1", addon_keys: [addon_plan.key] }
+
+    expect(response).to redirect_to("https://checkout.test/session")
+  end
+
   it "redirects with an error when no items are selected for checkout" do
     base_plan = create(:billing_plan, :one_time)
     base_product = create(:marketplace_product, billing_plan: base_plan, title_en: "Owned Base")

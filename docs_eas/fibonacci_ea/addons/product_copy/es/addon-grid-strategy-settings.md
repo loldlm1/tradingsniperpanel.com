@@ -6,9 +6,9 @@
 - SKU: `addon_grid_strategy_config`
 
 ## Descripcion
-`Este addon desbloquea la capa avanzada de configuracion grid. Esta pensado para usuarios que quieren definir que tan agresiva sera la expansion del grid y hasta que profundidad puede llegar.`
+Este addon desbloquea la capa avanzada de configuracion grid. Esta pensado para usuarios que quieren definir que tan agresiva sera la expansion del grid y hasta que profundidad puede llegar.
 
-`Para usuarios no traders: este addon controla que tan "profundo" y "amplio" puede escalar entradas la estrategia. Mas profundidad puede dar flexibilidad, pero aumenta exposicion.`
+Para usuarios no traders: este addon controla que tan "profundo" y "amplio" puede escalar entradas la estrategia. Mas profundidad puede dar flexibilidad, pero aumenta exposicion.
 
 ## Inputs Explicados (Lenguaje Simple)
 - `Grid_Exponential_Multiplier`: velocidad de crecimiento de distancia entre niveles.

@@ -6,9 +6,9 @@
 - SKU: `addon_compound_reversal_early`
 
 ## description
-`Reversal Early is built for users who want to capture potential turning points before a full trend confirmation appears. It can unlock earlier entries, but usually needs tighter risk discipline.`
+Reversal Early is built for users who want to capture potential turning points before a full trend confirmation appears. It can unlock earlier entries, but usually needs tighter risk discipline.
 
-`For non-traders: this mode tries to catch "the turn" earlier, instead of waiting for full confirmation.`
+For non-traders: this mode tries to catch "the turn" earlier, instead of waiting for full confirmation.
 
 ## Included Modes
 - `COMPOUND_MODE_REVERSAL_EARLY_BUY`

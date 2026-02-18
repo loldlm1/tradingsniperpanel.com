@@ -6,9 +6,9 @@
 - SKU: `addon_grid_strategy_config`
 
 ## description
-`This addon unlocks the advanced grid configuration layer. It is designed for users who want to define how aggressively the EA adds levels and how far grid sequences can extend.`
+This addon unlocks the advanced grid configuration layer. It is designed for users who want to define how aggressively the EA adds levels and how far grid sequences can extend.
 
-`For non-traders: this addon controls how "deep" and "wide" the strategy can scale entries. More depth can improve flexibility but also increases exposure.`
+For non-traders: this addon controls how "deep" and "wide" the strategy can scale entries. More depth can improve flexibility but also increases exposure.
 
 ## Inputs Explained (Plain Language)
 - `Grid_Exponential_Multiplier`: how quickly spacing grows between next grid levels.
