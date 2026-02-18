@@ -4,7 +4,7 @@ module ExpertAdvisors
   class ShowPresenter
     include Rails.application.routes.url_helpers
 
-    AddonItem = Struct.new(:title, :owned, :purchase_url, keyword_init: true)
+    AddonItem = Struct.new(:title, :owned, :purchase_url, :guide_url, keyword_init: true)
 
     RANGE_DAYS = 30
     MAIN_LINE_COLOR = "#8470FF"
@@ -375,13 +375,14 @@ module ExpertAdvisors
       return [] if addons.empty?
 
       owned, unowned = addons.partition { |addon| purchased?(addon) }
-      ordered = unowned + owned
+      ordered = owned + unowned
 
-      ordered.first(3).map do |addon|
+      ordered.map do |addon|
         AddonItem.new(
           title: addon_title(addon),
           owned: purchased?(addon),
-          purchase_url: addon_purchase_url(addon)
+          purchase_url: addon_purchase_url(addon),
+          guide_url: addon_guide_url(addon)
         )
       end
     end
@@ -417,6 +418,13 @@ module ExpertAdvisors
       return nil if product.blank?
 
       dashboard_marketplace_product_path(product, locale: locale)
+    end
+
+    def addon_guide_url(addon)
+      return nil unless purchased?(addon)
+      return nil unless accessible?
+
+      dashboard_expert_advisor_addon_guide_path(expert_advisor, addon_key: addon.key, locale: locale)
     end
 
     def currency(amount)

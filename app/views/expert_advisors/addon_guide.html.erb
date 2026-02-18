@@ -1,0 +1,47 @@
+<% addon_title = @addon_product&.title_for(I18n.locale) || @addon.key %>
+<% addon_summary = @addon_product&.summary_for(I18n.locale) %>
+<% content_for :title, t("dashboard.expert_advisors.addon_guide_page_title", name: addon_title, app: app_short_name) %>
+<% content_for :page_container_class, "w-full max-w-none px-0 py-0" %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "guides" %>
+<% end %>
+
+<div class="relative isolate">
+  <div class="absolute inset-0 pointer-events-none -z-10 rounded-2xl overflow-hidden" aria-hidden="true">
+    <div class="absolute top-0 left-1/2 -translate-x-1/2">
+      <%= image_tag "docs/images/hero-illustration.svg", class: "max-w-none", width: 1972, height: 392, alt: "" %>
+    </div>
+  </div>
+
+  <div class="w-full max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8 md:pt-12">
+    <article>
+      <div class="min-w-0">
+        <header class="mb-6">
+          <div class="mb-3">
+            <%= link_to t("dashboard.expert_advisors.show.back"), dashboard_expert_advisor_path(@expert_advisor, locale: I18n.locale), class: "inline-flex items-center gap-2 text-sm font-semibold text-brand-400 hover:text-brand-300" %>
+          </div>
+          <h1 class="h2 text-slate-800 mb-2 dark:text-slate-200"><%= addon_title %></h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400"><%= t("dashboard.expert_advisors.addon_guide_base_hint", base: @expert_advisor.name) %></p>
+          <% if addon_summary.present? %>
+            <p class="text-lg text-slate-600 dark:text-slate-400 mt-2"><%= addon_summary %></p>
+          <% end %>
+        </header>
+
+        <% if @markdown_html.present? %>
+          <div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+            <div
+              class="ea-guide-content text-slate-600 dark:text-slate-400 space-y-6"
+              data-scrollspy-container
+              data-copy-label="<%= t("dashboard.expert_advisors.copy_code") %>"
+              data-copied-label="<%= t("dashboard.expert_advisors.copied") %>"
+            >
+              <%= @markdown_html %>
+            </div>
+          </div>
+        <% else %>
+          <p class="text-slate-600 dark:text-slate-400"><%= t("dashboard.expert_advisors.guides_missing") %></p>
+        <% end %>
+      </div>
+    </article>
+  </div>
+</div>

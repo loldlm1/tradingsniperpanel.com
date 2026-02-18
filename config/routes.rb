@@ -33,6 +33,7 @@ Rails.application.routes.draw do
     patch "dashboard/settings", to: "dashboard/settings#update"
     get "dashboard/expert_advisors/:id", to: "expert_advisors#show", as: :dashboard_expert_advisor
     get "dashboard/expert_advisors/:id/guides", to: "expert_advisors#guides", as: :dashboard_expert_advisor_guides
+    get "dashboard/expert_advisors/:id/addons/:addon_key/guide", to: "expert_advisors#addon_guide", as: :dashboard_expert_advisor_addon_guide
     get "dashboard/expert_advisors/:id/download", to: "expert_advisors#download", as: :dashboard_expert_advisor_download
     get "dashboard/courses/:id", to: "courses#show", as: :dashboard_course
     get "dashboard/courses/:course_id/lessons/:id", to: "course_lessons#show", as: :dashboard_course_lesson

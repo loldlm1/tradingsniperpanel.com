@@ -124,6 +124,69 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(response).to have_http_status(:not_found)
   end
 
+  it "renders addon guides when user owns base access and addon purchase" do
+    create(:license, user: user, expert_advisor: expert_advisor, status: "active")
+    addon_product = create(
+      :marketplace_product,
+      title_en: "Trend Ride Add-on",
+      summary_en: "Guide summary",
+      description_en: "# Trend Ride Add-on\n\nGuide body."
+    )
+    addon = create(:addon, key: "addon_compound_trend_ride", addonable: expert_advisor, billing_plan: addon_product.billing_plan)
+    create(:marketplace_purchase, user: user, billing_plan: addon_product.billing_plan)
+
+    get dashboard_expert_advisor_addon_guide_path(expert_advisor, addon_key: addon.key, locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include("Trend Ride Add-on")
+    expect(response.body).to include("Guide body.")
+    expect(response.body).to include(I18n.t("dashboard.expert_advisors.addon_guide_base_hint", base: expert_advisor.name, locale: :en))
+  end
+
+  it "returns not found for addon guide when addon purchase is missing" do
+    create(:license, user: user, expert_advisor: expert_advisor, status: "active")
+    addon_product = create(:marketplace_product)
+    addon = create(:addon, key: "addon_compound_trend_ride", addonable: expert_advisor, billing_plan: addon_product.billing_plan)
+
+    get dashboard_expert_advisor_addon_guide_path(expert_advisor, addon_key: addon.key, locale: :en)
+
+    expect(response).to have_http_status(:not_found)
+  end
+
+  it "returns not found for addon guide when base access is missing" do
+    addon_product = create(:marketplace_product)
+    addon = create(:addon, key: "addon_compound_trend_ride", addonable: expert_advisor, billing_plan: addon_product.billing_plan)
+    create(:marketplace_purchase, user: user, billing_plan: addon_product.billing_plan)
+
+    get dashboard_expert_advisor_addon_guide_path(expert_advisor, addon_key: addon.key, locale: :en)
+
+    expect(response).to have_http_status(:not_found)
+  end
+
+  it "shows addon purchase and guide CTAs on EA show page" do
+    create(:license, user: user, expert_advisor: expert_advisor, status: "active")
+
+    owned_product = create(:marketplace_product, title_en: "Owned Add-on")
+    unowned_product = create(:marketplace_product, title_en: "Unowned Add-on")
+
+    owned_addon = create(:addon, key: "addon_compound_trend_ride", addonable: expert_advisor, billing_plan: owned_product.billing_plan)
+    create(:marketplace_purchase, user: user, billing_plan: owned_product.billing_plan)
+    create(:addon, key: "addon_compound_breakout_ready", addonable: expert_advisor, billing_plan: unowned_product.billing_plan)
+
+    get dashboard_expert_advisor_path(expert_advisor, locale: :en)
+
+    expect(response).to be_successful
+    doc = parsed_body
+
+    addon_guide_link = doc.at_css("a[href='#{dashboard_expert_advisor_addon_guide_path(expert_advisor, addon_key: owned_addon.key, locale: :en)}']")
+    addon_purchase_link = doc.css("a[href='#{dashboard_marketplace_product_path(unowned_product, locale: :en)}']")
+                             .find { |link| link.text.include?(I18n.t("dashboard.expert_advisors.addons.purchase_cta", locale: :en)) }
+
+    expect(addon_guide_link).to be_present
+    expect(addon_guide_link.text).to include(I18n.t("dashboard.expert_advisors.addons.guide_cta", locale: :en))
+    expect(addon_purchase_link).to be_present
+  end
+
   it "redirects to the bundle download when licensed" do
     create(:license, user:, expert_advisor:)
     attach_bundle(expert_advisor)

@@ -468,6 +468,16 @@ es:
               - "Configuración Flexible"
               - "Control Total sobre las Operaciones"
               - "Optimización de Entradas y Salidas"
+          fibonacci_elite:
+            name: "Fibonacci Elite"
+            description: "Para traders que buscan ejecución estructural Fibonacci automatizada con control flexible."
+            features_title: "Todo en Pro, más:"
+            features:
+              - "Flujo Fibonacci estructural automatizado"
+              - "Modos para medir drawdown"
+              - "Configuración Flexible"
+              - "Control Total para operaciones humanas"
+              - "Optimización de Entradas y Salidas"
           hft:
             name: "HFT"
             description: "Para scalpers y day traders: velocidad, multi-target y órdenes preconfiguradas."
