@@ -1,7 +1,7 @@
 
 ## **Plan Avanzado: Pandora Pro**
 
-### **$40/mes**
+### **$30/mes**
 
 Potencia tu trading con herramientas de alta velocidad y precisión para ejecutar operaciones de manera eficiente y controlada.
 
