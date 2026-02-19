@@ -65,6 +65,22 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe "#send_devise_notification" do
+    it "delivers Devise notifications asynchronously" do
+      user = create(:user)
+      mailer = class_double("Devise::Mailer")
+      mail_delivery = instance_double(ActionMailer::MessageDelivery)
+
+      allow(user).to receive(:devise_mailer).and_return(mailer)
+      allow(mailer).to receive(:send).with(:reset_password_instructions, user, "token-123").and_return(mail_delivery)
+
+      expect(mail_delivery).to receive(:deliver_later)
+      expect(mail_delivery).not_to receive(:deliver_now)
+
+      user.send_devise_notification(:reset_password_instructions, "token-123")
+    end
+  end
+
   describe "roles" do
     it "defaults to trader" do
       user = create(:user)

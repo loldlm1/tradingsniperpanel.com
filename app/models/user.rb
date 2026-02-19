@@ -79,6 +79,11 @@ class User < ApplicationRecord
     admin? || master_admin? || full_trader?
   end
 
+  # Send Devise emails asynchronously so auth flows do not block on SMTP latency.
+  def send_devise_notification(notification, *args)
+    devise_mailer.send(notification, self, *args).deliver_later
+  end
+
   def self.ransackable_associations(_auth_object = nil)
     []
   end

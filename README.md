@@ -444,7 +444,30 @@ See `.envrc.example` for the full list. Key server variables:
   - `SMTP_PORT=587`
   - `SMTP_AUTHENTICATION=login`
   - `SMTP_ENABLE_STARTTLS_AUTO=true`
+- Recommended timeouts:
+  - `SMTP_OPEN_TIMEOUT=5`
+  - `SMTP_READ_TIMEOUT=10`
 - In GoDaddy Email & Office dashboard, enable SMTP Authentication for the mailbox user before deploying.
+
+### SMTP preflight checks (before deploy)
+- Validate SMTP handshake/auth only (no email sent):
+```
+bundle exec rails smtp:check
+```
+- Send an actual test email:
+```
+TO=you@example.com bundle exec rails smtp:send_test
+```
+- Staging server example:
+```
+sudo -u "$USER" -H bash -lc 'cd /home/$USER/tradingsniperpanel.com-staging && set -a && source /etc/tradingsniperpanel/staging.env && set +a && bundle exec rails smtp:check'
+sudo -u "$USER" -H bash -lc 'cd /home/$USER/tradingsniperpanel.com-staging && set -a && source /etc/tradingsniperpanel/staging.env && set +a && TO=you@example.com bundle exec rails smtp:send_test'
+```
+- Production server example:
+```
+sudo -u "$USER" -H bash -lc 'cd /home/$USER/tradingsniperpanel.com && set -a && source /etc/tradingsniperpanel/production.env && set +a && bundle exec rails smtp:check'
+sudo -u "$USER" -H bash -lc 'cd /home/$USER/tradingsniperpanel.com && set -a && source /etc/tradingsniperpanel/production.env && set +a && TO=you@example.com bundle exec rails smtp:send_test'
+```
 
 ## Frontend notes
 - Marketing/auth pages use Neon assets (`app/assets/templates/neon/...`), dashboard uses Mosaic (`app/assets/templates/mosaic/...`).

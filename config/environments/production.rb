@@ -73,7 +73,9 @@ Rails.application.configure do
       user_name: ENV.fetch("SMTP_USERNAME"),
       password: ENV.fetch("SMTP_PASSWORD"),
       authentication: ENV.fetch("SMTP_AUTHENTICATION", "login").to_sym,
-      enable_starttls_auto: ActiveModel::Type::Boolean.new.cast(ENV.fetch("SMTP_ENABLE_STARTTLS_AUTO", "true"))
+      enable_starttls_auto: ActiveModel::Type::Boolean.new.cast(ENV.fetch("SMTP_ENABLE_STARTTLS_AUTO", "true")),
+      open_timeout: ENV.fetch("SMTP_OPEN_TIMEOUT", "5").to_i,
+      read_timeout: ENV.fetch("SMTP_READ_TIMEOUT", "10").to_i
     }
   end
 
