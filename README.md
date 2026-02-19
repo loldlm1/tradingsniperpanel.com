@@ -185,15 +185,9 @@ CREATE DATABASE tradingsniperpanel_com_staging_queue OWNER tradingsniperpanel;
 CREATE DATABASE tradingsniperpanel_com_staging_cable OWNER tradingsniperpanel;
 SQL
 ```
-9) Add staging config files in the staging app:
-```
-cp /home/your_admin_user/tradingsniperpanel.com-staging/config/environments/production.rb /home/your_admin_user/tradingsniperpanel.com-staging/config/environments/staging.rb
-```
-In `config/environments/staging.rb`, set:
-- `config.assume_ssl = false`
-- `config.force_ssl = false`
-
-Add a `staging:` entry in `/home/your_admin_user/tradingsniperpanel.com-staging/config/database.yml` by copying `production:` and renaming the env vars to `DB_NAME_STAGING`, `DB_NAME_STAGING_CACHE`, `DB_NAME_STAGING_QUEUE`, `DB_NAME_STAGING_CABLE`.
+9) Staging config:
+- This repo includes `config/environments/staging.rb` (HTTP + no real mail delivery by default), so no manual copy from production is needed.
+- Add a `staging:` entry in `/home/your_admin_user/tradingsniperpanel.com-staging/config/database.yml` by copying `production:` and renaming the env vars to `DB_NAME_STAGING`, `DB_NAME_STAGING_CACHE`, `DB_NAME_STAGING_QUEUE`, `DB_NAME_STAGING_CABLE`.
 9) Create environment files for systemd (use `.envrc.example` as the full list reference).
 ```
 sudo install -d -m 0755 /etc/tradingsniperpanel
@@ -435,10 +429,14 @@ See `.envrc.example` for the full list. Key server variables:
 - Referrals: `REFER_DEFAULT_DISCOUNT_PERCENT`.
 - MaxMind: `MAXMIND_LICENSE_KEY`, `MAXMIND_DB_PATH`.
 - Support email: `SUPPORT_EMAIL`.
-- SMTP (GoDaddy Microsoft 365 mailbox credentials): `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_DOMAIN`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_AUTHENTICATION`, `SMTP_ENABLE_STARTTLS_AUTO`.
+- SMTP (GoDaddy Microsoft 365 mailbox credentials): `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_DOMAIN`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_AUTHENTICATION`, `SMTP_ENABLE_STARTTLS_AUTO` (used for production runtime and explicit SMTP preflight tasks).
 
 ### SMTP notes (GoDaddy + Microsoft 365)
 - `SMTP_USERNAME` / `SMTP_PASSWORD` are mailbox credentials (for example `support@your-domain.com`), not your GoDaddy account login.
+- Default runtime behavior:
+  - `production`: sends through SMTP when SMTP env vars are present.
+  - `development` and `staging`: do not send real emails from normal app requests/jobs (`delivery_method = :test`, `perform_deliveries = false`).
+  - `smtp:send_test`: explicit opt-in task that temporarily enables SMTP delivery for that task execution only.
 - Typical values:
   - `SMTP_ADDRESS=smtp.office365.com`
   - `SMTP_PORT=587`
