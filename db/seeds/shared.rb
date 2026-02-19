@@ -1,5 +1,7 @@
 profiles_seed_path = Rails.root.join("db", "seeds", "profiles.rb")
 load(profiles_seed_path) if !defined?(Seeds::Profiles) && profiles_seed_path.exist?
+require "base64"
+require "digest/md5"
 
 module Seeds
   module ExpertAdvisors
@@ -256,13 +258,22 @@ module Seeds
 
     def attach_bundle(record, bundle_path)
       return unless bundle_path&.exist?
-      if record.ea_files.attached?
-        record.ensure_bundle_filename!
-        return
-      end
 
       extension = File.extname(bundle_path.to_s)
       filename = "#{record.ea_id}#{extension.presence || ".zip"}"
+      source_checksum = bundle_checksum(bundle_path)
+
+      if record.ea_files.attached?
+        blob = record.ea_files.blob
+        if blob.checksum == source_checksum
+          blob.update!(filename: filename) if blob.filename.to_s != filename
+          record.ensure_bundle_filename!
+          return
+        end
+
+        Rails.logger.info("[Seeds::ExpertAdvisors] replacing EA bundle for ea_id=#{record.ea_id} (checksum changed)")
+        record.ea_files.purge
+      end
 
       File.open(bundle_path) do |file|
         record.ea_files.attach(
@@ -273,6 +284,10 @@ module Seeds
       end
 
       record.ensure_bundle_filename!
+    end
+
+    def bundle_checksum(bundle_path)
+      Base64.strict_encode64(Digest::MD5.file(bundle_path).digest)
     end
 
     def bundle_content_type(bundle_path)
@@ -2391,7 +2406,18 @@ module Seeds
     end
 
     def attach_bundle(bundle, bundle_path, filename)
-      return if bundle.bundle_file.attached?
+      source_checksum = bundle_checksum(bundle_path)
+
+      if bundle.bundle_file.attached?
+        blob = bundle.bundle_file.blob
+        if blob.checksum == source_checksum
+          blob.update!(filename: filename) if blob.filename.to_s != filename
+          return
+        end
+
+        Rails.logger.info("[Seeds::ExpertAdvisorBundles] replacing bundle for expert_advisor_id=#{bundle.expert_advisor_id}, bundle_key=#{bundle.bundle_key} (checksum changed)")
+        bundle.bundle_file.purge
+      end
 
       File.open(bundle_path) do |file|
         bundle.bundle_file.attach(
@@ -2400,6 +2426,10 @@ module Seeds
           content_type: "application/x-rar-compressed"
         )
       end
+    end
+
+    def bundle_checksum(bundle_path)
+      Base64.strict_encode64(Digest::MD5.file(bundle_path).digest)
     end
 
     def addon_combinations(addon_keys)
