@@ -27,7 +27,7 @@ One purchase includes both BUY and SELL sides.
 4. It enters when momentum rotates back to continuation.
 
 ## Canonical Structure Sequence (Oldest -> Newest)
-Internal matcher order is `first -> fourth` (newest -> oldest).
+Internal matcher order is `fourth -> first` (Oldest -> Newest).
 
 - Buy mode (`COMPOUND_MODE_PULLBACK_CONTINUE_BUY`):
   `[4] Lower High -> [3] Lower Low -> [2] Higher High -> [1] Higher Low`

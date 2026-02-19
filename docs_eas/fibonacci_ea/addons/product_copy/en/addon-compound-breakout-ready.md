@@ -27,7 +27,7 @@ One purchase includes both BUY and SELL sides.
 4. It enters in breakout direction while structure remains aligned.
 
 ## Canonical Structure Sequence (Oldest -> Newest)
-Internal matcher order is `first -> fourth` (newest -> oldest).
+Internal matcher order is `fourth -> first` (Oldest -> Newest).
 
 - Buy mode (`COMPOUND_MODE_BREAKOUT_READY_BUY`):
   `[4] Higher Low -> [3] Lower High -> [2] Higher Low -> [1] Lower High`

@@ -27,7 +27,7 @@ Una compra incluye BUY y SELL.
 4. Entra cuando el momentum vuelve a la direccion original.
 
 ## Secuencia Canonica de Estructura (Mas Antigua -> Mas Reciente)
-Orden interno del matcher: `first -> fourth` (mas reciente -> mas antigua).
+Orden interno del matcher: `fourth -> first` (Mas Antigua -> Mas Reciente).
 
 - Modo Buy (`COMPOUND_MODE_PULLBACK_CONTINUE_BUY`):
   `[4] Maximo Mas Bajo -> [3] Minimo Mas Bajo -> [2] Maximo Mas Alto -> [1] Minimo Mas Alto`

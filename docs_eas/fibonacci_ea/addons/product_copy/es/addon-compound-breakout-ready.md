@@ -27,7 +27,7 @@ Una compra incluye BUY y SELL.
 4. Entra en direccion de ruptura mientras la estructura sigue alineada.
 
 ## Secuencia Canonica de Estructura (Mas Antigua -> Mas Reciente)
-Orden interno del matcher: `first -> fourth` (mas reciente -> mas antigua).
+Orden interno del matcher: `fourth -> first` (Mas Antigua -> Mas Reciente).
 
 - Modo Buy (`COMPOUND_MODE_BREAKOUT_READY_BUY`):
   `[4] Minimo Mas Alto -> [3] Maximo Mas Bajo -> [2] Minimo Mas Alto -> [1] Maximo Mas Bajo`

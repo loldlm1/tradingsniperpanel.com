@@ -27,7 +27,7 @@ One purchase includes both BUY and SELL sides.
 4. With freshness enabled, only recent structure transitions are accepted.
 
 ## Canonical Structure Sequence (Oldest -> Newest)
-Internal matcher order is `first -> fourth` (newest -> oldest).
+Internal matcher order is `fourth -> first` (Oldest -> Newest).
 
 - Buy mode (`COMPOUND_MODE_TREND_RIDE_BUY`):
   `[4] Higher High -> [3] Higher Low -> [2] Higher High -> [1] Higher Low`
