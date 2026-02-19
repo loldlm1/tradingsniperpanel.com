@@ -44,6 +44,23 @@ RSpec.describe "Marketplace", type: :request do
     expect(response.body).to include(ea_product.title_for(:es))
   end
 
+  it "renders dynamic pagination controls when a section has more than eight cards" do
+    9.times do |index|
+      expert_advisor = create(:expert_advisor, name: "Pagination EA #{index}")
+      plan = create(:billing_plan, :one_time, key: "marketplace_pagination_ea_#{index}")
+      create(:marketplace_product, billing_plan: plan, title_en: "Pagination Bundle #{index}")
+      create(:billing_plan_entitlement, expert_advisor: expert_advisor, billing_plan: plan)
+    end
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_path(locale: :en, tab: "expert_advisors")
+
+    expect(response).to be_successful
+    expect(response.body).to include("data-pagination-container")
+    expect(response.body).to include("data-page-size=\"8\"")
+    expect(response.body).to include("data-pagination-page=\"2\"")
+  end
+
   it "shows the empty state when no products exist" do
     sign_in user, scope: :user
 

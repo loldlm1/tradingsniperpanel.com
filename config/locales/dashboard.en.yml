@@ -131,6 +131,7 @@ en:
         empty_cta: "Contact Support"
       tabs:
         all: "View All"
+        featured: "Featured"
         courses: "Courses"
         expert_advisors: "Expert Advisors"
         marketplace_assets: "Marketplace Assets"

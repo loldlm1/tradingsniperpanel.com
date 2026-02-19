@@ -4,7 +4,7 @@
 <% rating_count = number_with_delimiter(card.rating_count.to_i) %>
 <% summary = card.summary.to_s %>
 
-<div class="col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-xs rounded-xl overflow-hidden transition-shadow duration-200 hover:shadow-md">
+<div class="col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-xs rounded-xl overflow-hidden transition-shadow duration-200 hover:shadow-md" data-pagination-item>
   <div class="flex flex-col h-full">
     <!-- Image -->
     <div class="relative">

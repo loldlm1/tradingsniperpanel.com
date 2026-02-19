@@ -85,7 +85,16 @@
   <% else %>
     <% if @marketplace.show_courses? && @marketplace.course_cards.any? %>
       <!-- Cards 1 (Video Courses) -->
-      <div class="mt-8">
+      <% course_pages = @marketplace.course_pages %>
+      <div
+        class="mt-8"
+        data-pagination-container
+        data-page-size="<%= @marketplace.page_size %>"
+        data-current-page="1"
+        data-active-class="bg-brand-500 text-white"
+        data-inactive-class="border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300"
+        data-disabled-class="opacity-40 cursor-not-allowed"
+      >
         <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-5"><%= t(@marketplace.course_section_label_key) %></h2>
         <div class="grid grid-cols-12 gap-6">
           <% @marketplace.course_cards.each_with_index do |card, index| %>
@@ -93,12 +102,48 @@
             <%= render "marketplace/cards/course_card", card: card %>
           <% end %>
         </div>
+        <% if course_pages > 1 %>
+          <div class="mt-6">
+            <nav class="flex items-center justify-between" aria-label="<%= t(@marketplace.course_section_label_key) %>" data-pagination-nav>
+              <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40" type="button" data-pagination-prev>
+                <span class="sr-only"><%= t("dashboard.pagination.prev") %></span>
+                <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
+                  <path d="M9.4 13.4l1.4-1.4-4-4 4-4-1.4-1.4L4 8z" />
+                </svg>
+              </button>
+              <div class="flex items-center gap-2 text-sm font-medium">
+                <% (1..course_pages).each do |page| %>
+                  <button
+                    class="w-9 h-9 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 <%= page == 1 ? "bg-brand-500 text-white" : "border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300" %>"
+                    type="button"
+                    data-pagination-page="<%= page %>"
+                  ><%= page %></button>
+                <% end %>
+              </div>
+              <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40" type="button" data-pagination-next>
+                <span class="sr-only"><%= t("dashboard.pagination.next") %></span>
+                <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
+                  <path d="M6.6 13.4L5.2 12l4-4-4-4 1.4-1.4L12 8z" />
+                </svg>
+              </button>
+            </nav>
+          </div>
+        <% end %>
       </div>
     <% end %>
 
     <% if @marketplace.show_digital_goods? && @marketplace.digital_goods_cards.any? %>
       <!-- Cards 2 (Digital Goods) -->
-      <div class="mt-8">
+      <% digital_goods_pages = @marketplace.digital_goods_pages %>
+      <div
+        class="mt-8"
+        data-pagination-container
+        data-page-size="<%= @marketplace.page_size %>"
+        data-current-page="1"
+        data-active-class="bg-brand-500 text-white"
+        data-inactive-class="border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300"
+        data-disabled-class="opacity-40 cursor-not-allowed"
+      >
         <h2 class="text-xl leading-snug text-gray-800 dark:text-gray-100 font-bold mb-5"><%= t(@marketplace.digital_goods_section_label_key) %></h2>
         <div class="grid grid-cols-12 gap-6">
           <% @marketplace.digital_goods_cards.each_with_index do |card, index| %>
@@ -106,6 +151,33 @@
             <%= render "marketplace/cards/digital_good_card", card: card %>
           <% end %>
         </div>
+        <% if digital_goods_pages > 1 %>
+          <div class="mt-6">
+            <nav class="flex items-center justify-between" aria-label="<%= t(@marketplace.digital_goods_section_label_key) %>" data-pagination-nav>
+              <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40" type="button" data-pagination-prev>
+                <span class="sr-only"><%= t("dashboard.pagination.prev") %></span>
+                <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
+                  <path d="M9.4 13.4l1.4-1.4-4-4 4-4-1.4-1.4L4 8z" />
+                </svg>
+              </button>
+              <div class="flex items-center gap-2 text-sm font-medium">
+                <% (1..digital_goods_pages).each do |page| %>
+                  <button
+                    class="w-9 h-9 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 <%= page == 1 ? "bg-brand-500 text-white" : "border border-gray-200 dark:border-gray-700/60 text-gray-600 dark:text-gray-300" %>"
+                    type="button"
+                    data-pagination-page="<%= page %>"
+                  ><%= page %></button>
+                <% end %>
+              </div>
+              <button class="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40" type="button" data-pagination-next>
+                <span class="sr-only"><%= t("dashboard.pagination.next") %></span>
+                <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16">
+                  <path d="M6.6 13.4L5.2 12l4-4-4-4 1.4-1.4L12 8z" />
+                </svg>
+              </button>
+            </nav>
+          </div>
+        <% end %>
       </div>
     <% end %>
 

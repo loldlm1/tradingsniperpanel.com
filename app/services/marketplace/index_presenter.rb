@@ -3,7 +3,7 @@ module Marketplace
     include Rails.application.routes.url_helpers
 
     TAG_LIMIT = 8
-    CARD_LIMIT = 4
+    PAGE_SIZE = 8
     TRENDING_LIMIT = 4
     TRENDING_WINDOW_DAYS = 30
     POPULAR_PURCHASE_THRESHOLD = 5
@@ -18,6 +18,7 @@ module Marketplace
 
     TAB_CONFIG = {
       all: "dashboard.marketplace.tabs.all",
+      featured: "dashboard.marketplace.tabs.featured",
       courses: "dashboard.marketplace.tabs.courses",
       expert_advisors: "dashboard.marketplace.tabs.expert_advisors",
       marketplace_assets: "dashboard.marketplace.tabs.marketplace_assets",
@@ -25,7 +26,7 @@ module Marketplace
       bundles: "dashboard.marketplace.tabs.bundles"
     }.freeze
 
-    TAB_ORDER = %i[all courses expert_advisors marketplace_assets addons bundles].freeze
+    TAB_ORDER = %i[all featured courses expert_advisors marketplace_assets addons bundles].freeze
 
     TYPE_TERMS = {
       addons: %w[addon addons add-on add-ons],
@@ -121,6 +122,18 @@ module Marketplace
       query.present? || selected_tags.any?
     end
 
+    def page_size
+      PAGE_SIZE
+    end
+
+    def course_pages
+      pages_for(course_cards)
+    end
+
+    def digital_goods_pages
+      pages_for(digital_goods_cards)
+    end
+
     def empty_state?
       return course_cards.empty? && digital_goods_cards.empty? if selected_tab == :all
 
@@ -128,7 +141,7 @@ module Marketplace
     end
 
     def show_courses?
-      selected_tab == :all || selected_tab == :courses
+      selected_tab.in?([:all, :featured, :courses])
     end
 
     def show_digital_goods?
@@ -193,6 +206,7 @@ module Marketplace
       return :all if value.blank?
 
       normalized = value.to_s
+      return :featured if normalized == "featured"
       return :courses if normalized == "courses"
       return :expert_advisors if normalized == "expert_advisors"
       return :marketplace_assets if normalized == "marketplace_assets"
@@ -329,15 +343,32 @@ module Marketplace
 
     def entries_for_tab(entries, tab_key)
       return entries if tab_key == :all
+      return featured_entries(entries) if tab_key == :featured
 
       entries.select { |entry| entry_type(entry) == tab_key }
     end
 
     def available_tab_keys
       types = base_entries.map { |entry| entry_type(entry) }.uniq
-      ordered = TAB_ORDER.select { |key| key == :all || types.include?(key) }
+      ordered = TAB_ORDER.select do |key|
+        key == :all || (key == :featured && base_entries.any?) || types.include?(key)
+      end
       ordered << selected_tab if selected_tab != :all && !ordered.include?(selected_tab)
       ordered
+    end
+
+    def featured_entries(entries)
+      return [] if entries.empty?
+
+      purchase_counts = purchase_counts_for(entries)
+      usage_counts = usage_counts_for(entries)
+      sorted = sorted_entries(entries, purchase_counts, usage_counts)
+      prioritized = sorted.select do |entry|
+        plan_id = entry.plan&.id
+        purchase_counts[plan_id].to_i.positive? || usage_counts[plan_id].to_i.positive?
+      end
+
+      prioritized.presence || sorted
     end
 
     def entry_type(entry)
@@ -396,7 +427,7 @@ module Marketplace
                                   .group("course_modules.course_id")
                                   .sum(:duration_seconds)
 
-      sorted_entries(entries, purchase_counts, usage_counts).first(CARD_LIMIT).map do |entry|
+      sorted_entries(entries, purchase_counts, usage_counts).map do |entry|
         product = entry.product
         plan_id = entry.plan&.id
         course_ids = entry.courses.map(&:id)
@@ -425,7 +456,7 @@ module Marketplace
       metric_counts = metric_counts_for(entries, purchase_counts, usage_counts)
       max_metric = metric_counts.values.max.to_f
 
-      sorted_entries(entries, purchase_counts, usage_counts).first(CARD_LIMIT).map.with_index do |entry, index|
+      sorted_entries(entries, purchase_counts, usage_counts).map.with_index do |entry, index|
         product = entry.product
         plan_id = entry.plan&.id
         summary = product.summary_for(locale).presence || product.description_for(locale)
@@ -627,6 +658,13 @@ module Marketplace
       rating = base_rating + (value.to_f / max_value.to_f) * range
       rating = rating.clamp(base_rating, base_rating + range)
       rating.round(1)
+    end
+
+    def pages_for(items)
+      total_items = items.size
+      return 1 if total_items <= 0
+
+      (total_items / PAGE_SIZE.to_f).ceil
     end
   end
 end

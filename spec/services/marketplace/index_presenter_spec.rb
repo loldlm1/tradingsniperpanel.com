@@ -123,4 +123,50 @@ RSpec.describe Marketplace::IndexPresenter do
     expect(presenter.trending_cards.map(&:title)).to include(ea_product.title_en, course_product.title_en)
     expect(presenter.trending_cards.first.title).to eq(ea_product.title_en)
   end
+
+  it "adds featured as the second tab and supports tab=featured" do
+    course = create(:course, title_en: "Featured Course")
+    course_plan = create(:billing_plan, :one_time, key: "marketplace_featured_course")
+    create(:marketplace_product, billing_plan: course_plan, title_en: "Featured Course Bundle")
+    create(:course_plan_entitlement, course: course, billing_plan: course_plan)
+
+    presenter = build_presenter(tab: "featured")
+
+    expect(presenter.selected_tab).to eq(:featured)
+    expect(presenter.tabs.map { |tab| tab[:key] }.first(2)).to eq(%i[all featured])
+    expect(presenter.show_courses?).to be(true)
+    expect(presenter.show_digital_goods?).to be(true)
+    expect(presenter.show_categories?).to be(false)
+    expect(presenter.show_trending?).to be(false)
+  end
+
+  it "does not cap course cards and reports section pages at 8 per page" do
+    9.times do |index|
+      course = create(:course, title_en: "Course #{index}")
+      plan = create(:billing_plan, :one_time, key: "marketplace_uncapped_course_#{index}")
+      create(:marketplace_product, billing_plan: plan, title_en: "Course Bundle #{index}")
+      create(:course_plan_entitlement, course: course, billing_plan: plan)
+    end
+
+    presenter = build_presenter
+
+    expect(presenter.page_size).to eq(8)
+    expect(presenter.course_cards.size).to eq(9)
+    expect(presenter.course_pages).to eq(2)
+  end
+
+  it "does not cap digital goods cards and reports section pages at 8 per page" do
+    9.times do |index|
+      expert_advisor = create(:expert_advisor, name: "EA #{index}")
+      plan = create(:billing_plan, :one_time, key: "marketplace_uncapped_ea_#{index}")
+      create(:marketplace_product, billing_plan: plan, title_en: "EA Bundle #{index}")
+      create(:billing_plan_entitlement, expert_advisor: expert_advisor, billing_plan: plan)
+    end
+
+    presenter = build_presenter(tab: "expert_advisors")
+
+    expect(presenter.page_size).to eq(8)
+    expect(presenter.digital_goods_cards.size).to eq(9)
+    expect(presenter.digital_goods_pages).to eq(2)
+  end
 end
