@@ -1,0 +1,13 @@
+<%= t("billing_mailer.greeting", name: (@user.name.presence || @user.email)) %>
+
+<%= t("billing_mailer.subscription_started.intro", app_name: app_name) %>
+<% if @plan_name.present? %>
+<%= t("billing_mailer.plan_line", plan: @plan_name) %>
+<% end %>
+<%= t("billing_mailer.amount_line", amount: @amount) %>
+<%= t("billing_mailer.invoice_line", invoice_id: @invoice_id) %>
+<%= t("billing_mailer.subscription_started.billing_cta") %>: <%= @billing_url %>
+<% if @invoice_url.present? %>
+<%= t("billing_mailer.invoice_cta") %>: <%= @invoice_url %>
+<% end %>
+<%= t("billing_mailer.support_line", support_email: @support_email) %>

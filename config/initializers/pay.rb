@@ -5,6 +5,8 @@ Pay.setup do |config|
   config.application_name = Rails.configuration.x.branding.app_name
   config.business_name = Rails.configuration.x.branding.app_name
   config.support_email = Rails.configuration.x.branding.support_email
+  # Use app-specific transactional templates instead of Pay defaults.
+  config.send_emails = false
 
   config.default_product_name = "sniper_advanced_panel"
   config.default_plan_name = "default"

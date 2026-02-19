@@ -205,6 +205,33 @@ es:
       password_change:
         greeting: "Hola %{email}!"
         notice: "Te contactamos para avisarte que tu contraseña ha sido cambiada."
+  billing_mailer:
+    greeting: "Hola %{name},"
+    plan_line: "Plan: %{plan}"
+    amount_line: "Monto cobrado: %{amount}"
+    invoice_line: "ID de factura: %{invoice_id}"
+    charge_line: "ID de cobro: %{charge_id}"
+    invoice_cta: "Ver factura"
+    receipt_cta: "Ver recibo"
+    support_line: "¿Necesitas ayuda? Contacta a %{support_email}."
+    subscription_started:
+      subject: "Tu suscripción de %{app_name} está activa"
+      intro: "Tu suscripción ya está activa."
+      billing_cta: "Gestionar facturación"
+    subscription_upgraded:
+      subject: "Tu suscripción de %{app_name} fue mejorada"
+      intro: "La mejora de tu suscripción fue exitosa."
+      billing_cta: "Gestionar facturación"
+    one_time_purchase_confirmed:
+      subject: "Tu compra de %{app_name} está confirmada"
+      intro: "Tu compra única se completó."
+      products_label: "Productos:"
+      marketplace_cta: "Abrir marketplace"
+    subscription_renewal_payment_failed:
+      subject: "Falló el pago de renovación de %{app_name}"
+      intro: "No pudimos procesar tu último pago de renovación."
+      billing_cta: "Actualizar método de pago"
+      help_text: "Actualiza tu método de pago para evitar interrupciones."
   footer:
     tagline: "Construido para traders disciplinados de MQL5."
     terms: "Términos"

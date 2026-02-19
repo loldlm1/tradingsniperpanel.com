@@ -435,6 +435,16 @@ See `.envrc.example` for the full list. Key server variables:
 - Referrals: `REFER_DEFAULT_DISCOUNT_PERCENT`.
 - MaxMind: `MAXMIND_LICENSE_KEY`, `MAXMIND_DB_PATH`.
 - Support email: `SUPPORT_EMAIL`.
+- SMTP (GoDaddy Microsoft 365 mailbox credentials): `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_DOMAIN`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_AUTHENTICATION`, `SMTP_ENABLE_STARTTLS_AUTO`.
+
+### SMTP notes (GoDaddy + Microsoft 365)
+- `SMTP_USERNAME` / `SMTP_PASSWORD` are mailbox credentials (for example `support@your-domain.com`), not your GoDaddy account login.
+- Typical values:
+  - `SMTP_ADDRESS=smtp.office365.com`
+  - `SMTP_PORT=587`
+  - `SMTP_AUTHENTICATION=login`
+  - `SMTP_ENABLE_STARTTLS_AUTO=true`
+- In GoDaddy Email & Office dashboard, enable SMTP Authentication for the mailbox user before deploying.
 
 ## Frontend notes
 - Marketing/auth pages use Neon assets (`app/assets/templates/neon/...`), dashboard uses Mosaic (`app/assets/templates/mosaic/...`).

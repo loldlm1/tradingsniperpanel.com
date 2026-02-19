@@ -31,6 +31,7 @@ module Licenses
       end
 
       mark_referral_completed(user: user, charge: charge)
+      notify_one_time_purchase(user: user, charge: charge, plans: plans)
     rescue StandardError => e
       logger.error("[Licenses::OneTimePurchaseSync] failed pay_charge_id=#{pay_charge_id}: #{e.class} - #{e.message}")
       raise
@@ -152,6 +153,15 @@ module Licenses
       Referrals::MarkCompleted.new(user: user).call
     rescue StandardError => e
       logger.warn("[Licenses::OneTimePurchaseSync] referral completion failed pay_charge_id=#{charge.id}: #{e.class} - #{e.message}")
+    end
+
+    def notify_one_time_purchase(user:, charge:, plans:)
+      Billing::OneTimePurchaseNotification.new(
+        user: user,
+        charge: charge,
+        plans: plans,
+        logger: logger
+      ).call
     end
   end
 end

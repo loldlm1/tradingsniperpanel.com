@@ -2,6 +2,8 @@ require "rails_helper"
 require "securerandom"
 
 RSpec.describe Licenses::OneTimePurchaseSync do
+  include ActiveJob::TestHelper
+
   let(:user) { create(:user) }
   let(:customer) do
     user.pay_customers.create!(
@@ -28,10 +30,20 @@ RSpec.describe Licenses::OneTimePurchaseSync do
     )
   end
 
+  before do
+    clear_enqueued_jobs
+  end
+
+  after do
+    clear_enqueued_jobs
+  end
+
   it "creates licenses, enrollments, and marketplace purchases for one-time entitlements" do
     encoder = instance_double(Licenses::LicenseKeyEncoder, generate: "ENCODED")
 
-    described_class.new(pay_charge_id: charge.id, encoder: encoder).call
+    expect do
+      described_class.new(pay_charge_id: charge.id, encoder: encoder).call
+    end.to have_enqueued_mail(BillingNotificationsMailer, :one_time_purchase_confirmed)
 
     license = License.find_by(user: user, expert_advisor: expert_advisor)
     expect(license).to be_active
@@ -49,5 +61,15 @@ RSpec.describe Licenses::OneTimePurchaseSync do
 
     extra_purchase = MarketplacePurchase.find_by(user: user, billing_plan: extra_plan)
     expect(extra_purchase).to be_present
+  end
+
+  it "does not enqueue duplicate one-time emails when the same charge is processed again" do
+    encoder = instance_double(Licenses::LicenseKeyEncoder, generate: "ENCODED")
+    described_class.new(pay_charge_id: charge.id, encoder: encoder).call
+    clear_enqueued_jobs
+
+    expect do
+      described_class.new(pay_charge_id: charge.id, encoder: encoder).call
+    end.not_to have_enqueued_mail(BillingNotificationsMailer, :one_time_purchase_confirmed)
   end
 end

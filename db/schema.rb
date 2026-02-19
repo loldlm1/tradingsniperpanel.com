@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_19_183944) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_19_010156) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -67,7 +67,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_19_183944) do
     t.index ["addonable_type", "addonable_id"], name: "index_addons_on_addonable"
     t.index ["billing_plan_id"], name: "index_addons_on_billing_plan_id", unique: true
     t.index ["key"], name: "index_addons_on_key", unique: true
-    t.check_constraint "addonable_type::text = ANY (ARRAY['ExpertAdvisor'::character varying, 'Course'::character varying, 'MarketplaceAsset'::character varying]::text[])", name: "addons_addonable_type_check"
+    t.check_constraint "addonable_type::text = ANY (ARRAY['ExpertAdvisor'::character varying::text, 'Course'::character varying::text, 'MarketplaceAsset'::character varying::text])", name: "addons_addonable_type_check"
   end
 
   create_table "asset_plan_entitlements", force: :cascade do |t|
@@ -78,6 +78,24 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_19_183944) do
     t.index ["billing_plan_id", "marketplace_asset_id"], name: "index_asset_plan_entitlements_unique", unique: true
     t.index ["billing_plan_id"], name: "index_asset_plan_entitlements_on_billing_plan_id"
     t.index ["marketplace_asset_id"], name: "index_asset_plan_entitlements_on_marketplace_asset_id"
+  end
+
+  create_table "billing_email_deliveries", force: :cascade do |t|
+    t.string "event_key", null: false
+    t.string "event_type", null: false
+    t.string "invoice_id"
+    t.bigint "user_id"
+    t.bigint "pay_charge_id"
+    t.bigint "pay_subscription_id"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "delivered_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_key"], name: "index_billing_email_deliveries_on_event_key", unique: true
+    t.index ["event_type", "invoice_id"], name: "index_billing_email_deliveries_on_type_and_invoice"
+    t.index ["pay_charge_id"], name: "index_billing_email_deliveries_on_pay_charge_id"
+    t.index ["pay_subscription_id"], name: "index_billing_email_deliveries_on_pay_subscription_id"
+    t.index ["user_id"], name: "index_billing_email_deliveries_on_user_id"
   end
 
   create_table "billing_plan_entitlements", force: :cascade do |t|
@@ -681,6 +699,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_19_183944) do
   add_foreign_key "addons", "billing_plans"
   add_foreign_key "asset_plan_entitlements", "billing_plans"
   add_foreign_key "asset_plan_entitlements", "marketplace_assets"
+  add_foreign_key "billing_email_deliveries", "pay_charges"
+  add_foreign_key "billing_email_deliveries", "pay_subscriptions"
+  add_foreign_key "billing_email_deliveries", "users"
   add_foreign_key "billing_plan_entitlements", "billing_plans"
   add_foreign_key "billing_plan_entitlements", "expert_advisors"
   add_foreign_key "broker_account_daily_results", "broker_accounts"
