@@ -27,7 +27,7 @@ One purchase includes both BUY and SELL sides.
 4. It triggers earlier than conservative reversal methods, so risk should be tighter.
 
 ## Canonical Structure Sequence (Oldest -> Newest)
-Internal matcher order is `first -> fourth` (newest -> oldest).
+Internal matcher order is `fourth -> first` (Oldest -> Newest).
 
 - Buy mode (`COMPOUND_MODE_REVERSAL_EARLY_BUY`):
   `[4] Lower High -> [3] Lower Low -> [2] Lower High -> [1] Higher Low`

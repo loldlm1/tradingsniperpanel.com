@@ -46,3 +46,4 @@ Implement reliable transactional email delivery for key Stripe charge outcomes (
 - PASS: `bundle exec rspec spec/requests/devise_reset_password_mailer_spec.rb spec/services/billing/stripe_invoice_notification_processor_spec.rb spec/services/licenses/one_time_purchase_sync_spec.rb`
 - PASS: `bundle exec rspec spec/services/billing`
 - PASS: `bundle exec rspec spec/mailers/billing_notifications_mailer_spec.rb spec/requests/devise_reset_password_mailer_spec.rb spec/services/billing/stripe_invoice_notification_processor_spec.rb spec/services/licenses/one_time_purchase_sync_spec.rb`
+- PASS: `bundle exec rspec` (full suite) -> `462 examples, 0 failures`

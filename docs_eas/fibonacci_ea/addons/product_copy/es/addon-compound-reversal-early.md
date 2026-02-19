@@ -27,7 +27,7 @@ Una compra incluye BUY y SELL.
 4. Entra temprano frente a modelos conservadores, por eso requiere mas control de riesgo.
 
 ## Secuencia Canonica de Estructura (Mas Antigua -> Mas Reciente)
-Orden interno del matcher: `first -> fourth` (mas reciente -> mas antigua).
+Orden interno del matcher: `fourth -> first` (Mas Antigua -> Mas Reciente).
 
 - Modo Buy (`COMPOUND_MODE_REVERSAL_EARLY_BUY`):
   `[4] Maximo Mas Bajo -> [3] Minimo Mas Bajo -> [2] Maximo Mas Bajo -> [1] Minimo Mas Alto`
