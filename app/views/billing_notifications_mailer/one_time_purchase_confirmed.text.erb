@@ -1,0 +1,16 @@
+<%= t("billing_mailer.greeting", name: (@user.name.presence || @user.email)) %>
+
+<%= t("billing_mailer.one_time_purchase_confirmed.intro", app_name: app_name) %>
+<% if @plan_names.any? %>
+<%= t("billing_mailer.one_time_purchase_confirmed.products_label") %>
+<% @plan_names.each do |plan_name| %>
+- <%= plan_name %>
+<% end %>
+<% end %>
+<%= t("billing_mailer.amount_line", amount: @amount) %>
+<%= t("billing_mailer.charge_line", charge_id: @charge_id) %>
+<%= t("billing_mailer.one_time_purchase_confirmed.marketplace_cta") %>: <%= @marketplace_url %>
+<% if @receipt_url.present? %>
+<%= t("billing_mailer.receipt_cta") %>: <%= @receipt_url %>
+<% end %>
+<%= t("billing_mailer.support_line", support_email: @support_email) %>

@@ -8,5 +8,7 @@ Rails.configuration.to_prepare do
     events.subscribe "stripe.customer.subscription.deleted", Pay::Stripe::Webhooks::SubscriptionDeleted.new
     events.subscribe "stripe.invoice.upcoming", Pay::Stripe::Webhooks::SubscriptionRenewing.new
     events.subscribe "stripe.invoice.payment_failed", Pay::Stripe::Webhooks::PaymentFailed.new
+    events.subscribe "stripe.invoice.payment_succeeded", Billing::StripeWebhooks::InvoicePaymentSucceeded.new
+    events.subscribe "stripe.invoice.payment_failed", Billing::StripeWebhooks::InvoicePaymentFailed.new
   end
 end
