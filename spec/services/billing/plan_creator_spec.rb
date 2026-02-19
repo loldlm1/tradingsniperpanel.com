@@ -74,6 +74,50 @@ RSpec.describe Billing::PlanCreator do
     end.to raise_error(Stripe::InvalidRequestError, /Invalid product identifier/)
   end
 
+  it "uses a distinct price idempotency key when price payload parameters change" do
+    plan = create(
+      :billing_plan,
+      key: "pro_monthly",
+      tier: "pro",
+      interval: "month",
+      interval_count: 1,
+      name: "Pro Monthly",
+      amount_cents: 6_000,
+      currency: "usd",
+      stripe_product_id: "seed_prod_pro_monthly",
+      stripe_price_id: "seed_price_pro_monthly"
+    )
+
+    attrs = {
+      key: plan.key,
+      name: plan.name,
+      description: "Pro monthly plan",
+      kind: "subscription",
+      tier: plan.tier,
+      interval: plan.interval,
+      interval_count: plan.interval_count,
+      amount_cents: plan.amount_cents,
+      currency: plan.currency,
+      active: true,
+      sort_order: 3
+    }
+
+    expect { described_class.new(attrs).call }.not_to raise_error
+    first_product_id = plan.reload.stripe_product_id
+    first_price_id = plan.reload.stripe_price_id
+
+    # Simulate remapping after stale Stripe IDs in a subsequent rerun.
+    plan.update!(
+      stripe_product_id: "seed_prod_pro_monthly_again",
+      stripe_price_id: "seed_price_pro_monthly_again"
+    )
+
+    expect { described_class.new(attrs).call }.not_to raise_error
+    expect(plan.reload.stripe_product_id).not_to eq(first_product_id)
+    expect(plan.reload.stripe_price_id).not_to eq(first_price_id)
+    expect(Stripe::Price.idempotency_keys.uniq.size).to eq(2)
+  end
+
   def stub_stripe
     stripe_module = Module.new
     stripe_module.singleton_class.attr_accessor :api_key
@@ -88,6 +132,7 @@ RSpec.describe Billing::PlanCreator do
       end
     end
     stub_const("Stripe::InvalidRequestError", invalid_request_error)
+    stub_const("Stripe::IdempotencyError", Class.new(StandardError))
 
     products = {}
     prices = {}
@@ -139,7 +184,7 @@ RSpec.describe Billing::PlanCreator do
 
     price_class = Class.new do
       class << self
-        attr_accessor :prices, :counter
+        attr_accessor :prices, :counter, :idempotent_requests, :idempotency_keys
       end
 
       def self.retrieve(id)
@@ -148,11 +193,25 @@ RSpec.describe Billing::PlanCreator do
         prices[id]
       end
 
-      def self.create(params, _opts = {})
+      def self.create(params, opts = {})
+        idempotency_key = opts[:idempotency_key].to_s
+        if idempotency_key.present?
+          normalized_params = normalize_params(params)
+          existing_params = idempotent_requests[idempotency_key]
+          if existing_params.present? && existing_params != normalized_params
+            raise Stripe::IdempotencyError,
+              "Keys for idempotent requests can only be used with the same parameters they were first used with. Try using a key other than '#{idempotency_key}' if you meant to execute a different request."
+          end
+
+          idempotent_requests[idempotency_key] = normalized_params
+          idempotency_keys << idempotency_key
+        end
+
         self.counter = counter.to_i + 1
         id = "price_live_#{counter}"
         price = OpenStruct.new(
           id: id,
+          product: params[:product],
           unit_amount: params[:unit_amount],
           currency: params[:currency],
           recurring: params[:recurring],
@@ -172,10 +231,25 @@ RSpec.describe Billing::PlanCreator do
         end
         price
       end
+
+      def self.normalize_params(value)
+        case value
+        when Hash
+          value.to_h.each_with_object({}) do |(key, nested_value), memo|
+            memo[key.to_s] = normalize_params(nested_value)
+          end.sort.to_h
+        when Array
+          value.map { |item| normalize_params(item) }
+        else
+          value
+        end
+      end
     end
 
     product_class.products = products
     price_class.prices = prices
+    price_class.idempotent_requests = {}
+    price_class.idempotency_keys = []
 
     stub_const("Stripe::Product", product_class)
     stub_const("Stripe::Price", price_class)

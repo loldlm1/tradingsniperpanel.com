@@ -1,3 +1,5 @@
+require "digest"
+
 module Billing
   class PlanCreator
     Result = Struct.new(:plan, :product, :price, keyword_init: true)
@@ -60,13 +62,10 @@ module Billing
       end
 
       Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
+      params = product_create_params(plan)
       Stripe::Product.create(
-        {
-          name: plan.name,
-          description: plan.description,
-          metadata: product_metadata(plan)
-        },
-        { idempotency_key: idempotency_key("product", plan.key) }
+        params,
+        { idempotency_key: idempotency_key_for("product", plan.key, params) }
       )
     end
 
@@ -132,19 +131,11 @@ module Billing
 
     def create_price(plan, product_id)
       Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
-      params = {
-        product: product_id,
-        currency: plan.currency,
-        unit_amount: plan.amount_cents
-      }
-      if plan.subscription?
-        params[:recurring] = {
-          interval: plan.interval,
-          interval_count: plan.interval_count
-        }
-      end
-
-      Stripe::Price.create(params, { idempotency_key: idempotency_key("price", plan.key, plan.amount_cents, plan.interval, plan.interval_count) })
+      params = price_create_params(plan, product_id: product_id)
+      Stripe::Price.create(
+        params,
+        { idempotency_key: idempotency_key_for("price", plan.key, params) }
+      )
     end
 
     def price_matches?(price, plan)
@@ -176,8 +167,48 @@ module Billing
       (plan.metadata || {}).to_h.merge("billing_plan_key" => plan.key)
     end
 
-    def idempotency_key(*parts)
-      parts.compact.join(":")
+    def product_create_params(plan)
+      {
+        name: plan.name,
+        description: plan.description,
+        metadata: product_metadata(plan)
+      }
+    end
+
+    def price_create_params(plan, product_id:)
+      params = {
+        product: product_id,
+        currency: plan.currency,
+        unit_amount: plan.amount_cents
+      }
+
+      if plan.subscription?
+        params[:recurring] = {
+          interval: plan.interval,
+          interval_count: plan.interval_count
+        }
+      end
+
+      params
+    end
+
+    def idempotency_key_for(resource_type, plan_key, params)
+      normalized = normalize_for_digest(params)
+      digest = Digest::SHA256.hexdigest(normalized.to_json)
+      "#{resource_type}:#{plan_key}:#{digest.first(24)}"
+    end
+
+    def normalize_for_digest(value)
+      case value
+      when Hash
+        value.to_h.each_with_object({}) do |(key, nested_value), memo|
+          memo[key.to_s] = normalize_for_digest(nested_value)
+        end.sort.to_h
+      when Array
+        value.map { |item| normalize_for_digest(item) }
+      else
+        value
+      end
     end
 
     def ensure_stripe_key!
