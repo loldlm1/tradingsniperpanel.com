@@ -10,6 +10,10 @@ Reversal Early is built for users who want to capture potential turning points b
 
 For non-traders: this mode tries to catch "the turn" earlier, instead of waiting for full confirmation.
 
+## Note
+
+The Fibonacci Elite EA updates automatically with purchased add-ons.
+
 ## Included Modes
 - `COMPOUND_MODE_REVERSAL_EARLY_BUY`
 - `COMPOUND_MODE_REVERSAL_EARLY_SELL`

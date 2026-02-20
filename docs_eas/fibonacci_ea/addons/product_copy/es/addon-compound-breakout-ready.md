@@ -10,6 +10,10 @@ Breakout Ready esta orientado a usuarios que prefieren momentos de expansion de 
 
 Para usuarios no traders: este modo busca momentos donde el precio puede romper una zona y moverse mas rapido.
 
+## Nota
+
+El Fibonacci Elite EA se actualiza automaticamente con el add-ons comprado.
+
 ## Modos Incluidos
 - `COMPOUND_MODE_BREAKOUT_READY_BUY`
 - `COMPOUND_MODE_BREAKOUT_READY_SELL`

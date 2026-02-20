@@ -10,6 +10,10 @@ This addon adds a pre-entry validation layer based on candle structure behavior.
 
 For non-traders: this is a quality gate. The EA checks "does the recent candle behavior look like what we want?" If not, the trade is skipped.
 
+## Note
+
+The Fibonacci Elite EA updates automatically with purchased add-ons.
+
 ## Inputs Explained (Plain Language)
 - `Candle_Timeframe`: timeframe used for candle-pattern checks.
 - `Candle_Strategy_Type`: selected candle filter mode (`OFF`, shrinked, expanded, bullish, bearish).

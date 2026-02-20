@@ -10,6 +10,10 @@ Trend Ride is a compound context addon for continuation behavior. It is intended
 
 For non-traders: this mode tells the EA to prefer "go with the moving flow" behavior instead of early reversal attempts.
 
+## Note
+
+The Fibonacci Elite EA updates automatically with purchased add-ons.
+
 ## Included Modes
 - `COMPOUND_MODE_TREND_RIDE_BUY`
 - `COMPOUND_MODE_TREND_RIDE_SELL`

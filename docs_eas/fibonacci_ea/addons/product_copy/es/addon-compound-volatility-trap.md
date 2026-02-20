@@ -10,6 +10,10 @@ Volatility Trap esta pensado para usuarios que necesitan un modo compound mas de
 
 Para usuarios no traders: este modo funciona como perfil de precaucion para momentos de mercado "desordenado".
 
+## Nota
+
+El Fibonacci Elite EA se actualiza automaticamente con el add-ons comprado.
+
 ## Modos Incluidos
 - `COMPOUND_MODE_VOLATILITY_TRAP_BUY`
 - `COMPOUND_MODE_VOLATILITY_TRAP_SELL`

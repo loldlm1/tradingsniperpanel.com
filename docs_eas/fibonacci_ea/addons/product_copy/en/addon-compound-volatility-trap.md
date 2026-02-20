@@ -10,6 +10,10 @@ Volatility Trap is for users who want a defensive compound mode in unstable or n
 
 For non-traders: this mode is a caution profile for "chaotic" market moments.
 
+## Note
+
+The Fibonacci Elite EA updates automatically with purchased add-ons.
+
 ## Included Modes
 - `COMPOUND_MODE_VOLATILITY_TRAP_BUY`
 - `COMPOUND_MODE_VOLATILITY_TRAP_SELL`

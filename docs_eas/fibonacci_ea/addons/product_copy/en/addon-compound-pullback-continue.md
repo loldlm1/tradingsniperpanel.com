@@ -10,6 +10,10 @@ Pullback Continue focuses on re-entry after a temporary correction in price move
 
 For non-traders: this mode waits for a short "step back" before trying to continue in the original direction.
 
+## Note
+
+The Fibonacci Elite EA updates automatically with purchased add-ons.
+
 ## Included Modes
 - `COMPOUND_MODE_PULLBACK_CONTINUE_BUY`
 - `COMPOUND_MODE_PULLBACK_CONTINUE_SELL`

@@ -10,6 +10,10 @@ Pullback Continue se enfoca en reentrada despues de una correccion temporal del 
 
 Para usuarios no traders: este modo espera un pequeno retroceso antes de continuar en la direccion original.
 
+## Nota
+
+El Fibonacci Elite EA se actualiza automaticamente con el add-ons comprado.
+
 ## Modos Incluidos
 - `COMPOUND_MODE_PULLBACK_CONTINUE_BUY`
 - `COMPOUND_MODE_PULLBACK_CONTINUE_SELL`

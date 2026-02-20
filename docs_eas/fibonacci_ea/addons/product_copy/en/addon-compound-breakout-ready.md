@@ -5,10 +5,14 @@
 - Type: `Addon`
 - SKU: `addon_compound_breakout_ready`
 
-description
+## description
 Breakout Ready is designed for users who prefer expansion moments instead of retracement entries. It helps align entries with potential range exits and directional acceleration.
 
 For non-traders: this mode looks for situations where price may "break out" of a box and start moving faster.
+
+## Note
+
+The Fibonacci Elite EA updates automatically with purchased add-ons.
 
 ## Included Modes
 - `COMPOUND_MODE_BREAKOUT_READY_BUY`

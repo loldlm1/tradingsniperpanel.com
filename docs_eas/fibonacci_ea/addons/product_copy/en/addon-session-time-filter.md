@@ -10,6 +10,10 @@ This addon gives you scheduling control. You decide in which market sessions the
 
 For non-traders: this is like setting business hours for your bot. Outside those hours, it can pause or close positions depending on your selected mode.
 
+## Note
+
+The Fibonacci Elite EA updates automatically with purchased add-ons.
+
 ## Inputs Explained (Plain Language)
 - `Session_Asia_Filter_Mode`: behavior for Asia session (`OFF`, `ALLOW_RUN`, or `FORCE_CLOSE`).
 - `Session_Asia_Filter_Time_Range`: Asia time window in `HH:MM-HH:MM`.

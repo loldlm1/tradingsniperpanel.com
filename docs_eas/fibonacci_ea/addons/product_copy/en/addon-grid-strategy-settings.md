@@ -10,6 +10,10 @@ This addon unlocks the advanced grid configuration layer. It is designed for use
 
 For non-traders: this addon controls how "deep" and "wide" the strategy can scale entries. More depth can improve flexibility but also increases exposure.
 
+## Note
+
+The Fibonacci Elite EA updates automatically with purchased add-ons.
+
 ## Inputs Explained (Plain Language)
 - `Grid_Exponential_Multiplier`: how quickly spacing grows between next grid levels.
 - `Grid_Level_Position_Start`: the first level index used for execution logic.

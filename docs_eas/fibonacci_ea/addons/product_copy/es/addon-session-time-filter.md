@@ -10,6 +10,10 @@ Este addon te da control de horario. Puedes definir en que sesiones el EA puede 
 
 Para usuarios no traders: es como poner horario laboral al bot. Fuera de ese horario, puede pausar o cerrar posiciones segun el modo elegido.
 
+## Nota
+
+El Fibonacci Elite EA se actualiza automaticamente con el add-ons comprado.
+
 ## Inputs Explicados (Lenguaje Simple)
 - `Session_Asia_Filter_Mode`: comportamiento en sesion Asia (`OFF`, `ALLOW_RUN`, `FORCE_CLOSE`).
 - `Session_Asia_Filter_Time_Range`: horario Asia en formato `HH:MM-HH:MM`.

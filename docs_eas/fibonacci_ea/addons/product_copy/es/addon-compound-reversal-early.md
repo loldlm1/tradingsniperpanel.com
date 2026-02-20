@@ -10,6 +10,10 @@ Reversal Early esta pensado para usuarios que buscan capturar posibles giros ant
 
 Para usuarios no traders: este modo intenta detectar "el giro" antes que otros modos.
 
+## Nota
+
+El Fibonacci Elite EA se actualiza automaticamente con el add-ons comprado.
+
 ## Modos Incluidos
 - `COMPOUND_MODE_REVERSAL_EARLY_BUY`
 - `COMPOUND_MODE_REVERSAL_EARLY_SELL`

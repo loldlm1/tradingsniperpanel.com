@@ -10,6 +10,10 @@ Este addon agrega una validacion previa basada en comportamiento de velas. Ayuda
 
 Para usuarios no traders: es una puerta de control de calidad. Si el patron reciente no cumple el criterio, la entrada se cancela.
 
+## Nota
+
+El Fibonacci Elite EA se actualiza automaticamente con el add-ons comprado.
+
 ## Inputs Explicados (Lenguaje Simple)
 - `Candle_Timeframe`: marco temporal para revisar el patron de velas.
 - `Candle_Strategy_Type`: modo de filtro (`OFF`, shrinked, expanded, bullish, bearish).

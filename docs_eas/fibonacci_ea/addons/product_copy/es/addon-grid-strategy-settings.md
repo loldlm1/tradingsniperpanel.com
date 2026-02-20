@@ -10,6 +10,10 @@ Este addon desbloquea la capa avanzada de configuracion grid. Esta pensado para 
 
 Para usuarios no traders: este addon controla que tan "profundo" y "amplio" puede escalar entradas la estrategia. Mas profundidad puede dar flexibilidad, pero aumenta exposicion.
 
+## Nota
+
+El Fibonacci Elite EA se actualiza automaticamente con el add-ons comprado.
+
 ## Inputs Explicados (Lenguaje Simple)
 - `Grid_Exponential_Multiplier`: velocidad de crecimiento de distancia entre niveles.
 - `Grid_Level_Position_Start`: nivel inicial usado por la logica de ejecucion.
