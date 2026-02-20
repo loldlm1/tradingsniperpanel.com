@@ -10,7 +10,7 @@ Bienvenido a la guía oficial de instalación y uso de **Pandora Box**, un EA (A
 
 Antes de proceder, te recomendamos ver el siguiente video de instalación donde se explica paso a paso cómo configurar **Pandora Box** en tu plataforma:
 
-[[youtube:https://youtu.be/JoN3D3ydKZM?si=L0lKr7e72u05YmVu]]
+[[youtube:https://youtu.be/JoN3D3ydKZM?si=xjfn_5WVBvljO1cX]]
 
 ---
 

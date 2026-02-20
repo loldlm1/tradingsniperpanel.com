@@ -10,6 +10,10 @@ Base EA es el paquete principal de Fibonacci EA. Incluye el flujo completo del s
 
 Para usuarios no traders: piensa en Base EA como la aplicacion principal, y los addons como funciones extra. La base ya maneja limites de seguridad y comportamiento estandar de estrategia.
 
+## Video de instalacion
+
+[[youtube:https://youtu.be/UAtYwEvsNCA]]
+
 ## Inputs Explicados (Lenguaje Simple)
 ### Licencia y cuenta
 - `EA_License_Key`: clave de activacion. Si es invalida o expirada, el EA no inicia.

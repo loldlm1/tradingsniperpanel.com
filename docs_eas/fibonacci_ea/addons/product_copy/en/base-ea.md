@@ -10,6 +10,10 @@ The Base EA is the foundation package for Fibonacci EA. It includes the complete
 
 For non-traders: think of the Base EA as the "main app" and addons as optional feature packs. The base version already manages safety limits and standard strategy behavior.
 
+## Installation Video
+
+[[youtube:https://youtu.be/UAtYwEvsNCA]]
+
 ## Inputs Explained (Plain Language)
 ### License and account
 - `EA_License_Key`: your activation key. If invalid or expired, the EA does not start.
