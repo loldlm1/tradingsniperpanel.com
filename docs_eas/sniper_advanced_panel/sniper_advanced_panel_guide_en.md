@@ -6,7 +6,7 @@ The **Sniper Advanced Panel** is a MetaTrader 5 tool designed to manage and auto
 ## 1. Installation Video
 To watch the installation walkthrough for **Sniper Advanced Panel**, use the link below:
 
-[[youtube:https://youtu.be/usny5FfxSTc]]
+[[youtube:https://youtu.be/t51c0j84Xn8]]
 
 ## 2. Installation Guide
 Follow these steps to install **Sniper Advanced Panel** in MetaTrader 5 (MT5):
@@ -47,13 +47,18 @@ Follow these steps to install **Sniper Advanced Panel** in MetaTrader 5 (MT5):
 ### 12. Refresh Expert Advisors
 - In MT5, right-click inside the **Expert Advisors** navigator and choose `Refresh`.
 
-### 13. Drag EA to chart
+### 13. **Enable WebRequest for Online License Validation**
+   - In MT5, go to **Tools -> Options -> Expert Advisors**.
+   - Enable **Allow WebRequest for listed URL**.
+   - Add this exact URL to the allowed list: `https://tradingsniperpanel.com`.
+
+### 14. Drag EA to chart
 - Drag **SniperAdvancedPanel.ex5** from **Expert Advisors** onto your target chart.
 
-### 14. Enter license
+### 15. Enter license
 - Enter the provided **license key** to activate the panel.
 
-### 15. Ready to trade
+### 16. Ready to trade
 - The **Sniper Advanced Panel** is installed and ready.
 
 ## 3. Operation Video

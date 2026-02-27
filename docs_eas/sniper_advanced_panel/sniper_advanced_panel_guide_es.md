@@ -7,7 +7,7 @@ El **Sniper Advanced Panel** es una herramienta para MetaTrader 5 diseñada para
 ## 2. Video de instalacion
 Para ver el video explicativo sobre la instalacion del **Sniper Advanced Panel**, haz clic en el siguiente enlace:
 
-[[youtube:https://youtu.be/usny5FfxSTc]]
+[[youtube:https://youtu.be/t51c0j84Xn8]]
 
 ## 1. Guía de Instalación
 Sigue estos pasos detallados para instalar el **Sniper Advanced Panel** en tu plataforma MetaTrader 5 (MT5):
@@ -48,13 +48,18 @@ Sigue estos pasos detallados para instalar el **Sniper Advanced Panel** en tu pl
 ### 12. **Actualizar Asesores Expertos**
    - En MetaTrader 5, haz clic derecho en el navegador de **Asesores Expertos** y selecciona "Actualizar".
 
-### 13. **Arrastrar el archivo a la gráfica**
+### 13. **Habilita WebRequest para la Validación de Licencia en Línea**
+   - En MT5, ve a **Herramientas -> Opciones -> Asesores Expertos**.
+   - Habilita **Permitir WebRequest para la URL indicada**.
+   - Agrega esta URL exacta a la lista permitida: `https://tradingsniperpanel.com`.
+
+### 14. **Arrastrar el archivo a la gráfica**
    - Arrastra el archivo **SniperAdvancedPanel.ex5** desde la lista de **Asesores Expertos** a la gráfica de tu preferencia.
 
-### 14. **Introducir la licencia**
+### 15. **Introducir la licencia**
    - Ingresa la **licencia** proporcionada para activar el panel.
 
-### 15. **Listo para operar**
+### 16. **Listo para operar**
    - ¡Tu **Sniper Advanced Panel** está instalado y listo para usar!
 
 ## 2. Video del Funcionamiento
