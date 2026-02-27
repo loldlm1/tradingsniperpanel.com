@@ -259,11 +259,13 @@ ensure_repo() {
   local app_dir="$2"
   local branch="$3"
   local git_env=""
+  local repo_is_ssh=0
 
   if [[ "${repo_url}" == git@* || "${repo_url}" == ssh://* ]]; then
+    repo_is_ssh=1
     git_env="GIT_SSH_COMMAND='ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new' GIT_TERMINAL_PROMPT=0"
     if ! run_as_app_user "ssh-add -L >/dev/null 2>&1"; then
-      die "SSH agent has no keys loaded. Run ssh-add as ${APP_USER} and rerun (or set REPO_URL to HTTPS)."
+      warn "SSH agent has no keys loaded for ${APP_USER}; continuing with direct SSH key auth."
     fi
   else
     git_env="GIT_TERMINAL_PROMPT=0"
@@ -271,7 +273,12 @@ ensure_repo() {
 
   if [[ ! -d "${app_dir}/.git" ]]; then
     log "Cloning repo into ${app_dir}"
-    run_as_app_user "${git_env} git clone '${repo_url}' '${app_dir}'"
+    if ! run_as_app_user "${git_env} git clone '${repo_url}' '${app_dir}'"; then
+      if (( repo_is_ssh )); then
+        die "Failed to clone ${repo_url}. Ensure ${APP_USER} has an authorized private key via SSH agent or ~/.ssh (or set REPO_URL to HTTPS)."
+      fi
+      die "Failed to clone ${repo_url}. Verify repository access and rerun."
+    fi
   fi
 
   local origin
@@ -280,7 +287,12 @@ ensure_repo() {
     die "Repo origin mismatch at ${app_dir}. Expected ${repo_url}, got ${origin}."
   fi
 
-  run_as_app_user "cd '${app_dir}' && ${git_env} git fetch origin"
+  if ! run_as_app_user "cd '${app_dir}' && ${git_env} git fetch origin"; then
+    if (( repo_is_ssh )); then
+      die "Failed to fetch origin from ${repo_url}. Ensure ${APP_USER} has an authorized private key via SSH agent or ~/.ssh (or set REPO_URL to HTTPS)."
+    fi
+    die "Failed to fetch origin from ${repo_url}. Verify repository access and rerun."
+  fi
 
   if ! run_as_app_user "cd '${app_dir}' && git diff --quiet --ignore-submodules --"; then
     die "Uncommitted changes in ${app_dir}. Commit or stash before running setup."
@@ -290,6 +302,9 @@ ensure_repo() {
   fi
 
   if ! run_as_app_user "cd '${app_dir}' && ${git_env} git ls-remote --exit-code --heads origin '${branch}' >/dev/null"; then
+    if (( repo_is_ssh )); then
+      die "Unable to verify branch '${branch}' on origin. Check branch name and SSH key access for ${repo_url}."
+    fi
     die "Branch '${branch}' not found on origin."
   fi
 
