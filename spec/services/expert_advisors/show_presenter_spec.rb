@@ -136,4 +136,30 @@ RSpec.describe ExpertAdvisors::ShowPresenter, type: :service do
 
     expect(presenter.latest_broker_account).to eq(account_b)
   end
+
+  it "renders a lifetime expiration label for one-time licenses" do
+    lifetime_license = create(:license, :one_time, user: user, expert_advisor: expert_advisor, status: "active")
+    lifetime_entry = Licenses::AccessibleExpertAdvisors::Entry.new(
+      expert_advisor: expert_advisor,
+      license: lifetime_license,
+      status: :active,
+      accessible: true,
+      expires_at: nil,
+      license_key: lifetime_license.encrypted_key,
+      allowed_tiers: ["starter"]
+    )
+    presenter = described_class.new(
+      user: user,
+      expert_advisor: expert_advisor,
+      entry: lifetime_entry,
+      locale: :en
+    )
+    expected_label = I18n.t(
+      "dashboard.expert_advisors.show.expires_on",
+      date: I18n.l(License::LIFETIME_EXPIRES_AT, format: :short_with_year, locale: :en),
+      locale: :en
+    )
+
+    expect(presenter.license_expires_label).to eq(expected_label)
+  end
 end

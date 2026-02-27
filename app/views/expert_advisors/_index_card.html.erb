@@ -138,6 +138,9 @@
           ><%= copy_label %></button>
         <% end %>
       </div>
+      <% if card.license_expires_label.present? %>
+        <div class="text-xs text-gray-500 dark:text-gray-400"><%= card.license_expires_label %></div>
+      <% end %>
       <div class="text-xs text-gray-500 dark:text-gray-400"><%= card.license_hint %></div>
     </div>
   </div>

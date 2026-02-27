@@ -118,6 +118,23 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(copy_button["data-copy-failed-text"]).to eq(I18n.t("dashboard.expert_advisors.copy_failed", locale: :en))
   end
 
+  it "shows lifetime expiration labels on index and show when the license is one-time" do
+    create(:license, :one_time, user: user, expert_advisor: expert_advisor, status: "active")
+    lifetime_label = I18n.t(
+      "dashboard.expert_advisors.show.expires_on",
+      date: I18n.l(License::LIFETIME_EXPIRES_AT, format: :short_with_year, locale: :en),
+      locale: :en
+    )
+
+    get dashboard_expert_advisors_path(locale: :en)
+    expect(response).to be_successful
+    expect(response.body).to include(lifetime_label)
+
+    get dashboard_expert_advisor_path(expert_advisor, locale: :en)
+    expect(response).to be_successful
+    expect(response.body).to include(lifetime_label)
+  end
+
   it "returns not found when user does not own the EA" do
     get dashboard_expert_advisor_guides_path(expert_advisor, locale: :en)
 

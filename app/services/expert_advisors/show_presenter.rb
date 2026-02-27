@@ -146,7 +146,7 @@ module ExpertAdvisors
     end
 
     def license_expires_label
-      expires_at = license&.effective_expires_at
+      expires_at = license_expires_at
       return nil if expires_at.blank?
 
       date_label = I18n.l(expires_at, format: :short_with_year)
@@ -252,6 +252,13 @@ module ExpertAdvisors
 
     def license
       @license ||= entry&.license || user&.licenses&.find_by(expert_advisor_id: expert_advisor.id)
+    end
+
+    def license_expires_at
+      return nil if license.blank?
+      return license.trial_ends_at if status.to_s == "trial"
+
+      license.key_expires_at || entry&.expires_at
     end
 
     def date_range

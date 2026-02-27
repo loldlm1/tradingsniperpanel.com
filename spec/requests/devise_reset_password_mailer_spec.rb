@@ -1,15 +1,26 @@
 require "rails_helper"
 
 RSpec.describe "Devise reset password mailer", type: :request do
+  include ActiveJob::TestHelper
+
   let(:user) { create(:user) }
 
   before do
     ActionMailer::Base.deliveries.clear
+    clear_enqueued_jobs
+    clear_performed_jobs
+  end
+
+  after do
+    clear_enqueued_jobs
+    clear_performed_jobs
   end
 
   it "sends reset instructions from support email with the configured host" do
     expect do
-      post user_password_path, params: { user: { email: user.email } }
+      perform_enqueued_jobs do
+        post user_password_path, params: { user: { email: user.email } }
+      end
     end.to change(ActionMailer::Base.deliveries, :count).by(1)
 
     mail = ActionMailer::Base.deliveries.last

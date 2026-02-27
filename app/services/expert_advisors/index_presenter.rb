@@ -24,6 +24,7 @@ module ExpertAdvisors
       :addons_progress_percent,
       :addon_items,
       :license_display,
+      :license_expires_label,
       :license_hint,
       :license_copy_text,
       :license_copy_enabled,
@@ -141,6 +142,7 @@ module ExpertAdvisors
         addons_progress_percent: addons_progress_percent(addon_items),
         addon_items: addon_items,
         license_display: license_display_for(entry),
+        license_expires_label: license_expires_label_for(entry),
         license_hint: license_hint_for(entry),
         license_copy_text: entry.accessible ? entry.license_key : nil,
         license_copy_enabled: entry.accessible && entry.license_key.present?,
@@ -270,6 +272,21 @@ module ExpertAdvisors
       return I18n.t("dashboard.expert_advisors.license.hint") if entry.accessible && entry.license_key.present?
 
       I18n.t("dashboard.expert_advisors.license.locked_hint")
+    end
+
+    def license_expires_label_for(entry)
+      expires_at = license_expires_at_for(entry)
+      return nil if expires_at.blank?
+
+      date_label = I18n.l(expires_at, format: :short_with_year, locale: locale)
+      i18n_key = entry.status.to_s == "trial" ? "dashboard.expert_advisors.show.trial_ends" : "dashboard.expert_advisors.show.expires_on"
+      I18n.t(i18n_key, date: date_label)
+    end
+
+    def license_expires_at_for(entry)
+      return nil unless entry.accessible
+
+      entry.expires_at || entry.license&.key_expires_at
     end
 
     def normalized_tags(tags)

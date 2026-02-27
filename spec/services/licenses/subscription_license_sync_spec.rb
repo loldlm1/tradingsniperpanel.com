@@ -81,6 +81,38 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
     expect(lifetime_license.plan_interval).to be_nil
   end
 
+  it "does not overwrite overlapping one-time licenses when the EA is allowed by the subscription tier" do
+    subscription = create_subscription(
+      processor_plan: basic_plan.stripe_price_id,
+      current_period_end: 1.month.from_now
+    )
+    synced_at = 2.days.ago.change(usec: 0)
+    lifetime_license = create(
+      :license,
+      :one_time,
+      user: user,
+      expert_advisor: basic_ea,
+      source: "stripe_charge",
+      encrypted_key: "ONE_TIME_KEY",
+      last_synced_at: synced_at
+    )
+    original_updated_at = lifetime_license.updated_at
+
+    described_class.new(subscription_id: subscription.id, encoder: encoder).call
+
+    lifetime_license.reload
+    aggregate_failures do
+      expect(lifetime_license).to be_active
+      expect(lifetime_license.access_source).to eq("one_time")
+      expect(lifetime_license.plan_interval).to be_nil
+      expect(lifetime_license.expires_at).to be_nil
+      expect(lifetime_license.source).to eq("stripe_charge")
+      expect(lifetime_license.encrypted_key).to eq("ONE_TIME_KEY")
+      expect(lifetime_license.last_synced_at.to_i).to eq(synced_at.to_i)
+      expect(lifetime_license.updated_at.to_i).to eq(original_updated_at.to_i)
+    end
+  end
+
   it "marks licenses as expired when the subscription period is over" do
     past_end = 1.day.ago
     subscription = create_subscription(

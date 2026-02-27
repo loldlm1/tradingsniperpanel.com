@@ -71,9 +71,9 @@ module Licenses
 
       key = license.encrypted_key
       if license.trial?
-        [:trial, true, license.effective_expires_at, key]
+        [:trial, true, license.trial_ends_at || license.key_expires_at, key]
       else
-        [:active, true, license.effective_expires_at, key]
+        [:active, true, license.key_expires_at, key]
       end
     end
 

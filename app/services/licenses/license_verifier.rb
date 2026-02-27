@@ -100,7 +100,7 @@ module Licenses
       source.to_s == expected_source.to_s
     end
 
-    def success(license, trial: license.trial?, expires_at: license.effective_expires_at)
+    def success(license, trial: license.trial?, expires_at: license.key_expires_at)
       Result.new(
         ok: true,
         code: :ok,
