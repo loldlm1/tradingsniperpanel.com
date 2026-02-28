@@ -60,6 +60,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       post "licenses/verify", to: "licenses#verify"
+      post "licenses/heartbeat", to: "licenses#heartbeat"
       post "broker_accounts/daily_results", to: "broker_account_daily_results#create"
     end
   end

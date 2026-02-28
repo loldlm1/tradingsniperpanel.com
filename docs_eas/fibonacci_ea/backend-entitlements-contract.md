@@ -7,6 +7,12 @@ This document defines the expected API contract for addon entitlements used by t
 - URL: `http://45.154.34.26/api/v1/licenses/verify`
 - Content-Type: `application/json`
 
+## Heartbeat endpoint
+- Method: `POST`
+- URL: `http://45.154.34.26/api/v1/licenses/heartbeat`
+- Content-Type: `application/json`
+- Purpose: refresh online session lease (EA should call via `OnTimer`, every ~3 minutes).
+
 ## Request payload
 Required fields:
 - `source` string
@@ -22,7 +28,7 @@ Broker account object fields:
 - `name` string
 - `company` string
 - `account_number` number
-- `account_type` string (`real`, `demo`, `testing`, or `unknown`)
+- `account_type` string (`real` or `demo`)
 
 Example request:
 ```json
@@ -86,6 +92,7 @@ Common error codes used by EA logic:
 - `trial_disabled`
 - `invalid_granted_addons`
 - `invalid_expires_at`
+- `online_limit_reached`
 
 Example failure response:
 ```json
@@ -102,6 +109,7 @@ Example failure response:
 - Keep `expires_at` strictly greater than current unix time for valid licenses.
 - Return a stable explicit list even if empty (`[]`) to avoid EA-side parse failure.
 - Preserve 24h refresh compatibility: EA revalidates daily and removes itself on failure.
+- Heartbeat lease TTL is 15 minutes; if no heartbeat arrives in that window, the online seat expires.
 
 ## Addon keys (server source of truth)
 - `addon_session_time_filter (299$)`
