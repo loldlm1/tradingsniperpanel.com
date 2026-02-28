@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_19_010156) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_28_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -281,6 +281,25 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_19_010156) do
     t.index ["ea_id"], name: "index_expert_advisors_on_ea_id", unique: true
     t.index ["ea_type"], name: "index_expert_advisors_on_ea_type"
     t.index ["tier_rank"], name: "index_expert_advisors_on_tier_rank"
+  end
+
+  create_table "license_online_sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "expert_advisor_id", null: false
+    t.string "company", null: false
+    t.bigint "account_number", null: false
+    t.string "account_type", null: false
+    t.string "entitlement_source", null: false
+    t.datetime "last_seen_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expert_advisor_id"], name: "index_license_online_sessions_on_expert_advisor_id"
+    t.index ["user_id", "entitlement_source", "last_seen_at"], name: "index_license_online_sessions_on_user_source_seen_at"
+    t.index ["user_id", "expert_advisor_id", "company", "account_number", "account_type"], name: "index_license_online_sessions_on_identity", unique: true
+    t.index ["user_id", "expert_advisor_id", "entitlement_source", "last_seen_at"], name: "index_license_online_sessions_on_user_ea_source_seen_at"
+    t.index ["user_id"], name: "index_license_online_sessions_on_user_id"
+    t.check_constraint "account_type::text = ANY (ARRAY['real'::character varying, 'demo'::character varying]::text[])", name: "license_online_sessions_account_type_check"
+    t.check_constraint "entitlement_source::text = ANY (ARRAY['subscription'::character varying, 'one_time'::character varying]::text[])", name: "license_online_sessions_entitlement_source_check"
   end
 
   create_table "licenses", force: :cascade do |t|
@@ -717,6 +736,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_19_010156) do
   add_foreign_key "course_plan_entitlements", "billing_plans"
   add_foreign_key "course_plan_entitlements", "courses"
   add_foreign_key "expert_advisor_bundles", "expert_advisors"
+  add_foreign_key "license_online_sessions", "expert_advisors"
+  add_foreign_key "license_online_sessions", "users"
   add_foreign_key "licenses", "expert_advisors"
   add_foreign_key "licenses", "users"
   add_foreign_key "manual_subscriptions", "billing_plans"

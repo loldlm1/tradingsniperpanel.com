@@ -4,6 +4,7 @@ class User < ApplicationRecord
   has_many :user_expert_advisors, dependent: :destroy
   has_many :expert_advisors, through: :user_expert_advisors
   has_many :licenses, dependent: :destroy
+  has_many :license_online_sessions, dependent: :destroy
   has_many :marketplace_purchases, dependent: :destroy
   has_many :manual_transactions, dependent: :destroy
   has_many :manual_subscriptions, dependent: :destroy
