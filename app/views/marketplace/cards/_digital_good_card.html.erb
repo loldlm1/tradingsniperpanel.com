@@ -3,6 +3,7 @@
 <% rating_display = format("%.1f", rating_value) %>
 <% rating_count = number_with_delimiter(card.rating_count.to_i) %>
 <% summary = card.summary.to_s %>
+<% online_seat_feature = card.online_seat_feature.to_s %>
 
 <div class="col-span-full sm:col-span-6 xl:col-span-3 bg-white dark:bg-gray-800 shadow-xs rounded-xl overflow-hidden transition-shadow duration-200 hover:shadow-md" data-pagination-item>
   <div class="flex flex-col h-full">
@@ -30,6 +31,11 @@
           <h3 class="text-lg text-gray-800 dark:text-gray-100 font-semibold mb-1">
             <%= link_to card.title, card.detail_url, class: "hover:text-brand-600 dark:hover:text-brand-300" %>
           </h3>
+          <% if online_seat_feature.present? %>
+            <div class="mb-1 inline-flex items-center rounded-full bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+              <%= online_seat_feature %>
+            </div>
+          <% end %>
           <% if summary.present? %>
             <div class="text-sm"><%= truncate(summary, length: 120) %></div>
           <% end %>

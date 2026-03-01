@@ -44,6 +44,23 @@ RSpec.describe "Marketplace", type: :request do
     expect(response.body).to include(ea_product.title_for(:es))
   end
 
+  it "shows one-time online seat copy for EA products on index and detail" do
+    ea_plan = create(:billing_plan, :one_time, key: "marketplace_online_seat_copy")
+    ea_product = create(:marketplace_product, billing_plan: ea_plan, title_en: "Seat EA Pack")
+    create(:billing_plan_entitlement, expert_advisor: create(:expert_advisor, name: "Seat EA"), billing_plan: ea_plan)
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_path(locale: :en, tab: "expert_advisors")
+
+    expect(response).to be_successful
+    expect(response.body).to include(I18n.t("licenses.online_seats.one_time_feature", count: 8, locale: :en))
+
+    get dashboard_marketplace_product_path(ea_product, locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include(I18n.t("licenses.online_seats.one_time_feature", count: 8, locale: :en))
+  end
+
   it "renders dynamic pagination controls when a section has more than eight cards" do
     9.times do |index|
       expert_advisor = create(:expert_advisor, name: "Pagination EA #{index}")

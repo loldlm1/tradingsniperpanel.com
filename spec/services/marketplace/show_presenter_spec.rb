@@ -95,6 +95,21 @@ RSpec.describe Marketplace::ShowPresenter do
     expect(presenter.addon_total_cents).to eq(0)
     expect(presenter.cart_total_cents).to eq(base_plan.amount_cents)
     expect(presenter.add_on_progress).to eq(total: 0, selected: 0, percent: 0)
+    expect(presenter.online_seat_feature).to eq(
+      I18n.t("licenses.online_seats.one_time_feature", count: 8, locale: :en)
+    )
+  end
+
+  it "does not expose one-time seat copy for non-EA products" do
+    course = create(:course, title_en: "Course")
+    course_plan = create(:billing_plan, :one_time)
+    course_product = create(:marketplace_product, billing_plan: course_plan, title_en: "Course Bundle")
+    create(:course_plan_entitlement, billing_plan: course_plan, course: course)
+
+    entry = Marketplace::Catalog.new(user: user).entry_for!(slug: course_product.slug)
+    presenter = described_class.new(user: user, entry: entry, locale: :en).call
+
+    expect(presenter.online_seat_feature).to be_nil
   end
 
   it "supports direct addon pages when base access comes from subscription and no base product exists" do

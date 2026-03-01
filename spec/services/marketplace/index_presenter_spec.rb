@@ -32,6 +32,10 @@ RSpec.describe Marketplace::IndexPresenter do
 
     expect(presenter.course_cards.map(&:title)).to include(course_product.title_en)
     expect(presenter.digital_goods_cards.map(&:title)).to include(ea_product.title_en)
+    ea_card = presenter.digital_goods_cards.find { |card| card.title == ea_product.title_en }
+    expect(ea_card.online_seat_feature).to eq(
+      I18n.t("licenses.online_seats.one_time_feature", count: 8, locale: :en)
+    )
   end
 
   it "excludes purchased marketplace products" do

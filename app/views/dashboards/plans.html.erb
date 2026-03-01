@@ -98,7 +98,8 @@
             <% tier_key = tier.to_s %>
             <% config = tier_configs[tier_key] || { accent: "bg-slate-500", name: tier_key.humanize } %>
             <% requested_for_card = requested_tier == tier_key %>
-            <% features = t("dashboard.plans.tiers.#{tier_key}.features", default: []) %>
+            <% features = Array(t("dashboard.plans.tiers.#{tier_key}.features", default: [])) +
+                          Array(Licenses::OnlineSeatCopy.subscription_feature_for_tier(tier_key, locale: I18n.locale)) %>
             <% scheduled_for_tier = scheduled_change[:tier].to_s == tier_key %>
 
             <div class="relative col-span-full xl:col-span-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 shadow-xs rounded-b-lg">

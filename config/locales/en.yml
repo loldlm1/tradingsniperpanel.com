@@ -75,6 +75,10 @@ en:
       - "Referral discounts applied automatically at checkout"
     cta: "Go to dashboard"
     price_callout: "Simple monthly subscription — set it and trade."
+  licenses:
+    online_seats:
+      subscription_feature: "Up to %{count} online accounts across all EA systems"
+      one_time_feature: "+%{count} extra online accounts per licensed EA in this product (independent from subscription cap)"
   referral:
     title: "Referral-aware"
     body: "Share your referral link; friends get discounted checkout and you keep attribution for future rewards."

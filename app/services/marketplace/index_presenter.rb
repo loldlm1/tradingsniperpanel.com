@@ -56,6 +56,7 @@ module Marketplace
       :rating,
       :rating_count,
       :price_display,
+      :online_seat_feature,
       :cta_label_key,
       :detail_url,
       :popular,
@@ -471,6 +472,7 @@ module Marketplace
           rating: rating_from_metric(metric_count.to_f, max_metric),
           rating_count: metric_count,
           price_display: entry.price_display || price_display_for(entry.plan),
+          online_seat_feature: one_time_online_seat_feature(entry),
           cta_label_key: "dashboard.marketplace.cta.buy_now",
           detail_url: dashboard_marketplace_product_path(product),
           popular: index.zero? && purchase_count >= POPULAR_PURCHASE_THRESHOLD
@@ -642,6 +644,13 @@ module Marketplace
       return I18n.t("dashboard.marketplace.pricing.free", locale: locale) unless plan
 
       ActionController::Base.helpers.number_to_currency(plan.amount_cents.to_i / 100.0, unit: "$", precision: 2)
+    end
+
+    def one_time_online_seat_feature(entry)
+      return nil unless entry.plan&.one_time?
+      return nil if entry.expert_advisors.empty?
+
+      Licenses::OnlineSeatCopy.one_time_feature(locale: locale)
     end
 
     def image_for(product)

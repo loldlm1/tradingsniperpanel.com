@@ -55,6 +55,13 @@ module Marketplace
       product.description_for(locale).presence || summary
     end
 
+    def online_seat_feature
+      return nil unless entry.plan&.one_time?
+      return nil if entry.expert_advisors.empty?
+
+      Licenses::OnlineSeatCopy.one_time_feature(locale: locale)
+    end
+
     def tags
       entry.tags
     end
