@@ -46,7 +46,7 @@ module Marketing
           name: tier_name(tier),
           description: tier_description(tier, plan),
           features_title: tier_features_title(tier),
-          features: tier_features(tier),
+          features: tier_features(tier) + Array(online_seat_feature(tier)),
           featured: index == 1
         }
       end
@@ -69,6 +69,10 @@ module Marketing
 
     def tier_features(tier)
       Array(I18n.t("landing.neon.pricing.tiers.#{tier}.features", default: []))
+    end
+
+    def online_seat_feature(tier)
+      Licenses::OnlineSeatCopy.subscription_feature_for_tier(tier, locale: I18n.locale)
     end
   end
 end

@@ -36,6 +36,7 @@ RSpec.describe "Plan persistence across auth", type: :request do
     expect(response).to be_successful
     expect(response.body).to include("x-data=\"{ period: 'annual' }\"")
     expect(response.body).to include(I18n.t("dashboard.plans.requested_plan", locale: :en))
+    expect(response.body).to include(I18n.t("licenses.online_seats.subscription_feature", count: 5, locale: :en))
 
     get dashboard_plans_path(locale: :en, price_key: "pandora_pro_invalid")
 

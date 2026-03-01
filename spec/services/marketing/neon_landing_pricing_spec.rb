@@ -17,5 +17,8 @@ RSpec.describe Marketing::NeonLandingPricing do
     expect(tier_keys).to eq(%w[basic hft pro])
     expect(interval_keys).to eq(["monthly"])
     expect(pricing.dig(:prices, "monthly").keys).to match_array(%w[basic hft pro])
+    expect(pricing.dig(:tiers, 0, :features)).to include(
+      I18n.t("licenses.online_seats.subscription_feature", count: 5, locale: I18n.locale)
+    )
   end
 end

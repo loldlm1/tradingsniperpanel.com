@@ -27,6 +27,7 @@ RSpec.describe "Home pricing CTAs", type: :request do
       expect(response.body).to include("#{tier}_annual")
     end
 
+    expect(response.body).to include(I18n.t("licenses.online_seats.subscription_feature", count: 5, locale: :en))
     expect(response.body).to include("x-bind:href")
   end
 

@@ -75,6 +75,10 @@ es:
       - "Descuentos de referidos aplicados automáticamente en checkout"
     cta: "Ir al panel"
     price_callout: "Suscripción mensual simple — configura y opera."
+  licenses:
+    online_seats:
+      subscription_feature: "Hasta %{count} cuentas online en todos los sistemas EA"
+      one_time_feature: "+%{count} cuentas online extra por cada EA con licencia en este producto (independiente del límite de suscripción)"
   referral:
     title: "Listo para referidos"
     body: "Comparte tu link: tus referidos obtienen descuento y mantenemos la atribución para futuras recompensas."
