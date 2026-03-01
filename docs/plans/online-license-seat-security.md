@@ -7,6 +7,7 @@ Implement robust online seat enforcement for EA license verification using heart
 - Online seat identity is deduped by `user + ea + company + account_number + account_type`.
 - Multiple charts with same identity count as one seat.
 - Heartbeat model enforced with `OnTimer` cadence (3m from EA) and server TTL 15m.
+- EA client contract includes a per-identity leader/follower efficiency guard to prevent duplicate chart requests.
 - Subscription seats are global across all EAs; one-time seats are per-EA and independent (+8).
 - One-time seats are allocated before subscription seats when both are available.
 - `licenses/verify` and `licenses/heartbeat` enforce capacity transactionally and return deterministic error on overflow.
@@ -42,3 +43,6 @@ Implement robust online seat enforcement for EA license verification using heart
 - [PASS] Decision: fallback to base subscription cap (5) for verified `access_source=subscription` licenses when active billing tier cannot be resolved.
 - [PASS] Command: `bundle exec rspec spec/models/license_online_session_spec.rb spec/services/licenses/online_seat_limits_spec.rb spec/services/licenses/online_seat_allocator_spec.rb spec/requests/api/licenses_verify_spec.rb spec/requests/api/licenses_heartbeat_spec.rb`
 - [PASS] Command: `bundle exec rspec`
+- [PASS] Decision: EA-side plan must enforce per-identity single-sender heartbeat/verify (leader/follower) to avoid duplicate requests from many charts.
+- [PASS] Updated EA integration contract doc to include `POST /api/v1/broker_accounts/daily_results` with exact request/response shape and error/status mapping.
+- [PASS] Synced backend contract sections for `verify`, `heartbeat`, and `daily_results` so MQL5 planning can use one aligned source of truth.
