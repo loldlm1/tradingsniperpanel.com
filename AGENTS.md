@@ -3,6 +3,15 @@
 - **Plan-first**: for any non-trivial change, create/update `docs/plans/<slug>.md` **before coding**.
   - Keep it short: Goal, Definition of Done, Constraints, Steps, Open Questions.
 - **Clarify until aligned**: ask questions and iterate the plan until DoD + steps are clear; only then implement.
+- **Execution flow (non-trivial tasks)**: `plan -> questions -> plan ready -> start task -> Audit Gate -> feature done summary`.
+- **Audit Gate (required before finalizing)**: run a PASS/FAIL audit before marking the task done.
+  - Check **code pattern and efficiency**.
+  - Check **feature behavior and goal alignment**.
+  - Check **tests context** (coverage/relevance/gaps for the change).
+  - Use the most relevant **available skill** when applicable (e.g., Rails, GraphQL, security). If no relevant skill exists, run a normal audit.
+  - If FAIL is clear, fix and re-audit.
+  - If FAIL is ambiguous, create a mini-plan (max 3 steps), ask the user, then continue and re-audit.
+- **Feature done summary**: keep it concise and free-form; include final audit status and optional remaining TODOs/risks.
 - **During execution**: update the plan with decisions + commands run (PASS/FAIL only). No long logs.
 - **Keep it lightweight**: don’t paste large code blocks or tool output; reference file paths instead.
 - **Done = clean**: once the feature is verified and merged, remove it from active context:
