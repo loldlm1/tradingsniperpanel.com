@@ -37,10 +37,31 @@ RSpec.describe "Licenses Heartbeat API", type: :request do
     body = JSON.parse(response.body)
     expect(body["ok"]).to eq(true)
     expect(body["expires_at"]).to eq(expires_at.to_i)
+    expect(body).not_to have_key("magic_number")
 
     expect do
       post "/api/v1/licenses/heartbeat", params: heartbeat_params
     end.not_to change(LicenseOnlineSession, :count)
+  end
+
+  it "does not rotate lane magic_number established by verify" do
+    post "/api/v1/licenses/verify", params: heartbeat_params
+    lane = LicenseLaneMagicNumber.find_by!(
+      license_id: license.id,
+      source: source_id,
+      email: user.email,
+      company: broker_account_payload.fetch(:company).downcase,
+      account_number: broker_account_payload.fetch(:account_number),
+      account_type: broker_account_payload.fetch(:account_type)
+    )
+    original_magic = lane.magic_number
+
+    expect do
+      post "/api/v1/licenses/heartbeat", params: heartbeat_params
+    end.not_to change(LicenseLaneMagicNumber, :count)
+
+    expect(response).to have_http_status(:ok)
+    expect(lane.reload.magic_number).to eq(original_magic)
   end
 
   it "rejects heartbeat payloads without broker identity" do

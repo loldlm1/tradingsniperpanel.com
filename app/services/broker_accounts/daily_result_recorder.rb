@@ -11,12 +11,29 @@ module BrokerAccounts
       @logger = logger
     end
 
-    def call(source:, email:, ea_id:, license_key:, broker_account:, result_timestamp:, result_value:)
+    def call(source:, email:, ea_id:, license_key:, broker_account:, magic_number:, result_timestamp:, result_value:)
       verification = verifier.call(source:, email:, ea_id:, license_key:)
       return failure(verification.error, verification.code) unless verification.ok?
 
-      account = find_broker_account(verification.license, broker_account)
+      normalized_broker = normalize_broker_account(broker_account)
+      return failure(:invalid_payload, :unprocessable_content) if normalized_broker.nil?
+
+      account = find_broker_account(verification.license, normalized_broker)
       return failure(:broker_account_not_found, :not_found) unless account
+
+      parsed_magic_number = parse_magic_number(magic_number)
+      return failure(:missing_magic_number, :unprocessable_content) if parsed_magic_number == :missing
+      return failure(:invalid_magic_number, :unprocessable_content) if parsed_magic_number.nil?
+
+      unless valid_lane_magic_number?(
+        license: verification.license,
+        source: source,
+        email: email,
+        broker_account: normalized_broker,
+        magic_number: parsed_magic_number
+      )
+        return failure(:invalid_magic_number, :unprocessable_content)
+      end
 
       timestamp = parse_timestamp(result_timestamp)
       return failure(:invalid_payload, :unprocessable_content) unless timestamp
@@ -24,10 +41,17 @@ module BrokerAccounts
       value = parse_value(result_value)
       return failure(:invalid_payload, :unprocessable_content) unless value
 
-      return failure(:already_recorded, :conflict) if already_recorded?(account.id, timestamp)
+      return failure(:already_recorded, :conflict) if already_recorded?(
+        broker_account_id: account.id,
+        expert_advisor_id: verification.license.expert_advisor_id,
+        magic_number: parsed_magic_number,
+        timestamp: timestamp
+      )
 
       daily_result = BrokerAccountDailyResult.create!(
         broker_account: account,
+        expert_advisor: verification.license.expert_advisor,
+        magic_number: parsed_magic_number,
         result_timestamp: timestamp,
         result_value: value
       )
@@ -51,10 +75,7 @@ module BrokerAccounts
 
     attr_reader :verifier, :logger
 
-    def find_broker_account(license, broker_account)
-      attrs = normalize_broker_account(broker_account)
-      return nil if attrs.nil?
-
+    def find_broker_account(license, attrs)
       BrokerAccount.find_by(
         license_id: license.id,
         company: attrs[:company],
@@ -75,6 +96,17 @@ module BrokerAccounts
       return nil unless BrokerAccount.account_types.key?(account_type)
 
       { company: company, account_number: account_number, account_type: account_type }
+    end
+
+    def parse_magic_number(raw)
+      return :missing if raw.blank?
+
+      value = Integer(raw.to_s, 10)
+      return nil unless value.positive?
+
+      value
+    rescue ArgumentError, TypeError
+      nil
     end
 
     def safe_account_number(raw)
@@ -106,12 +138,28 @@ module BrokerAccounts
       nil
     end
 
-    def already_recorded?(broker_account_id, timestamp)
+    def already_recorded?(broker_account_id:, expert_advisor_id:, magic_number:, timestamp:)
       date = Time.at(timestamp).utc.to_date
       BrokerAccountDailyResult
-        .where(broker_account_id: broker_account_id)
+        .where(
+          broker_account_id: broker_account_id,
+          expert_advisor_id: expert_advisor_id,
+          magic_number: magic_number
+        )
         .where("((to_timestamp(result_timestamp) AT TIME ZONE 'UTC')::date) = ?", date)
         .exists?
+    end
+
+    def valid_lane_magic_number?(license:, source:, email:, broker_account:, magic_number:)
+      LicenseLaneMagicNumber.exists?(
+        license_id: license.id,
+        source: source.to_s.strip.downcase,
+        email: email.to_s.strip.downcase,
+        company: broker_account[:company].to_s.strip.downcase,
+        account_number: broker_account[:account_number],
+        account_type: broker_account[:account_type],
+        magic_number: magic_number
+      )
     end
 
     def success(daily_result)

@@ -10,17 +10,52 @@ RSpec.describe BrokerAccountDailyResult, type: :model do
 
   it "enforces one result per UTC day per broker account" do
     account = create(:broker_account)
+    expert_advisor = account.license.expert_advisor
     timestamp = Time.utc(2025, 1, 15, 10, 0, 0).to_i
-    create(:broker_account_daily_result, broker_account: account, result_timestamp: timestamp, result_value: 1.00)
+    create(
+      :broker_account_daily_result,
+      broker_account: account,
+      expert_advisor: expert_advisor,
+      magic_number: 123_456_789,
+      result_timestamp: timestamp,
+      result_value: 1.00
+    )
 
     expect do
       create(
         :broker_account_daily_result,
         broker_account: account,
+        expert_advisor: expert_advisor,
+        magic_number: 123_456_789,
         result_timestamp: Time.utc(2025, 1, 15, 23, 0, 0).to_i,
         result_value: 2.00
       )
     end.to raise_error(ActiveRecord::RecordNotUnique)
+  end
+
+  it "allows same UTC day when magic_number differs" do
+    account = create(:broker_account)
+    expert_advisor = account.license.expert_advisor
+
+    create(
+      :broker_account_daily_result,
+      broker_account: account,
+      expert_advisor: expert_advisor,
+      magic_number: 123_456_789,
+      result_timestamp: Time.utc(2025, 1, 15, 8, 0, 0).to_i,
+      result_value: 1.00
+    )
+
+    expect do
+      create(
+        :broker_account_daily_result,
+        broker_account: account,
+        expert_advisor: expert_advisor,
+        magic_number: 223_456_789,
+        result_timestamp: Time.utc(2025, 1, 15, 12, 0, 0).to_i,
+        result_value: 2.00
+      )
+    end.to change(BrokerAccountDailyResult, :count).by(1)
   end
 
   it "groups daily totals in UTC" do

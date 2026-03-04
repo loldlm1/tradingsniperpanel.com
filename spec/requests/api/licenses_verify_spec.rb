@@ -36,7 +36,18 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["ok"]).to eq(true)
     expect(body["trial"]).to eq(false)
     expect(body["expires_at"]).to eq(expires_at.to_i)
+    expect(body["magic_number"]).to be > 0
     expect(body["granted_addons"]).to eq([])
+  end
+
+  it "returns the same magic number for repeated verify on the same lane" do
+    post "/api/v1/licenses/verify", params: verify_params
+    first_magic = JSON.parse(response.body).fetch("magic_number")
+
+    post "/api/v1/licenses/verify", params: verify_params
+    second_magic = JSON.parse(response.body).fetch("magic_number")
+
+    expect(first_magic).to eq(second_magic)
   end
 
   it "rejects invalid sources" do
@@ -121,6 +132,7 @@ RSpec.describe "Licenses API", type: :request do
     body = JSON.parse(response.body)
     expect(body["ok"]).to eq(true)
     expect(body["trial"]).to eq(false)
+    expect(body["magic_number"]).to be > 0
     expect(body["granted_addons"]).to eq([addon.key])
     expect(privileged_user.licenses.find_by(expert_advisor: privileged_ea)&.source).to eq("role_access")
   end
@@ -178,6 +190,7 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["ok"]).to eq(true)
     expect(body["trial"]).to eq(false)
     expect(body["expires_at"]).to eq(License::LIFETIME_EXPIRES_AT.to_i)
+    expect(body["magic_number"]).to be > 0
   end
 
   it "rejects new connections when subscription seat cap is exhausted" do
