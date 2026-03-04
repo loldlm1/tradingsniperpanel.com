@@ -21,6 +21,18 @@ RSpec.describe "Broker account daily results API", type: :request do
   let!(:broker_account) do
     create(:broker_account, license: license, company: "BrokerX", account_number: 9876, account_type: :real)
   end
+  let!(:lane_magic) do
+    create(
+      :license_lane_magic_number,
+      license: license,
+      source: source_id,
+      email: user.email,
+      company: broker_account.company,
+      account_number: broker_account.account_number,
+      account_type: broker_account.account_type,
+      magic_number: 490_123_456
+    )
+  end
   let(:timestamp) { Time.utc(2025, 1, 15, 12, 0, 0).to_i }
 
   it "creates a daily result" do
@@ -34,6 +46,7 @@ RSpec.describe "Broker account daily results API", type: :request do
         account_number: broker_account.account_number,
         account_type: broker_account.account_type
       },
+      magic_number: lane_magic.magic_number,
       result_timestamp: timestamp,
       result_value: "10.50"
     }
@@ -50,7 +63,14 @@ RSpec.describe "Broker account daily results API", type: :request do
   end
 
   it "rejects duplicates for the same UTC day" do
-    create(:broker_account_daily_result, broker_account: broker_account, result_timestamp: timestamp, result_value: 10.50)
+    create(
+      :broker_account_daily_result,
+      broker_account: broker_account,
+      expert_advisor: expert_advisor,
+      magic_number: lane_magic.magic_number,
+      result_timestamp: timestamp,
+      result_value: 10.50
+    )
 
     params = {
       source: source_id,
@@ -62,6 +82,7 @@ RSpec.describe "Broker account daily results API", type: :request do
         account_number: broker_account.account_number,
         account_type: broker_account.account_type
       },
+      magic_number: lane_magic.magic_number,
       result_timestamp: Time.utc(2025, 1, 15, 23, 0, 0).to_i,
       result_value: "12.00"
     }
@@ -87,6 +108,7 @@ RSpec.describe "Broker account daily results API", type: :request do
         account_number: 1111,
         account_type: :real
       },
+      magic_number: lane_magic.magic_number,
       result_timestamp: timestamp,
       result_value: "9.00"
     }
@@ -112,6 +134,7 @@ RSpec.describe "Broker account daily results API", type: :request do
         account_number: broker_account.account_number,
         account_type: broker_account.account_type
       },
+      magic_number: lane_magic.magic_number,
       result_timestamp: "not-a-time",
       result_value: "9.00"
     }
@@ -124,5 +147,52 @@ RSpec.describe "Broker account daily results API", type: :request do
     body = JSON.parse(response.body)
     expect(body["ok"]).to eq(false)
     expect(body["error"]).to eq("invalid_payload")
+  end
+
+  it "rejects requests with missing magic_number" do
+    params = {
+      source: source_id,
+      email: user.email,
+      ea_id: expert_advisor.ea_id,
+      license_key: license_key,
+      broker_account: {
+        company: broker_account.company,
+        account_number: broker_account.account_number,
+        account_type: broker_account.account_type
+      },
+      result_timestamp: timestamp,
+      result_value: "4.00"
+    }
+
+    post "/api/v1/broker_accounts/daily_results", params: params
+
+    expect(response).to have_http_status(:unprocessable_content)
+    body = JSON.parse(response.body)
+    expect(body["ok"]).to eq(false)
+    expect(body["error"]).to eq("missing_magic_number")
+  end
+
+  it "rejects requests with invalid lane magic_number" do
+    params = {
+      source: source_id,
+      email: user.email,
+      ea_id: expert_advisor.ea_id,
+      license_key: license_key,
+      broker_account: {
+        company: broker_account.company,
+        account_number: broker_account.account_number,
+        account_type: broker_account.account_type
+      },
+      magic_number: lane_magic.magic_number + 1,
+      result_timestamp: timestamp,
+      result_value: "5.00"
+    }
+
+    post "/api/v1/broker_accounts/daily_results", params: params
+
+    expect(response).to have_http_status(:unprocessable_content)
+    body = JSON.parse(response.body)
+    expect(body["ok"]).to eq(false)
+    expect(body["error"]).to eq("invalid_magic_number")
   end
 end

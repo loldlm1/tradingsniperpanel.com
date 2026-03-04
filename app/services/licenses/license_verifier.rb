@@ -6,7 +6,7 @@ module Licenses
       end
     end
 
-    def initialize(encoder: LicenseKeyEncoder.new, expected_source: ENV.fetch("EA_LICENSE_SOURCE_ID", "trading_sniper_ea"))
+    def initialize(encoder: LicenseKeyEncoder.new, expected_source: ENV.fetch("EA_LICENSE_SOURCE_ID", "trading_sniper_floor"))
       @encoder = encoder
       @expected_source = expected_source
     end

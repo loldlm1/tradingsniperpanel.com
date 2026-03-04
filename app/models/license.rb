@@ -10,6 +10,7 @@ class License < ApplicationRecord
   belongs_to :user
   belongs_to :expert_advisor
   has_many :broker_accounts, dependent: :destroy
+  has_many :license_lane_magic_numbers, dependent: :destroy
 
   enum :status, STATUSES
   enum :access_source, { subscription: "subscription", one_time: "one_time" }, prefix: true

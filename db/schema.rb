@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_28_170000) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_04_100010) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -140,10 +140,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_170000) do
     t.decimal "result_value", precision: 12, scale: 2, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index "broker_account_id, (((to_timestamp((result_timestamp)::double precision) AT TIME ZONE 'UTC'::text))::date)", name: "index_broker_account_daily_results_on_account_and_utc_day", unique: true
+    t.bigint "expert_advisor_id"
+    t.bigint "magic_number"
+    t.index "broker_account_id, expert_advisor_id, magic_number, (((to_timestamp((result_timestamp)::double precision) AT TIME ZONE 'UTC'::text))::date)", name: "index_broker_daily_results_on_lane_magic_utc_day", unique: true, where: "((expert_advisor_id IS NOT NULL) AND (magic_number IS NOT NULL))"
     t.index ["broker_account_id", "result_timestamp"], name: "index_broker_account_daily_results_on_account_and_timestamp"
     t.index ["broker_account_id"], name: "index_broker_account_daily_results_on_broker_account_id"
+    t.index ["expert_advisor_id", "magic_number", "result_timestamp"], name: "index_broker_daily_results_on_ea_magic_and_timestamp"
+    t.index ["expert_advisor_id"], name: "index_broker_account_daily_results_on_expert_advisor_id"
     t.index ["result_timestamp"], name: "index_broker_account_daily_results_on_result_timestamp"
+    t.check_constraint "magic_number IS NULL OR magic_number > 0", name: "broker_account_daily_results_magic_positive_check"
   end
 
   create_table "broker_accounts", force: :cascade do |t|
@@ -281,6 +286,23 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_170000) do
     t.index ["ea_id"], name: "index_expert_advisors_on_ea_id", unique: true
     t.index ["ea_type"], name: "index_expert_advisors_on_ea_type"
     t.index ["tier_rank"], name: "index_expert_advisors_on_tier_rank"
+  end
+
+  create_table "license_lane_magic_numbers", force: :cascade do |t|
+    t.bigint "license_id", null: false
+    t.string "source", null: false
+    t.string "email", null: false
+    t.string "company", null: false
+    t.bigint "account_number", null: false
+    t.string "account_type", null: false
+    t.bigint "magic_number", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["license_id", "source", "email", "company", "account_number", "account_type"], name: "index_license_lane_magic_numbers_on_lane", unique: true
+    t.index ["license_id"], name: "index_license_lane_magic_numbers_on_license_id"
+    t.index ["magic_number"], name: "index_license_lane_magic_numbers_on_magic_number", unique: true
+    t.check_constraint "account_type::text = ANY (ARRAY['real'::character varying, 'demo'::character varying]::text[])", name: "license_lane_magic_numbers_account_type_check"
+    t.check_constraint "magic_number > 0", name: "license_lane_magic_numbers_magic_positive_check"
   end
 
   create_table "license_online_sessions", force: :cascade do |t|
@@ -724,6 +746,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_170000) do
   add_foreign_key "billing_plan_entitlements", "billing_plans"
   add_foreign_key "billing_plan_entitlements", "expert_advisors"
   add_foreign_key "broker_account_daily_results", "broker_accounts"
+  add_foreign_key "broker_account_daily_results", "expert_advisors"
   add_foreign_key "broker_accounts", "licenses"
   add_foreign_key "course_enrollments", "course_lessons", column: "last_lesson_id"
   add_foreign_key "course_enrollments", "courses"
@@ -736,6 +759,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_28_170000) do
   add_foreign_key "course_plan_entitlements", "billing_plans"
   add_foreign_key "course_plan_entitlements", "courses"
   add_foreign_key "expert_advisor_bundles", "expert_advisors"
+  add_foreign_key "license_lane_magic_numbers", "licenses"
   add_foreign_key "license_online_sessions", "expert_advisors"
   add_foreign_key "license_online_sessions", "users"
   add_foreign_key "licenses", "expert_advisors"

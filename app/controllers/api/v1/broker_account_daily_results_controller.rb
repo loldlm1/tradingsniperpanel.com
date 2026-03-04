@@ -10,6 +10,7 @@ module Api
           ea_id: params[:ea_id],
           license_key: params[:license_key],
           broker_account: broker_account_params.to_h,
+          magic_number: params[:magic_number],
           result_timestamp: params[:result_timestamp],
           result_value: params[:result_value]
         )

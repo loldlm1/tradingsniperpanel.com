@@ -42,6 +42,17 @@ module Api
           return
         end
 
+        lane_magic = allocate_lane_magic_number(
+          license: result.license,
+          source: params[:source],
+          email: params[:email],
+          broker_account: broker_account_attrs
+        )
+        unless lane_magic.ok?
+          render json: { ok: false, error: lane_magic.error }, status: lane_magic.code
+          return
+        end
+
         granted_addons = Licenses::GrantedAddons.new(
           user: result.license.user,
           expert_advisor: result.license.expert_advisor
@@ -53,6 +64,7 @@ module Api
           plan_interval: result.plan_interval,
           trial: result.trial,
           expires_at: result.expires_at&.to_i,
+          magic_number: lane_magic.magic_number,
           granted_addons: granted_addons,
           broker_account: broker_account ? serialize_broker_account(broker_account) : nil
         }
@@ -157,6 +169,15 @@ module Api
       def allocate_online_seat(license:, broker_account:)
         Licenses::OnlineSeatAllocator.new(
           license: license,
+          broker_account: broker_account
+        ).call
+      end
+
+      def allocate_lane_magic_number(license:, source:, email:, broker_account:)
+        Licenses::LaneMagicNumberAllocator.new(
+          license: license,
+          source: source,
+          email: email,
           broker_account: broker_account
         ).call
       end

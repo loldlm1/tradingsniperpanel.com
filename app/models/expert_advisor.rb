@@ -8,6 +8,7 @@ class ExpertAdvisor < ApplicationRecord
   has_many :user_expert_advisors, dependent: :destroy
   has_many :licenses, dependent: :destroy
   has_many :license_online_sessions, dependent: :destroy
+  has_many :broker_account_daily_results, dependent: :nullify
   has_many :billing_plan_entitlements, dependent: :destroy
   has_many :billing_plans, through: :billing_plan_entitlements
   has_many :addons, as: :addonable, dependent: :destroy
