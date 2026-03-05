@@ -1346,14 +1346,59 @@ module Seeds
       license.save!
     end
 
-    def daily_result_exists?(broker_account, date)
+    def lane_seed_context_for(broker_account)
+      return nil unless broker_account
+
+      license = broker_account.license
+      expert_advisor = license&.expert_advisor
+      source = license&.source.to_s.presence || "seed"
+      email = license&.user&.email.to_s
+
+      if license.blank? || expert_advisor.blank? || email.blank?
+        Rails.logger.warn(
+          "[Seeds::DashboardMain] missing lane context broker_account_id=#{broker_account.id} " \
+          "license_id=#{license&.id} expert_advisor_id=#{expert_advisor&.id}"
+        )
+        return nil
+      end
+
+      allocation = Licenses::LaneMagicNumberAllocator.new(
+        license: license,
+        source: source,
+        email: email,
+        broker_account: {
+          company: broker_account.company,
+          account_number: broker_account.account_number,
+          account_type: broker_account.account_type
+        }
+      ).call
+
+      unless allocation.ok? && allocation.magic_number.to_i.positive?
+        Rails.logger.warn(
+          "[Seeds::DashboardMain] lane magic allocation failed broker_account_id=#{broker_account.id} " \
+          "license_id=#{license.id} error=#{allocation.error.inspect} code=#{allocation.code.inspect}"
+        )
+        return nil
+      end
+
+      { expert_advisor: expert_advisor, magic_number: allocation.magic_number.to_i }
+    end
+
+    def daily_result_exists?(broker_account, date, expert_advisor_id:, magic_number:)
       BrokerAccountDailyResult
-        .where(broker_account_id: broker_account.id)
+        .where(
+          broker_account_id: broker_account.id,
+          expert_advisor_id: expert_advisor_id,
+          magic_number: magic_number
+        )
         .where("((to_timestamp(result_timestamp) AT TIME ZONE 'UTC')::date) = ?", date)
         .exists?
     end
 
     def seed_daily_results(broker_account, days:, seed:)
+      lane_context = lane_seed_context_for(broker_account)
+      return unless lane_context
+
       rng = Random.new(seed)
       end_date = Time.current.utc.to_date
       start_date = end_date - (days - 1)
@@ -1361,7 +1406,12 @@ module Seeds
       (0...days).each do |offset|
         date = start_date + offset
         next if ((broker_account.account_number + offset) % 13).zero?
-        next if daily_result_exists?(broker_account, date)
+        next if daily_result_exists?(
+          broker_account,
+          date,
+          expert_advisor_id: lane_context[:expert_advisor].id,
+          magic_number: lane_context[:magic_number]
+        )
 
         timestamp = Time.utc(date.year, date.month, date.day, 12, 0, 0).to_i
         volatility = broker_account.account_type == "real" ? 40.0 : 25.0
@@ -1370,6 +1420,8 @@ module Seeds
 
         BrokerAccountDailyResult.create!(
           broker_account: broker_account,
+          expert_advisor: lane_context[:expert_advisor],
+          magic_number: lane_context[:magic_number],
           result_timestamp: timestamp,
           result_value: value
         )
@@ -1453,12 +1505,23 @@ module Seeds
 
       cutoff = RECENT_HOURS.hours.ago.to_i
       accounts.each_with_index do |account, idx|
-        next if BrokerAccountDailyResult.where(broker_account: account).where("result_timestamp >= ?", cutoff).exists?
+        lane_context = Seeds::DashboardMain.lane_seed_context_for(account)
+        next unless lane_context
+        next if BrokerAccountDailyResult
+                  .where(
+                    broker_account: account,
+                    expert_advisor_id: lane_context[:expert_advisor].id,
+                    magic_number: lane_context[:magic_number]
+                  )
+                  .where("result_timestamp >= ?", cutoff)
+                  .exists?
 
         timestamp = Time.current.utc.to_i - (idx * 3600)
         value = recent_result_value(account_number: account.account_number, offset: idx)
         BrokerAccountDailyResult.create!(
           broker_account: account,
+          expert_advisor: lane_context[:expert_advisor],
+          magic_number: lane_context[:magic_number],
           result_timestamp: timestamp,
           result_value: value
         )
