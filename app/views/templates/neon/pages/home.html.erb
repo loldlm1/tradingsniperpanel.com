@@ -1,7 +1,7 @@
 <% content_for :title, app_name %>
 <% content_for :meta_description, t("landing.neon.hero.subtitle") %>
 
-<%= render "shared/discount_banner", banner: @discount_banner if @discount_banner.present? %>
+<%= render "shared/discount_marketing_modal", banner: @discount_banner if @discount_banner.present? %>
 
 <!-- Hero -->
 <section class="relative overflow-hidden">

@@ -472,11 +472,15 @@ en:
           - "Execution and management panels for MetaTrader 5"
           - "Systems and modules with configurable rules and automation"
           - "Indicators, templates, and resources for visualization and analysis"
-      discount_banner:
-        aria_label: "Active discount code"
+      discount_modal:
+        aria_label: "Active discount promotion"
+        badge: "Limited offer"
         title: "%{percent}% OFF available now."
-        body: "Use code %{code} at Stripe checkout."
+        body: "Use this code at Stripe checkout."
+        code_label: "Discount code"
         cta: "View pricing"
+        dismiss: "Maybe later"
+        close: "Close discount modal"
       pricing:
         title: "CHOOSE YOUR IDEAL PLAN"
         subtitle: "Recurring plans for ongoing access, plus one-time marketplace products for extra tools and digital assets."

@@ -54,24 +54,26 @@ RSpec.describe "Home pricing CTAs", type: :request do
     expect(response.body).to include("x-data=\"{ period: 'monthly' }\"")
   end
 
-  it "shows a discount banner when discount env values are valid" do
+  it "shows a discount modal when discount env values are valid" do
     ENV["DISCOUNT_BANNER_CODE"] = "1234"
     ENV["DISCOUNT_BANNER_PERCENT"] = "15%"
 
     get root_path
 
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include(I18n.t("landing.neon.discount_banner.title", percent: 15))
-    expect(response.body).to include(I18n.t("landing.neon.discount_banner.body", code: "1234"))
+    expect(response.body).to include("discount-marketing-modal")
+    expect(response.body).to include(I18n.t("landing.neon.discount_modal.title", percent: 15))
+    expect(response.body).to include(I18n.t("landing.neon.discount_modal.code_label"))
+    expect(response.body).to include("1234")
   end
 
-  it "does not show the discount banner when percent is invalid" do
+  it "does not show the discount modal when percent is invalid" do
     ENV["DISCOUNT_BANNER_CODE"] = "1234"
     ENV["DISCOUNT_BANNER_PERCENT"] = "fifteen"
 
     get root_path
 
     expect(response).to have_http_status(:ok)
-    expect(response.body).not_to include("1234")
+    expect(response.body).not_to include("discount-marketing-modal")
   end
 end
