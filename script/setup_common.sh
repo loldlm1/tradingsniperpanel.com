@@ -77,6 +77,63 @@ run_as_app_user() {
   fi
 }
 
+tcp_port_reachable() {
+  local host="$1"
+  local port="$2"
+
+  timeout 5 bash -lc "cat < /dev/null > /dev/tcp/${host}/${port}" >/dev/null 2>&1
+}
+
+select_git_ssh_command() {
+  local repo_url="$1"
+  local default_cmd="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
+  local github_443_cmd="${default_cmd} -o HostName=ssh.github.com -p 443"
+  local forced_port="${GITHUB_SSH_PORT:-}"
+  local is_github_ssh=0
+
+  if [[ "${repo_url}" == git@github.com:* || "${repo_url}" == ssh://git@github.com/* ]]; then
+    is_github_ssh=1
+  fi
+
+  if (( ! is_github_ssh )); then
+    printf "%s" "${default_cmd}"
+    return 0
+  fi
+
+  case "${forced_port}" in
+    22)
+      log "Using GitHub SSH over port 22 (forced by GITHUB_SSH_PORT=22)."
+      printf "%s" "${default_cmd}"
+      return 0
+      ;;
+    443)
+      log "Using GitHub SSH over port 443 (forced by GITHUB_SSH_PORT=443)."
+      printf "%s" "${github_443_cmd}"
+      return 0
+      ;;
+    "")
+      ;;
+    *)
+      warn "Ignoring unsupported GITHUB_SSH_PORT='${forced_port}'. Expected 22 or 443."
+      ;;
+  esac
+
+  if tcp_port_reachable "github.com" "22"; then
+    log "Using GitHub SSH over port 22."
+    printf "%s" "${default_cmd}"
+    return 0
+  fi
+
+  if tcp_port_reachable "ssh.github.com" "443"; then
+    warn "GitHub SSH port 22 is unreachable; falling back to ssh.github.com:443."
+    printf "%s" "${github_443_cmd}"
+    return 0
+  fi
+
+  warn "Could not reach GitHub SSH on port 22 or 443; defaulting to port 22 command."
+  printf "%s" "${default_cmd}"
+}
+
 reexec_from_repo_if_needed() {
   local app_dir="$1"
   local script_name="$2"
@@ -259,11 +316,13 @@ ensure_repo() {
   local app_dir="$2"
   local branch="$3"
   local git_env=""
+  local git_ssh_command=""
   local repo_is_ssh=0
 
   if [[ "${repo_url}" == git@* || "${repo_url}" == ssh://* ]]; then
     repo_is_ssh=1
-    git_env="GIT_SSH_COMMAND='ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new' GIT_TERMINAL_PROMPT=0"
+    git_ssh_command="$(select_git_ssh_command "${repo_url}")"
+    git_env="GIT_SSH_COMMAND='${git_ssh_command}' GIT_TERMINAL_PROMPT=0"
     if ! run_as_app_user "ssh-add -L >/dev/null 2>&1"; then
       warn "SSH agent has no keys loaded for ${APP_USER}; continuing with direct SSH key auth."
     fi

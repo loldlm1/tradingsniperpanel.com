@@ -48,6 +48,7 @@ sudo bash /opt/tradingsniperpanel-deploy/setup_production.sh
 If SSL files are not installed yet, the script will stop after setup; install certs and rerun.
 If your SSH key has a passphrase, load it into ssh-agent before running the script (for example: `eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519`). The scripts try to detect your agent; if they still complain, run with `sudo -E` to preserve `SSH_AUTH_SOCK`.
 On first run it will create `/home/$USER/tradingsniperpanel.com/.envrc` and exit. Fill it with production values (`APP_HOST=tradingsniperpanel.com`, `APP_HOST_PROTOCOL=https`, `PORT=48501`, `REDIS_URL=redis://localhost:6379/0`, `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, and all `DB_NAME_PRODUCTION*` values), then rerun the same command.
+If outbound SSH port 22 is blocked, setup scripts now auto-fallback to GitHub SSH over `ssh.github.com:443`.
 4) Run staging setup:
 ```
 sudo bash /opt/tradingsniperpanel-deploy/setup_staging.sh
@@ -57,6 +58,7 @@ If `config/database.yml` on the staging branch does not include a `staging:` ent
 Nginx config is applied once both env files exist and SSL files are installed.
 Scripts generate `/etc/tradingsniperpanel/*.env` from each `.envrc` and install systemd units for Puma/Sidekiq.
 Run the scripts with `sudo` from your admin user; they will use `$SUDO_USER` as the app user.
+Optional override: force GitHub SSH port with `GITHUB_SSH_PORT=22` or `GITHUB_SSH_PORT=443` before running setup.
 
 ### SSH key troubleshooting (auto-detect app user)
 If setup fails with `Permission denied (publickey)`, verify SSH auth as the same app user used by the scripts:
@@ -65,6 +67,10 @@ APP_USER="${SUDO_USER:-$USER}"
 sudo -u "$APP_USER" -H bash -lc 'ls -la ~/.ssh && stat -c "%a %n" ~/.ssh ~/.ssh/* 2>/dev/null'
 sudo -u "$APP_USER" -H bash -lc 'ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -T git@github.com || true'
 sudo -u "$APP_USER" -H bash -lc 'GIT_SSH_COMMAND="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new" git ls-remote git@github.com:loldlm1/tradingsniperpanel.com.git HEAD || true'
+```
+If port 22 is blocked but 443 is open, use:
+```
+sudo -u "$APP_USER" -H bash -lc 'GIT_SSH_COMMAND="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o HostName=ssh.github.com -p 443" git ls-remote git@github.com:loldlm1/tradingsniperpanel.com.git HEAD || true'
 ```
 If GitHub still rejects the key, regenerate and overwrite `/home/$APP_USER/.ssh/id_ed25519`, then add the new `.pub` key in GitHub:
 ```
