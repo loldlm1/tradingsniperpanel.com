@@ -3,5 +3,6 @@ class PagesController < ApplicationController
 
   def home
     @landing_pricing = Marketing::LandingPricing.new.call
+    @discount_banner = Marketing::DiscountBanner.new.call
   end
 end

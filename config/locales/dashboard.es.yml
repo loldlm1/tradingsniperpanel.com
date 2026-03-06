@@ -286,7 +286,7 @@ es:
         pay_annually: "Pagar anualmente"
       tiers:
         basic:
-          name: "Básico"
+          name: "Sniper Panel"
           description: "Para traders que buscan precisión, velocidad de ejecución y control total en su operativa."
         hft:
           name: "HFT"
@@ -397,7 +397,7 @@ es:
           other: "/%{count} %{unit}"
       tiers:
         basic:
-          name: "Basic"
+          name: "Sniper Panel"
           description: "Para traders que buscan precisión, velocidad de ejecución y control total en su operativa."
           features:
             - "Control por % / USD / tamaño del lote"
@@ -406,20 +406,20 @@ es:
             - "Punto de equilibrio automático (Break Even)"
             - "Órdenes preconfiguradas"
         pandora_pro:
-          name: "Pandora Pro"
-          description: "Todo lo de Basic, más automatización breakout y mayor control sobre la ejecución."
+          name: "Pandora Box"
+          description: "Todo en Sniper Panel y Fibonacci, más automatización breakout y mayor control sobre la ejecución."
           features:
-            - "Todo lo de Basic"
+            - "Todo en Fibonacci"
             - "Breakout"
             - "Modos de Dirección"
             - "Configuración Flexible"
             - "Control Total sobre las Operaciones"
             - "Optimización de Entradas y Salidas"
         fibonacci_elite:
-          name: "Fibonacci Elite"
-          description: "Trading estructural Fibonacci automatizado con controles precisos y configuración flexible."
+          name: "Fibonacci"
+          description: "Todo en Sniper Panel más trading estructural Fibonacci automatizado con controles precisos."
           features:
-            - "Todo lo de Pro"
+            - "Todo en Sniper Panel"
             - "Flujo Fibonacci estructural automatizado"
             - "Modos para medir drawdown"
             - "Configuración Flexible"

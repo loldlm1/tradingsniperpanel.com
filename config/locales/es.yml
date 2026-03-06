@@ -472,6 +472,11 @@ es:
           - "Paneles de ejecución y gestión para MetaTrader 5"
           - "Sistemas y módulos con reglas configurables y automatización"
           - "Indicadores, plantillas y recursos para visualización y análisis"
+      discount_banner:
+        aria_label: "Código de descuento activo"
+        title: "Descuento de %{percent}% disponible ahora."
+        body: "Usa el código %{code} en el checkout de Stripe."
+        cta: "Ver precios"
       pricing:
         title: "ELIGE TU PLAN IDEAL PARA TI"
         subtitle: "Planes recurrentes para acceso continuo, más productos de compra única en marketplace para herramientas y recursos digitales."
@@ -480,7 +485,7 @@ es:
         most_popular: "Más popular"
         tiers:
           basic:
-            name: "Basic"
+            name: "Sniper Panel"
             description: "Para traders que buscan precisión, velocidad de ejecución y control total en su operativa."
             features_title: "Incluye:"
             features:
@@ -490,9 +495,9 @@ es:
               - "Punto de equilibrio automático (Break Even)"
               - "Órdenes preconfiguradas"
           pandora_pro:
-            name: "Pandora Pro"
-            description: "Para traders que quieren todo lo de Basic y sumar automatización breakout con mayor control de dirección."
-            features_title: "Todo en Basic, más:"
+            name: "Pandora Box"
+            description: "Para traders que necesitan el stack completo: control de Sniper Panel, automatización Fibonacci y ejecución breakout de Pandora."
+            features_title: "Todo en Fibonacci, más:"
             features:
               - "Breakout"
               - "Modos de Dirección"
@@ -500,9 +505,9 @@ es:
               - "Control Total sobre las Operaciones"
               - "Optimización de Entradas y Salidas"
           fibonacci_elite:
-            name: "Fibonacci Elite"
-            description: "Para traders que buscan ejecución estructural Fibonacci automatizada con control flexible."
-            features_title: "Todo en Pro, más:"
+            name: "Fibonacci"
+            description: "Para traders que quieren todo en Sniper Panel y sumar ejecución estructural Fibonacci automatizada."
+            features_title: "Todo en Sniper Panel, más:"
             features:
               - "Flujo Fibonacci estructural automatizado"
               - "Modos para medir drawdown"

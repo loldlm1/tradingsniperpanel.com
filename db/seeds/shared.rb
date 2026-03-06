@@ -90,20 +90,8 @@ module Seeds
           tags: %w[panel execution risk]
         },
         {
-          name: "PANDORA BOX EA",
-          tier_rank: 2,
-          ea_id: "pandora_box",
-          description: "Breakout EA for MT5 with configurable direction modes and grid controls.",
-          ea_type: :ea_robot,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[pandora_pro],
-          doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en, profile: profile),
-          doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es, profile: profile),
-          tags: %w[automation breakout]
-        },
-        {
           name: "Fibonacci Elite EA",
-          tier_rank: 3,
+          tier_rank: 2,
           ea_id: "fibonacci_elite",
           description: "Automated Fibonacci structure strategy with configurable risk controls and precision execution rules.",
           ea_type: :ea_robot,
@@ -112,6 +100,18 @@ module Seeds
           doc_guide_en: guide_for(ea_id: "fibonacci_elite", locale: :en, profile: profile),
           doc_guide_es: guide_for(ea_id: "fibonacci_elite", locale: :es, profile: profile),
           tags: %w[fibonacci automation structure]
+        },
+        {
+          name: "PANDORA BOX EA",
+          tier_rank: 3,
+          ea_id: "pandora_box",
+          description: "Breakout EA for MT5 with configurable direction modes and grid controls.",
+          ea_type: :ea_robot,
+          trial_enabled: false,
+          allowed_subscription_tiers: %w[pandora_pro],
+          doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en, profile: profile),
+          doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es, profile: profile),
+          tags: %w[automation breakout]
         }
       ]
     end
@@ -1030,13 +1030,13 @@ module Seeds
       { interval: "year", interval_count: 1, multiplier: 9.0 }
     ].freeze
     PROD_MIRROR_TIER_DEFINITIONS = [
-      { tier: "basic", sort_order: 1, monthly_cents: 2000 },
-      { tier: "pandora_pro", sort_order: 2, monthly_cents: 3000 },
-      { tier: "fibonacci_elite", sort_order: 3, monthly_cents: 4000 }
+      { tier: "basic", sort_order: 1, monthly_cents: 2499 },
+      { tier: "fibonacci_elite", sort_order: 2, monthly_cents: 6999 },
+      { tier: "pandora_pro", sort_order: 3, monthly_cents: 9999 }
     ].freeze
     PROD_MIRROR_INTERVAL_DEFINITIONS = [
       { interval: "month", interval_count: 1, multiplier: 1.0 },
-      { interval: "year", interval_count: 1, multiplier: 9.0 }
+      { interval: "year", interval_count: 1, multiplier: 7.8 }
     ].freeze
 
     def definitions(profile: Seeds::Profiles.current)
@@ -1715,13 +1715,13 @@ module Seeds
         {
           slug: "ea_pandora_box",
           sort_order: 1,
-          title_en: "Pandora Box EA",
-          title_es: "Pandora Box EA",
+          title_en: "Pandora Box",
+          title_es: "Pandora Box",
           summary_en: "Breakout EA for MT5 with directional modes and configurable risk controls.",
           summary_es: "EA de breakout para MT5 con modos de direccion y controles de riesgo configurables.",
           description_en: pandora_marketplace_markdown_en,
           description_es: pandora_marketplace_markdown_es,
-          amount_cents: 29_900,
+          amount_cents: 59_900,
           image: Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_marketplace_img.jpg"),
           ea_ids: %w[pandora_box],
           course_slugs: [],

@@ -74,12 +74,12 @@ RSpec.describe "Seeds::Runner" do
 
       active_subscription_keys = BillingPlan.subscription.active.order(:key).pluck(:key)
       expect(active_subscription_keys).to eq(%w[basic_annual basic_monthly fibonacci_elite_annual fibonacci_elite_monthly pandora_pro_annual pandora_pro_monthly])
-      expect(BillingPlan.find_by(key: "basic_monthly")&.amount_cents).to eq(2000)
-      expect(BillingPlan.find_by(key: "basic_annual")&.amount_cents).to eq(18_000)
-      expect(BillingPlan.find_by(key: "pandora_pro_monthly")&.amount_cents).to eq(3000)
-      expect(BillingPlan.find_by(key: "pandora_pro_annual")&.amount_cents).to eq(27_000)
-      expect(BillingPlan.find_by(key: "fibonacci_elite_monthly")&.amount_cents).to eq(4000)
-      expect(BillingPlan.find_by(key: "fibonacci_elite_annual")&.amount_cents).to eq(36_000)
+      expect(BillingPlan.find_by(key: "basic_monthly")&.amount_cents).to eq(2499)
+      expect(BillingPlan.find_by(key: "basic_annual")&.amount_cents).to eq(19_492)
+      expect(BillingPlan.find_by(key: "pandora_pro_monthly")&.amount_cents).to eq(9999)
+      expect(BillingPlan.find_by(key: "pandora_pro_annual")&.amount_cents).to eq(77_992)
+      expect(BillingPlan.find_by(key: "fibonacci_elite_monthly")&.amount_cents).to eq(6999)
+      expect(BillingPlan.find_by(key: "fibonacci_elite_annual")&.amount_cents).to eq(54_592)
       expect(stale_plan.reload.active).to eq(false)
 
       expect(ExpertAdvisor.active.pluck(:ea_id)).to match_array(%w[fibonacci_elite pandora_box sniper_advanced_panel])
@@ -87,6 +87,9 @@ RSpec.describe "Seeds::Runner" do
       sniper_ea = ExpertAdvisor.find_by!(ea_id: "sniper_advanced_panel")
       pandora_ea = ExpertAdvisor.find_by!(ea_id: "pandora_box")
       fibonacci_ea = ExpertAdvisor.find_by!(ea_id: "fibonacci_elite")
+      expect(sniper_ea.tier_rank).to eq(1)
+      expect(fibonacci_ea.tier_rank).to eq(2)
+      expect(pandora_ea.tier_rank).to eq(3)
       expect(sniper_ea.doc_guide_en).to eq(File.read(Rails.root.join("docs_eas", "sniper_advanced_panel", "sniper_advanced_panel_guide_en.md")))
       expect(sniper_ea.doc_guide_es).to eq(File.read(Rails.root.join("docs_eas", "sniper_advanced_panel", "sniper_advanced_panel_guide_es.md")))
       expect(pandora_ea.doc_guide_en).to eq(File.read(Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_guide_en.md")))
@@ -101,7 +104,7 @@ RSpec.describe "Seeds::Runner" do
       pandora_product = MarketplaceProduct.find_by(slug: "ea_pandora_box")
       expect(pandora_product).to be_present
       expect(pandora_product).to be_active
-      expect(pandora_product.billing_plan.amount_cents).to eq(29_900)
+      expect(pandora_product.billing_plan.amount_cents).to eq(59_900)
       expect(pandora_product.description_es).not_to include("![")
 
       fibonacci_addons = Addon.where(addonable: fibonacci_ea).includes(:billing_plan).index_by(&:key)
@@ -142,13 +145,21 @@ RSpec.describe "Seeds::Runner" do
       expect(entitlements).to include(
         ["basic_monthly", "sniper_advanced_panel"],
         ["basic_annual", "sniper_advanced_panel"],
+        ["fibonacci_elite_monthly", "sniper_advanced_panel"],
+        ["fibonacci_elite_annual", "sniper_advanced_panel"],
         ["pandora_pro_monthly", "sniper_advanced_panel"],
         ["pandora_pro_annual", "sniper_advanced_panel"],
         ["fibonacci_elite_monthly", "fibonacci_elite"],
         ["fibonacci_elite_annual", "fibonacci_elite"],
+        ["pandora_pro_monthly", "fibonacci_elite"],
+        ["pandora_pro_annual", "fibonacci_elite"],
         ["pandora_pro_monthly", "pandora_box"],
         ["pandora_pro_annual", "pandora_box"],
         ["marketplace_ea_pandora_box", "pandora_box"]
+      )
+      expect(entitlements).not_to include(
+        ["fibonacci_elite_monthly", "pandora_box"],
+        ["fibonacci_elite_annual", "pandora_box"]
       )
     end
   end
