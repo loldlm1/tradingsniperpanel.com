@@ -472,15 +472,6 @@ es:
           - "Paneles de ejecución y gestión para MetaTrader 5"
           - "Sistemas y módulos con reglas configurables y automatización"
           - "Indicadores, plantillas y recursos para visualización y análisis"
-      discount_modal:
-        aria_label: "Promoción activa con descuento"
-        badge: "Oferta limitada"
-        title: "Descuento de %{percent}% disponible ahora."
-        body: "Usa este código en el checkout de Stripe."
-        code_label: "Código de descuento"
-        cta: "Ver precios"
-        dismiss: "Quizás luego"
-        close: "Cerrar modal de descuento"
       pricing:
         title: "ELIGE TU PLAN IDEAL PARA TI"
         subtitle: "Planes recurrentes para acceso continuo, más productos de compra única en marketplace para herramientas y recursos digitales."

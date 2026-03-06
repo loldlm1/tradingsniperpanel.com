@@ -36,6 +36,14 @@ en:
       docs: "Docs"
       settings: "Settings"
       my_account: "My Account"
+    discount_modal:
+      badge: "Limited offer"
+      title: "%{percent}% OFF available now."
+      body: "Use this code at Stripe checkout."
+      code_label: "Discount code"
+      cta: "View plans"
+      dismiss: "Maybe later"
+      close: "Close discount modal"
     main:
       header:
         title: "Welcome"
