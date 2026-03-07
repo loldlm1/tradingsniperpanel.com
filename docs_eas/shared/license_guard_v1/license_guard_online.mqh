@@ -20,6 +20,47 @@ bool AddonCatalogKeysEqual(const string left_key, const string right_key)
   return (AddonCatalogNormalizeKey(left_key) == AddonCatalogNormalizeKey(right_key));
 }
 
+string AddonCatalogDisplayLabel(const string addon_key)
+{
+  return AddonCatalogNormalizeKey(addon_key);
+}
+
+string AddonCatalogJoinDisplayLabels(const string &addons[])
+{
+  string labels = "";
+  int total = ArraySize(addons);
+  for(int i = 0; i < total; i++)
+  {
+    string label = AddonCatalogDisplayLabel(addons[i]);
+    if(label == "")
+      continue;
+
+    if(labels != "")
+      labels += ", ";
+    labels += label;
+  }
+
+  return labels;
+}
+
+string AddonCatalogJoinKeys(const string &addons[])
+{
+  string keys = "";
+  int total = ArraySize(addons);
+  for(int i = 0; i < total; i++)
+  {
+    string normalized_key = AddonCatalogNormalizeKey(addons[i]);
+    if(normalized_key == "")
+      continue;
+
+    if(keys != "")
+      keys += ",";
+    keys += normalized_key;
+  }
+
+  return keys;
+}
+
 void AddonCatalogAllCompoundFamilies(string &families[])
 {
   ArrayResize(families, 0);
@@ -33,6 +74,7 @@ void AddonCatalogAllCompoundFamilies(string &families[])
 #define ADDON_KEY_COMPOUND_REVERSAL_EARLY  "addon_compound_reversal_early"
 #define ADDON_KEY_COMPOUND_BREAKOUT_READY  "addon_compound_breakout_ready"
 #define ADDON_KEY_COMPOUND_VOLATILITY_TRAP "addon_compound_volatility_trap"
+#define ADDON_KEY_COMPOUND_ANY_FAMILY      "addon_compound_family_any"
 #endif
 CBcrypt BCrypt;
 
@@ -105,6 +147,20 @@ bool license_broker_account_synced = false;
 long license_magic_number = 0;
 bool license_magic_number_synced = false;
 string license_granted_addons[];
+string license_requested_addons[];
+string license_missing_addons[];
+string license_backend_required_addons[];
+string license_backend_missing_addons[];
+datetime license_last_addon_validation_at = 0;
+
+void LicenseSharedCollectRequestedAddonsDefault(string &addons_out[])
+{
+  ArrayResize(addons_out, 0);
+}
+
+#ifndef LICENSE_SHARED_COLLECT_REQUESTED_ADDONS
+#define LICENSE_SHARED_COLLECT_REQUESTED_ADDONS LicenseSharedCollectRequestedAddonsDefault
+#endif
 
 long license_instance_id = 0;
 string license_lane_hash = "";
@@ -258,6 +314,75 @@ void LicenseAppendGrantedAddon(const string addon_key)
   license_granted_addons[total] = normalized_key;
 }
 
+bool LicenseAddonArrayContains(const string &values[], const string needle)
+{
+  string normalized_needle = AddonCatalogNormalizeKey(needle);
+  int total = ArraySize(values);
+  for(int i = 0; i < total; i++)
+  {
+    if(AddonCatalogKeysEqual(values[i], normalized_needle))
+      return true;
+  }
+  return false;
+}
+
+void LicenseAppendAddonUnique(string &values[], const string addon_key)
+{
+  string normalized_key = AddonCatalogNormalizeKey(addon_key);
+  if(normalized_key == "")
+    return;
+  if(LicenseAddonArrayContains(values, normalized_key))
+    return;
+
+  int total = ArraySize(values);
+  ArrayResize(values, total + 1);
+  values[total] = normalized_key;
+}
+
+void LicenseAppendRequestedAddon(string &addons_out[], const string addon_key)
+{
+  LicenseAppendAddonUnique(addons_out, addon_key);
+}
+
+void LicenseSplitAddonCsv(const string csv, string &addons_out[])
+{
+  ArrayResize(addons_out, 0);
+
+  string trimmed_csv = Trim(csv);
+  if(trimmed_csv == "")
+    return;
+
+  string raw_values[];
+  ushort separator = StringGetCharacter(",", 0);
+  int count = StringSplit(trimmed_csv, separator, raw_values);
+  for(int i = 0; i < count; i++)
+    LicenseAppendAddonUnique(addons_out, raw_values[i]);
+}
+
+void LicenseCopyAddonArray(const string &source[], string &target[])
+{
+  int total = ArraySize(source);
+  ArrayResize(target, total);
+  for(int i = 0; i < total; i++)
+    target[i] = source[i];
+}
+
+string LicenseAddonArrayToCsv(const string &addons[])
+{
+  return AddonCatalogJoinKeys(addons);
+}
+
+void LicenseClearAddonFailureDetails()
+{
+  ArrayResize(license_backend_required_addons, 0);
+  ArrayResize(license_backend_missing_addons, 0);
+}
+
+void LicenseClearMissingRequestedAddons()
+{
+  ArrayResize(license_missing_addons, 0);
+}
+
 int LicenseGrantedAddonCount()
 {
   return ArraySize(license_granted_addons);
@@ -319,6 +444,110 @@ void LicenseCopyGrantedAddons(string &addons_out[])
   ArrayResize(addons_out, total);
   for(int i = 0; i < total; i++)
     addons_out[i] = license_granted_addons[i];
+}
+
+void LicenseCopyRequestedAddons(string &addons_out[])
+{
+  LicenseCopyAddonArray(license_requested_addons, addons_out);
+}
+
+void LicenseCopyMissingAddons(string &addons_out[])
+{
+  LicenseCopyAddonArray(license_missing_addons, addons_out);
+}
+
+void LicenseCopyBackendMissingAddons(string &addons_out[])
+{
+  LicenseCopyAddonArray(license_backend_missing_addons, addons_out);
+}
+
+bool LicenseAddonIsSatisfied(const string addon_key)
+{
+  string normalized_key = AddonCatalogNormalizeKey(addon_key);
+  if(normalized_key == "")
+    return true;
+  if(normalized_key == ADDON_KEY_COMPOUND_ANY_FAMILY)
+    return LicenseHasAnyCompoundFamilyAddon();
+
+  return LicenseHasAddon(normalized_key);
+}
+
+void LicenseCollectAlwaysRequiredAddons(string &addons_out[])
+{
+  LicenseSplitAddonCsv(license_addons, addons_out);
+}
+
+// Optional chart-specific add-ons are validated locally from granted_addons
+// so one chart's input choices do not force lane-wide backend addon failures.
+void LicenseRefreshRequestedAddonState()
+{
+  string always_required_addons[];
+  LicenseCollectAlwaysRequiredAddons(always_required_addons);
+
+  string runtime_requested_addons[];
+  LICENSE_SHARED_COLLECT_REQUESTED_ADDONS(runtime_requested_addons);
+
+  ArrayResize(license_requested_addons, 0);
+
+  int total_required = ArraySize(always_required_addons);
+  for(int i = 0; i < total_required; i++)
+    LicenseAppendAddonUnique(license_requested_addons, always_required_addons[i]);
+
+  int total_runtime = ArraySize(runtime_requested_addons);
+  for(int i = 0; i < total_runtime; i++)
+    LicenseAppendAddonUnique(license_requested_addons, runtime_requested_addons[i]);
+
+  license_addons = LicenseAddonArrayToCsv(always_required_addons);
+}
+
+void LicenseResolveMissingRequestedAddons(string &missing_addons_out[])
+{
+  ArrayResize(missing_addons_out, 0);
+
+  int total = ArraySize(license_requested_addons);
+  for(int i = 0; i < total; i++)
+  {
+    string addon_key = AddonCatalogNormalizeKey(license_requested_addons[i]);
+    if(addon_key == "")
+      continue;
+    if(LicenseAddonIsSatisfied(addon_key))
+      continue;
+
+    LicenseAppendAddonUnique(missing_addons_out, addon_key);
+  }
+}
+
+string LicenseBuildMissingAddonsChartMessage(const string &missing_addons[])
+{
+  string labels = AddonCatalogJoinDisplayLabels(missing_addons);
+  if(labels == "")
+    return LICENSE_SHARED_PROFILE_NAME + " disabled: required addon entitlement missing.";
+
+  return LICENSE_SHARED_PROFILE_NAME + " disabled: missing addon(s): " + labels;
+}
+
+bool LicenseValidateRequestedAddonsIfNeeded()
+{
+  if(LicenseIsTestingMode())
+    return true;
+  if(last_validation_time <= 0)
+    return true;
+  if(license_last_addon_validation_at == last_validation_time)
+    return true;
+
+  license_last_addon_validation_at = last_validation_time;
+  LicenseRefreshRequestedAddonState();
+  LicenseResolveMissingRequestedAddons(license_missing_addons);
+
+  if(ArraySize(license_missing_addons) <= 0)
+    return true;
+
+  string chart_message = LicenseBuildMissingAddonsChartMessage(license_missing_addons);
+  string missing_keys_csv = LicenseAddonArrayToCsv(license_missing_addons);
+  if(missing_keys_csv != "")
+    PrintFormat("[LicenseAddons] Missing addon key(s): %s", missing_keys_csv);
+  EALifecycleRequestRemoval(chart_message, true);
+  return false;
 }
 
 int LicenseAddonBitIndex(const string addon_key)
@@ -728,6 +957,7 @@ bool LicenseLaneApplySharedSuccessIfAvailable(const datetime now)
   license_magic_number = shared_magic;
   license_magic_number_synced = true;
   LicenseApplyGrantedAddonsMask(shared_mask);
+  LicenseClearAddonFailureDetails();
   return true;
 }
 
@@ -796,6 +1026,7 @@ void LicenseLaneClearReverifyRequest(const datetime handled_at)
 string BuildLicensePayload(const bool include_addons,
                            const LicenseRequestType request_type)
 {
+  LicenseRefreshRequestedAddonState();
   JSON::Object payload;
   payload.setProperty("source", source_secret_key);
   payload.setProperty("email", license_email);
@@ -813,6 +1044,54 @@ string BuildLicensePayload(const bool include_addons,
   payload.setProperty("broker_account", broker_account);
 
   return payload.toString();
+}
+
+void LicenseParseAddonKeysResponseField(JSON::Object &response,
+                                       const string array_field,
+                                       const string csv_field,
+                                       string &addons_out[])
+{
+  ArrayResize(addons_out, 0);
+
+  if(response.isArray(array_field))
+  {
+    JSON::Array *addons = response.getArray(array_field);
+    if(addons != NULL)
+    {
+      int total = addons.getLength();
+      for(int i = 0; i < total; i++)
+      {
+        if(!addons.isString(i))
+          continue;
+        LicenseAppendAddonUnique(addons_out, addons.getString(i));
+      }
+    }
+  }
+
+  if(ArraySize(addons_out) > 0)
+    return;
+
+  if(response.isString(csv_field))
+    LicenseSplitAddonCsv(response.getString(csv_field), addons_out);
+}
+
+void LicenseParseAddonFailureDetails(JSON::Object &response)
+{
+  LicenseClearAddonFailureDetails();
+  LicenseParseAddonKeysResponseField(response,
+                                     "required_addon_keys",
+                                     "required_addons",
+                                     license_backend_required_addons);
+  LicenseParseAddonKeysResponseField(response,
+                                     "missing_addon_keys",
+                                     "missing_addons",
+                                     license_backend_missing_addons);
+
+  if(ArraySize(license_backend_missing_addons) <= 0 &&
+     ArraySize(license_backend_required_addons) > 0)
+  {
+    LicenseCopyAddonArray(license_backend_required_addons, license_backend_missing_addons);
+  }
 }
 
 bool HttpPostJson(const string url,
@@ -859,6 +1138,10 @@ void License_ClearRuntimeDetails()
   license_magic_number = 0;
   license_magic_number_synced = false;
   LicenseClearGrantedAddons();
+  ArrayResize(license_requested_addons, 0);
+  LicenseClearMissingRequestedAddons();
+  LicenseClearAddonFailureDetails();
+  license_last_addon_validation_at = 0;
 }
 
 void License_ParseBrokerAccountFromResponse(JSON::Object &response)
@@ -985,6 +1268,9 @@ bool LicenseSendOnlineRequest(const LicenseRequestType request_type,
   if(response.isString("error"))
     license_last_error = LicenseNormalizeErrorCode(response.getString("error"));
 
+  if(license_last_error == "addons_required")
+    LicenseParseAddonFailureDetails(response);
+
   bool ok = response.isBoolean("ok") ? response.getBoolean("ok") : false;
   if(status_code < 200 || status_code >= 300 || !ok)
   {
@@ -995,10 +1281,18 @@ bool LicenseSendOnlineRequest(const LicenseRequestType request_type,
       license_last_failure_startup_online_limit = true;
 
     if(license_last_error != "")
+    {
       PrintFormat("LICENSE REJECTED (%s) HTTP %d: %s",
                   (request_type == LICENSE_REQUEST_HEARTBEAT ? "heartbeat" : "verify"),
                   status_code,
                   license_last_error);
+      if(license_last_error == "addons_required")
+      {
+        string missing_keys_csv = LicenseAddonArrayToCsv(license_backend_missing_addons);
+        if(missing_keys_csv != "")
+          PrintFormat("[LicenseAddons] Backend missing addon key(s): %s", missing_keys_csv);
+      }
+    }
     else
       PrintFormat("LICENSE SERVER ERROR (%s) HTTP %d.",
                   (request_type == LICENSE_REQUEST_HEARTBEAT ? "heartbeat" : "verify"),
@@ -1016,6 +1310,7 @@ bool LicenseSendOnlineRequest(const LicenseRequestType request_type,
     license_last_heartbeat_time = now;
 
   license_last_error = "";
+  LicenseClearAddonFailureDetails();
   return true;
 }
 
@@ -1141,6 +1436,7 @@ bool VerifyLicenseTester()
 
 bool VerifyLicenseOnlineRequest(const bool is_startup)
 {
+  LicenseRefreshRequestedAddonState();
   bool ok = LicenseSendOnlineRequest(LICENSE_REQUEST_VERIFY, true, is_startup);
   if(!ok)
     return false;

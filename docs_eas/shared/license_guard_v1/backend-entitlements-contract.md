@@ -65,14 +65,15 @@ Purpose:
 - Issue or confirm the lane `magic_number` used by trading + daily results.
 
 Additional request fields:
-- `addons` string (optional CSV of requested add-on keys)
-- If an EA does not require add-on entitlements, omit `addons` or send empty value.
-- Required add-ons are configured per EA in that EA profile (`services/license_service_setup.mqh`), while key normalization/catalog stays shared in `services/shared/license_guard_v1/core/*`.
+- `addons` string (optional CSV of always-required add-on keys)
+- If an EA does not have always-required add-ons, omit `addons` or send empty value.
+- Input-driven optional add-ons should be resolved in the EA/shared-service layer and validated against `granted_addons` after successful `verify`; do not send the whole optional addon set in `addons` for multi-chart lanes.
+- Always-required add-ons are configured per EA profile (`services/license_service_setup.mqh`), while key normalization/catalog stays shared in `services/shared/license_guard_v1/core/*`.
 
 Success (`200 OK`) response:
 - `ok` boolean (`true`)
 - `expires_at` integer (unix seconds)
-- `granted_addons` array (always present, can be `[]`)
+- `granted_addons` array (always present, can be `[]`; shared service uses this for optional/input-driven addon validation after verify)
 - `magic_number` integer (`long`, signed-32-bit-safe positive integer, `1..2147483647`, required on every successful verify)
 - `trial` boolean
 - `plan_interval` string or null
@@ -84,6 +85,13 @@ Known errors:
 - `422`: `invalid_payload`, `expired`, `missing_magic_number`, `invalid_magic_number`
 - `429`: `rate_limited`, `online_limit_reached`
 - `500`: `internal_error`
+
+`addons_required` response metadata:
+- `required_addons` CSV of all backend-requested always-required add-on keys
+- `missing_addons` CSV of the missing subset
+- `required_addon_keys` array of all backend-requested always-required add-on keys
+- `missing_addon_keys` array of the missing subset
+- `missing_addons` / `missing_addon_keys` are the canonical machine-readable fields for shared-service parsing
 
 ## `POST /licenses/heartbeat`
 Purpose:
@@ -262,6 +270,12 @@ Fibonacci EA (`ea_id=fibonacci_elite`) current add-on keys:
 - `addon_compound_reversal_early`
 - `addon_compound_breakout_ready`
 - `addon_compound_volatility_trap`
+
+Fibonacci/HFT Grid AI integration note:
+- These keys are optional/input-driven features, not lane-wide always-required add-ons.
+- The EA should keep `LICENSE_SHARED_REQUIRED_ADDONS_CSV=""` unless a future feature becomes universally required.
+- The EA should expose the currently active addon keys through `LICENSE_SHARED_COLLECT_REQUESTED_ADDONS`.
+- The shared service then compares those requested keys against `granted_addons` after startup/reverify and removes only charts using unowned features.
 
 Pandora Box EA (`ea_id=pandora_box`) current add-on keys:
 - None (`LICENSE_SHARED_REQUIRED_ADDONS_CSV=""` in `services/license_service_setup.mqh`)

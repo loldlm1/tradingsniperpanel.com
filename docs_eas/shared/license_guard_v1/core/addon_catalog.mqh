@@ -75,6 +75,24 @@ string AddonCatalogJoinDisplayLabels(const string &addons[])
   return labels;
 }
 
+string AddonCatalogJoinKeys(const string &addons[])
+{
+  string keys = "";
+  int total = ArraySize(addons);
+  for(int i = 0; i < total; i++)
+  {
+    string normalized_key = AddonCatalogNormalizeKey(addons[i]);
+    if(normalized_key == "")
+      continue;
+
+    if(keys != "")
+      keys += ",";
+    keys += normalized_key;
+  }
+
+  return keys;
+}
+
 void AddonCatalogAllCompoundFamilies(string &addons_out[])
 {
   ArrayResize(addons_out, 5);

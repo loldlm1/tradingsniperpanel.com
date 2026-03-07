@@ -41,6 +41,15 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["granted_addons"]).to eq([])
   end
 
+  it "treats blank addon payloads as base access" do
+    post "/api/v1/licenses/verify", params: verify_params(addons: "")
+
+    expect(response).to have_http_status(:ok)
+    body = JSON.parse(response.body)
+    expect(body["ok"]).to eq(true)
+    expect(body["granted_addons"]).to eq([])
+  end
+
   it "returns the same magic number for repeated verify on the same lane" do
     post "/api/v1/licenses/verify", params: verify_params
     first_magic = JSON.parse(response.body).fetch("magic_number")
@@ -128,6 +137,25 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["error"]).to eq("addons_required")
     expect(body["required_addons"]).to eq(addon.key)
     expect(body["missing_addons"]).to eq(addon.key)
+    expect(body["required_addon_keys"]).to eq([addon.key])
+    expect(body["missing_addon_keys"]).to eq([addon.key])
+  end
+
+  it "returns only the missing addon keys when some requested addons are already owned" do
+    owned_addon = create(:addon, key: "news_filter", addonable: expert_advisor)
+    missing_addon = create(:addon, key: "volatility_trap", addonable: expert_advisor)
+    create(:marketplace_purchase, user: user, billing_plan: owned_addon.billing_plan)
+
+    post "/api/v1/licenses/verify", params: verify_params(addons: "#{owned_addon.key},#{missing_addon.key}")
+
+    expect(response).to have_http_status(:unauthorized)
+    body = JSON.parse(response.body)
+    expect(body["ok"]).to eq(false)
+    expect(body["error"]).to eq("addons_required")
+    expect(body["required_addons"]).to eq("#{owned_addon.key},#{missing_addon.key}")
+    expect(body["missing_addons"]).to eq(missing_addon.key)
+    expect(body["required_addon_keys"]).to eq([owned_addon.key, missing_addon.key])
+    expect(body["missing_addon_keys"]).to eq([missing_addon.key])
   end
 
   it "allows access when required addons are purchased" do

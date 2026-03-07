@@ -79,7 +79,15 @@ string LicenseServiceBuildRemovalMessage(const string fallback_message)
   if(error_code == "expired" || error_code == "license_not_found")
     return prefix + "license expired.";
   if(error_code == "addons_required")
+  {
+    string missing_addons[];
+    LicenseCopyMissingAddons(missing_addons);
+    if(ArraySize(missing_addons) <= 0)
+      LicenseCopyBackendMissingAddons(missing_addons);
+    if(ArraySize(missing_addons) > 0)
+      return LicenseBuildMissingAddonsChartMessage(missing_addons);
     return prefix + "required addon entitlement missing.";
+  }
   if(error_code == "invalid_key" || error_code == "invalid_source")
     return prefix + "license validation failed.";
   if(error_code == "missing_magic_number" || error_code == "invalid_magic_number")
@@ -128,6 +136,7 @@ bool LicenseServiceInit()
   {
     LicenseSetRequestedAddonsCsv(LICENSE_SHARED_REQUIRED_ADDONS_CSV);
   }
+  LicenseRefreshRequestedAddonState();
 #endif
 
 #ifndef LICENSE_ENFORCEMENT_ENABLED
@@ -154,6 +163,9 @@ bool LicenseServiceInit()
     return false;
   }
 
+  if(!LicenseValidateRequestedAddonsIfNeeded())
+    return false;
+
 #ifdef LICENSE_DAILY_RESULTS_ENABLED
   DailyResults_ResetRuntime();
 #endif
@@ -165,6 +177,8 @@ void LicenseServiceOnTimer()
 {
 #ifdef LICENSE_ENFORCEMENT_ENABLED
   LicenseOnline_OnTimer();
+  if(!EALifecycleHasPendingRemoval())
+    LicenseValidateRequestedAddonsIfNeeded();
 #ifdef LICENSE_DAILY_RESULTS_ENABLED
   DailyResults_OnTimer();
 #endif
@@ -287,6 +301,42 @@ int LicenseGrantedAddonCount()
 void LicenseCopyGrantedAddons(string &addons_out[])
 {
   ArrayResize(addons_out, 0);
+}
+
+void LicenseAppendRequestedAddon(string &addons_out[], const string addon_key)
+{
+  int total = ArraySize(addons_out);
+  ArrayResize(addons_out, total + 1);
+  addons_out[total] = addon_key;
+}
+
+void LicenseCopyRequestedAddons(string &addons_out[])
+{
+  ArrayResize(addons_out, 0);
+}
+
+void LicenseCopyMissingAddons(string &addons_out[])
+{
+  ArrayResize(addons_out, 0);
+}
+
+void LicenseCopyBackendMissingAddons(string &addons_out[])
+{
+  ArrayResize(addons_out, 0);
+}
+
+string LicenseBuildMissingAddonsChartMessage(const string &missing_addons[])
+{
+  return LICENSE_SHARED_PROFILE_NAME + " disabled: required addon entitlement missing.";
+}
+
+void LicenseRefreshRequestedAddonState()
+{
+}
+
+bool LicenseValidateRequestedAddonsIfNeeded()
+{
+  return true;
 }
 
 bool IsAdmin()

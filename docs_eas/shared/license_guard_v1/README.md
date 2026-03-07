@@ -55,19 +55,44 @@ Set per-EA values in `services/license_service_setup.mqh` (recommended) before t
 - `LICENSE_SHARED_BASE_SECRET_KEY`
 - `LICENSE_SHARED_ENFORCEMENT_ENABLED` (define to enable; undefine to disable)
 - `LICENSE_SHARED_DAILY_RESULTS_ENABLED` (define to enable; undefine to disable)
-- `LICENSE_SHARED_ENABLE_ADDON_ENTITLEMENTS` (define to enable; undefine to disable)
-- `LICENSE_SHARED_REQUIRED_ADDONS_CSV` (optional; empty string if no add-ons are required)
+- `LICENSE_SHARED_ENABLE_ADDON_ENTITLEMENTS` (define to use the shared addon catalog and friendly labels; otherwise normalized-key fallbacks are used)
+- `LICENSE_SHARED_REQUIRED_ADDONS_CSV` (optional; always-required addon CSV, empty string if none)
 
 Direct include option:
 - If using `license_service.mqh` directly, define the same macros before that include.
 
 ## Optional Add-on Entitlements
 - Add-ons are optional by profile.
-- Single source of truth per EA: `LICENSE_SHARED_REQUIRED_ADDONS_CSV` in `services/license_service_setup.mqh`.
-- `license_service.mqh` seeds the startup verify payload from `LICENSE_SHARED_REQUIRED_ADDONS_CSV`; keep this macro aligned with the EA's backend entitlement contract.
-- EAs that do not require add-ons should keep `LICENSE_SHARED_REQUIRED_ADDONS_CSV` empty.
-- EAs that require add-ons should define the CSV list in `services/license_service_setup.mqh`.
+- `LICENSE_SHARED_REQUIRED_ADDONS_CSV` is only for add-ons that must always be entitled for the EA to run.
+- Input-driven add-ons must not be hardcoded into `LICENSE_SHARED_REQUIRED_ADDONS_CSV`, or every chart in the lane will request them on backend `verify`.
+- For optional/chart-specific add-ons, define `LICENSE_SHARED_COLLECT_REQUESTED_ADDONS` to an EA-local collector function.
+- The shared service resolves that collector at startup and reverify, then compares the currently requested addon keys against backend `granted_addons`.
+- Missing optional add-ons are removed locally with friendly chart labels and addon-key logs, without poisoning the whole lane with backend `addons_required`.
+- EAs that do not require add-ons should keep `LICENSE_SHARED_REQUIRED_ADDONS_CSV` empty and omit the collector hook.
 - The add-on key catalog stays shared and centralized in `services/shared/license_guard_v1/core/addon_catalog.mqh`.
+
+Example hook contract:
+```cpp
+#define LICENSE_SHARED_COLLECT_REQUESTED_ADDONS CollectRequestedAddonsForCurrentInputs
+#include "shared/license_guard_v1/license_service.mqh"
+
+void CollectRequestedAddonsForCurrentInputs(string &addons_out[])
+{
+  ArrayResize(addons_out, 0);
+
+  if(SessionAddonRequested())
+    LicenseAppendRequestedAddon(addons_out, ADDON_KEY_SESSION_TIME_FILTER);
+
+  if(CompoundModeNeedsAnyFamily())
+    LicenseAppendRequestedAddon(addons_out, ADDON_KEY_COMPOUND_ANY_FAMILY);
+}
+```
+
+Hook rules:
+- Return only the add-ons implied by the current EA inputs for this chart.
+- Use `LicenseAppendRequestedAddon()` for normalization and dedupe.
+- If no optional add-ons are enabled, leave `addons_out` empty.
+- Shared-service add-on enforcement runs only after startup/reverify success, not on every timer tick outside the existing verify cadence.
 
 ## Lane Identity and Request Sharing
 The leader/follower lane key is derived from:

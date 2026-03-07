@@ -21,8 +21,9 @@ This plan defines how to migrate EAs to the canonical shared service without amb
 - `LICENSE_SHARED_PROFILE_NAME`
 - `LICENSE_SHARED_BASE_EA_ID`
 - `LICENSE_SHARED_SOURCE_KEY`
-- `LICENSE_SHARED_ENABLE_ADDON_ENTITLEMENTS` (define to enable add-on parsing; undefine to bypass)
-- `LICENSE_SHARED_REQUIRED_ADDONS_CSV` (empty when no add-ons required)
+- `LICENSE_SHARED_ENABLE_ADDON_ENTITLEMENTS` (define to use the shared addon catalog and friendly labels; otherwise normalized-key fallbacks are used)
+- `LICENSE_SHARED_REQUIRED_ADDONS_CSV` (always-required add-ons only; empty when none)
+- `LICENSE_SHARED_COLLECT_REQUESTED_ADDONS` (optional macro alias to the EA-local requested-addon collector)
 - Keep license shared core files under `services/shared/license_guard_v1/core/*` (do not depend on EA-local `services/core/*` for add-on catalog keys).
 
 2. Wire shared service hooks in EA entrypoint.
@@ -44,9 +45,29 @@ This plan defines how to migrate EAs to the canonical shared service without amb
 - Remove ad-hoc daily-results submission implementations.
 
 5. Configure add-ons correctly.
-- EAs with no required add-ons: keep `LICENSE_SHARED_REQUIRED_ADDONS_CSV=""`.
-- EAs with required add-ons: define CSV list, verify `addons_required` handling, and keep fail-closed behavior.
-- Keep per-EA add-on entitlement configuration in that EA's `services/license_service_setup.mqh` only.
+- EAs with no always-required add-ons: keep `LICENSE_SHARED_REQUIRED_ADDONS_CSV=""`.
+- EAs with truly always-required add-ons: define them in `LICENSE_SHARED_REQUIRED_ADDONS_CSV` so backend `verify` can fail with `addons_required`.
+- EAs with input-driven optional add-ons: keep `LICENSE_SHARED_REQUIRED_ADDONS_CSV=""` and implement `LICENSE_SHARED_COLLECT_REQUESTED_ADDONS` to return only the active addon keys for the current chart.
+- Shared service will compare requested addon keys against backend `granted_addons` after startup/reverify success and remove only the chart that is using unowned options.
+- Use `LicenseAppendRequestedAddon()` in the collector to normalize and dedupe addon keys.
+- Keep per-EA input-to-addon mapping in that EA's `services/license_service_setup.mqh` or a nearby EA-local helper include, not in the shared core.
+
+Example optional-addon wiring:
+```cpp
+#define LICENSE_SHARED_COLLECT_REQUESTED_ADDONS CollectRequestedAddonsForCurrentInputs
+#include "shared/license_guard_v1/license_service.mqh"
+
+void CollectRequestedAddonsForCurrentInputs(string &addons_out[])
+{
+  ArrayResize(addons_out, 0);
+
+  if(UseSessionFilter)
+    LicenseAppendRequestedAddon(addons_out, ADDON_KEY_SESSION_TIME_FILTER);
+
+  if(NeedsAnyCompoundFamily)
+    LicenseAppendRequestedAddon(addons_out, ADDON_KEY_COMPOUND_ANY_FAMILY);
+}
+```
 
 6. Validate compile.
 - Run headless compile for the target EA entrypoint.
@@ -64,6 +85,7 @@ This plan defines how to migrate EAs to the canonical shared service without amb
 - Daily results logic references cached backend magic.
 - `LicenseOnline_RequestLeaderReverify()` is used for missing broker account retries.
 - User-facing removal messages are profile-branded but behavior stays shared.
+- Optional add-on EAs do not hardcode the full addon catalog into `LICENSE_SHARED_REQUIRED_ADDONS_CSV`.
 
 ## Rollout Strategy for Multiple Repos
 1. Migrate one EA per repo to completion.

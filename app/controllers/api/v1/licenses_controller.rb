@@ -27,7 +27,9 @@ module Api
             ok: false,
             error: :addons_required,
             required_addons: addon_access.required.join(","),
-            missing_addons: addon_access.missing.join(",")
+            missing_addons: addon_access.missing.join(","),
+            required_addon_keys: addon_access.required,
+            missing_addon_keys: addon_access.missing
           }, status: :unauthorized and return
         end
 
