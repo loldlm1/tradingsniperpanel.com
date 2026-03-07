@@ -65,16 +65,54 @@ init_app_user() {
   fi
 }
 
+require_commands() {
+  local cmd
+
+  for cmd in "$@"; do
+    if ! command -v "${cmd}" >/dev/null 2>&1; then
+      die "Required command '${cmd}' is not installed. Install bootstrap tools first and rerun."
+    fi
+  done
+}
+
 run_as_app_user() {
   local ssh_sock="${SSH_AUTH_SOCK:-}"
+  local escaped_home
+  local -a sudo_cmd
+
   if [[ -z "${ssh_sock}" && -n "${SSH_AUTH_SOCK_FALLBACK:-}" ]]; then
     ssh_sock="${SSH_AUTH_SOCK_FALLBACK}"
   fi
+
+  printf -v escaped_home "%q" "${APP_HOME}"
+  sudo_cmd=(
+    sudo
+    -H
+    -u
+    "${APP_USER}"
+    env
+    "HOME=${APP_HOME}"
+    "USER=${APP_USER}"
+    "LOGNAME=${APP_USER}"
+    "PATH=/usr/local/bin:/usr/bin:/bin"
+  )
+
   if [[ -n "${ssh_sock}" ]]; then
-    sudo -u "${APP_USER}" SSH_AUTH_SOCK="${ssh_sock}" bash -lc "[[ -f ~/.bashrc ]] && source ~/.bashrc; $*"
-  else
-    sudo -u "${APP_USER}" bash -lc "[[ -f ~/.bashrc ]] && source ~/.bashrc; $*"
+    sudo_cmd+=("SSH_AUTH_SOCK=${ssh_sock}")
   fi
+
+  sudo_cmd+=(
+    bash
+    --noprofile
+    --norc
+    -e
+    -o
+    pipefail
+    -c
+    "cd ${escaped_home} && [[ -f ~/.bashrc ]] && source ~/.bashrc; [[ -f ~/.asdf/asdf.sh ]] && source ~/.asdf/asdf.sh; $*"
+  )
+
+  "${sudo_cmd[@]}"
 }
 
 tcp_port_reachable() {
@@ -84,54 +122,101 @@ tcp_port_reachable() {
   timeout 5 bash -lc "cat < /dev/null > /dev/tcp/${host}/${port}" >/dev/null 2>&1
 }
 
-select_git_ssh_command() {
+repo_uses_ssh_transport() {
   local repo_url="$1"
-  local default_cmd="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
-  local github_443_cmd="${default_cmd} -o HostName=ssh.github.com -p 443"
-  local forced_port="${GITHUB_SSH_PORT:-}"
-  local is_github_ssh=0
 
-  if [[ "${repo_url}" == git@github.com:* || "${repo_url}" == ssh://git@github.com/* ]]; then
-    is_github_ssh=1
-  fi
+  [[ "${repo_url}" == git@* || "${repo_url}" == ssh://* ]]
+}
 
-  if (( ! is_github_ssh )); then
-    printf "%s" "${default_cmd}"
-    return 0
-  fi
+repo_uses_github_ssh() {
+  local repo_url="$1"
 
-  case "${forced_port}" in
+  [[ "${repo_url}" == git@github.com:* || "${repo_url}" == ssh://git@github.com/* ]]
+}
+
+github_ssh_host_port() {
+  case "${GITHUB_SSH_PORT:-}" in
     22)
-      log "Using GitHub SSH over port 22 (forced by GITHUB_SSH_PORT=22)."
-      printf "%s" "${default_cmd}"
-      return 0
+      printf "%s %s\n" "github.com" "22"
       ;;
-    443)
-      log "Using GitHub SSH over port 443 (forced by GITHUB_SSH_PORT=443)."
-      printf "%s" "${github_443_cmd}"
-      return 0
-      ;;
-    "")
+    ""|443)
+      printf "%s %s\n" "ssh.github.com" "443"
       ;;
     *)
-      warn "Ignoring unsupported GITHUB_SSH_PORT='${forced_port}'. Expected 22 or 443."
+      warn "Ignoring unsupported GITHUB_SSH_PORT='${GITHUB_SSH_PORT}'. Expected 22 or 443. Defaulting to 443."
+      printf "%s %s\n" "ssh.github.com" "443"
       ;;
   esac
+}
 
-  if tcp_port_reachable "github.com" "22"; then
-    log "Using GitHub SSH over port 22."
+select_git_ssh_command() {
+  local repo_url="$1"
+  local default_cmd="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=5 -o ConnectionAttempts=1"
+  local host port
+
+  if ! repo_uses_github_ssh "${repo_url}"; then
     printf "%s" "${default_cmd}"
     return 0
   fi
 
-  if tcp_port_reachable "ssh.github.com" "443"; then
-    warn "GitHub SSH port 22 is unreachable; falling back to ssh.github.com:443."
-    printf "%s" "${github_443_cmd}"
+  read -r host port < <(github_ssh_host_port)
+  if [[ "${host}" == "github.com" && "${port}" == "22" ]]; then
+    printf "%s" "${default_cmd}"
     return 0
   fi
 
-  warn "Could not reach GitHub SSH on port 22 or 443; defaulting to port 22 command."
-  printf "%s" "${default_cmd}"
+  printf "%s -o HostName=%s -p %s" "${default_cmd}" "${host}" "${port}"
+}
+
+git_env_prefix_for_repo() {
+  local repo_url="$1"
+  local git_ssh_command
+  local git_env
+
+  if repo_uses_ssh_transport "${repo_url}"; then
+    git_ssh_command="$(select_git_ssh_command "${repo_url}")"
+    printf -v git_env "GIT_SSH_COMMAND=%q GIT_TERMINAL_PROMPT=0" "${git_ssh_command}"
+    printf "%s" "${git_env}"
+    return 0
+  fi
+
+  printf "%s" "GIT_TERMINAL_PROMPT=0"
+}
+
+preflight_repo_access() {
+  local repo_url="$1"
+  local branch="$2"
+  local git_env
+  local github_host github_port
+
+  require_commands git ssh timeout
+  git_env="$(git_env_prefix_for_repo "${repo_url}")"
+
+  if repo_uses_github_ssh "${repo_url}"; then
+    read -r github_host github_port < <(github_ssh_host_port)
+    log "Using GitHub SSH via ${github_host}:${github_port}."
+    if ! tcp_port_reachable "${github_host}" "${github_port}"; then
+      if [[ "${github_port}" == "443" ]]; then
+        die "GitHub SSH via ${github_host}:${github_port} is unreachable from this host. Update the GCore firewall or rerun with GITHUB_SSH_PORT=22 if port 22 is intentionally allowed."
+      fi
+      die "GitHub SSH via ${github_host}:${github_port} is unreachable from this host. Restore port 22 access or clear GITHUB_SSH_PORT to use the default 443 route."
+    fi
+  fi
+
+  if repo_uses_ssh_transport "${repo_url}" && ! run_as_app_user "ssh-add -L >/dev/null 2>&1"; then
+    warn "SSH agent has no keys loaded for ${APP_USER}; continuing with direct SSH key auth."
+  fi
+
+  if ! run_as_app_user "${git_env} git ls-remote '${repo_url}' HEAD >/dev/null"; then
+    if repo_uses_ssh_transport "${repo_url}"; then
+      die "Failed to access ${repo_url}. Ensure ${APP_USER} has an authorized SSH key for the selected GitHub route."
+    fi
+    die "Failed to access ${repo_url}. Verify repository access and rerun."
+  fi
+
+  if [[ -n "${branch}" ]] && ! run_as_app_user "${git_env} git ls-remote --exit-code --heads '${repo_url}' '${branch}' >/dev/null"; then
+    die "Branch '${branch}' was not found or is not accessible on ${repo_url}."
+  fi
 }
 
 reexec_from_repo_if_needed() {
@@ -199,8 +284,8 @@ reexec_from_repo_if_needed() {
   fi
 
   if (( updated )); then
-    log "Updated deploy scripts from repo. Re-running ${local_script}."
-    exec env SETUP_REEXECED=1 "${local_script}" "${args[@]}"
+    log "Updated deploy scripts from repo. Re-running ${local_script} via bash."
+    exec env SETUP_REEXECED=1 bash "${local_script}" "${args[@]}"
   fi
 }
 
@@ -315,25 +400,19 @@ ensure_repo() {
   local repo_url="$1"
   local app_dir="$2"
   local branch="$3"
-  local git_env=""
-  local git_ssh_command=""
-  local repo_is_ssh=0
+  local git_env
 
-  if [[ "${repo_url}" == git@* || "${repo_url}" == ssh://* ]]; then
-    repo_is_ssh=1
-    git_ssh_command="$(select_git_ssh_command "${repo_url}")"
-    git_env="GIT_SSH_COMMAND='${git_ssh_command}' GIT_TERMINAL_PROMPT=0"
-    if ! run_as_app_user "ssh-add -L >/dev/null 2>&1"; then
-      warn "SSH agent has no keys loaded for ${APP_USER}; continuing with direct SSH key auth."
-    fi
-  else
-    git_env="GIT_TERMINAL_PROMPT=0"
+  git_env="$(git_env_prefix_for_repo "${repo_url}")"
+  preflight_repo_access "${repo_url}" "${branch}"
+
+  if [[ -d "${app_dir}" && ! -d "${app_dir}/.git" ]]; then
+    die "${app_dir} exists but is not a git checkout. Move it aside or remove it before running setup."
   fi
 
   if [[ ! -d "${app_dir}/.git" ]]; then
     log "Cloning repo into ${app_dir}"
     if ! run_as_app_user "${git_env} git clone '${repo_url}' '${app_dir}'"; then
-      if (( repo_is_ssh )); then
+      if repo_uses_ssh_transport "${repo_url}"; then
         die "Failed to clone ${repo_url}. Ensure ${APP_USER} has an authorized private key via SSH agent or ~/.ssh (or set REPO_URL to HTTPS)."
       fi
       die "Failed to clone ${repo_url}. Verify repository access and rerun."
@@ -347,7 +426,7 @@ ensure_repo() {
   fi
 
   if ! run_as_app_user "cd '${app_dir}' && ${git_env} git fetch origin"; then
-    if (( repo_is_ssh )); then
+    if repo_uses_ssh_transport "${repo_url}"; then
       die "Failed to fetch origin from ${repo_url}. Ensure ${APP_USER} has an authorized private key via SSH agent or ~/.ssh (or set REPO_URL to HTTPS)."
     fi
     die "Failed to fetch origin from ${repo_url}. Verify repository access and rerun."
@@ -358,13 +437,6 @@ ensure_repo() {
   fi
   if ! run_as_app_user "cd '${app_dir}' && git diff --cached --quiet --ignore-submodules --"; then
     die "Staged changes in ${app_dir}. Commit or unstage before running setup."
-  fi
-
-  if ! run_as_app_user "cd '${app_dir}' && ${git_env} git ls-remote --exit-code --heads origin '${branch}' >/dev/null"; then
-    if (( repo_is_ssh )); then
-      die "Unable to verify branch '${branch}' on origin. Check branch name and SSH key access for ${repo_url}."
-    fi
-    die "Branch '${branch}' not found on origin."
   fi
 
   if run_as_app_user "cd '${app_dir}' && git show-ref --verify --quiet 'refs/heads/${branch}'"; then

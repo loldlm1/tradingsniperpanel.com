@@ -14,10 +14,10 @@ BRANCH="staging"
 ENVRC="${APP_DIR}/.envrc"
 ENV_FILE="${ENV_DIR}/staging.env"
 
-ensure_packages
-ensure_asdf
 ensure_repo "${REPO_URL}" "${APP_DIR}" "${BRANCH}"
 reexec_from_repo_if_needed "${APP_DIR}" "setup_staging.sh" "${BASH_SOURCE[0]}" "$@"
+ensure_packages
+ensure_asdf
 ensure_asdf_plugins "${APP_DIR}/.tool-versions"
 ensure_envrc "${APP_DIR}"
 
