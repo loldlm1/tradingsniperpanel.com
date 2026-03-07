@@ -73,7 +73,7 @@ Success (`200 OK`) response:
 - `ok` boolean (`true`)
 - `expires_at` integer (unix seconds)
 - `granted_addons` array (always present, can be `[]`)
-- `magic_number` integer (`long`, `> 0`, required on every successful verify)
+- `magic_number` integer (`long`, signed-32-bit-safe positive integer, `1..2147483647`, required on every successful verify)
 - `trial` boolean
 - `plan_interval` string or null
 - `broker_account` object (echo of server-side account identity)
@@ -111,7 +111,7 @@ Purpose:
 - Independent from online seat allocation logic.
 
 Additional required fields:
-- `magic_number` integer (`long`, `> 0`) from the latest successful `verify` cache
+- `magic_number` integer (`long`, signed-32-bit-safe positive integer, `1..2147483647`) from the latest successful `verify` cache
 - `result_timestamp` integer unix seconds (`> 0`)
 - `result_value` decimal string/number (max 2 decimals)
 
@@ -120,6 +120,7 @@ Rules:
 - `magic_number` is required immediately (no compatibility fallback).
 - First successful `verify` is allowed to create/assign a new `magic_number`.
 - Every later `verify` for the same lane must return the same active `magic_number`.
+- If a legacy lane still holds an oversized pre-upgrade value, the first successful `verify` after rollout may reassign that lane to a new supported `magic_number`; EA runtime must always trust the latest successful `verify` response.
 - If `verify` fails or returns no valid `magic_number`, EA must fail/remove (no local/random fallback).
 - Duplicate entries are rejected for the same uniqueness key:
   - `broker_account + ea_id + magic_number + UTC day`
@@ -239,6 +240,7 @@ Message policy:
 - No request storms during reconnects or temporary backend failures.
 - Daily results remain independent per `ea_id + magic_number`.
 - Runtime trading magic is sourced from successful `verify` responses only (no random/local fallback in live mode).
+- Runtime trading magic stays within the signed-32-bit-safe positive range expected by the shared service.
 
 ## Add-on keys (server source of truth)
 - `addon_session_time_filter (299$)`

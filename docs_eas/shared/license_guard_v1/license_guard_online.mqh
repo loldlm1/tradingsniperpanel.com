@@ -54,6 +54,8 @@ const int license_startup_sync_max_polls = 25;
 const int license_startup_sync_poll_sleep_ms = 200;
 
 const string license_lane_key_prefix = "SNP_LANE";
+const long license_magic_number_min = 1;
+const long license_magic_number_max = 2147483647;
 
 enum LicenseRequestType
 {
@@ -141,6 +143,32 @@ string LicenseNormalizeErrorCode(const string raw_error)
   string normalized = Trim(raw_error);
   StringToLower(normalized);
   return normalized;
+}
+
+bool LicenseMagicNumberIsSupported(const long value)
+{
+  return (value >= license_magic_number_min && value <= license_magic_number_max);
+}
+
+bool LicenseGlobalDoubleToSupportedMagicNumber(const string key,
+                                               long &magic_number)
+{
+  magic_number = 0;
+  if(!GlobalVariableCheck(key))
+    return false;
+
+  double raw_magic = GlobalVariableGet(key);
+  if(raw_magic <= 0.0)
+    return false;
+
+  long parsed_magic = (long)raw_magic;
+  if((double)parsed_magic != raw_magic)
+    return false;
+  if(!LicenseMagicNumberIsSupported(parsed_magic))
+    return false;
+
+  magic_number = parsed_magic;
+  return true;
 }
 
 bool LicenseErrorIsOnlineLimitReached(const string error_code)
@@ -242,7 +270,7 @@ bool LicenseIsTestingMode()
 
 bool LicenseHasValidCachedMagicNumber()
 {
-  return (license_magic_number_synced && license_magic_number > 0);
+  return (license_magic_number_synced && LicenseMagicNumberIsSupported(license_magic_number));
 }
 
 long LicenseGetCachedMagicNumber()
@@ -541,7 +569,8 @@ void LicenseLaneWriteSharedSuccess(const datetime now)
   GlobalVariableSet(LicenseLaneGlobalKey("ERR_AT"), 0.0);
   GlobalVariableSet(LicenseLaneGlobalKey("HTTP"), (double)license_last_http_status);
   GlobalVariableSet(LicenseLaneGlobalKey("ADDON"), (double)LicenseGrantedAddonsMask());
-  GlobalVariableSet(LicenseLaneGlobalKey("MAGIC"), (double)license_magic_number);
+  GlobalVariableSet(LicenseLaneGlobalKey("MAGIC"),
+                    (LicenseMagicNumberIsSupported(license_magic_number) ? (double)license_magic_number : 0.0));
   GlobalVariableSet(LicenseLaneGlobalKey("CLAIM_AT"), (double)((long)license_instance_verified_startup_at));
 }
 
@@ -586,8 +615,7 @@ bool LicenseLaneReadSharedState(datetime &last_ok,
     error_at = (datetime)((long)GlobalVariableGet(key_err_at));
   if(GlobalVariableCheck(key_addon))
     addons_mask = (ulong)((long)GlobalVariableGet(key_addon));
-  if(GlobalVariableCheck(key_magic))
-    magic_number = (long)GlobalVariableGet(key_magic);
+  LicenseGlobalDoubleToSupportedMagicNumber(key_magic, magic_number);
 
   return (last_ok > 0 || expires_at > 0 || error_code != "" || magic_number > 0);
 }
@@ -873,10 +901,11 @@ bool License_ParseMagicNumberFromResponse(JSON::Object &response)
   }
 
   long parsed_magic_number = (long)response.getNumber("magic_number");
-  if(parsed_magic_number <= 0)
+  if(!LicenseMagicNumberIsSupported(parsed_magic_number))
   {
     license_last_error = "invalid_magic_number";
-    Print("LICENSE RESPONSE INVALID magic_number.");
+    PrintFormat("LICENSE RESPONSE INVALID magic_number=%I64d. Expected supported signed-32-bit-safe value.",
+                parsed_magic_number);
     return false;
   }
 

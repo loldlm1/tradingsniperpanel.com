@@ -102,7 +102,7 @@ module BrokerAccounts
       return :missing if raw.blank?
 
       value = Integer(raw.to_s, 10)
-      return nil unless value.positive?
+      return nil unless Licenses::MagicNumberPolicy.supported?(value)
 
       value
     rescue ArgumentError, TypeError

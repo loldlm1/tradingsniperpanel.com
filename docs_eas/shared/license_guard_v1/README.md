@@ -39,6 +39,7 @@ Canonical reusable license service for MT5 EAs in this repository.
 6. Wire `OnDeinit` to `LicenseServiceOnDeinit()`.
 7. Use `LicenseGetCachedMagicNumber()` as the runtime trading magic in live mode.
 8. If `LicenseGetCachedMagicNumber() <= 0` after startup verify, fail closed and remove EA.
+9. If a rollout reassigns an oversized legacy lane value, trust the latest successful `verify` response as the new runtime magic source.
 
 Advanced/custom option:
 - Include `services/shared/license_guard_v1/license_service.mqh` directly only when a repo intentionally does not use `services/license_service_setup.mqh`.
@@ -79,6 +80,7 @@ Runtime rules:
 
 ## Daily Results Rules
 - Daily results use backend `magic_number` from verify cache only.
+- Shared service expects a signed-32-bit-safe positive `magic_number` (`1..2147483647`).
 - Local dedupe key includes `account + ea_id + magic_number`.
 - Closed PnL aggregation filters by `DEAL_MAGIC == magic_number`.
 

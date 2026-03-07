@@ -44,4 +44,11 @@ RSpec.describe LicenseLaneMagicNumber, type: :model do
     expect(duplicate).not_to be_valid
     expect(duplicate.errors[:account_number]).to include("has already been taken")
   end
+
+  it "rejects oversized magic numbers" do
+    lane = build(:license_lane_magic_number, magic_number: Licenses::MagicNumberPolicy::MAX_VALUE + 1)
+
+    expect(lane).not_to be_valid
+    expect(lane.errors[:magic_number]).to include("must be less than or equal to #{Licenses::MagicNumberPolicy::MAX_VALUE}")
+  end
 end

@@ -22,6 +22,7 @@ RSpec.describe Licenses::LaneMagicNumberAllocator do
 
     expect(result).to be_ok
     expect(result.magic_number).to be > 0
+    expect(result.magic_number).to be <= Licenses::MagicNumberPolicy::MAX_VALUE
 
     lane = LicenseLaneMagicNumber.find_by!(
       license_id: license.id,
@@ -55,6 +56,33 @@ RSpec.describe Licenses::LaneMagicNumberAllocator do
     expect(LicenseLaneMagicNumber.count).to eq(1)
   end
 
+  it "remaps oversized legacy lane values on verify reuse" do
+    lane = create(
+      :license_lane_magic_number,
+      license: license,
+      source: source,
+      email: email,
+      company: broker_account[:company],
+      account_number: broker_account[:account_number],
+      account_type: broker_account[:account_type],
+      magic_number: 123_456_789
+    )
+    previous_magic_number = 5_544_576_807_936_763_904
+    lane.update_columns(magic_number: previous_magic_number)
+
+    result = described_class.new(
+      license: license,
+      source: source,
+      email: email,
+      broker_account: broker_account
+    ).call
+
+    expect(result).to be_ok
+    expect(result.magic_number).to be <= Licenses::MagicNumberPolicy::MAX_VALUE
+    expect(result.magic_number).not_to eq(previous_magic_number)
+    expect(lane.reload.magic_number).to eq(result.magic_number)
+  end
+
   it "creates different lane magic numbers for different EAs" do
     other_license = create(:license, :one_time, user: license.user)
 
@@ -75,6 +103,7 @@ RSpec.describe Licenses::LaneMagicNumberAllocator do
     expect(first).to be_ok
     expect(second).to be_ok
     expect(second.magic_number).not_to eq(first.magic_number)
+    expect(second.magic_number).to be <= Licenses::MagicNumberPolicy::MAX_VALUE
   end
 
   it "rejects invalid broker payloads" do

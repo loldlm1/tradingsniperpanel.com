@@ -37,6 +37,7 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["trial"]).to eq(false)
     expect(body["expires_at"]).to eq(expires_at.to_i)
     expect(body["magic_number"]).to be > 0
+    expect(body["magic_number"]).to be <= Licenses::MagicNumberPolicy::MAX_VALUE
     expect(body["granted_addons"]).to eq([])
   end
 
@@ -48,6 +49,38 @@ RSpec.describe "Licenses API", type: :request do
     second_magic = JSON.parse(response.body).fetch("magic_number")
 
     expect(first_magic).to eq(second_magic)
+  end
+
+  it "remaps oversized legacy lane magic numbers on verify" do
+    lane = create(
+      :license_lane_magic_number,
+      license: license,
+      source: source_id,
+      email: user.email,
+      company: broker_account_payload.fetch(:company),
+      account_number: broker_account_payload.fetch(:account_number),
+      account_type: broker_account_payload.fetch(:account_type),
+      magic_number: 123_456_789
+    )
+    previous_magic_number = 5_544_576_807_936_763_904
+    lane.update_columns(magic_number: previous_magic_number)
+
+    post "/api/v1/licenses/verify", params: verify_params
+
+    expect(response).to have_http_status(:ok)
+    body = JSON.parse(response.body)
+    expect(body["magic_number"]).to be <= Licenses::MagicNumberPolicy::MAX_VALUE
+
+    lane = LicenseLaneMagicNumber.find_by!(
+      license_id: license.id,
+      source: source_id,
+      email: user.email,
+      company: broker_account_payload.fetch(:company).downcase,
+      account_number: broker_account_payload.fetch(:account_number),
+      account_type: broker_account_payload.fetch(:account_type)
+    )
+    expect(lane.magic_number).to eq(body.fetch("magic_number"))
+    expect(lane.magic_number).not_to eq(previous_magic_number)
   end
 
   it "rejects invalid sources" do
@@ -133,6 +166,7 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["ok"]).to eq(true)
     expect(body["trial"]).to eq(false)
     expect(body["magic_number"]).to be > 0
+    expect(body["magic_number"]).to be <= Licenses::MagicNumberPolicy::MAX_VALUE
     expect(body["granted_addons"]).to eq([addon.key])
     expect(privileged_user.licenses.find_by(expert_advisor: privileged_ea)&.source).to eq("role_access")
   end
@@ -191,6 +225,7 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["trial"]).to eq(false)
     expect(body["expires_at"]).to eq(License::LIFETIME_EXPIRES_AT.to_i)
     expect(body["magic_number"]).to be > 0
+    expect(body["magic_number"]).to be <= Licenses::MagicNumberPolicy::MAX_VALUE
   end
 
   it "rejects new connections when subscription seat cap is exhausted" do

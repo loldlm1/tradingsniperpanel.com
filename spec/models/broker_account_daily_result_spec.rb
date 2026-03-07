@@ -75,4 +75,11 @@ RSpec.describe BrokerAccountDailyResult, type: :model do
     expect(totals[Date.new(2025, 1, 15)]).to eq(BigDecimal("7.75"))
     expect(totals[Date.new(2025, 1, 16)]).to eq(BigDecimal("5.0"))
   end
+
+  it "rejects oversized magic numbers" do
+    result = build(:broker_account_daily_result, magic_number: Licenses::MagicNumberPolicy::MAX_VALUE + 1)
+
+    expect(result).not_to be_valid
+    expect(result.errors[:magic_number]).to include("must be less than or equal to #{Licenses::MagicNumberPolicy::MAX_VALUE}")
+  end
 end

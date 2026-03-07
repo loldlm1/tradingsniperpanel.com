@@ -11,6 +11,7 @@ This plan defines how to migrate EAs to the canonical shared service without amb
 - One lane leader per `source + email + ea_id + company + account_number + account_type`.
 - Followers do not send duplicate verify/heartbeat requests while leader is healthy.
 - Runtime magic is always sourced from successful `verify` response.
+- Runtime magic stays inside the shared-service supported signed-32-bit-safe positive range.
 - Missing/invalid `magic_number` is fail-closed.
 - Daily results keying and deal aggregation are scoped by `magic_number`.
 
@@ -35,6 +36,7 @@ This plan defines how to migrate EAs to the canonical shared service without amb
 - Live mode: use `LicenseGetCachedMagicNumber()` only.
 - Tester mode behavior can stay EA-specific.
 - If cached magic is invalid after startup verify, return `INIT_FAILED` and remove EA.
+- After upgrading from older oversized lane values, accept the latest successful `verify` response as authoritative for the lane's new runtime magic.
 
 4. Remove legacy code paths.
 - Remove old decrypt-only/offline gate logic for production flow.
@@ -49,6 +51,11 @@ This plan defines how to migrate EAs to the canonical shared service without amb
 6. Validate compile.
 - Run headless compile for the target EA entrypoint.
 - No test harness is required by this migration plan unless requested.
+
+7. Validate rollout behavior.
+- Restart/re-attach the EA so startup `verify` can refresh any legacy oversized lane magic.
+- Confirm logs show a successful verify with a supported signed-32-bit-safe `magic_number`.
+- Confirm trading and `daily_results` reuse that refreshed value.
 
 ## Code Review Checklist
 - No duplicated license network callers remain outside shared service.

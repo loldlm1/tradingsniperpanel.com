@@ -1,5 +1,3 @@
-require "securerandom"
-
 module Licenses
   class LaneMagicNumberAllocator
     Result = Struct.new(:ok, :code, :error, :magic_number, :record, keyword_init: true) do
@@ -9,7 +7,6 @@ module Licenses
     end
 
     MAX_ASSIGN_ATTEMPTS = 20
-    MAX_MAGIC_NUMBER = (2**63) - 1
 
     def initialize(license:, source:, email:, broker_account:, logger: Rails.logger)
       @license = license
@@ -34,7 +31,12 @@ module Licenses
       return failure(:invalid_payload, :unprocessable_content) if lane_attrs[:source].blank? || lane_attrs[:email].blank?
 
       existing = LicenseLaneMagicNumber.find_by(lane_attrs)
-      return success(existing) if existing&.magic_number.to_i.positive?
+      return success(existing) if existing&.transport_safe_magic_number?
+
+      if existing.present?
+        remapped = remap_existing_magic_number!(existing)
+        return success(remapped)
+      end
 
       assigned = assign_new_magic_number!(lane_attrs)
       success(assigned)
@@ -73,17 +75,47 @@ module Licenses
         attempts += 1
         begin
           return LicenseLaneMagicNumber.create!(lane_attrs.merge(magic_number: generate_magic_number))
-        rescue ActiveRecord::RecordNotUnique
+        rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid => e
           existing = LicenseLaneMagicNumber.find_by(lane_attrs)
-          return existing if existing&.magic_number.to_i.positive?
+          return existing if existing&.transport_safe_magic_number?
+          return remap_existing_magic_number!(existing) if existing.present?
 
+          raise unless retryable_magic_number_collision?(e)
           raise if attempts >= MAX_ASSIGN_ATTEMPTS
         end
       end
     end
 
+    def remap_existing_magic_number!(record)
+      attempts = 0
+
+      loop do
+        attempts += 1
+
+        record.with_lock do
+          record.reload
+          return record if record.transport_safe_magic_number?
+
+          previous_magic_number = record.magic_number
+          record.update!(magic_number: generate_magic_number)
+
+          logger.info(
+            "[Licenses::LaneMagicNumberAllocator] remapped oversized magic_number " \
+            "license_id=#{license.id} source=#{record.source} email=#{record.email} " \
+            "account_number=#{record.account_number} old_magic_number=#{previous_magic_number} " \
+            "new_magic_number=#{record.magic_number}"
+          )
+
+          return record
+        end
+      rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid => e
+        raise unless retryable_magic_number_collision?(e)
+        raise if attempts >= MAX_ASSIGN_ATTEMPTS
+      end
+    end
+
     def generate_magic_number
-      SecureRandom.random_number(MAX_MAGIC_NUMBER) + 1
+      Licenses::MagicNumberPolicy.generate
     end
 
     def safe_account_number(raw)
@@ -100,6 +132,13 @@ module Licenses
 
     def normalize_email(value)
       value.to_s.strip.downcase
+    end
+
+    def retryable_magic_number_collision?(error)
+      return true if error.is_a?(ActiveRecord::RecordNotUnique)
+      return false unless error.is_a?(ActiveRecord::RecordInvalid)
+
+      error.record.errors.of_kind?(:magic_number, :taken)
     end
 
     def success(record)

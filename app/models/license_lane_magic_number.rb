@@ -13,7 +13,11 @@ class LicenseLaneMagicNumber < ApplicationRecord
   validates :company, presence: true
   validates :account_number, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :account_type, presence: true
-  validates :magic_number, presence: true, numericality: { only_integer: true, greater_than: 0 }, uniqueness: true
+  validates :magic_number, presence: true, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: Licenses::MagicNumberPolicy::MIN_VALUE,
+    less_than_or_equal_to: Licenses::MagicNumberPolicy::MAX_VALUE
+  }, uniqueness: true
   validates :account_number, uniqueness: {
     scope: %i[license_id source email company account_type],
     message: :taken
@@ -22,6 +26,10 @@ class LicenseLaneMagicNumber < ApplicationRecord
   before_validation :normalize_source
   before_validation :normalize_email
   before_validation :normalize_company
+
+  def transport_safe_magic_number?
+    Licenses::MagicNumberPolicy.supported?(magic_number)
+  end
 
   private
 

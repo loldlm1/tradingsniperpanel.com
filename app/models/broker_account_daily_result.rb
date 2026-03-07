@@ -3,7 +3,11 @@ class BrokerAccountDailyResult < ApplicationRecord
   belongs_to :expert_advisor
 
   validates :expert_advisor, presence: true
-  validates :magic_number, presence: true, numericality: { only_integer: true, greater_than: 0 }
+  validates :magic_number, presence: true, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: Licenses::MagicNumberPolicy::MIN_VALUE,
+    less_than_or_equal_to: Licenses::MagicNumberPolicy::MAX_VALUE
+  }
   validates :result_timestamp, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :result_value, presence: true, numericality: true
   validate :result_value_scale

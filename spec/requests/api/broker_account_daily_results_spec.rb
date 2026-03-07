@@ -195,4 +195,28 @@ RSpec.describe "Broker account daily results API", type: :request do
     expect(body["ok"]).to eq(false)
     expect(body["error"]).to eq("invalid_magic_number")
   end
+
+  it "rejects requests with oversized magic_number values" do
+    params = {
+      source: source_id,
+      email: user.email,
+      ea_id: expert_advisor.ea_id,
+      license_key: license_key,
+      broker_account: {
+        company: broker_account.company,
+        account_number: broker_account.account_number,
+        account_type: broker_account.account_type
+      },
+      magic_number: Licenses::MagicNumberPolicy::MAX_VALUE + 1,
+      result_timestamp: timestamp,
+      result_value: "5.00"
+    }
+
+    post "/api/v1/broker_accounts/daily_results", params: params
+
+    expect(response).to have_http_status(:unprocessable_content)
+    body = JSON.parse(response.body)
+    expect(body["ok"]).to eq(false)
+    expect(body["error"]).to eq("invalid_magic_number")
+  end
 end
