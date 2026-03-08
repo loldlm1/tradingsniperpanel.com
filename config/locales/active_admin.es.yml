@@ -70,6 +70,31 @@ es:
         metadata: "JSON opcional para flags internos o integraciones."
       errors:
         metadata_invalid: "El metadata debe ser JSON válido."
+    promotion_codes:
+      created: "Código promocional creado."
+      updated: "Código promocional actualizado."
+      activated: "Código promocional activado."
+      deactivated: "Código promocional desactivado."
+      archived: "Código promocional archivado."
+      restored: "Código promocional restaurado."
+      sections:
+        details: "Detalles"
+        english_copy: "Copy en inglés"
+        spanish_copy: "Copy en español"
+        advanced: "Restricciones avanzadas de Stripe"
+        stripe: "Sync con Stripe"
+      actions:
+        activate: "Activar"
+        deactivate: "Desactivar"
+        archive: "Archivar"
+        restore: "Restaurar"
+      hints:
+        code: "Código en mayúsculas que verá el cliente en el checkout de Stripe."
+        active: "Solo una promoción activa no archivada puede permanecer activa a la vez."
+        expires_at: "Fecha y hora opcional de expiración para el código promocional de Stripe."
+        max_redemptions: "Límite opcional de redenciones en Stripe."
+      errors:
+        invalid_expiration: "La expiración debe ser una fecha y hora válidas."
     plan_entitlements:
       sections:
         details: "Detalles"

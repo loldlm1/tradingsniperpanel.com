@@ -1,38 +1,27 @@
 module Marketing
   class DiscountBanner
-    MAX_PERCENT = 100
-
-    def initialize(code: ENV["DISCOUNT_BANNER_CODE"], percent: ENV["DISCOUNT_BANNER_PERCENT"])
-      @code = code.to_s.strip
-      @percent = percent.to_s.strip
+    def initialize(locale: I18n.locale, resolver: ActivePromotionResolver.new)
+      @locale = locale
+      @resolver = resolver
     end
 
     def call
-      return if code.blank?
-
-      normalized_percent = parse_percent(percent)
-      return if normalized_percent.nil?
+      promotion = resolver.call
+      return unless promotion
 
       {
-        code: code,
-        percent: normalized_percent
+        id: promotion.id,
+        code: promotion.code,
+        percent: promotion.percent_off,
+        title: promotion.localized_title(locale),
+        body: promotion.localized_body(locale),
+        cta_label: promotion.localized_cta_label(locale),
+        updated_at: promotion.updated_at
       }
     end
 
     private
 
-    attr_reader :code, :percent
-
-    def parse_percent(raw_value)
-      cleaned = raw_value.to_s.delete("%").strip
-      return if cleaned.blank?
-
-      value = Integer(cleaned, 10)
-      return if value <= 0 || value > MAX_PERCENT
-
-      value
-    rescue ArgumentError
-      nil
-    end
+    attr_reader :locale, :resolver
   end
 end

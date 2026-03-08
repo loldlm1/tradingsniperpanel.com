@@ -1,39 +1,33 @@
 require "rails_helper"
 
 RSpec.describe Marketing::DiscountBanner do
-  around do |example|
-    original_code = ENV["DISCOUNT_BANNER_CODE"]
-    original_percent = ENV["DISCOUNT_BANNER_PERCENT"]
+  it "returns localized banner payload for the active promotion" do
+    promotion = create(
+      :promotion_code,
+      :active,
+      code: "MARCH25",
+      percent_off: 25,
+      title_en: "March special",
+      title_es: "Especial de marzo",
+      body_en: "Fresh offer for traders.",
+      body_es: "Oferta nueva para traders.",
+      cta_label_en: "See plans",
+      cta_label_es: "Ver planes"
+    )
 
-    example.run
-  ensure
-    ENV["DISCOUNT_BANNER_CODE"] = original_code
-    ENV["DISCOUNT_BANNER_PERCENT"] = original_percent
-  end
-
-  it "returns banner payload when code and percent are valid" do
-    ENV["DISCOUNT_BANNER_CODE"] = "1234"
-    ENV["DISCOUNT_BANNER_PERCENT"] = "15%"
-
-    expect(described_class.new.call).to eq(
-      code: "1234",
-      percent: 15
+    expect(described_class.new(locale: :es).call).to eq(
+      id: promotion.id,
+      code: "MARCH25",
+      percent: 25,
+      title: "Especial de marzo",
+      body: "Oferta nueva para traders.",
+      cta_label: "Ver planes",
+      updated_at: promotion.updated_at
     )
   end
 
-  it "accepts percent values without a percent sign" do
-    ENV["DISCOUNT_BANNER_CODE"] = "VIP"
-    ENV["DISCOUNT_BANNER_PERCENT"] = "20"
-
-    expect(described_class.new.call).to eq(
-      code: "VIP",
-      percent: 20
-    )
-  end
-
-  it "returns nil when the percent value is invalid" do
-    ENV["DISCOUNT_BANNER_CODE"] = "VIP"
-    ENV["DISCOUNT_BANNER_PERCENT"] = "abc"
+  it "returns nil when no active promotion exists" do
+    create(:promotion_code)
 
     expect(described_class.new.call).to be_nil
   end

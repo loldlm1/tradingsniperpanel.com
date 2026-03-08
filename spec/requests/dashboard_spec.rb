@@ -4,18 +4,6 @@ require "securerandom"
 RSpec.describe "Dashboard", type: :request do
   let(:user) { create(:user, :partner, preferred_locale: "es") }
 
-  around do |example|
-    original_discount_code = ENV["DISCOUNT_BANNER_CODE"]
-    original_discount_percent = ENV["DISCOUNT_BANNER_PERCENT"]
-    ENV.delete("DISCOUNT_BANNER_CODE")
-    ENV.delete("DISCOUNT_BANNER_PERCENT")
-
-    example.run
-  ensure
-    ENV["DISCOUNT_BANNER_CODE"] = original_discount_code
-    ENV["DISCOUNT_BANNER_PERCENT"] = original_discount_percent
-  end
-
   before do
     unless Pay::Subscription.method_defined?(:paused?)
       Pay::Subscription.define_method(:paused?) { false }
@@ -97,23 +85,35 @@ RSpec.describe "Dashboard", type: :request do
     expect(response.body).to include(I18n.t("dashboard.main.balance_card.empty", locale: :en))
   end
 
-  it "shows a discount modal on dashboard when discount env values are valid" do
-    ENV["DISCOUNT_BANNER_CODE"] = "1234"
-    ENV["DISCOUNT_BANNER_PERCENT"] = "15%"
+  it "shows the active promotion modal on dashboard routes" do
+    promotion = create(
+      :promotion_code,
+      :active,
+      code: "MARCH25",
+      percent_off: 25,
+      title_en: "March special",
+      body_en: "Use this promotion on your next Stripe checkout.",
+      cta_label_en: "See plans"
+    )
     sign_in user, scope: :user
 
     get dashboard_path(locale: :en)
 
     expect(response).to be_successful
     expect(response.body).to include("dashboard-discount-modal")
-    expect(response.body).to include(I18n.t("dashboard.discount_modal.title", percent: 15, locale: :en))
+    expect(response.body).to include("March special")
     expect(response.body).to include(I18n.t("dashboard.discount_modal.code_label", locale: :en))
-    expect(response.body).to include("1234")
+    expect(response.body).to include("MARCH25")
+
+    get dashboard_plans_path(locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include("dashboard-discount-modal")
+    expect(response.body).to include("promotion_code_id=#{promotion.id}")
   end
 
-  it "does not show a discount modal on dashboard when percent is invalid" do
-    ENV["DISCOUNT_BANNER_CODE"] = "1234"
-    ENV["DISCOUNT_BANNER_PERCENT"] = "fifteen"
+  it "does not show a discount modal when no active promotion exists" do
+    create(:promotion_code)
     sign_in user, scope: :user
 
     get dashboard_path(locale: :en)

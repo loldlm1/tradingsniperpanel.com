@@ -20,6 +20,7 @@ class MarketplaceController < ApplicationController
       locale: I18n.locale
     ).call
     @description_html = render_marketplace_description(@marketplace.description)
+    @promotion_prefill = PromotionCode.active.find_by(id: params[:promotion_code_id])
   end
 
   def checkout
@@ -54,6 +55,12 @@ class MarketplaceController < ApplicationController
     checkout_params = Billing::ApplyReferralDiscount.new(
       user: current_user,
       checkout_params: checkout_params
+    ).call
+
+    checkout_params = Billing::ApplyDashboardPromotion.new(
+      user: current_user,
+      checkout_params: checkout_params,
+      promotion_code_id: params[:promotion_code_id]
     ).call
 
     session = current_user.payment_processor.checkout(**checkout_params)

@@ -3,18 +3,12 @@ require "rails_helper"
 RSpec.describe "Home pricing CTAs", type: :request do
   around do |example|
     original_template = ENV["LANDING_TEMPLATE"]
-    original_discount_code = ENV["DISCOUNT_BANNER_CODE"]
-    original_discount_percent = ENV["DISCOUNT_BANNER_PERCENT"]
     Marketing::LandingTemplate.reset!
     ENV["LANDING_TEMPLATE"] = "neon"
-    ENV.delete("DISCOUNT_BANNER_CODE")
-    ENV.delete("DISCOUNT_BANNER_PERCENT")
 
     example.run
   ensure
     ENV["LANDING_TEMPLATE"] = original_template
-    ENV["DISCOUNT_BANNER_CODE"] = original_discount_code
-    ENV["DISCOUNT_BANNER_PERCENT"] = original_discount_percent
     Marketing::LandingTemplate.reset!
   end
 
@@ -54,24 +48,13 @@ RSpec.describe "Home pricing CTAs", type: :request do
     expect(response.body).to include("x-data=\"{ period: 'monthly' }\"")
   end
 
-  it "does not show a discount modal on home even when discount env values are valid" do
-    ENV["DISCOUNT_BANNER_CODE"] = "1234"
-    ENV["DISCOUNT_BANNER_PERCENT"] = "15%"
+  it "does not show a dashboard promotion modal on home even when an active promotion exists" do
+    create(:promotion_code, :active, code: "MARCH25")
 
     get root_path
 
     expect(response).to have_http_status(:ok)
     expect(response.body).not_to include("dashboard-discount-modal")
-    expect(response.body).not_to include("1234")
-  end
-
-  it "does not show a discount modal when percent is invalid" do
-    ENV["DISCOUNT_BANNER_CODE"] = "1234"
-    ENV["DISCOUNT_BANNER_PERCENT"] = "fifteen"
-
-    get root_path
-
-    expect(response).to have_http_status(:ok)
-    expect(response.body).not_to include("dashboard-discount-modal")
+    expect(response.body).not_to include("MARCH25")
   end
 end

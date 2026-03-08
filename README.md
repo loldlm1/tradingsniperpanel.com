@@ -458,7 +458,7 @@ See `.envrc.example` for the full list. Key server variables:
 - Seeds: optional `SEED_PROFILE` override (`prod_mirror` or `full_qa`). Defaults are `prod_mirror` in production and `full_qa` in staging/development.
 - Staging: `STAGING_ALLOWLIST` (space-separated IPs, wrap in quotes if multiple).
 - Branding: `APP_NAME`, `APP_SHORT_NAME`, `LANDING_TEMPLATE`.
-- Landing discount banner (home `/`): optional `DISCOUNT_BANNER_CODE` + `DISCOUNT_BANNER_PERCENT` (`N` or `N%`).
+- Dashboard promotions: manage active Stripe promotion codes from ActiveAdmin; the dashboard modal is database-backed rather than env-driven.
 - OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_HD`.
 - Stripe (Pay): `STRIPE_PRIVATE_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_SIGNING_SECRET`.
 - Billing plans: stored in `billing_plans` and created via `Billing::PlanCreator` (see `db/seeds`).

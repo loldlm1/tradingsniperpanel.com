@@ -17,6 +17,7 @@ class ApplicationController < ActionController::Base
   before_action :set_marketplace_availability, if: :user_signed_in?
   before_action :set_marketplace_nav_products, if: :user_signed_in?
   before_action :set_sidebar_recent_items, if: :user_signed_in?
+  before_action :set_dashboard_discount_banner, if: :dashboard_html_request?
 
   def after_sign_in_path_for(_resource)
     desired_plan = stored_desired_plan
@@ -207,6 +208,14 @@ class ApplicationController < ActionController::Base
       limit: 5,
       active_course_slug: active_course_slug
     ).call
+  end
+
+  def set_dashboard_discount_banner
+    @discount_banner = Marketing::DiscountBanner.new(locale: I18n.locale).call
+  end
+
+  def dashboard_html_request?
+    user_signed_in? && request.format.html? && request.path.include?("/dashboard")
   end
 
   def ensure_terms_accepted

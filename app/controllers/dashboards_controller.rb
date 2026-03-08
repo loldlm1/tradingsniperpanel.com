@@ -7,7 +7,6 @@ class DashboardsController < ApplicationController
   before_action :set_subscription, only: [:show, :plans, :billing, :checkout, :cancel_scheduled_downgrade, :cancel_subscription, :resume_subscription]
   before_action :set_plan_context, only: [:show, :billing]
   before_action :set_invoices, only: [:billing]
-  before_action :set_discount_banner, only: [:show]
 
   def show
     plan_hint = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
@@ -37,6 +36,7 @@ class DashboardsController < ApplicationController
       pricing_catalog: @pricing_catalog
     ).call
     @requested_price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
+    @promotion_prefill = PromotionCode.active.find_by(id: params[:promotion_code_id])
   end
 
   def billing; end
@@ -88,6 +88,12 @@ class DashboardsController < ApplicationController
       checkout_params = Billing::ApplyReferralDiscount.new(
         user: current_user,
         checkout_params: checkout_params
+      ).call
+
+      checkout_params = Billing::ApplyDashboardPromotion.new(
+        user: current_user,
+        checkout_params: checkout_params,
+        promotion_code_id: params[:promotion_code_id]
       ).call
 
       session = current_user.payment_processor.checkout(**checkout_params)
@@ -148,6 +154,12 @@ class DashboardsController < ApplicationController
     checkout_params = Billing::ApplyReferralDiscount.new(
       user: current_user,
       checkout_params: checkout_params
+    ).call
+
+    checkout_params = Billing::ApplyDashboardPromotion.new(
+      user: current_user,
+      checkout_params: checkout_params,
+      promotion_code_id: params[:promotion_code_id]
     ).call
 
     session = current_user.payment_processor.checkout(**checkout_params)
@@ -245,10 +257,6 @@ class DashboardsController < ApplicationController
 
   def set_invoices
     @invoices = @pay_customer.present? ? Pay::Charge.where(customer: @pay_customer).order(created_at: :desc).limit(20) : []
-  end
-
-  def set_discount_banner
-    @discount_banner = Marketing::DiscountBanner.new.call
   end
 
   def ensure_payment_processor

@@ -46,17 +46,29 @@ const ADDED_CLASSES = [
 
 const DISABLED_CLASSES = ["opacity-60", "cursor-not-allowed"];
 
+const setButtonLabel = (button, text) => {
+  if (!button) return;
+
+  const label = button.querySelector("[data-loading-label]");
+  if (label) {
+    label.textContent = text;
+    return;
+  }
+
+  button.textContent = text;
+};
+
 const applyButtonState = (button, selected) => {
   if (!button) return;
 
   button.classList.remove(...ADD_CLASSES, ...ADDED_CLASSES);
   if (selected) {
     button.classList.add(...ADDED_CLASSES);
-    button.textContent = button.dataset.addonLabelAdded || "Added";
+    setButtonLabel(button, button.dataset.addonLabelAdded || "Added");
     button.setAttribute("aria-pressed", "true");
   } else {
     button.classList.add(...ADD_CLASSES);
-    button.textContent = button.dataset.addonLabelAdd || "Add";
+    setButtonLabel(button, button.dataset.addonLabelAdd || "Add");
     button.setAttribute("aria-pressed", "false");
   }
 };
@@ -67,10 +79,10 @@ const updateCheckoutButton = (button, enabled) => {
   button.disabled = !enabled;
   if (enabled) {
     button.classList.remove(...DISABLED_CLASSES);
-    button.textContent = button.dataset.checkoutLabel || button.textContent;
+    setButtonLabel(button, button.dataset.checkoutLabel || button.textContent);
   } else {
     button.classList.add(...DISABLED_CLASSES);
-    button.textContent = button.dataset.emptyLabel || button.textContent;
+    setButtonLabel(button, button.dataset.emptyLabel || button.textContent);
   }
 };
 

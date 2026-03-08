@@ -47,6 +47,48 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(flash[:alert]).to eq(I18n.t("dashboard.billing.privileged_checkout_blocked"))
   end
 
+  it "pre-applies the selected dashboard promotion code to checkout" do
+    promotion = create(:promotion_code, :active, stripe_promotion_code_id: "promo_dashboard")
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+    sign_in user, scope: :user
+
+    expect(checkout_stub).to receive(:checkout) do |**params|
+      expect(params[:discounts]).to eq([{ promotion_code: "promo_dashboard" }])
+      expect(params).not_to have_key(:allow_promotion_codes)
+      double(url: "https://checkout.test/subscription")
+    end
+
+    post dashboard_checkout_path, params: { price_key: "basic_monthly", promotion_code_id: promotion.id }
+
+    expect(response).to redirect_to("https://checkout.test/subscription")
+  end
+
+  it "keeps the referral discount as the winning checkout discount" do
+    promotion = create(:promotion_code, :active, stripe_promotion_code_id: "promo_dashboard")
+    referrer = create(:user, :partner)
+    referred_user = create(:user)
+    referral_code = referrer.referral_codes.first_or_create
+    Referrals::AttachReferrer.new(user: referred_user, code: referral_code.code).call
+    referred_user.reload
+    PartnerProfile.find_or_initialize_by(user: referrer).update!(discount_percent: 10, payout_mode: :once_paid)
+
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+    allow(Partners::ReferralCoupon).to receive(:new).and_return(instance_double(Partners::ReferralCoupon, coupon_id: "coupon_referral"))
+    sign_in referred_user, scope: :user
+
+    expect(checkout_stub).to receive(:checkout) do |**params|
+      expect(params[:discounts]).to eq([{ coupon: "coupon_referral" }])
+      expect(params[:discounts]).not_to eq([{ promotion_code: "promo_dashboard" }])
+      double(url: "https://checkout.test/referral")
+    end
+
+    post dashboard_checkout_path, params: { price_key: "basic_monthly", promotion_code_id: promotion.id }
+
+    expect(response).to redirect_to("https://checkout.test/referral")
+  end
+
   it "swaps an existing subscription instead of creating a new one" do
     existing = customer.subscriptions.create!(
       name: "default",

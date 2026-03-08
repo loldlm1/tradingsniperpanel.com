@@ -44,6 +44,7 @@ en:
       cta: "View plans"
       dismiss: "Maybe later"
       close: "Close discount modal"
+      copy_failed: "Copy failed"
     main:
       header:
         title: "Welcome"

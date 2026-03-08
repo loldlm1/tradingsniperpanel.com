@@ -141,6 +141,7 @@
                     } do %>
         <%= hidden_field_tag :base_plan_key, marketplace.base_plan_key %>
         <%= hidden_field_tag :addon_keys, marketplace.selected_addon_keys.join(","), data: { addon_keys_input: true } %>
+        <%= hidden_field_tag :promotion_code_id, @promotion_prefill.id if @promotion_prefill.present? %>
 
         <% if privileged_full_access %>
           <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-xs text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200">
@@ -224,11 +225,12 @@
           <button class="btn w-full bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white"
                   type="submit"
                   data-cart-submit
+                  data-loading-target="true"
                   data-checkout-label-template="<%= t("dashboard.marketplace.show.buy_now", total: "%{total}") %>"
                   data-checkout-label="<%= t("dashboard.marketplace.show.buy_now", total: marketplace.cart_total_display) %>"
                   data-empty-label="<%= t("dashboard.marketplace.show.select_addons") %>"
                   <%= "disabled" if button_disabled %>>
-            <%= button_label %>
+            <%= loading_label(button_label, loading_text: t("loading.default")) %>
           </button>
         </div>
 

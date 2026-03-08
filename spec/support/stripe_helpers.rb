@@ -46,6 +46,35 @@ module StripeHelpers
 
     product
   end
+
+  def stub_stripe_coupon_and_promotion_code(
+    coupon_id: "coupon_admin",
+    promotion_code_id: "promo_admin",
+    code: "SPRING15",
+    percent_off: 15,
+    active: true
+  )
+    coupon = instance_double(
+      Stripe::Coupon,
+      id: coupon_id,
+      percent_off: percent_off,
+      duration: "once",
+      metadata: {}
+    )
+    promotion_code = instance_double(
+      Stripe::PromotionCode,
+      id: promotion_code_id,
+      code: code,
+      active: active,
+      metadata: {}
+    )
+
+    allow(Stripe::Coupon).to receive(:create).and_return(coupon)
+    allow(Stripe::PromotionCode).to receive(:create).and_return(promotion_code)
+    allow(Stripe::PromotionCode).to receive(:update).and_return(promotion_code)
+
+    promotion_code
+  end
 end
 
 RSpec.configure do |config|

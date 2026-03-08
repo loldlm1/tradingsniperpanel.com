@@ -10,8 +10,6 @@
 <% summary_rows = main.account_summary_rows %>
 <% user_label = current_user&.name.presence || current_user&.email %>
 
-<%= render "discount_marketing_modal", banner: @discount_banner if @discount_banner.present? %>
-
 <!-- Page header -->
 <div class="sm:flex sm:justify-between sm:items-center mb-5">
   <div class="mb-4 sm:mb-0">

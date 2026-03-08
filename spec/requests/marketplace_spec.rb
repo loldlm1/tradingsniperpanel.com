@@ -206,6 +206,7 @@ RSpec.describe "Marketplace", type: :request do
 
     expect(checkout_stub).to receive(:checkout) do |**params|
       expect(params[:mode]).to eq("payment")
+      expect(params[:allow_promotion_codes]).to eq(true)
       expect(params[:line_items]).to contain_exactly(
         { price: base_plan.stripe_price_id, quantity: 1 },
         { price: addon_plan.stripe_price_id, quantity: 1 }
@@ -219,6 +220,21 @@ RSpec.describe "Marketplace", type: :request do
          params: { base_plan_key: base_plan.key, addon_keys: [addon_plan.key], refund_acknowledged: "1" }
 
     expect(response).to redirect_to("https://checkout.test/session")
+  end
+
+  it "renders the promotion modal and loading-label markup on marketplace product pages" do
+    create(:promotion_code, :active, code: "MARCH25", title_en: "March special", body_en: "Use the code at checkout.", cta_label_en: "See plans")
+    sign_in user, scope: :user
+
+    get dashboard_marketplace_product_path(marketplace_product, locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include("dashboard-discount-modal")
+    expect(response.body).to include("MARCH25")
+    expect(response.body).to include("data-loading-label")
+    expect(response.body).to include("data-loading-spinner")
+    expect(response.body).to include("data-loading-target=\"true\"")
+    expect(response.body).to include("promotion-modal-copy-button")
   end
 
   it "blocks marketplace checkout when a manual base purchase exists" do

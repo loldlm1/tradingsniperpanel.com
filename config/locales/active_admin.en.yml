@@ -70,6 +70,31 @@ en:
         metadata: "Optional JSON for internal flags or integrations."
       errors:
         metadata_invalid: "Metadata must be valid JSON."
+    promotion_codes:
+      created: "Promotion code created."
+      updated: "Promotion code updated."
+      activated: "Promotion code activated."
+      deactivated: "Promotion code deactivated."
+      archived: "Promotion code archived."
+      restored: "Promotion code restored."
+      sections:
+        details: "Details"
+        english_copy: "English Copy"
+        spanish_copy: "Spanish Copy"
+        advanced: "Advanced Stripe Restrictions"
+        stripe: "Stripe Sync"
+      actions:
+        activate: "Activate"
+        deactivate: "Deactivate"
+        archive: "Archive"
+        restore: "Restore"
+      hints:
+        code: "Uppercase code shown to customers at Stripe checkout."
+        active: "Only one kept promotion can stay active at a time."
+        expires_at: "Optional expiration timestamp for the Stripe promotion code."
+        max_redemptions: "Optional Stripe redemption cap."
+      errors:
+        invalid_expiration: "Expiration must be a valid date and time."
     plan_entitlements:
       sections:
         details: "Details"

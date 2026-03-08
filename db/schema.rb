@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_04_100010) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_08_123000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -301,7 +301,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_04_100010) do
     t.index ["license_id", "source", "email", "company", "account_number", "account_type"], name: "index_license_lane_magic_numbers_on_lane", unique: true
     t.index ["license_id"], name: "index_license_lane_magic_numbers_on_license_id"
     t.index ["magic_number"], name: "index_license_lane_magic_numbers_on_magic_number", unique: true
-    t.check_constraint "account_type::text = ANY (ARRAY['real'::character varying, 'demo'::character varying]::text[])", name: "license_lane_magic_numbers_account_type_check"
+    t.check_constraint "account_type::text = ANY (ARRAY['real'::character varying::text, 'demo'::character varying::text])", name: "license_lane_magic_numbers_account_type_check"
     t.check_constraint "magic_number > 0", name: "license_lane_magic_numbers_magic_positive_check"
   end
 
@@ -320,8 +320,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_04_100010) do
     t.index ["user_id", "expert_advisor_id", "company", "account_number", "account_type"], name: "index_license_online_sessions_on_identity", unique: true
     t.index ["user_id", "expert_advisor_id", "entitlement_source", "last_seen_at"], name: "index_license_online_sessions_on_user_ea_source_seen_at"
     t.index ["user_id"], name: "index_license_online_sessions_on_user_id"
-    t.check_constraint "account_type::text = ANY (ARRAY['real'::character varying, 'demo'::character varying]::text[])", name: "license_online_sessions_account_type_check"
-    t.check_constraint "entitlement_source::text = ANY (ARRAY['subscription'::character varying, 'one_time'::character varying]::text[])", name: "license_online_sessions_entitlement_source_check"
+    t.check_constraint "account_type::text = ANY (ARRAY['real'::character varying::text, 'demo'::character varying::text])", name: "license_online_sessions_account_type_check"
+    t.check_constraint "entitlement_source::text = ANY (ARRAY['subscription'::character varying::text, 'one_time'::character varying::text])", name: "license_online_sessions_entitlement_source_check"
   end
 
   create_table "licenses", force: :cascade do |t|
@@ -603,6 +603,30 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_04_100010) do
     t.jsonb "event"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "promotion_codes", force: :cascade do |t|
+    t.string "code", null: false
+    t.integer "percent_off", null: false
+    t.boolean "active", default: false, null: false
+    t.datetime "archived_at"
+    t.text "title_en", null: false
+    t.text "title_es", null: false
+    t.text "body_en", null: false
+    t.text "body_es", null: false
+    t.string "cta_label_en", null: false
+    t.string "cta_label_es", null: false
+    t.string "stripe_coupon_id"
+    t.string "stripe_promotion_code_id"
+    t.datetime "expires_at"
+    t.integer "max_redemptions"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index "lower((code)::text)", name: "index_promotion_codes_on_lower_code_kept", unique: true, where: "(archived_at IS NULL)"
+    t.index ["active"], name: "index_promotion_codes_on_single_active", unique: true, where: "((active = true) AND (archived_at IS NULL))"
+    t.index ["archived_at"], name: "index_promotion_codes_on_archived_at"
+    t.index ["stripe_coupon_id"], name: "index_promotion_codes_on_stripe_coupon_id"
+    t.index ["stripe_promotion_code_id"], name: "index_promotion_codes_on_stripe_promotion_code_id"
   end
 
   create_table "refer_referral_codes", force: :cascade do |t|
