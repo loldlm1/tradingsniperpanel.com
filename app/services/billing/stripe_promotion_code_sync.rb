@@ -66,7 +66,10 @@ module Billing
 
     def promotion_code_payload(coupon_id)
       {
-        coupon: coupon_id,
+        promotion: {
+          type: "coupon",
+          coupon: coupon_id
+        },
         code: promotion_code.code,
         active: remotely_active?,
         expires_at: promotion_code.expires_at&.to_i,

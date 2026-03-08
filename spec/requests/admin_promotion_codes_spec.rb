@@ -40,6 +40,38 @@ RSpec.describe "Promotion codes admin", type: :request do
     expect(promotion).to be_active
   end
 
+  it "allows admins to update a promotion and backfill missing Stripe objects" do
+    admin = create(:user, :admin)
+    promotion = create(
+      :promotion_code,
+      code: "LAUNCH15",
+      percent_off: 15,
+      active: false,
+      stripe_coupon_id: nil,
+      stripe_promotion_code_id: nil
+    )
+    sign_in admin, scope: :user
+    stub_stripe_coupon_and_promotion_code(coupon_id: "coupon_launch15", promotion_code_id: "promo_launch15", code: "LAUNCH15", percent_off: 15)
+
+    patch admin_promotion_code_path(promotion), params: {
+      promotion_code: promotion_params(
+        code: "LAUNCH15",
+        percent_off: "15",
+        title_en: "LAUNCHING PROMOTION 2026!",
+        body_en: "DO NOT MISS THIS PROMOTION CODE!",
+        cta_label_en: "GET THE LIMITED OFFER NOW!",
+        title_es: "OFERTA DE LANZAMIENTO 2026!",
+        body_es: "NO TE PIERDAS DE ESTA INCREIBLE PROMOCION!",
+        cta_label_es: "OBTEN LA OFERTA AHORA!"
+      )
+    }
+
+    expect(response).to redirect_to(admin_promotion_code_path(promotion))
+    expect(promotion.reload).to be_active
+    expect(promotion.stripe_coupon_id).to eq("coupon_launch15")
+    expect(promotion.stripe_promotion_code_id).to eq("promo_launch15")
+  end
+
   it "activates a promotion and deactivates the previous active one" do
     admin = create(:user, :admin)
     active_promotion = create(:promotion_code, :active, code: "SPRING15")

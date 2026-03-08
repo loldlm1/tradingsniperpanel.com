@@ -1,6 +1,6 @@
 # Plan: Stripe Promotion Code Admin Dashboard
 
-**Status**: Implemented, audit PASS
+**Status**: Implemented, follow-up bugfix audit PASS
 **Generated**: 2026-03-08
 **Estimated Complexity**: High
 **Skills**: planner, rails-expert
@@ -9,6 +9,11 @@
 - Replace the env-driven dashboard discount banner with a first-class Stripe-backed promotion record managed in ActiveAdmin.
 - Use one admin CRUD to manage both the local promotion record and the related Stripe coupon / promotion code objects through service objects.
 - Move modal rendering to the dashboard layout so the active promotion is available across dashboard routes, refresh the modal UI for dark theme, and align marketplace checkout buttons with the shared loading-state behavior.
+
+## Follow-up Bugfix
+- Investigate the production `Stripe::InvalidRequestError` raised while updating an admin-managed promotion.
+- Align `Stripe::PromotionCode.create` with Stripe's current API contract for promotion-backed codes.
+- Add a regression spec that asserts the outgoing create payload shape so admin create/update cannot silently drift again.
 
 ## Definition of Done
 - Admins can create, view, edit, activate, deactivate, and archive promotion code records from ActiveAdmin.
@@ -240,14 +245,15 @@
 - PASS: Added `promotion_codes` persistence, Stripe sync services, ActiveAdmin CRUD, dashboard-wide modal delivery, checkout promotion application, marketplace loading-state alignment, and doc deprecation cleanup.
 - PASS: Removed the public home-page discount banner dependency.
 - PASS: Verified targeted model, service, admin, dashboard, subscription, and marketplace coverage after preparing the test database serially.
+- PASS: Fixed the Stripe promotion-code create payload to use the current `promotion: { type: "coupon", coupon: ... }` API shape, added a direct sync-service regression spec, and covered the admin PATCH flow that backfills missing Stripe IDs.
 
 ## Audit Gate
 - **Code Pattern and Efficiency**: PASS
-  Thin controllers were preserved. Stripe logic lives in dedicated service objects, the dashboard banner is resolved centrally, and the marketplace button reuses the shared loading-label behavior instead of adding a second spinner pattern.
+  Thin controllers were preserved. Stripe logic lives in dedicated service objects, the dashboard banner is resolved centrally, the marketplace button reuses the shared loading-label behavior instead of adding a second spinner pattern, and the Stripe API fix stays isolated to the sync boundary.
 - **Feature Behavior and Goal Alignment**: PASS
-  Admins can manage one global active promotion, dashboard routes now share the modal, public home-page banner usage is removed, referral discounts still win, and both subscription and one-time checkout flows remain promotion-capable.
+  Admins can manage one global active promotion, dashboard routes now share the modal, public home-page banner usage is removed, referral discounts still win, both subscription and one-time checkout flows remain promotion-capable, and admin promotion save/update now matches Stripe's current promotion-code contract.
 - **Tests Context**: PASS
-  Added targeted specs for the promotion model, admin upsert, dashboard promotion application, admin requests, dashboard rendering, marketplace rendering, subscription checkout precedence, and home-page regression coverage.
+  Added targeted specs for the promotion model, admin upsert, dashboard promotion application, admin requests, dashboard rendering, marketplace rendering, subscription checkout precedence, home-page regression coverage, a direct regression spec for the Stripe promotion-code payload shape, and a request-level regression for the failing admin PATCH path.
 
 ## Commands Run
 - PASS: `sed -n '1,240p' AGENTS.md`
@@ -277,3 +283,9 @@
 - FAIL: `bundle exec rspec spec/requests/admin_promotion_codes_spec.rb spec/requests/dashboard_spec.rb spec/requests/home_pricing_cta_spec.rb spec/requests/subscription_upgrade_spec.rb spec/requests/marketplace_spec.rb`
 - PASS: `RAILS_ENV=test bundle exec rails db:test:prepare`
 - PASS: `bundle exec rspec spec/requests/admin_promotion_codes_spec.rb spec/requests/dashboard_spec.rb spec/requests/home_pricing_cta_spec.rb spec/requests/subscription_upgrade_spec.rb spec/requests/marketplace_spec.rb`
+- PASS: `sed -n '1,240p' /home/loldlm/.agents/skills/rails-expert/SKILL.md`
+- PASS: `sed -n '1,240p' app/services/billing/stripe_promotion_code_sync.rb`
+- PASS: `rg -n "Stripe::PromotionCode\\.create|promotion_code_payload|allow_promotion_codes|discounts:|promotion_code:" app spec`
+- PASS: `fetch https://docs.stripe.com/api/promotion_codes/create?lang=ruby`
+- PASS: `bundle exec rails runner 'promotion = PromotionCode.new(code: "LAUNCH15", percent_off: 15, active: true); service = Billing::StripePromotionCodeSync.new(promotion_code: promotion, replace_remote_objects: true); pp service.send(:promotion_code_payload, "coupon_test")'`
+- PASS: `bundle exec rspec spec/services/billing/stripe_promotion_code_sync_spec.rb spec/services/admin/promotion_code_upsert_spec.rb spec/requests/admin_promotion_codes_spec.rb`
