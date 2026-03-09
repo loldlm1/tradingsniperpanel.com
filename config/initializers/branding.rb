@@ -7,6 +7,7 @@ app_name = default_app_name if app_name.blank?
 
 short_name = ENV.fetch("APP_SHORT_NAME", "").to_s.strip
 short_name = app_name if short_name.blank?
+short_name = app_name if short_name.casecmp?(app_name)
 
 support_email = ENV.fetch("SUPPORT_EMAIL", default_support_email).to_s.strip
 support_email = default_support_email if support_email.blank?
@@ -50,6 +51,12 @@ brand_country = nil if brand_country.blank?
 Rails.configuration.x.branding = ActiveSupport::OrderedOptions.new
 Rails.configuration.x.branding.app_name = app_name
 Rails.configuration.x.branding.short_name = short_name
+Rails.configuration.x.branding.email_display_name = if short_name.present? && !short_name.casecmp?(app_name)
+  "#{app_name} (#{short_name})"
+else
+  app_name
+end
+Rails.configuration.x.branding.email_subject_brand = short_name.presence || app_name
 Rails.configuration.x.branding.support_email = support_email
 Rails.configuration.x.branding.support_phone = support_phone
 Rails.configuration.x.branding.support_chat_url = support_chat_url

@@ -1,19 +1,17 @@
-<p><%= t("billing_mailer.greeting", name: (@user.name.presence || @user.email)) %></p>
-
-<p><%= t("billing_mailer.subscription_renewal_payment_failed.intro", app_name: app_name) %></p>
-
-<% if @plan_name.present? %>
-  <p><%= t("billing_mailer.plan_line", plan: @plan_name) %></p>
-<% end %>
-
-<p><%= t("billing_mailer.amount_line", amount: @amount) %></p>
-<p><%= t("billing_mailer.invoice_line", invoice_id: @invoice_id) %></p>
-
-<p><%= link_to t("billing_mailer.subscription_renewal_payment_failed.billing_cta"), @billing_url %></p>
-
-<% if @invoice_url.present? %>
-  <p><%= link_to t("billing_mailer.invoice_cta"), @invoice_url %></p>
-<% end %>
-
-<p><%= t("billing_mailer.subscription_renewal_payment_failed.help_text") %></p>
-<p><%= t("billing_mailer.support_line", support_email: @support_email) %></p>
+<% @preheader_text = t("billing_mailer.subscription_renewal_payment_failed.preheader", app_name: app_name) %>
+<%= render "shared/mailer/message",
+  tone: :warning,
+  category: t("mailers.shared.categories.payment_attention"),
+  title: t("billing_mailer.subscription_renewal_payment_failed.title"),
+  greeting: t("billing_mailer.greeting", name: recipient_name),
+  intro: t("billing_mailer.subscription_renewal_payment_failed.intro", app_name: app_name),
+  paragraphs: [t("billing_mailer.subscription_renewal_payment_failed.help_text")],
+  detail_rows: subscription_detail_rows,
+  primary_action: {
+    label: t("billing_mailer.subscription_renewal_payment_failed.billing_cta"),
+    url: @billing_url
+  },
+  secondary_action: @invoice_url.present? ? {
+    label: t("billing_mailer.invoice_cta"),
+    url: @invoice_url
+  } : nil %>

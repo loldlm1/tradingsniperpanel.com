@@ -1,23 +1,18 @@
-<p><%= t("billing_mailer.greeting", name: (@user.name.presence || @user.email)) %></p>
-
-<p><%= t("billing_mailer.one_time_purchase_confirmed.intro", app_name: app_name) %></p>
-
-<% if @plan_names.any? %>
-  <p><%= t("billing_mailer.one_time_purchase_confirmed.products_label") %></p>
-  <ul>
-    <% @plan_names.each do |plan_name| %>
-      <li><%= plan_name %></li>
-    <% end %>
-  </ul>
-<% end %>
-
-<p><%= t("billing_mailer.amount_line", amount: @amount) %></p>
-<p><%= t("billing_mailer.charge_line", charge_id: @charge_id) %></p>
-
-<p><%= link_to t("billing_mailer.one_time_purchase_confirmed.marketplace_cta"), @marketplace_url %></p>
-
-<% if @receipt_url.present? %>
-  <p><%= link_to t("billing_mailer.receipt_cta"), @receipt_url %></p>
-<% end %>
-
-<p><%= t("billing_mailer.support_line", support_email: @support_email) %></p>
+<% @preheader_text = t("billing_mailer.one_time_purchase_confirmed.preheader", app_name: app_name) %>
+<%= render "shared/mailer/message",
+  tone: :success,
+  category: t("mailers.shared.categories.purchase"),
+  title: t("billing_mailer.one_time_purchase_confirmed.title"),
+  greeting: t("billing_mailer.greeting", name: recipient_name),
+  intro: t("billing_mailer.one_time_purchase_confirmed.intro", app_name: app_name),
+  detail_rows: purchase_detail_rows,
+  list_title: (@plan_names.any? ? t("billing_mailer.one_time_purchase_confirmed.products_label") : nil),
+  list_items: @plan_names,
+  primary_action: {
+    label: t("billing_mailer.one_time_purchase_confirmed.marketplace_cta"),
+    url: @marketplace_url
+  },
+  secondary_action: @receipt_url.present? ? {
+    label: t("billing_mailer.receipt_cta"),
+    url: @receipt_url
+  } : nil %>

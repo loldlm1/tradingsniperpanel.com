@@ -1,0 +1,59 @@
+<%
+category = local_assigns[:category]
+title = local_assigns.fetch(:title)
+greeting = local_assigns[:greeting]
+intro = local_assigns[:intro]
+closing = local_assigns[:closing]
+list_title = local_assigns[:list_title]
+detail_rows = Array(local_assigns[:detail_rows]).compact
+list_items = Array(local_assigns[:list_items]).compact_blank
+paragraphs = Array(local_assigns[:paragraphs]).compact_blank
+primary_action = local_assigns[:primary_action].presence
+secondary_action = local_assigns[:secondary_action].presence
+%>
+<% if category.present? %>
+<%= category.upcase %>
+
+<% end %>
+<%= title %>
+<%= "-" * title.length %>
+
+<% if greeting.present? %>
+<%= greeting %>
+
+<% end %>
+<% if intro.present? %>
+<%= intro %>
+
+<% end %>
+<% paragraphs.each do |paragraph| %>
+<%= paragraph %>
+
+<% end %>
+<% if detail_rows.any? %>
+<% detail_rows.each do |row| %>
+<%= row.fetch(:label) %>: <%= row.fetch(:value) %>
+<% end %>
+
+<% end %>
+<% if list_title.present? %>
+<%= list_title %>
+<% end %>
+<% list_items.each do |item| %>
+- <%= item %>
+<% end %>
+<% if list_items.any? %>
+
+<% end %>
+<% if primary_action.present? %>
+<%= primary_action.fetch(:label) %>: <%= primary_action.fetch(:url) %>
+<% end %>
+<% if secondary_action.present? %>
+<%= secondary_action.fetch(:label) %>: <%= secondary_action.fetch(:url) %>
+<% end %>
+<% if primary_action.present? || secondary_action.present? %>
+
+<% end %>
+<% if closing.present? %>
+<%= closing %>
+<% end %>

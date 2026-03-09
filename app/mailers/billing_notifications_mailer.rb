@@ -1,5 +1,5 @@
 class BillingNotificationsMailer < ApplicationMailer
-  helper_method :app_name
+  helper_method :app_name, :recipient_name, :subscription_detail_rows, :purchase_detail_rows
 
   before_action :assign_user
   before_action :assign_branding
@@ -11,7 +11,7 @@ class BillingNotificationsMailer < ApplicationMailer
     @invoice_url = params[:invoice_url]
     @billing_url = dashboard_billing_url(**localized_route_options)
 
-    mail(to: @user.email, subject: t("billing_mailer.subscription_started.subject", app_name: app_name))
+    mail(to: @user.email, subject: t("billing_mailer.subscription_started.subject", app_short_name: email_subject_brand))
   end
 
   def subscription_upgraded
@@ -21,7 +21,7 @@ class BillingNotificationsMailer < ApplicationMailer
     @invoice_url = params[:invoice_url]
     @billing_url = dashboard_billing_url(**localized_route_options)
 
-    mail(to: @user.email, subject: t("billing_mailer.subscription_upgraded.subject", app_name: app_name))
+    mail(to: @user.email, subject: t("billing_mailer.subscription_upgraded.subject", app_short_name: email_subject_brand))
   end
 
   def one_time_purchase_confirmed
@@ -31,7 +31,7 @@ class BillingNotificationsMailer < ApplicationMailer
     @receipt_url = params[:receipt_url]
     @marketplace_url = dashboard_marketplace_url(**localized_route_options)
 
-    mail(to: @user.email, subject: t("billing_mailer.one_time_purchase_confirmed.subject", app_name: app_name))
+    mail(to: @user.email, subject: t("billing_mailer.one_time_purchase_confirmed.subject", app_short_name: email_subject_brand))
   end
 
   def subscription_renewal_payment_failed
@@ -41,7 +41,7 @@ class BillingNotificationsMailer < ApplicationMailer
     @invoice_url = params[:invoice_url]
     @billing_url = dashboard_billing_url(**localized_route_options)
 
-    mail(to: @user.email, subject: t("billing_mailer.subscription_renewal_payment_failed.subject", app_name: app_name))
+    mail(to: @user.email, subject: t("billing_mailer.subscription_renewal_payment_failed.subject", app_short_name: email_subject_brand))
   end
 
   private
@@ -67,5 +67,24 @@ class BillingNotificationsMailer < ApplicationMailer
 
   def app_name
     Rails.configuration.x.branding.app_name
+  end
+
+  def recipient_name
+    @user.name.presence || @user.email
+  end
+
+  def subscription_detail_rows
+    [
+      (@plan_name.present? ? { label: t("billing_mailer.plan_label"), value: @plan_name } : nil),
+      (@amount.present? ? { label: t("billing_mailer.amount_label"), value: @amount } : nil),
+      (@invoice_id.present? ? { label: t("billing_mailer.invoice_label"), value: @invoice_id } : nil)
+    ].compact
+  end
+
+  def purchase_detail_rows
+    [
+      (@amount.present? ? { label: t("billing_mailer.amount_label"), value: @amount } : nil),
+      (@charge_id.present? ? { label: t("billing_mailer.charge_label"), value: @charge_id } : nil)
+    ].compact
   end
 end

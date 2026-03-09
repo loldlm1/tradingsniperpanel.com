@@ -1,18 +1,16 @@
-<p><%= t("billing_mailer.greeting", name: (@user.name.presence || @user.email)) %></p>
-
-<p><%= t("billing_mailer.subscription_upgraded.intro", app_name: app_name) %></p>
-
-<% if @plan_name.present? %>
-  <p><%= t("billing_mailer.plan_line", plan: @plan_name) %></p>
-<% end %>
-
-<p><%= t("billing_mailer.amount_line", amount: @amount) %></p>
-<p><%= t("billing_mailer.invoice_line", invoice_id: @invoice_id) %></p>
-
-<p><%= link_to t("billing_mailer.subscription_upgraded.billing_cta"), @billing_url %></p>
-
-<% if @invoice_url.present? %>
-  <p><%= link_to t("billing_mailer.invoice_cta"), @invoice_url %></p>
-<% end %>
-
-<p><%= t("billing_mailer.support_line", support_email: @support_email) %></p>
+<% @preheader_text = t("billing_mailer.subscription_upgraded.preheader", app_name: app_name) %>
+<%= render "shared/mailer/message",
+  tone: :success,
+  category: t("mailers.shared.categories.billing"),
+  title: t("billing_mailer.subscription_upgraded.title"),
+  greeting: t("billing_mailer.greeting", name: recipient_name),
+  intro: t("billing_mailer.subscription_upgraded.intro", app_name: app_name),
+  detail_rows: subscription_detail_rows,
+  primary_action: {
+    label: t("billing_mailer.subscription_upgraded.billing_cta"),
+    url: @billing_url
+  },
+  secondary_action: @invoice_url.present? ? {
+    label: t("billing_mailer.invoice_cta"),
+    url: @invoice_url
+  } : nil %>

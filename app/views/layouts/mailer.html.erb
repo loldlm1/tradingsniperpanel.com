@@ -2,9 +2,81 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= email_display_name %></title>
   </head>
 
-  <body>
-    <%= yield %>
+  <body style="margin: 0; padding: 0; background-color: #eef3f8; color: #0f172a;">
+    <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; mso-hide: all;">
+      <%= @preheader_text.presence || default_preheader_text %>
+    </div>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="width: 100%; background-color: #eef3f8; border-collapse: collapse;">
+      <tr>
+        <td align="center" style="padding: 24px 12px 32px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="width: 100%; max-width: 640px; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 0 8px 16px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="font-family: 'Trebuchet MS', 'Helvetica Neue', Helvetica, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #5b6572;">
+                      <%= email_subject_brand %>
+                    </td>
+                    <td align="right" style="font-family: 'Trebuchet MS', 'Helvetica Neue', Helvetica, sans-serif; font-size: 12px; color: #5b6572;">
+                      <a href="mailto:<%= support_email %>" style="color: #5b6572; text-decoration: none;"><%= support_email %></a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="background-color: #ffffff; border: 1px solid #d7dee8; border-radius: 24px; padding: 32px; box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);">
+                <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding-bottom: 24px; border-bottom: 1px solid #e5eaf0;">
+                      <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 28px; line-height: 1.15; font-weight: 700; color: #0f172a;">
+                        <%= app_name %>
+                      </div>
+                      <div style="margin-top: 8px; font-family: 'Trebuchet MS', 'Helvetica Neue', Helvetica, sans-serif; font-size: 14px; line-height: 1.6; color: #5b6572;">
+                        <%= mail_footer_copy %>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding-top: 28px;">
+                      <%= yield %>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding: 18px 8px 0;">
+                <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="font-family: 'Trebuchet MS', 'Helvetica Neue', Helvetica, sans-serif; font-size: 13px; line-height: 1.7; color: #5b6572; padding-bottom: 8px;">
+                      <strong style="color: #0f172a;"><%= mail_signature %></strong>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: 'Trebuchet MS', 'Helvetica Neue', Helvetica, sans-serif; font-size: 13px; line-height: 1.7; color: #5b6572; padding-bottom: 6px;">
+                      <%= t("mailers.shared.reply_notice", support_email: support_email) %>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="font-family: 'Trebuchet MS', 'Helvetica Neue', Helvetica, sans-serif; font-size: 12px; line-height: 1.7; color: #7b8794;">
+                      <%= mail_receiving_reason %>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>

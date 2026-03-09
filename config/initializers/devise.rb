@@ -24,13 +24,17 @@ Devise.setup do |config|
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  config.mailer_sender = Rails.configuration.x.branding.support_email
+  config.mailer_sender = lambda { |_scope_name|
+    mail_address = Mail::Address.new(Rails.configuration.x.branding.support_email)
+    mail_address.display_name = Rails.configuration.x.branding.email_display_name
+    mail_address.format
+  }
 
   # Configure the class responsible to send e-mails.
-  # config.mailer = 'Devise::Mailer'
+  config.mailer = "DeviseMailer"
 
   # Configure the parent class responsible to send e-mails.
-  # config.parent_mailer = 'ActionMailer::Base'
+  config.parent_mailer = "ApplicationMailer"
 
   # ==> ORM configuration
   # Load and configure the ORM. Supports :active_record (default) and

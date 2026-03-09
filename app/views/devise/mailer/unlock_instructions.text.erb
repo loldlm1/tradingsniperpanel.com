@@ -1,5 +1,6 @@
 <% @preheader_text = t("devise.mailer.unlock_instructions.preheader", app_name: app_name) %>
 <%= render "shared/mailer/message",
+  formats: [:text],
   tone: :warning,
   category: t("mailers.shared.categories.account_security"),
   title: t("devise.mailer.unlock_instructions.title"),

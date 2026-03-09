@@ -1,1 +1,11 @@
+<%= email_display_name %>
+<%= support_email %>
+<%= "=" * 72 %>
+
 <%= yield %>
+
+<%= "-" * 72 %>
+<%= mail_signature %>
+<%= mail_footer_copy %>
+<%= t("mailers.shared.reply_notice", support_email: support_email) %>
+<%= mail_receiving_reason %>

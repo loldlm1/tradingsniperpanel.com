@@ -100,15 +100,18 @@ namespace :smtp do
 
     apply_runtime_smtp_settings!(settings)
 
-    subject = ENV.fetch("SUBJECT", "[#{Rails.configuration.x.branding.short_name}] SMTP test")
+    subject_brand = Rails.configuration.x.branding.email_subject_brand
+    subject = ENV.fetch("SUBJECT", "#{subject_brand} SMTP delivery check")
     body = <<~BODY
       SMTP test email sent at #{Time.current.utc.iso8601}
       Environment: #{Rails.env}
       APP_HOST: #{ENV.fetch("APP_HOST", "n/a")}
+      Reply-To: #{ApplicationMailer.email_reply_to_address}
     BODY
 
     ActionMailer::Base.mail(
-      from: Rails.configuration.x.branding.support_email,
+      from: ApplicationMailer.email_from_address,
+      reply_to: ApplicationMailer.email_reply_to_address,
       to: to,
       subject: subject,
       body: body
