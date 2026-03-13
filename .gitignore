@@ -11,6 +11,7 @@
 !/tmp/pids/.keep
 !/tmp/sockets/.keep
 !/tmp/storage/.keep
+/output/*
 
 # Storage
 /storage/*

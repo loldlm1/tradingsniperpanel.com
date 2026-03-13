@@ -1,7 +1,7 @@
 # Plan: Partner Program Simplification
 
 **Generated**: 2026-03-12
-**Status**: Implemented, Audit PASS
+**Status**: Implemented, Audit PASS, Visual QA PASS
 **Estimated Complexity**: High
 
 ## Goal
@@ -276,8 +276,51 @@ Replace the current chain-based partner/referral flow with an explicit partner p
 - PASS: corrected `partner_payout_requests.notification_status` default to `queued`
 - PASS: ran focused partner/admin/dashboard specs
 - PASS: ran seed/sidebar/admin regression specs
+- PASS: reset the development DB with `bin/rails db:drop db:create db:migrate`
+- PASS: seeded targeted clean-DB QA fixtures via `bin/rails runner` for `Seeds::AdminBootstrap`, `Seeds::QaUsers`, `Seeds::Partners.seed_qa!`, a dedicated `admin`, and an eligible payout partner
+- PASS: booted the dev stack with `bin/dev` and verified Puma, Tailwind, Sidekiq, and Redis were healthy
+- PASS: ran browser QA with local Playwright/Chromium and captured artifacts under `output/playwright/`
+- PASS: verified post-click payout state for the eligible partner in the DB (`PartnerPayoutRequest#3`, `notification_status=sent`, commissions moved to `requested`)
 
 ## Audit Gate
 - PASS: code pattern and efficiency
 - PASS: feature behavior and goal alignment
 - PASS: tests context
+
+## Visual QA
+**Goal**: Validate the partner program on a clean development database with seeded QA data and a real browser pass.
+**Definition of Done**:
+- Clean DB is recreated and migrated successfully.
+- QA partner seed data is loaded.
+- Partner login and dashboard render correctly with the new direct-referral model.
+- Admin partner CRUD and payout request visibility render correctly.
+- Visual QA findings are recorded as PASS/FAIL with any follow-up fixes.
+
+**Result**: PASS
+
+**Fixtures validated**:
+- Pending-state partner: `qa.partner@example.com`
+- Eligible payout partner: `qa.partner.eligible@example.com`
+- Admin: `qa.admin@example.com`
+- Master admin: `loldlm1@masteradmin.com`
+
+**Artifacts**:
+- `output/playwright/partner-dashboard-pending.png`
+- `output/playwright/partner-dashboard-pending-filtered.png`
+- `output/playwright/partner-dashboard-eligible-before-request.png`
+- `output/playwright/partner-dashboard-eligible-after-request.png`
+- `output/playwright/admin-partner-profiles-index.png`
+- `output/playwright/admin-partner-profile-show.png`
+- `output/playwright/admin-partner-payout-requests-index.png`
+- `output/playwright/master-admin-partner-profile-edit.png`
+
+**Validated outcomes**:
+- Pending-state partner dashboard rendered the new referral-code, direct-referral, chart, and request-status sections correctly.
+- Direct-referral email search worked on the partner dashboard.
+- Eligible partner dashboard showed an enabled payout request path before submission.
+- Clicking payout once created exactly one payout request and one notification flow (`pending` + `sent`) for the eligible partner, and moved both pending commissions into the `requested` state.
+- Admin could load partner profile index, partner profile show, and payout request index pages.
+- Master admin could load the partner profile edit form.
+
+**Minor QA note**:
+- The ActiveAdmin partner profile index renders the partner `User` column using the user display name (`QA Partner`, `QA Eligible Partner`) rather than the email. This is not a permissions or rendering bug, but it is less explicit than the email-based filter/show pages.
