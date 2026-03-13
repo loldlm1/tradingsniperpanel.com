@@ -227,34 +227,55 @@ const initPartnerDashboardChart = () => {
   if (!payload || !Array.isArray(payload.labels) || !Array.isArray(payload.values)) return;
 
   const isDark = localStorage.getItem("dark-mode") === "true";
-  const gridColor = isDark ? "rgba(75, 85, 99, 0.45)" : "#E5E7EB";
-  const tickColor = isDark ? "#9CA3AF" : "#6B7280";
-  const barColor = isDark ? "#38BDF8" : "#0EA5E9";
-  const barHoverColor = isDark ? "#7DD3FC" : "#0284C7";
+  const gridColor = isDark ? "rgba(71, 85, 105, 0.35)" : "rgba(148, 163, 184, 0.22)";
+  const tickColor = isDark ? "#94A3B8" : "#64748B";
+  const lineColor = isDark ? "#38BDF8" : "#0284C7";
+  const pointBorderColor = isDark ? "#0F172A" : "#FFFFFF";
+  const ctx = canvas.getContext("2d");
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height || 320);
+  gradient.addColorStop(0, isDark ? "rgba(56, 189, 248, 0.35)" : "rgba(14, 165, 233, 0.28)");
+  gradient.addColorStop(1, isDark ? "rgba(56, 189, 248, 0.02)" : "rgba(14, 165, 233, 0.01)");
+  const locale = document.documentElement.lang || "en-US";
 
   if (canvas._partnerChartInstance) {
     canvas._partnerChartInstance.destroy();
   }
 
   canvas._partnerChartInstance = new Chart(canvas, {
-    type: "bar",
+    type: "line",
     data: {
       labels: payload.labels,
       datasets: [{
         data: payload.values,
-        backgroundColor: barColor,
-        hoverBackgroundColor: barHoverColor,
-        borderRadius: 10,
-        borderSkipped: false,
-        maxBarThickness: 34
+        fill: true,
+        backgroundColor: gradient,
+        borderColor: lineColor,
+        borderWidth: 3,
+        tension: 0.38,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+        pointBackgroundColor: lineColor,
+        pointHoverBackgroundColor: lineColor,
+        pointBorderColor,
+        pointBorderWidth: 2
       }]
     },
     options: {
       maintainAspectRatio: false,
+      interaction: {
+        intersect: false,
+        mode: "index"
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
           displayColors: false,
+          backgroundColor: isDark ? "#0F172A" : "#FFFFFF",
+          titleColor: isDark ? "#E2E8F0" : "#0F172A",
+          bodyColor: isDark ? "#CBD5E1" : "#334155",
+          borderColor: isDark ? "rgba(56, 189, 248, 0.18)" : "rgba(148, 163, 184, 0.22)",
+          borderWidth: 1,
+          padding: 12,
           callbacks: {
             label: (context) => new Intl.NumberFormat("en-US", {
               style: "currency",
@@ -268,17 +289,29 @@ const initPartnerDashboardChart = () => {
       scales: {
         y: {
           beginAtZero: true,
-          grid: { color: gridColor },
+          grid: {
+            color: gridColor,
+            drawTicks: false
+          },
           border: { display: false },
           ticks: {
             color: tickColor,
-            callback: (value) => `$${value}`
+            padding: 10,
+            callback: (value) => new Intl.NumberFormat(locale, {
+              style: "currency",
+              currency: "USD",
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(Number(value || 0))
           }
         },
         x: {
           grid: { display: false },
           border: { display: false },
-          ticks: { color: tickColor }
+          ticks: {
+            color: tickColor,
+            padding: 10
+          }
         }
       }
     }

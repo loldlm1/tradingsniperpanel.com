@@ -1,0 +1,74 @@
+<div class="rounded-[2rem] border border-slate-200/80 bg-white/95 shadow-sm shadow-slate-200/70 dark:border-slate-700/70 dark:bg-slate-800/95 dark:shadow-none">
+  <div class="border-b border-slate-200/80 px-5 py-5 dark:border-slate-700/70 sm:px-6">
+    <div class="text-sm font-semibold text-slate-950 dark:text-white"><%= t("partner_dashboard.payout_history") %></div>
+    <p class="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300"><%= t("partner_dashboard.payout_history_copy") %></p>
+  </div>
+
+  <% if recent_payout_requests.any? %>
+    <div class="space-y-4 px-5 py-5 sm:px-6">
+      <% recent_payout_requests.each do |request| %>
+        <article class="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-700/70 dark:bg-slate-900/50">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.request_label", id: request.id) %></div>
+              <div class="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white"><%= number_to_currency(request.total_cents.to_i / 100.0) %></div>
+              <div class="mt-2 text-sm text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.requested_at") %>: <%= l((request.requested_at || request.created_at), format: :short) %></div>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <%= render "dashboard/shared/badge",
+                         label: payout_request_status_label(request),
+                         padding_class: "px-2.5 py-1",
+                         class_name: payout_request_status_badge_class(request) %>
+              <%= render "dashboard/shared/badge",
+                         label: payout_request_notification_label(request),
+                         padding_class: "px-2.5 py-1",
+                         class_name: payout_request_notification_badge_class(request) %>
+            </div>
+          </div>
+
+          <dl class="mt-4 grid gap-3 text-sm md:grid-cols-2">
+            <div>
+              <dt class="text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.request_status") %></dt>
+              <dd class="mt-1 font-medium text-slate-950 dark:text-white"><%= payout_request_status_label(request) %></dd>
+            </div>
+            <div>
+              <dt class="text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.notification_status") %></dt>
+              <dd class="mt-1 font-medium text-slate-950 dark:text-white"><%= payout_request_notification_label(request) %></dd>
+            </div>
+            <% if request.paid_at.present? %>
+              <div>
+                <dt class="text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.paid_at") %></dt>
+                <dd class="mt-1 font-medium text-slate-950 dark:text-white"><%= l(request.paid_at, format: :short) %></dd>
+              </div>
+            <% end %>
+            <% if request.payment_reference.present? %>
+              <div>
+                <dt class="text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.payment_reference") %></dt>
+                <dd class="mt-1 break-all font-medium text-slate-950 dark:text-white"><%= request.payment_reference %></dd>
+              </div>
+            <% end %>
+          </dl>
+
+          <% if request.notification_failed_at.present? %>
+            <div class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+              <%= request.notification_failure_message.presence || t("partner_dashboard.notification_failed_copy") %>
+            </div>
+          <% elsif request.note.present? %>
+            <div class="mt-4 rounded-2xl border border-slate-200/80 bg-white/90 px-4 py-3 text-sm leading-6 text-slate-600 dark:border-slate-700/70 dark:bg-slate-800/80 dark:text-slate-300">
+              <strong class="font-semibold text-slate-950 dark:text-white"><%= t("partner_dashboard.note") %>:</strong>
+              <%= request.note %>
+            </div>
+          <% end %>
+        </article>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="px-5 py-10 text-center sm:px-6">
+      <div class="mx-auto max-w-sm rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-5 py-6 dark:border-slate-700 dark:bg-slate-900/40">
+        <div class="text-sm font-semibold text-slate-950 dark:text-white"><%= t("partner_dashboard.no_payout_history_title") %></div>
+        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300"><%= t("partner_dashboard.no_payout_history_copy") %></p>
+      </div>
+    </div>
+  <% end %>
+</div>

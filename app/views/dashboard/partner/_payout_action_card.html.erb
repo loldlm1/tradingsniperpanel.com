@@ -1,0 +1,70 @@
+<% action_tone = case partner_dashboard.payout_status_key
+                 when :eligible then "emerald"
+                 when :notification_failed then "rose"
+                 when :request_pending then "amber"
+                 else "slate"
+                 end %>
+<% progress_percent = payout_progress_percent(requestable_cents: metrics[:requestable_cents], payout_target_cents: partner_dashboard.payout_target_cents) %>
+
+<div class="rounded-[1.75rem] border border-slate-200/80 bg-white/95 p-5 shadow-sm shadow-slate-200/70 dark:border-slate-700/70 dark:bg-slate-800/95 dark:shadow-none">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.payout_action") %></p>
+      <h2 class="mt-2 text-lg font-semibold tracking-tight text-slate-950 dark:text-white"><%= t("partner_dashboard.payout_ready_title") %></h2>
+    </div>
+    <div class="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300 <%= tone_surface_class(action_tone) %>">
+      <%= number_to_currency(metrics[:requestable_cents].to_i / 100.0) %>
+    </div>
+  </div>
+
+  <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300"><%= partner_dashboard.payout_status_message %></p>
+
+  <div class="mt-5 rounded-2xl border px-4 py-4 <%= tone_surface_class(action_tone) %>">
+    <div class="flex items-center justify-between gap-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-300">
+      <span><%= t("partner_dashboard.threshold_progress") %></span>
+      <span><%= number_to_currency(metrics[:requestable_cents].to_i / 100.0) %> / <%= number_to_currency(partner_dashboard.payout_target_cents / 100.0) %></span>
+    </div>
+    <div class="mt-3 h-2 rounded-full bg-white/70 dark:bg-slate-900/70">
+      <div class="h-2 rounded-full <%= tone_class(action_tone) %>" style="width: <%= progress_percent %>%"></div>
+    </div>
+  </div>
+
+  <div class="mt-5 grid gap-3 md:grid-cols-2">
+    <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 dark:border-slate-700/70 dark:bg-slate-900/50">
+      <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.metrics.requestable") %></div>
+      <div class="mt-2 text-xl font-semibold text-slate-950 dark:text-white"><%= number_to_currency(metrics[:requestable_cents].to_i / 100.0) %></div>
+    </div>
+    <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 dark:border-slate-700/70 dark:bg-slate-900/50">
+      <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.payout_target_label") %></div>
+      <div class="mt-2 text-xl font-semibold text-slate-950 dark:text-white"><%= number_to_currency(partner_dashboard.payout_target_cents / 100.0) %></div>
+    </div>
+  </div>
+
+  <% if current_request.present? %>
+    <div class="mt-5 flex flex-wrap items-center gap-2">
+      <%= render "dashboard/shared/badge",
+                 label: payout_request_status_label(current_request),
+                 padding_class: "px-2.5 py-1",
+                 class_name: payout_request_status_badge_class(current_request) %>
+      <%= render "dashboard/shared/badge",
+                 label: payout_request_notification_label(current_request),
+                 padding_class: "px-2.5 py-1",
+                 class_name: payout_request_notification_badge_class(current_request) %>
+    </div>
+  <% end %>
+
+  <div class="mt-5">
+    <% button_classes = if partner_dashboard.payout_button_disabled?
+                          "btn w-full cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-500"
+                        else
+                          "btn w-full border border-emerald-200 bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 dark:border-emerald-400/30 dark:bg-emerald-500 dark:hover:bg-emerald-400"
+                        end %>
+    <%= button_to request_payout_dashboard_partner_path,
+                  method: :post,
+                  disabled: partner_dashboard.payout_button_disabled?,
+                  class: button_classes,
+                  data: { loading_target: true } do %>
+      <span class="inline-flex items-center justify-center"><%= loading_label(partner_dashboard.payout_button_label, loading_text: t("loading.default")) %></span>
+    <% end %>
+  </div>
+</div>

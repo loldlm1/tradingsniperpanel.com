@@ -9,7 +9,7 @@ RSpec.describe "Partner dashboard", type: :request do
   end
 
   it "requires an active partner profile" do
-    sign_out partner_user
+    sign_out :user
     regular_user = create(:user)
     sign_in regular_user, scope: :user
 
@@ -27,6 +27,39 @@ RSpec.describe "Partner dashboard", type: :request do
     expect(response).to be_successful
     expect(response.body).to include(partner_profile.referral_code)
     expect(response.body).to include("referred@example.com")
+  end
+
+  it "renders payout history and removes the commission log section" do
+    request = create(
+      :partner_payout_request,
+      partner_profile: partner_profile,
+      status: :paid,
+      notification_status: :sent,
+      total_cents: 48_500,
+      payment_reference: "wire-2026-001",
+      paid_at: Time.current
+    )
+
+    get dashboard_partner_path(locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include(I18n.t("partner_dashboard.payout_history"))
+    expect(response.body).to include("wire-2026-001")
+    expect(response.body).not_to include(I18n.t("partner_dashboard.revenue", default: "Commission log"))
+  end
+
+  it "filters direct referrals by email" do
+    matching_user = create(:user, email: "partner-filter@example.com")
+    other_user = create(:user, email: "outside-filter@example.com")
+    Referrals::AttachReferrer.new(user: matching_user, code: partner_profile.referral_code).call
+    Referrals::AttachReferrer.new(user: other_user, code: partner_profile.referral_code).call
+
+    get dashboard_partner_path(locale: :en, q: "partner-filter")
+
+    expect(response).to be_successful
+    expect(response.body).to include("partner-filter@example.com")
+    expect(response.body).not_to include("outside-filter@example.com")
+    expect(response.body).to include(I18n.t("partner_dashboard.clear_search"))
   end
 
   it "prevents payout requests below the minimum threshold" do

@@ -1,0 +1,75 @@
+<% latest_request = current_request || recent_payout_requests.first %>
+
+<div class="rounded-[1.75rem] border border-slate-200/80 bg-white/95 p-5 shadow-sm shadow-slate-200/70 dark:border-slate-700/70 dark:bg-slate-800/95 dark:shadow-none">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.request_health_label") %></p>
+      <h2 class="mt-2 text-lg font-semibold tracking-tight text-slate-950 dark:text-white"><%= t("partner_dashboard.request_health_title") %></h2>
+    </div>
+    <% if latest_request.present? %>
+      <%= render "dashboard/shared/badge",
+                 label: payout_request_status_label(latest_request),
+                 padding_class: "px-2.5 py-1",
+                 class_name: payout_request_status_badge_class(latest_request) %>
+    <% end %>
+  </div>
+
+  <% if latest_request.present? %>
+    <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+      <%= current_request.present? ? t("partner_dashboard.request_health_pending_copy") : t("partner_dashboard.request_health_latest_copy") %>
+    </p>
+
+    <div class="mt-5 flex flex-wrap gap-2">
+      <%= render "dashboard/shared/badge",
+                 label: payout_request_notification_label(latest_request),
+                 padding_class: "px-2.5 py-1",
+                 class_name: payout_request_notification_badge_class(latest_request) %>
+      <% if latest_request.notification_failed_at.present? %>
+        <span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+          <%= t("partner_dashboard.action_required") %>
+        </span>
+      <% end %>
+    </div>
+
+    <dl class="mt-5 space-y-3 text-sm">
+      <div class="flex items-center justify-between gap-4">
+        <dt class="text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.request_id") %></dt>
+        <dd class="font-semibold text-slate-950 dark:text-white">#<%= latest_request.id %></dd>
+      </div>
+      <div class="flex items-center justify-between gap-4">
+        <dt class="text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.requested_at") %></dt>
+        <dd class="font-semibold text-slate-950 dark:text-white"><%= l((latest_request.requested_at || latest_request.created_at), format: :short) %></dd>
+      </div>
+      <% if latest_request.paid_at.present? %>
+        <div class="flex items-center justify-between gap-4">
+          <dt class="text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.paid_at") %></dt>
+          <dd class="font-semibold text-slate-950 dark:text-white"><%= l(latest_request.paid_at, format: :short) %></dd>
+        </div>
+      <% end %>
+      <% if latest_request.payment_reference.present? %>
+        <div class="flex items-center justify-between gap-4">
+          <dt class="text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.payment_reference") %></dt>
+          <dd class="truncate font-semibold text-slate-950 dark:text-white"><%= latest_request.payment_reference %></dd>
+        </div>
+      <% end %>
+    </dl>
+
+    <% if latest_request.notification_failed_at.present? %>
+      <div class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
+        <%= t("partner_dashboard.notification_failed_copy") %>
+      </div>
+    <% elsif latest_request.note.present? %>
+      <div class="mt-5 rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 text-sm leading-6 text-slate-600 dark:border-slate-700/70 dark:bg-slate-900/50 dark:text-slate-300">
+        <strong class="font-semibold text-slate-950 dark:text-white"><%= t("partner_dashboard.note") %>:</strong>
+        <%= latest_request.note %>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300"><%= t("partner_dashboard.request_health_empty_copy") %></p>
+
+    <div class="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-4 dark:border-slate-700 dark:bg-slate-900/40">
+      <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.how_payouts_work") %></div>
+      <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300"><%= t("partner_dashboard.request_health_empty_tip") %></p>
+    </div>
+  <% end %>
+</div>

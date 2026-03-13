@@ -1,0 +1,35 @@
+<div class="rounded-[1.75rem] border border-slate-200/80 bg-white/95 p-5 shadow-sm shadow-slate-200/70 dark:border-slate-700/70 dark:bg-slate-800/95 dark:shadow-none">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.network") %></p>
+      <h2 class="mt-2 text-lg font-semibold tracking-tight text-slate-950 dark:text-white"><%= t("partner_dashboard.program_snapshot") %></h2>
+    </div>
+    <span class="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-200">
+      <%= t("partner_dashboard.network_badge") %>
+    </span>
+  </div>
+
+  <div class="mt-5 grid gap-3 md:grid-cols-2">
+    <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 dark:border-slate-700/70 dark:bg-slate-900/50">
+      <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.discount_percent") %></div>
+      <div class="mt-2 text-xl font-semibold text-slate-950 dark:text-white"><%= partner_dashboard.discount_percent %>%</div>
+    </div>
+    <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 dark:border-slate-700/70 dark:bg-slate-900/50">
+      <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.commission_percent") %></div>
+      <div class="mt-2 text-xl font-semibold text-slate-950 dark:text-white"><%= partner_dashboard.commission_percent %>%</div>
+    </div>
+    <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 dark:border-slate-700/70 dark:bg-slate-900/50">
+      <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.direct_referrals") %></div>
+      <div class="mt-2 text-xl font-semibold text-slate-950 dark:text-white"><%= metrics[:direct_referrals_count] %></div>
+    </div>
+    <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 dark:border-slate-700/70 dark:bg-slate-900/50">
+      <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.subscribers") %></div>
+      <div class="mt-2 text-xl font-semibold text-slate-950 dark:text-white"><%= metrics[:subscribers_count] %></div>
+    </div>
+  </div>
+
+  <div class="mt-4 rounded-2xl border border-slate-200/80 bg-linear-to-r from-slate-900 to-slate-700 px-4 py-4 text-white dark:border-slate-600/60 dark:from-slate-100 dark:to-white dark:text-slate-900">
+    <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70 dark:text-slate-500"><%= t("partner_dashboard.current_month") %></div>
+    <div class="mt-2 text-2xl font-semibold tracking-tight"><%= number_to_currency(metrics[:current_month_cents].to_i / 100.0) %></div>
+  </div>
+</div>

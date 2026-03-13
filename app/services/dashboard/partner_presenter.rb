@@ -35,12 +35,12 @@ module Dashboard
       scope.order(created_at: :desc)
     end
 
-    def recent_commissions
-      profile.partner_commissions.includes(:referred_user, :pay_subscription).order(occurred_at: :desc).limit(25)
+    def recent_payout_requests
+      profile.partner_payout_requests.order(requested_at: :desc, created_at: :desc).limit(6)
     end
 
     def metrics
-      {
+      @metrics ||= {
         requestable_cents: pending_commissions.sum(:amount_cents),
         requested_cents: requested_commissions.sum(:amount_cents),
         paid_cents: paid_commissions.sum(:amount_cents),
@@ -51,8 +51,58 @@ module Dashboard
       }
     end
 
+    def highlight_metrics
+      [
+        {
+          key: :requestable,
+          label: I18n.t("partner_dashboard.metrics.requestable", default: "Requestable"),
+          value: currency(metrics[:requestable_cents]),
+          tone: "amber"
+        },
+        {
+          key: :requested,
+          label: I18n.t("partner_dashboard.metrics.requested", default: "Requested"),
+          value: currency(metrics[:requested_cents]),
+          tone: "sky"
+        },
+        {
+          key: :paid,
+          label: I18n.t("partner_dashboard.metrics.paid", default: "Paid"),
+          value: currency(metrics[:paid_cents]),
+          tone: "emerald"
+        },
+        {
+          key: :lifetime,
+          label: I18n.t("partner_dashboard.metrics.lifetime", default: "Lifetime"),
+          value: currency(metrics[:lifetime_cents]),
+          tone: "slate"
+        }
+      ]
+    end
+
+    def chart_summary
+      [
+        {
+          label: I18n.t("partner_dashboard.current_month", default: "Current month"),
+          value: currency(metrics[:current_month_cents])
+        },
+        {
+          label: I18n.t("partner_dashboard.direct_referrals", default: "Direct referrals"),
+          value: metrics[:direct_referrals_count].to_s
+        },
+        {
+          label: I18n.t("partner_dashboard.subscribers", default: "Subscribers"),
+          value: metrics[:subscribers_count].to_s
+        }
+      ]
+    end
+
     def current_request
       @current_request ||= profile.partner_payout_requests.pending.order(created_at: :desc).first
+    end
+
+    def latest_payout_request
+      current_request || recent_payout_requests.first
     end
 
     def payout_target_cents
@@ -112,7 +162,7 @@ module Dashboard
 
       MONTHLY_RANGE_MONTHS.times do |offset|
         month = (MONTHLY_RANGE_MONTHS - offset - 1).months.ago.beginning_of_month
-        labels << month.strftime("%Y-%m")
+        labels << I18n.l(month.to_date, format: "%b")
         data << (paid_by_month[month].to_i / 100.0)
       end
 
