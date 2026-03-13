@@ -2597,13 +2597,20 @@ module Seeds
     DEFAULT_PASSWORD = "Password123!"
     DEFAULT_TRADER_EMAIL = "qa@example.com"
     DEFAULT_PARTNER_EMAIL = "qa.partner@example.com"
+    DEFAULT_ELIGIBLE_PARTNER_EMAIL = "qa.partner.eligible@example.com"
 
-    def seed!(trader_email: DEFAULT_TRADER_EMAIL, partner_email: DEFAULT_PARTNER_EMAIL, password: DEFAULT_PASSWORD)
+    def seed!(
+      trader_email: DEFAULT_TRADER_EMAIL,
+      partner_email: DEFAULT_PARTNER_EMAIL,
+      eligible_partner_email: DEFAULT_ELIGIBLE_PARTNER_EMAIL,
+      password: DEFAULT_PASSWORD
+    )
       return {} unless defined?(User)
 
       {
         trader: upsert_user(email: trader_email, name: "QA User", role: :trader, password: password),
-        partner: upsert_user(email: partner_email, name: "QA Partner", role: :trader, password: password)
+        partner: upsert_user(email: partner_email, name: "QA Partner", role: :trader, password: password),
+        eligible_partner: upsert_user(email: eligible_partner_email, name: "QA Eligible Partner", role: :trader, password: password)
       }
     end
 
@@ -2628,6 +2635,11 @@ module Seeds
       "qa.referral1@example.com",
       "qa.referral2@example.com",
       "qa.referral3@example.com"
+    ].freeze
+    DEFAULT_ELIGIBLE_REFERRED_EMAILS = [
+      "qa.eligible.referral1@example.com",
+      "qa.eligible.referral2@example.com",
+      "qa.eligible.referral3@example.com"
     ].freeze
     DEFAULT_PASSWORD = QaUsers::DEFAULT_PASSWORD
     DEFAULT_DISCOUNT_PERCENT = 15
@@ -2693,6 +2705,41 @@ module Seeds
         commissions: paid_commissions,
         commission_status: :paid
       )
+
+      referred_users
+    end
+
+    def seed_eligible_qa!(partner:, referred_emails: DEFAULT_ELIGIBLE_REFERRED_EMAILS, password: DEFAULT_PASSWORD)
+      return [] unless partner.present?
+      return [] unless defined?(PartnerProfile) && defined?(PartnerMembership)
+      return [] unless defined?(PartnerCommission) && defined?(PartnerPayoutRequest)
+      return [] unless defined?(Refer)
+
+      profile = upsert_partner_profile(partner)
+      reset_click_ready_profile!(profile)
+
+      referred_users = []
+
+      referred_emails.each_with_index do |email, idx|
+        user = QaUsers.upsert_user(
+          email: email,
+          name: "QA Eligible Referral #{idx + 1}",
+          role: :trader,
+          password: password
+        )
+        referred_users << user
+
+        attach_referral(profile, user)
+        membership = upsert_membership(profile, user, depth: 1)
+        seed_eligible_commissions(
+          profile: profile,
+          membership: membership,
+          user: user,
+          index: idx
+        )
+      end
+
+      seed_subscription_for(referred_users.first)
 
       referred_users
     end
@@ -2780,6 +2827,23 @@ module Seeds
       commission
     end
 
+    def seed_eligible_commissions(profile:, membership:, user:, index:)
+      now = Time.current
+      base_key = "seed:qa_partner_eligible_#{user.id || user.email}"
+      amounts = [12_000, 8_500, 5_500]
+
+      upsert_commission(
+        profile: profile,
+        membership: membership,
+        user: user,
+        seed_key: "#{base_key}:pending",
+        status: :pending,
+        commission_kind: index.zero? ? :initial : :renewal,
+        amount_cents: amounts.fetch(index, 5_000),
+        occurred_at: now - (index + 1).days
+      )
+    end
+
     def seed_metadata(seed_key)
       { "seed_key" => seed_key, "seed_source" => "qa" }
     end
@@ -2822,6 +2886,37 @@ module Seeds
       subscription.current_period_start ||= 15.days.ago
       subscription.current_period_end ||= 15.days.from_now
       subscription.save!
+    end
+
+    def upsert_partner_profile(partner)
+      profile = PartnerProfile.find_or_create_by!(user: partner) do |partner_profile|
+        partner_profile.discount_percent = DEFAULT_DISCOUNT_PERCENT
+        partner_profile.commission_percent = DEFAULT_DISCOUNT_PERCENT
+        partner_profile.payout_mode = :once_paid
+        partner_profile.active = true
+        partner_profile.started_at = Time.current
+      end
+      return profile if profile.discount_percent.present? && profile.commission_percent.present?
+
+      profile.update!(discount_percent: DEFAULT_DISCOUNT_PERCENT, commission_percent: DEFAULT_DISCOUNT_PERCENT)
+      profile
+    end
+
+    def reset_click_ready_profile!(profile)
+      profile.partner_payout_requests.find_each do |request|
+        request.partner_commissions.update_all(
+          payout_request_id: nil,
+          status: PartnerCommission.statuses[:pending],
+          updated_at: Time.current
+        )
+      end
+
+      profile.partner_payout_requests.delete_all
+      profile.partner_commissions.update_all(
+        payout_request_id: nil,
+        status: PartnerCommission.statuses[:pending],
+        updated_at: Time.current
+      )
     end
   end
 end

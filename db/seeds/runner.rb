@@ -71,6 +71,7 @@ module Seeds
       Seeds::MarketplacePurchases.seed_for(qa_user: qa_user)
       Seeds::Courses.seed_progress_for(user: qa_user) if qa_user
       Seeds::Partners.seed_qa!(partner: qa_users[:partner])
+      Seeds::Partners.seed_eligible_qa!(partner: qa_users[:eligible_partner])
       Seeds::Subscriptions.seed_manual_subscription_for(
         user: qa_user,
         recorded_by: qa_users[:partner] || qa_user

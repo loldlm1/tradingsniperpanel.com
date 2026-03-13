@@ -31,6 +31,23 @@ bin/dev
 # or css-only: npm run dev:css
 ```
 
+## Partner payout setup and QA
+- Referral discounts are injected automatically before Stripe Checkout is created when the customer has an attributed partner referrer. The app applies the referral discount first in `app/services/billing/apply_referral_discount.rb`, and dashboard promo codes only apply when no referral discount has already been attached.
+- Configure partner payout notification recipients with a comma-separated env var:
+```
+export PARTNER_PAYOUT_REQUEST_RECIPIENTS="ops@example.com, finance@example.com, owner@example.com"
+```
+- The payout request mailer uses these templates:
+  - `app/views/partner_payout_requests_mailer/request_notification.html.erb`
+  - `app/views/partner_payout_requests_mailer/request_notification.text.erb`
+- Full QA seeds in development/staging create these partner accounts with password `Password123!`:
+  - `qa.partner@example.com`: pending/request-history dashboard state
+  - `qa.partner.eligible@example.com`: click-ready payout dashboard state with requestable balance >= `$200`
+- If you only want the partner QA accounts without a full reseed, run:
+```
+bin/rails runner 'load Rails.root.join("db/seeds/shared.rb"); qa_users = Seeds::QaUsers.seed!; Seeds::Partners.seed_qa!(partner: qa_users[:partner]); Seeds::Partners.seed_eligible_qa!(partner: qa_users[:eligible_partner])'
+```
+
 ## Server setup (Ubuntu 22.04, staging + production on the same VPS)
 
 ### Recommended: setup scripts

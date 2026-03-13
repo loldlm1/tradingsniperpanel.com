@@ -16,10 +16,14 @@ RSpec.describe PartnerPayoutRequestsMailer, type: :mailer do
 
     mail = described_class.with(partner_payout_request: request).request_notification
 
+    expect(mail).to be_multipart
     expect(mail.to).to eq(["ops@example.com", "finance@example.com"])
     expect(mail.subject).to include(I18n.t("partner_payout_requests_mailer.request_notification.subject", app_short_name: described_class.email_subject_brand))
-    expect(mail.body.encoded).to include("Partner Jane")
-    expect(mail.body.encoded).to include("PARTNER55")
-    expect(mail.body.encoded).to include("partner@example.com")
+    expect(mail.html_part.body.encoded).to include("Partner Jane")
+    expect(mail.html_part.body.encoded).to include("PARTNER55")
+    expect(mail.html_part.body.encoded).to include("partner@example.com")
+    expect(mail.text_part.body.encoded).to include("Partner Jane")
+    expect(mail.text_part.body.encoded).to include("PARTNER55")
+    expect(mail.text_part.body.encoded).to include("partner@example.com")
   end
 end
