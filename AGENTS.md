@@ -13,6 +13,7 @@
   - If FAIL is ambiguous, create a mini-plan (max 3 steps), ask the user, then continue and re-audit.
 - **Feature done summary**: keep it concise and free-form; include final audit status and optional remaining TODOs/risks.
 - **During execution**: update the plan with decisions + commands run (PASS/FAIL only). No long logs.
+- **Planner context compaction**: for `$planner`-driven phased work, compact window context only when the current sprint/phase task is finalized and the next one is starting, only if usage is `> 50%` (`~256k / 512k`), and carry forward a safe summary so the next sprint/phase starts with enough context.
 - **Keep it lightweight**: don’t paste large code blocks or tool output; reference file paths instead.
 - **Done = clean**: once the feature is verified and merged, remove it from active context:
   - Move to `docs/plans/_archive/<YYYY-MM-DD>-<slug>.md` **or**
