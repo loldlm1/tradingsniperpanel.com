@@ -22,9 +22,12 @@ module Partners
       return unless user.is_a?(User)
 
       referrer = user.referrer
-      return unless referrer.respond_to?(:partner_profile)
+      return unless referrer.is_a?(User)
 
-      referrer.partner_profile
+      profile = referrer.partner_profile
+      return unless profile&.active?
+
+      profile
     end
   end
 end

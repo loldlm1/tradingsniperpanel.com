@@ -1,0 +1,9 @@
+<%= t("partner_payout_requests_mailer.request_notification.title") %>
+
+<%= t("partner_payout_requests_mailer.request_notification.intro") %>
+
+<% detail_rows.each do |row| %>
+<%= row[:label] %>: <%= row[:value] %>
+<% end %>
+
+<%= t("partner_payout_requests_mailer.request_notification.closing") %>

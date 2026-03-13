@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_08_123000) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_12_143000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -491,7 +491,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_08_123000) do
     t.string "payment_reference"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "notification_status", default: 0, null: false
+    t.datetime "notification_sent_at"
+    t.datetime "notification_failed_at"
+    t.text "notification_failure_message"
+    t.index ["notification_status"], name: "index_partner_payout_requests_on_notification_status"
     t.index ["partner_profile_id"], name: "index_partner_payout_requests_on_partner_profile_id"
+    t.index ["partner_profile_id"], name: "index_partner_payout_requests_on_profile_pending", unique: true, where: "(status = 0)"
   end
 
   create_table "partner_profiles", force: :cascade do |t|
@@ -503,6 +509,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_08_123000) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "referral_code", null: false
+    t.integer "commission_percent", null: false
+    t.index ["referral_code"], name: "index_partner_profiles_on_referral_code", unique: true
     t.index ["user_id"], name: "index_partner_profiles_on_user_id", unique: true
   end
 

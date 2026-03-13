@@ -9,7 +9,7 @@ RSpec.describe Billing::ApplyReferralDiscount do
     }
   end
 
-  let(:referrer) { create(:user, :partner) }
+  let(:referrer) { create(:user) }
   let(:coupon_service) { instance_double(Partners::ReferralCoupon, coupon_id: "coupon_123") }
 
   before do
@@ -18,19 +18,18 @@ RSpec.describe Billing::ApplyReferralDiscount do
 
   it "adds a coupon and metadata for referred users" do
     referred_user = create(:user)
-    referral_code = referrer.referral_codes.first_or_create
-    Referrals::AttachReferrer.new(user: referred_user, code: referral_code.code).call
+    create(:partner_profile, user: referrer, referral_code: "PARTNER10", discount_percent: 10)
+    Referrals::AttachReferrer.new(user: referred_user, code: "PARTNER10").call
     referred_user.reload
     expect(referred_user.referrer).to eq(referrer)
-    profile = PartnerProfile.find_or_initialize_by(user: referrer)
-    profile.update!(discount_percent: 10, payout_mode: :once_paid)
 
     result = described_class.new(user: referred_user, checkout_params: checkout_params).call
 
     expect(result[:discounts]).to eq([{ coupon: "coupon_123" }])
     expect(result).not_to have_key(:allow_promotion_codes)
     expect(result[:subscription_data][:metadata]["referrer_id"]).to eq(referrer.id.to_s)
-    expect(result[:subscription_data][:metadata]["referral_code"]).to eq(referrer.referral_codes.first.code)
+    expect(result[:subscription_data][:metadata]["referral_code"]).to eq("PARTNER10")
+    expect(result[:subscription_data][:metadata]["partner_referral_code"]).to eq("PARTNER10")
   end
 
   it "returns original params when not referred" do

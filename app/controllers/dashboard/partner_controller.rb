@@ -2,23 +2,36 @@ class Dashboard::PartnerController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
   before_action :ensure_partner!
+  before_action :build_partner_dashboard, only: :show
 
   def show
-    @profile = current_user.partner_profile
-    @memberships = memberships_scope
-    @commissions = commissions_scope
-    @metrics = build_metrics
-    @monthly_paid = monthly_paid_data
+    @profile = @partner_dashboard.profile
+    @metrics = @partner_dashboard.metrics
+    @current_request = @partner_dashboard.current_request
+    @chart_data = @partner_dashboard.monthly_paid_chart
+    @commissions = @partner_dashboard.recent_commissions
+    @pagy, @direct_referrals = pagy(@partner_dashboard.direct_referrals_scope, limit: 10)
+    @direct_referral_records = @partner_dashboard.referral_records_by_user_id(@direct_referrals)
+    @active_subscription_user_ids = @partner_dashboard.active_subscription_user_ids_for(@direct_referrals)
   end
 
   def request_payout
     profile = current_user.partner_profile
-    request = Partners::PayoutRequestor.new(partner_profile: profile).call
+    result = Partners::PayoutRequestor.new(partner_profile: profile).call
 
-    if request
-      flash[:notice] = t("partner_dashboard.payout_requested", default: "Payout request created. We'll contact you soon.")
+    case result.status
+    when :created
+      flash[:notice] = t("partner_dashboard.payout_requested", default: "Payout request queued. We'll notify the admin team now.")
+    when :retried
+      flash[:notice] = t("partner_dashboard.payout_retry_queued", default: "Retrying the payout request email now.")
+    when :already_pending
+      flash[:notice] = t("partner_dashboard.request_pending_copy", default: "Your payout request is already pending review.")
+    when :below_minimum
+      flash[:alert] = t("partner_dashboard.payout_minimum", amount: helpers.number_to_currency(result.total_cents.to_i / 100.0), default: "At least $200 in pending commissions is required before requesting payout.")
+    when :notification_failed
+      flash[:alert] = t("partner_dashboard.notification_failed", default: "We could not notify the admin team. Please reload and try again.")
     else
-      flash[:alert] = t("partner_dashboard.payout_none", default: "No pending commissions to request right now.")
+      flash[:alert] = t("partner_dashboard.payout_none", default: "No pending commissions are eligible right now.")
     end
 
     redirect_to dashboard_partner_path
@@ -27,52 +40,15 @@ class Dashboard::PartnerController < ApplicationController
   private
 
   def ensure_partner!
-    unless current_user.partner? && current_user.partner_profile&.active?
+    unless current_user.partner_profile&.active?
       redirect_to dashboard_path, alert: t("partner_dashboard.access_denied", default: "Partner access required.")
     end
   end
 
-  def memberships_scope
-    scope = current_user.partner_profile.partner_memberships.active.includes(:user)
-    if params[:q].present?
-      term = "%#{params[:q].strip}%"
-      scope = scope.joins(:user).where("users.name ILIKE :term OR users.email ILIKE :term", term:)
-    end
-    scope.order("users.created_at DESC")
-  end
-
-  def commissions_scope
-    current_user.partner_profile.partner_commissions.includes(:referred_user, :pay_subscription).order(occurred_at: :desc).limit(50)
-  end
-
-  def build_metrics
-    profile = current_user.partner_profile
-    {
-      pending_cents: profile.partner_commissions.pending.sum(:amount_cents),
-      requested_cents: profile.partner_commissions.requested.sum(:amount_cents),
-      paid_cents: profile.partner_commissions.paid.sum(:amount_cents),
-      lifetime_cents: profile.partner_commissions.sum(:amount_cents),
-      current_month_cents: profile.partner_commissions.where(occurred_at: Time.current.beginning_of_month..Time.current.end_of_month).sum(:amount_cents),
-      subscriber_count: active_subscriber_count(profile),
-      invited_count: profile.partner_memberships.active.count
-    }
-  end
-
-  def monthly_paid_data
-    profile = current_user.partner_profile
-    commissions = profile.partner_commissions.paid
-                             .where("occurred_at >= ?", 6.months.ago.beginning_of_month)
-    commissions.group_by { |c| c.occurred_at.beginning_of_month }.transform_values { |rows| rows.sum(&:amount_cents) }
-  end
-
-  def active_subscriber_count(profile)
-    user_ids = profile.partner_memberships.active.pluck(:user_id)
-    return 0 if user_ids.empty?
-
-    Pay::Subscription.joins(:customer)
-                     .where(pay_customers: { owner_type: "User", owner_id: user_ids })
-                     .where(status: "active")
-                     .distinct
-                     .count("pay_customers.owner_id")
+  def build_partner_dashboard
+    @partner_dashboard = Dashboard::PartnerPresenter.new(
+      user: current_user,
+      filter_email: params[:q]
+    ).call
   end
 end

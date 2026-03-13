@@ -2603,7 +2603,7 @@ module Seeds
 
       {
         trader: upsert_user(email: trader_email, name: "QA User", role: :trader, password: password),
-        partner: upsert_user(email: partner_email, name: "QA Partner", role: :partner, password: password)
+        partner: upsert_user(email: partner_email, name: "QA Partner", role: :trader, password: password)
       }
     end
 
@@ -2633,18 +2633,22 @@ module Seeds
     DEFAULT_DISCOUNT_PERCENT = 15
 
     def seed_qa!(partner:, referred_emails: DEFAULT_REFERRED_EMAILS, password: DEFAULT_PASSWORD)
-      return [] unless partner&.partner?
+      return [] unless partner.present?
       return [] unless defined?(PartnerProfile) && defined?(PartnerMembership)
       return [] unless defined?(PartnerCommission) && defined?(PartnerPayoutRequest)
       return [] unless defined?(Refer)
 
-      partner.ensure_referral_code
-      partner.ensure_partner_profile_for_partner
-      profile = partner.partner_profile
+      profile = PartnerProfile.find_or_create_by!(user: partner) do |partner_profile|
+        partner_profile.discount_percent = DEFAULT_DISCOUNT_PERCENT
+        partner_profile.commission_percent = DEFAULT_DISCOUNT_PERCENT
+        partner_profile.payout_mode = :once_paid
+        partner_profile.active = true
+        partner_profile.started_at = Time.current
+      end
       return [] unless profile
 
-      if profile.discount_percent.nil? || profile.discount_percent.zero?
-        profile.update!(discount_percent: DEFAULT_DISCOUNT_PERCENT)
+      if profile.discount_percent.nil? || profile.discount_percent.zero? || profile.commission_percent.nil? || profile.commission_percent.zero?
+        profile.update!(discount_percent: DEFAULT_DISCOUNT_PERCENT, commission_percent: DEFAULT_DISCOUNT_PERCENT)
       end
 
       requested_commissions = []
@@ -2660,8 +2664,8 @@ module Seeds
         )
         referred_users << user
 
-        attach_referral(partner, user)
-        membership = upsert_membership(profile, user, depth: idx + 1)
+        attach_referral(profile, user)
+        membership = upsert_membership(profile, user, depth: 1)
         seed_commissions(
           profile: profile,
           membership: membership,
@@ -2693,17 +2697,12 @@ module Seeds
       referred_users
     end
 
-    def attach_referral(partner, user)
+    def attach_referral(profile, user)
       return unless user.respond_to?(:referrer)
-      return if user.referrer == partner
-      return if user.referrer.present? && user.referrer != partner
+      return if user.referrer == profile.user
+      return if user.referrer.present? && user.referrer != profile.user
 
-      code = partner.referral_codes.first&.code
-      return if code.blank?
-
-      Refer.refer(code: code, referee: user)
-      user.reload
-      user.ensure_referral_code_if_referred!
+      Referrals::AttachReferrer.new(user: user, code: profile.referral_code).call
     end
 
     def upsert_membership(profile, user, depth:)
@@ -2766,7 +2765,7 @@ module Seeds
         commission_kind: commission_kind,
         amount_cents: amount_cents,
         currency: "usd",
-        percent_applied: profile.discount_percent_or_default,
+        percent_applied: profile.commission_percent_or_default,
         status: status,
         occurred_at: occurred_at,
         metadata: seed_metadata(seed_key)

@@ -19,6 +19,12 @@ FactoryBot.define do
       role { :partner }
     end
 
+    trait :partner_enabled do
+      after(:create) do |user|
+        create(:partner_profile, user: user)
+      end
+    end
+
     trait :master_admin do
       role { :master_admin }
     end

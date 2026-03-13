@@ -66,12 +66,11 @@ RSpec.describe "Subscription upgrades", type: :request do
 
   it "keeps the referral discount as the winning checkout discount" do
     promotion = create(:promotion_code, :active, stripe_promotion_code_id: "promo_dashboard")
-    referrer = create(:user, :partner)
+    referrer = create(:user)
     referred_user = create(:user)
-    referral_code = referrer.referral_codes.first_or_create
-    Referrals::AttachReferrer.new(user: referred_user, code: referral_code.code).call
+    create(:partner_profile, user: referrer, referral_code: "PARTNER20", discount_percent: 10)
+    Referrals::AttachReferrer.new(user: referred_user, code: "PARTNER20").call
     referred_user.reload
-    PartnerProfile.find_or_initialize_by(user: referrer).update!(discount_percent: 10, payout_mode: :once_paid)
 
     checkout_stub = instance_double(Pay::Stripe::Customer)
     allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)

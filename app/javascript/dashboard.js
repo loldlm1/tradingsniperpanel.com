@@ -213,12 +213,97 @@ const setupCourseProgressTracking = () => {
   window.addEventListener("beforeunload", () => sendProgress(true));
 };
 
+const initPartnerDashboardChart = () => {
+  const canvas = document.querySelector("#partner-paid-earnings-chart[data-partner-chart]");
+  if (!canvas || !window.Chart) return;
+
+  let payload;
+  try {
+    payload = JSON.parse(canvas.dataset.partnerChart || "{}");
+  } catch (error) {
+    payload = null;
+  }
+
+  if (!payload || !Array.isArray(payload.labels) || !Array.isArray(payload.values)) return;
+
+  const isDark = localStorage.getItem("dark-mode") === "true";
+  const gridColor = isDark ? "rgba(75, 85, 99, 0.45)" : "#E5E7EB";
+  const tickColor = isDark ? "#9CA3AF" : "#6B7280";
+  const barColor = isDark ? "#38BDF8" : "#0EA5E9";
+  const barHoverColor = isDark ? "#7DD3FC" : "#0284C7";
+
+  if (canvas._partnerChartInstance) {
+    canvas._partnerChartInstance.destroy();
+  }
+
+  canvas._partnerChartInstance = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: payload.labels,
+      datasets: [{
+        data: payload.values,
+        backgroundColor: barColor,
+        hoverBackgroundColor: barHoverColor,
+        borderRadius: 10,
+        borderSkipped: false,
+        maxBarThickness: 34
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          displayColors: false,
+          callbacks: {
+            label: (context) => new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: "USD",
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }).format(Number(context.parsed.y || 0))
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: gridColor },
+          border: { display: false },
+          ticks: {
+            color: tickColor,
+            callback: (value) => `$${value}`
+          }
+        },
+        x: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: { color: tickColor }
+        }
+      }
+    }
+  });
+};
+
+const schedulePartnerDashboardChart = () => {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initPartnerDashboardChart, { once: true });
+  } else {
+    initPartnerDashboardChart();
+  }
+
+  document.addEventListener("darkMode", () => {
+    initPartnerDashboardChart();
+  });
+};
+
 const bootstrapDashboardLayout = () => {
   applySidebarState();
   setupCopyHelper();
   setupGuideCodeCopy();
   setupGuideScrollSpy();
   setupCourseProgressTracking();
+  schedulePartnerDashboardChart();
 };
 
 bootstrapDashboardLayout();

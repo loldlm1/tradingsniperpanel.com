@@ -17,11 +17,12 @@ RSpec.describe User, type: :model do
 
   describe "#stripe_customer_attributes" do
     it "includes metadata about the user" do
-      user = create(:user, :partner, preferred_locale: "es")
+      user = create(:user, preferred_locale: "es")
+      create(:partner_profile, user: user, referral_code: "PARTNER88")
       metadata = user.stripe_customer_attributes[:metadata]
 
       expect(metadata[:user_id]).to eq(user.id)
-      expect(metadata[:referral_code]).to eq(user.referral_codes.first.code)
+      expect(metadata[:referral_code]).to eq("PARTNER88")
       expect(metadata[:preferred_locale]).to eq("es")
     end
   end
@@ -41,11 +42,10 @@ RSpec.describe User, type: :model do
   end
 
   describe "#ensure_referral_code" do
-    it "creates a referral code after creation for partners" do
-      user = create(:user, :partner)
+    it "creates a referral code when explicitly requested" do
+      user = create(:user)
 
-      expect(user.referral_codes.count).to eq(1)
-      expect(user.referral_codes.first.code).to be_present
+      expect { user.ensure_referral_code }.to change { user.referral_codes.count }.from(0).to(1)
     end
 
     it "does not create a referral code for traders without referrers" do
@@ -54,14 +54,24 @@ RSpec.describe User, type: :model do
       expect(user.referral_codes.count).to eq(0)
     end
 
-    it "creates a referral code for referred traders" do
-      referrer = create(:user, :partner)
+    it "does not create a referral code for referred traders by default" do
+      referrer = create(:user)
+      create(:partner_profile, user: referrer, referral_code: "PARTCODE1")
       user = create(:user)
 
-      Referrals::AttachReferrer.new(user:, code: referrer.referral_codes.first.code).call
+      Referrals::AttachReferrer.new(user:, code: "PARTCODE1").call
 
-      expect(user.referral_codes.count).to eq(1)
-      expect(user.referral_codes.first.code).to be_present
+      expect(user.referral_codes.count).to eq(0)
+    end
+  end
+
+  describe "#partner_enabled?" do
+    it "reflects the active partner profile state" do
+      user = create(:user)
+      expect(user.partner_enabled?).to be(false)
+
+      create(:partner_profile, user: user, active: true)
+      expect(user.reload.partner_enabled?).to be(true)
     end
   end
 

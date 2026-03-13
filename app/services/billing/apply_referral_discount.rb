@@ -50,19 +50,18 @@ module Billing
       referral = user.referral
       return {} unless referral
 
+      partner_profile, partner_discount = resolver
+      return {} unless partner_profile
+
       {
         "referral_code" => referral.referral_code&.code.to_s.presence,
         "referrer_id" => user.referrer&.id&.to_s,
         "referrer_type" => user.referrer&.class&.name,
-        "referral_discount_percent" => resolver.last.to_s,
-        "partner_profile_id" => partner_membership&.partner_profile_id&.to_s,
-        "partner_membership_id" => partner_membership&.id&.to_s,
-        "partner_payout_mode" => partner_membership&.partner_profile&.payout_mode
+        "referral_discount_percent" => partner_discount.to_s,
+        "partner_profile_id" => partner_profile.id.to_s,
+        "partner_referral_code" => partner_profile.referral_code,
+        "partner_payout_mode" => partner_profile.payout_mode
       }.compact
-    end
-
-    def partner_membership
-      @partner_membership ||= PartnerMembership.active.find_by(user: user)
     end
 
     def merge_metadata!(params, metadata)

@@ -10,6 +10,7 @@ class ApplicationMailer < ActionMailer::Base
                 :support_email,
                 :email_from_address,
                 :email_reply_to_address,
+                :default_preheader_text,
                 :mail_footer_copy,
                 :mail_receiving_reason,
                 :mail_signature

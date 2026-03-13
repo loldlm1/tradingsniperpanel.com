@@ -1,0 +1,7 @@
+<%= render "shared/mailer/message",
+  tone: :info,
+  category: t("partner_payout_requests_mailer.request_notification.category"),
+  title: t("partner_payout_requests_mailer.request_notification.title"),
+  intro: t("partner_payout_requests_mailer.request_notification.intro"),
+  detail_rows: detail_rows,
+  closing: t("partner_payout_requests_mailer.request_notification.closing") %>

@@ -95,6 +95,24 @@ en:
         max_redemptions: "Optional Stripe redemption cap."
       errors:
         invalid_expiration: "Expiration must be a valid date and time."
+    partner_profiles:
+      created: "Partner profile created."
+      updated: "Partner profile updated."
+      activated: "Partner profile activated."
+      deactivated: "Partner profile deactivated."
+      sections:
+        details: "Partner details"
+        payout_requests: "Recent payout requests"
+      actions:
+        activate: "Activate"
+        deactivate: "Deactivate"
+      hints:
+        referral_code: "Optional. Leave blank to generate a unique referral code automatically."
+    partner_payout_requests:
+      updated: "Partner payout request updated."
+      sections:
+        details: "Request details"
+        commissions: "Bundled commissions"
     plan_entitlements:
       sections:
         details: "Details"

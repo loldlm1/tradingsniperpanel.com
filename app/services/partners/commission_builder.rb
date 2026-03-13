@@ -12,13 +12,13 @@ module Partners
       user = charge.customer&.owner
       return unless user.is_a?(User)
 
-      membership = PartnerMembership.active.find_by(user: user) || Partners::MembershipManager.new.assign_membership_for(user)
+      membership = Partners::MembershipManager.new.assign_membership_for(user)
       return unless membership
 
       profile = membership.partner_profile
       return unless profile&.active?
 
-      percent = profile.discount_percent_or_default.to_i
+      percent = profile.commission_percent_or_default.to_i
       return unless percent.positive?
 
       existing = PartnerCommission.find_by(partner_profile: profile, pay_charge: charge)
@@ -48,7 +48,9 @@ module Partners
         status: :pending,
         occurred_at: charge.created_at || Time.current,
         metadata: {
-          discount_percent: percent,
+          discount_percent: profile.discount_percent_or_default,
+          commission_percent: percent,
+          referral_code: profile.referral_code,
           payout_mode: profile.payout_mode,
           net_amount_cents: net_cents
         }

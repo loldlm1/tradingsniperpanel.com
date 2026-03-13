@@ -95,6 +95,24 @@ es:
         max_redemptions: "Límite opcional de redenciones en Stripe."
       errors:
         invalid_expiration: "La expiración debe ser una fecha y hora válidas."
+    partner_profiles:
+      created: "Perfil de socio creado."
+      updated: "Perfil de socio actualizado."
+      activated: "Perfil de socio activado."
+      deactivated: "Perfil de socio desactivado."
+      sections:
+        details: "Detalles del socio"
+        payout_requests: "Solicitudes de pago recientes"
+      actions:
+        activate: "Activar"
+        deactivate: "Desactivar"
+      hints:
+        referral_code: "Opcional. Déjalo en blanco para generar automáticamente un código de referido único."
+    partner_payout_requests:
+      updated: "Solicitud de pago de socio actualizada."
+      sections:
+        details: "Detalles de la solicitud"
+        commissions: "Comisiones agrupadas"
     plan_entitlements:
       sections:
         details: "Detalles"

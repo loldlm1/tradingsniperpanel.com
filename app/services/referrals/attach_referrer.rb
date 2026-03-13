@@ -2,17 +2,17 @@ module Referrals
   class AttachReferrer
     def initialize(user:, code:, logger: Rails.logger)
       @user = user
-      @code = code
+      @code = code.to_s.strip.upcase
       @logger = logger
     end
 
     def call
       return if user.blank?
       return if code.blank?
+      return unless partner_profile
 
       Refer.refer(code:, referee: user)
       user.reload
-      user.ensure_referral_code_if_referred!
       Partners::MembershipManager.new.assign_membership_for(user)
     rescue StandardError => e
       logger.warn(
@@ -24,5 +24,9 @@ module Referrals
     private
 
     attr_reader :user, :code, :logger
+
+    def partner_profile
+      @partner_profile ||= PartnerProfile.active.find_by(referral_code: code)
+    end
   end
 end

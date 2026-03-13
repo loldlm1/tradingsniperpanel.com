@@ -38,9 +38,9 @@ RSpec.describe Admin::Analytics::RevenueMetrics, type: :service do
       ends_at: ends_at + 2.days
     )
 
-    partner = create(:user, :partner)
-    partner_profile = partner.partner_profile || PartnerProfile.create!(user: partner)
-    partner_membership = PartnerMembership.create!(partner_profile: partner_profile, user: manual_user, depth: 1)
+    partner = create(:user)
+    partner_profile = create(:partner_profile, user: partner)
+    partner_membership = create(:partner_membership, partner_profile: partner_profile, user: manual_user, depth: 1)
     PartnerCommission.create!(
       partner_profile: partner_profile,
       partner_membership: partner_membership,

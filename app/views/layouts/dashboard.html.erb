@@ -118,7 +118,7 @@
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.analytics", default: "Analytics") %></span>
                         <% end %>
                       </li>
-                      <% if dashboard_user&.partner? %>
+                      <% if dashboard_user&.partner_enabled? %>
                         <li class="mb-1 last:mb-0">
                           <%= link_to dashboard_partner_path, class: mosaic_sidebar_child_link_classes(active: partner_dashboard_active) do %>
                             <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("partner_dashboard.title", default: "Partner Dashboard") %></span>

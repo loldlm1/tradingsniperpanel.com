@@ -2,7 +2,7 @@ require "rails_helper"
 require "securerandom"
 
 RSpec.describe "Dashboard", type: :request do
-  let(:user) { create(:user, :partner, preferred_locale: "es") }
+  let(:user) { create(:user, :partner_enabled, preferred_locale: "es") }
 
   before do
     unless Pay::Subscription.method_defined?(:paused?)

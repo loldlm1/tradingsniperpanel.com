@@ -26,14 +26,14 @@ class User < ApplicationRecord
   before_validation :set_terms_accepted_at_from_checkbox, on: :create
   validate :terms_must_be_accepted, on: :create
 
-  after_commit :ensure_referral_code_for_partner, on: :create
-  after_commit :ensure_referral_code_for_new_partner, if: -> { saved_change_to_role? && partner? }
-  after_commit :ensure_partner_profile_for_partner, on: :create
-  after_commit :ensure_partner_profile_for_new_partner, if: -> { saved_change_to_role? && partner? }
   after_commit :sync_role_based_access, if: :saved_change_to_role?
 
   def pay_customer_name
     name.presence || email
+  end
+
+  def partner_enabled?
+    partner_profile&.active? || false
   end
 
   def stripe_customer_attributes(_pay_customer = nil)
@@ -49,27 +49,6 @@ class User < ApplicationRecord
 
   def ensure_referral_code
     referral_codes.first_or_create
-  end
-
-  def ensure_referral_code_if_referred!
-    ensure_referral_code if referrer.present?
-  end
-
-  def ensure_referral_code_for_partner
-    ensure_referral_code if partner?
-  end
-
-  def ensure_referral_code_for_new_partner
-    ensure_referral_code
-  end
-
-  def ensure_partner_profile_for_partner
-    Partners::MembershipManager.new.ensure_profile_for(self)
-  end
-
-  def ensure_partner_profile_for_new_partner
-    ensure_partner_profile_for_partner
-    Partners::ReassignMembershipsJob.perform_later(id)
   end
 
   def preferred_locale_code
