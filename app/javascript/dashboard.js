@@ -173,6 +173,20 @@ const setupGuideScrollSpy = () => {
   onScroll();
 };
 
+const normalizeFilterText = (value) => {
+  if (value === null || value === undefined) return "";
+  return value.toString().trim().toLowerCase();
+};
+
+const formatFilterTemplate = (template, replacements) => {
+  if (!template) return "";
+
+  return Object.entries(replacements).reduce(
+    (output, [key, value]) => output.replace(new RegExp(`%\\{${key}\\}`, "g"), value),
+    template
+  );
+};
+
 const setupCourseProgressTracking = () => {
   const video = document.querySelector("[data-course-progress]");
   if (!video || video.dataset.progressBound === "true") return;
@@ -213,6 +227,96 @@ const setupCourseProgressTracking = () => {
   window.addEventListener("beforeunload", () => sendProgress(true));
 };
 
+const setupPartnerReferralsFilter = () => {
+  const container = document.querySelector("[data-partner-referrals-filter='true']");
+  if (!container || container.dataset.partnerReferralsBound === "true") return;
+
+  container.dataset.partnerReferralsBound = "true";
+
+  const form = container.querySelector("[data-partner-referrals-form='true']");
+  const input = container.querySelector("[data-partner-referrals-input='true']");
+  const clearLink = container.querySelector("[data-partner-referrals-clear='true']");
+  const countEl = container.querySelector("[data-partner-referrals-count='true']");
+  const pagination = container.querySelector("[data-partner-referrals-pagination='true']");
+  const emptyMobile = container.querySelector("[data-partner-referrals-empty-mobile='true']");
+  const emptyDesktop = container.querySelector("[data-partner-referrals-empty-desktop='true']");
+
+  const groupedItems = new Map();
+  container.querySelectorAll("[data-partner-referral-item='true']").forEach((item, index) => {
+    const key = item.dataset.partnerReferralKey || `referral-${index}`;
+    if (!groupedItems.has(key)) {
+      groupedItems.set(key, {
+        text: normalizeFilterText(item.dataset.filterText),
+        nodes: []
+      });
+    }
+
+    groupedItems.get(key).nodes.push(item);
+  });
+
+  if (!input || groupedItems.size === 0) return;
+
+  const totalTemplate = countEl?.dataset.totalTemplate || "%{count}";
+  const filteredTemplate = countEl?.dataset.filteredTemplate || "%{count}";
+
+  const updateCount = (query, matchCount) => {
+    if (!countEl) return;
+
+    countEl.textContent = formatFilterTemplate(query.length > 0 ? filteredTemplate : totalTemplate, {
+      count: query.length > 0 ? matchCount.toString() : groupedItems.size.toString(),
+      query: input.value.trim()
+    });
+  };
+
+  const updateEmptyStates = (query, matchCount) => {
+    const showEmpty = query.length > 0 && matchCount === 0;
+    if (emptyMobile) emptyMobile.classList.toggle("hidden", !showEmpty);
+    if (emptyDesktop) emptyDesktop.classList.toggle("hidden", !showEmpty);
+  };
+
+  const applyFilter = () => {
+    const query = normalizeFilterText(input.value);
+    let matchCount = 0;
+
+    groupedItems.forEach((group) => {
+      const matches = query.length === 0 || group.text.includes(query);
+      group.nodes.forEach((node) => {
+        node.classList.toggle("hidden", !matches);
+      });
+      if (matches) matchCount += 1;
+    });
+
+    updateCount(query, matchCount);
+    updateEmptyStates(query, matchCount);
+
+    if (pagination) {
+      pagination.classList.toggle("hidden", query.length > 0);
+    }
+
+    if (clearLink) {
+      clearLink.classList.toggle("hidden", query.length === 0);
+    }
+  };
+
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    applyFilter();
+  });
+
+  input.addEventListener("input", () => {
+    applyFilter();
+  });
+
+  clearLink?.addEventListener("click", (event) => {
+    event.preventDefault();
+    input.value = "";
+    applyFilter();
+    input.focus();
+  });
+
+  applyFilter();
+};
+
 const initPartnerDashboardChart = () => {
   const canvas = document.querySelector("#partner-paid-earnings-chart[data-partner-chart]");
   if (!canvas || !window.Chart) return;
@@ -226,15 +330,44 @@ const initPartnerDashboardChart = () => {
 
   if (!payload || !Array.isArray(payload.labels) || !Array.isArray(payload.values)) return;
 
+  const readCssVar = (name, fallback) => {
+    const value = getComputedStyle(document.body).getPropertyValue(name).trim();
+    return value || fallback;
+  };
+
+  const hexToRGB = (hex) => {
+    if (!hex) return "0, 0, 0";
+    const normalized = hex.replace("#", "");
+    if (normalized.length === 3) {
+      return `${parseInt(normalized[0] + normalized[0], 16)}, ${parseInt(normalized[1] + normalized[1], 16)}, ${parseInt(normalized[2] + normalized[2], 16)}`;
+    }
+    if (normalized.length === 6) {
+      return `${parseInt(normalized.slice(0, 2), 16)}, ${parseInt(normalized.slice(2, 4), 16)}, ${parseInt(normalized.slice(4, 6), 16)}`;
+    }
+    return "0, 0, 0";
+  };
+
+  const withAlpha = (color, alpha) => {
+    if (!color) return `rgba(0, 0, 0, ${alpha})`;
+    if (color.startsWith("rgba(")) return color;
+    if (color.startsWith("rgb(")) {
+      return color.replace("rgb(", "rgba(").replace(")", `, ${alpha})`);
+    }
+    if (color.startsWith("#")) {
+      return `rgba(${hexToRGB(color)}, ${alpha})`;
+    }
+    return color;
+  };
+
   const isDark = localStorage.getItem("dark-mode") === "true";
   const gridColor = isDark ? "rgba(71, 85, 105, 0.35)" : "rgba(148, 163, 184, 0.22)";
   const tickColor = isDark ? "#94A3B8" : "#64748B";
-  const lineColor = isDark ? "#38BDF8" : "#0284C7";
+  const lineColor = isDark ? readCssVar("--brand-400", "#A78BFA") : readCssVar("--brand-500", "#8B5CF6");
   const pointBorderColor = isDark ? "#0F172A" : "#FFFFFF";
   const ctx = canvas.getContext("2d");
   const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height || 320);
-  gradient.addColorStop(0, isDark ? "rgba(56, 189, 248, 0.35)" : "rgba(14, 165, 233, 0.28)");
-  gradient.addColorStop(1, isDark ? "rgba(56, 189, 248, 0.02)" : "rgba(14, 165, 233, 0.01)");
+  gradient.addColorStop(0, withAlpha(lineColor, isDark ? 0.36 : 0.28));
+  gradient.addColorStop(1, withAlpha(lineColor, 0.02));
   const locale = document.documentElement.lang || "en-US";
 
   if (canvas._partnerChartInstance) {
@@ -273,7 +406,7 @@ const initPartnerDashboardChart = () => {
           backgroundColor: isDark ? "#0F172A" : "#FFFFFF",
           titleColor: isDark ? "#E2E8F0" : "#0F172A",
           bodyColor: isDark ? "#CBD5E1" : "#334155",
-          borderColor: isDark ? "rgba(56, 189, 248, 0.18)" : "rgba(148, 163, 184, 0.22)",
+          borderColor: isDark ? withAlpha(lineColor, 0.18) : "rgba(148, 163, 184, 0.22)",
           borderWidth: 1,
           padding: 12,
           callbacks: {
@@ -336,6 +469,7 @@ const bootstrapDashboardLayout = () => {
   setupGuideCodeCopy();
   setupGuideScrollSpy();
   setupCourseProgressTracking();
+  setupPartnerReferralsFilter();
   schedulePartnerDashboardChart();
 };
 

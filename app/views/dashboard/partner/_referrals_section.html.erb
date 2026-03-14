@@ -1,25 +1,45 @@
-<div class="rounded-[2rem] border border-slate-200/80 bg-white/95 shadow-sm shadow-slate-200/70 dark:border-slate-700/70 dark:bg-slate-800/95 dark:shadow-none">
-  <div class="border-b border-slate-200/80 px-5 py-5 dark:border-slate-700/70 sm:px-6">
+<div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl" data-partner-referrals-filter="true">
+  <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-700/60">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <div class="text-sm font-semibold text-slate-950 dark:text-white"><%= t("partner_dashboard.invited_users") %></div>
-        <p class="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300"><%= t("partner_dashboard.invited_users_copy") %></p>
-        <p class="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+        <h2 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("partner_dashboard.invited_users") %></h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.invited_users_copy") %></p>
+        <p
+          class="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-gray-400 dark:text-gray-500"
+          data-partner-referrals-count="true"
+          data-total-template="<%= t('partner_dashboard.results_total_label', count: '__COUNT__') %>"
+          data-filtered-template="<%= t('partner_dashboard.results_filtered_label', count: '__COUNT__', query: '__QUERY__') %>"
+        >
           <% if params[:q].present? %>
-            <%= t("partner_dashboard.filtered_results_count", count: pagy.count, query: params[:q]) %>
+            <%= t("partner_dashboard.results_filtered_label", count: pagy.count, query: params[:q]) %>
           <% else %>
-            <%= t("partner_dashboard.referrals_total_count", count: pagy.count) %>
+            <%= t("partner_dashboard.results_total_label", count: pagy.count) %>
           <% end %>
         </p>
       </div>
 
-      <%= form_with url: dashboard_partner_path, method: :get, local: true, class: "w-full lg:w-auto" do |f| %>
-        <div class="flex flex-col gap-2 sm:flex-row">
-          <%= f.text_field :q, value: params[:q], placeholder: t("partner_dashboard.search_placeholder"), class: "form-input w-full sm:w-72" %>
-          <%= f.submit t("partner_dashboard.search"), class: "btn bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white whitespace-nowrap" %>
-          <% if params[:q].present? %>
-            <%= link_to t("partner_dashboard.clear_search"), dashboard_partner_path, class: "btn border border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 whitespace-nowrap" %>
-          <% end %>
+      <!-- Search form -->
+      <%= form_with url: dashboard_partner_path, method: :get, local: true, class: "w-full lg:w-auto", data: { partner_referrals_form: true } do |f| %>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div class="relative">
+            <label for="partner-referral-search" class="sr-only"><%= t("partner_dashboard.search_placeholder") %></label>
+            <%= f.text_field :q,
+                             value: params[:q],
+                             id: "partner-referral-search",
+                             placeholder: t("partner_dashboard.search_placeholder"),
+                             data: { partner_referrals_input: true },
+                             class: "form-input w-full sm:w-72 pl-9 bg-white dark:bg-gray-800" %>
+            <div class="absolute inset-0 right-auto flex items-center pointer-events-none">
+              <svg class="shrink-0 fill-current text-gray-400 dark:text-gray-500 ml-3" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 14c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zM7 2C4.243 2 2 4.243 2 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5z" />
+                <path d="M15.707 14.293L13.314 11.9a8.019 8.019 0 0 1-1.414 1.414l2.393 2.393a.997.997 0 001.414 0 .999.999 0 000-1.414z" />
+              </svg>
+            </div>
+          </div>
+          <%= f.submit t("partner_dashboard.search"), class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white whitespace-nowrap" %>
+          <% clear_classes = ["btn bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300 whitespace-nowrap"] %>
+          <% clear_classes << "hidden" unless params[:q].present? %>
+          <%= link_to t("partner_dashboard.clear_search"), dashboard_partner_path, class: clear_classes.join(" "), data: { partner_referrals_clear: true } %>
         </div>
       <% end %>
     </div>
@@ -27,14 +47,15 @@
 
   <div class="md:hidden">
     <% if direct_referrals.any? %>
-      <div class="divide-y divide-slate-200/80 dark:divide-slate-700/70">
+      <div class="divide-y divide-gray-100 dark:divide-gray-700/60">
         <% direct_referrals.each do |direct_referral| %>
           <% referral_record = direct_referral_records[direct_referral.id] %>
-          <div class="px-5 py-4 sm:px-6">
+          <% filter_text = [direct_referral.email, direct_referral.name, direct_referral.preferred_locale_code].compact.join(" ") %>
+          <div class="px-5 py-4" data-partner-referral-item="true" data-partner-referral-key="<%= direct_referral.id %>" data-filter-text="<%= j(filter_text) %>">
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0">
-                <div class="truncate font-semibold text-slate-950 dark:text-white"><%= direct_referral.email %></div>
-                <div class="mt-1 text-sm text-slate-500 dark:text-slate-400"><%= direct_referral.name.presence || t("partner_dashboard.unknown") %></div>
+                <div class="truncate font-semibold text-gray-800 dark:text-gray-100"><%= direct_referral.email %></div>
+                <div class="mt-1 text-sm text-gray-500 dark:text-gray-400"><%= direct_referral.name.presence || t("partner_dashboard.unknown") %></div>
               </div>
               <div class="shrink-0">
                 <% if active_subscription_for?(direct_referral, active_subscription_user_ids) %>
@@ -53,24 +74,26 @@
 
             <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
               <div>
-                <dt class="text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.referred_at") %></dt>
-                <dd class="mt-1 font-medium text-slate-950 dark:text-white"><%= referral_record ? l(referral_record.created_at.to_date) : "—" %></dd>
+                <dt class="text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.referred_at") %></dt>
+                <dd class="mt-1 font-medium text-gray-800 dark:text-gray-100"><%= referral_record ? l(referral_record.created_at.to_date) : "—" %></dd>
               </div>
               <div>
-                <dt class="text-slate-500 dark:text-slate-400"><%= t("partner_dashboard.locale") %></dt>
-                <dd class="mt-1 font-medium uppercase text-slate-950 dark:text-white"><%= direct_referral.preferred_locale_code %></dd>
+                <dt class="text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.locale") %></dt>
+                <dd class="mt-1 font-medium uppercase text-gray-800 dark:text-gray-100"><%= direct_referral.preferred_locale_code %></dd>
               </div>
             </dl>
           </div>
         <% end %>
+        <div class="hidden px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400" data-partner-referrals-empty-mobile="true"><%= t("partner_dashboard.no_invites") %></div>
       </div>
     <% else %>
-      <div class="px-5 py-10 text-center text-sm text-slate-500 dark:text-slate-400 sm:px-6"><%= t("partner_dashboard.no_invites") %></div>
+      <div class="px-5 py-10 text-center text-sm text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.no_invites") %></div>
     <% end %>
   </div>
 
   <div class="hidden overflow-x-auto md:block">
-    <table class="min-w-full text-sm text-slate-800 dark:text-slate-100">
+    <!-- Table -->
+    <table class="table-auto w-full dark:text-gray-300">
       <%= render "dashboard/shared/table_head", class_name: "text-left" do %>
         <tr>
           <th class="px-5 py-3 font-semibold sm:px-6"><%= t("partner_dashboard.email") %></th>
@@ -79,15 +102,16 @@
           <th class="px-5 py-3 font-semibold sm:px-6"><%= t("partner_dashboard.locale") %></th>
         </tr>
       <% end %>
-      <tbody class="divide-y divide-slate-200/80 dark:divide-slate-700/70">
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-700/60">
         <% direct_referrals.each do |direct_referral| %>
           <% referral_record = direct_referral_records[direct_referral.id] %>
-          <tr>
+          <% filter_text = [direct_referral.email, direct_referral.name, direct_referral.preferred_locale_code].compact.join(" ") %>
+          <tr data-partner-referral-item="true" data-partner-referral-key="<%= direct_referral.id %>" data-filter-text="<%= j(filter_text) %>">
             <td class="px-5 py-4 sm:px-6">
-              <div class="font-medium text-slate-950 dark:text-white"><%= direct_referral.email %></div>
-              <div class="mt-1 text-xs text-slate-500 dark:text-slate-400"><%= direct_referral.name.presence || t("partner_dashboard.unknown") %></div>
+              <div class="font-medium text-gray-800 dark:text-gray-100"><%= direct_referral.email %></div>
+              <div class="mt-1 text-xs text-gray-500 dark:text-gray-400"><%= direct_referral.name.presence || t("partner_dashboard.unknown") %></div>
             </td>
-            <td class="px-5 py-4 whitespace-nowrap text-slate-600 dark:text-slate-300 sm:px-6"><%= referral_record ? l(referral_record.created_at.to_date) : "—" %></td>
+            <td class="px-5 py-4 whitespace-nowrap text-gray-600 dark:text-gray-300 sm:px-6"><%= referral_record ? l(referral_record.created_at.to_date) : "—" %></td>
             <td class="px-5 py-4 whitespace-nowrap sm:px-6">
               <% if active_subscription_for?(direct_referral, active_subscription_user_ids) %>
                 <%= render "dashboard/shared/badge",
@@ -101,12 +125,16 @@
                            class_name: "bg-slate-100 text-slate-700 dark:bg-slate-700/60 dark:text-slate-100" %>
               <% end %>
             </td>
-            <td class="px-5 py-4 whitespace-nowrap uppercase text-slate-500 dark:text-slate-400 sm:px-6"><%= direct_referral.preferred_locale_code %></td>
+            <td class="px-5 py-4 whitespace-nowrap uppercase text-gray-500 dark:text-gray-400 sm:px-6"><%= direct_referral.preferred_locale_code %></td>
           </tr>
         <% end %>
-        <% if direct_referrals.empty? %>
+        <% if direct_referrals.any? %>
+          <tr class="hidden" data-partner-referrals-empty-desktop="true">
+            <td colspan="4" class="px-5 py-10 text-center text-gray-500 dark:text-gray-400 sm:px-6"><%= t("partner_dashboard.no_invites") %></td>
+          </tr>
+        <% else %>
           <tr>
-            <td colspan="4" class="px-5 py-10 text-center text-slate-500 dark:text-slate-400 sm:px-6"><%= t("partner_dashboard.no_invites") %></td>
+            <td colspan="4" class="px-5 py-10 text-center text-gray-500 dark:text-gray-400 sm:px-6"><%= t("partner_dashboard.no_invites") %></td>
           </tr>
         <% end %>
       </tbody>
@@ -114,7 +142,7 @@
   </div>
 
   <% if pagy.pages > 1 %>
-    <div class="border-t border-slate-200/80 px-5 py-4 dark:border-slate-700/70 sm:px-6">
+    <div class="border-t border-gray-100 dark:border-gray-700/60 px-5 py-4 sm:px-6" data-partner-referrals-pagination="true">
       <%= pagy_mosaic_nav(pagy) %>
     </div>
   <% end %>

@@ -1,35 +1,82 @@
 <% content_for :title, "#{t('partner_dashboard.title', default: 'Partner Dashboard')} | #{app_short_name}" %>
+<% share_url = referral_share_url(@profile) %>
 
-<div class="space-y-6">
-  <%= render "dashboard/partner/hero" %>
-
-  <div class="grid grid-cols-12 gap-6">
-    <div class="order-2 col-span-full space-y-6 md:order-1 xl:col-span-8">
-      <%= render "dashboard/partner/chart_card",
-                 chart_data: @chart_data,
-                 chart_summary: @chart_summary %>
-
-      <div class="grid gap-4 md:grid-cols-2">
-        <% @highlight_metrics.each do |metric| %>
-          <%= render partial: "dashboard/partner/stat_card",
-                     locals: {
-                       label: metric[:label],
-                       amount_cents: 0,
-                       value: metric[:value],
-                       tone: metric[:tone]
-                     } %>
-        <% end %>
+<div class="space-y-8">
+  <!-- Page header -->
+  <div class="sm:flex sm:justify-between sm:items-center">
+    <!-- Left: Title -->
+    <div class="mb-4 sm:mb-0">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="inline-flex items-center rounded-full bg-brand-500/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-600 dark:bg-brand-500/20 dark:text-brand-300">
+          <%= t("partner_dashboard.title") %>
+        </span>
+        <span class="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-700/60 px-2.5 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+          <%= t("partner_dashboard.direct_only") %>
+        </span>
       </div>
+      <h1 class="mt-3 text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold"><%= t("partner_dashboard.subtitle") %></h1>
+      <p class="mt-2 max-w-3xl text-sm text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.subtitle_copy") %></p>
+      <p class="mt-2 text-xs text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.copy_partner_tip") %></p>
     </div>
 
-    <div class="order-1 col-span-full space-y-6 md:order-2 xl:col-span-4">
-      <%= render "dashboard/partner/referral_hub_card",
-                 partner_dashboard: @partner_dashboard,
-                 profile: @profile %>
+    <!-- Right: Actions -->
+    <div class="grid grid-flow-row sm:auto-cols-max sm:grid-flow-col justify-start sm:justify-end gap-2">
+      <div class="inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-700/60 bg-white dark:bg-gray-800 px-3 py-2 shadow-xs">
+        <span class="mr-3 text-xs font-semibold uppercase tracking-[0.16em] text-gray-400 dark:text-gray-500"><%= t("partner_dashboard.referral_code") %></span>
+        <span class="font-mono text-sm font-semibold text-gray-800 dark:text-gray-100"><%= @partner_dashboard.referral_code %></span>
+      </div>
+      <button
+        type="button"
+        class="btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white"
+        data-copy-button="true"
+        data-copy-text="<%= share_url %>"
+        data-default-text="<%= t('partner_dashboard.copy_share_link') %>"
+        data-copied-text="<%= t('partner_dashboard.copied') %>"
+        data-copy-failed-text="<%= t('partner_dashboard.copy_failed') %>">
+        <%= t("partner_dashboard.copy_share_link") %>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="border-b border-gray-200 dark:border-gray-700/60 pb-4">
+    <ul class="flex flex-wrap -m-1">
+      <li class="m-1">
+        <%= render "dashboard/shared/filter_chip",
+                   label: t("partner_dashboard.section_nav.overview"),
+                   href: "#partner-overview" %>
+      </li>
+      <li class="m-1">
+        <%= render "dashboard/shared/filter_chip",
+                   label: t("partner_dashboard.section_nav.referrals"),
+                   href: "#partner-referrals" %>
+      </li>
+      <li class="m-1">
+        <%= render "dashboard/shared/filter_chip",
+                   label: t("partner_dashboard.section_nav.payouts"),
+                   href: "#partner-payouts" %>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Cards -->
+  <div class="grid grid-cols-12 gap-6">
+    <div id="partner-overview" class="col-span-full space-y-6 xl:col-span-8 scroll-mt-24">
+      <%= render "dashboard/partner/chart_card",
+                 chart_data: @chart_data,
+                 chart_summary: @chart_summary,
+                 highlight_metrics: @highlight_metrics %>
+
       <%= render "dashboard/partner/payout_action_card",
                  partner_dashboard: @partner_dashboard,
                  metrics: @metrics,
                  current_request: @current_request %>
+    </div>
+
+    <div class="col-span-full space-y-6 xl:col-span-4">
+      <%= render "dashboard/partner/referral_hub_card",
+                 partner_dashboard: @partner_dashboard,
+                 profile: @profile %>
       <%= render "dashboard/partner/program_snapshot_card",
                  partner_dashboard: @partner_dashboard,
                  metrics: @metrics %>
@@ -39,15 +86,16 @@
     </div>
   </div>
 
+  <!-- Page content -->
   <div class="grid grid-cols-12 gap-6">
-    <div class="col-span-full xl:col-span-8">
+    <div id="partner-referrals" class="col-span-full xl:col-span-8 scroll-mt-24">
       <%= render "dashboard/partner/referrals_section",
                  pagy: @pagy,
                  direct_referrals: @direct_referrals,
                  direct_referral_records: @direct_referral_records,
                  active_subscription_user_ids: @active_subscription_user_ids %>
     </div>
-    <div class="col-span-full xl:col-span-4">
+    <div id="partner-payouts" class="col-span-full xl:col-span-4 scroll-mt-24">
       <%= render "dashboard/partner/payout_history_section",
                  recent_payout_requests: @recent_payout_requests %>
     </div>
