@@ -1,0 +1,19 @@
+<% chart_has_values = Array(chart_data[:values]).any? { |value| value.to_f.positive? } %>
+
+<div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl">
+  <% if chart_has_values %>
+    <!-- Chart built with Chart.js 3 -->
+    <div class="px-5 py-5">
+      <div class="h-[260px] sm:h-[300px] xl:h-[320px]">
+        <canvas id="partner-paid-earnings-chart" data-partner-chart="<%= chart_data.to_json %>" class="h-full w-full"></canvas>
+      </div>
+    </div>
+  <% else %>
+    <div class="px-5 py-5">
+      <div class="mx-auto max-w-sm rounded-xl border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-5 py-6 text-center">
+        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("partner_dashboard.no_history") %></div>
+        <p class="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400"><%= t("partner_dashboard.no_history_copy") %></p>
+      </div>
+    </div>
+  <% end %>
+</div>

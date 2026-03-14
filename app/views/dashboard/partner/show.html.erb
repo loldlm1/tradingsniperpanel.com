@@ -63,20 +63,21 @@
   <div class="grid grid-cols-12 gap-6">
     <div id="partner-overview" class="col-span-full space-y-6 xl:col-span-8 scroll-mt-24">
       <%= render "dashboard/partner/chart_card",
-                 chart_data: @chart_data,
                  chart_summary: @chart_summary,
                  highlight_metrics: @highlight_metrics %>
 
+      <%= render "dashboard/partner/chart_plot_card",
+                 chart_data: @chart_data %>
+    </div>
+
+    <div id="partner-payouts" class="col-span-full space-y-6 xl:col-span-4 scroll-mt-24">
+      <%= render "dashboard/partner/referral_hub_card",
+                 partner_dashboard: @partner_dashboard,
+                 profile: @profile %>
       <%= render "dashboard/partner/payout_action_card",
                  partner_dashboard: @partner_dashboard,
                  metrics: @metrics,
                  current_request: @current_request %>
-    </div>
-
-    <div class="col-span-full space-y-6 xl:col-span-4">
-      <%= render "dashboard/partner/referral_hub_card",
-                 partner_dashboard: @partner_dashboard,
-                 profile: @profile %>
       <%= render "dashboard/partner/program_snapshot_card",
                  partner_dashboard: @partner_dashboard,
                  metrics: @metrics %>
@@ -95,7 +96,7 @@
                  direct_referral_records: @direct_referral_records,
                  active_subscription_user_ids: @active_subscription_user_ids %>
     </div>
-    <div id="partner-payouts" class="col-span-full xl:col-span-4 scroll-mt-24">
+    <div class="col-span-full xl:col-span-4">
       <%= render "dashboard/partner/payout_history_section",
                  recent_payout_requests: @recent_payout_requests %>
     </div>
