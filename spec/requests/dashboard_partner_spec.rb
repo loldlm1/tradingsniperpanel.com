@@ -29,8 +29,8 @@ RSpec.describe "Partner dashboard", type: :request do
     expect(response.body).to include("referred@example.com")
   end
 
-  it "renders payout history and removes the commission log section" do
-    request = create(
+  it "renders the streamlined dashboard without the removed partner sections" do
+    create(
       :partner_payout_request,
       partner_profile: partner_profile,
       status: :paid,
@@ -43,8 +43,15 @@ RSpec.describe "Partner dashboard", type: :request do
     get dashboard_partner_path(locale: :en)
 
     expect(response).to be_successful
-    expect(response.body).to include(I18n.t("partner_dashboard.payout_history"))
-    expect(response.body).to include("wire-2026-001")
+    expect(response.body).to include(I18n.t("partner_dashboard.section_nav.overview"))
+    expect(response.body).to include(I18n.t("partner_dashboard.section_nav.referrals"))
+    expect(response.body).not_to include(I18n.t("partner_dashboard.section_nav.payouts"))
+    expect(response.body).to include(I18n.t("partner_dashboard.payout_ready_title"))
+    expect(response.body).to include(I18n.t("partner_dashboard.program_snapshot"))
+    expect(response.body).not_to include(I18n.t("partner_dashboard.payout_history"))
+    expect(response.body).not_to include(I18n.t("partner_dashboard.referral_hub"))
+    expect(response.body).not_to include(I18n.t("partner_dashboard.request_health_title"))
+    expect(response.body).not_to include("wire-2026-001")
     expect(response.body).not_to include(I18n.t("partner_dashboard.revenue", default: "Commission log"))
   end
 

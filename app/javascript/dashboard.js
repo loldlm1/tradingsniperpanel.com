@@ -182,7 +182,9 @@ const formatFilterTemplate = (template, replacements) => {
   if (!template) return "";
 
   return Object.entries(replacements).reduce(
-    (output, [key, value]) => output.replace(new RegExp(`%\\{${key}\\}`, "g"), value),
+    (output, [key, value]) => output
+      .replace(new RegExp(`%\\{${key}\\}`, "g"), value)
+      .replace(new RegExp(`__${key.toUpperCase()}__`, "g"), value),
     template
   );
 };

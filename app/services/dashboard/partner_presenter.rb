@@ -35,10 +35,6 @@ module Dashboard
       scope.order(created_at: :desc)
     end
 
-    def recent_payout_requests
-      profile.partner_payout_requests.order(requested_at: :desc, created_at: :desc).limit(6)
-    end
-
     def metrics
       @metrics ||= {
         requestable_cents: pending_commissions.sum(:amount_cents),
@@ -99,10 +95,6 @@ module Dashboard
 
     def current_request
       @current_request ||= profile.partner_payout_requests.pending.order(created_at: :desc).first
-    end
-
-    def latest_payout_request
-      current_request || recent_payout_requests.first
     end
 
     def payout_target_cents

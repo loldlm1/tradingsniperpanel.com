@@ -51,16 +51,11 @@
                    label: t("partner_dashboard.section_nav.referrals"),
                    href: "#partner-referrals" %>
       </li>
-      <li class="m-1">
-        <%= render "dashboard/shared/filter_chip",
-                   label: t("partner_dashboard.section_nav.payouts"),
-                   href: "#partner-payouts" %>
-      </li>
     </ul>
   </div>
 
   <!-- Cards -->
-  <div class="grid grid-cols-12 gap-6">
+  <div class="grid grid-cols-12 items-start gap-6">
     <div id="partner-overview" class="col-span-full space-y-6 xl:col-span-8 scroll-mt-24">
       <%= render "dashboard/partner/chart_card",
                  chart_summary: @chart_summary,
@@ -68,12 +63,17 @@
 
       <%= render "dashboard/partner/chart_plot_card",
                  chart_data: @chart_data %>
+
+      <div id="partner-referrals" class="scroll-mt-24">
+        <%= render "dashboard/partner/referrals_section",
+                   pagy: @pagy,
+                   direct_referrals: @direct_referrals,
+                   direct_referral_records: @direct_referral_records,
+                   active_subscription_user_ids: @active_subscription_user_ids %>
+      </div>
     </div>
 
-    <div id="partner-payouts" class="col-span-full space-y-6 xl:col-span-4 scroll-mt-24">
-      <%= render "dashboard/partner/referral_hub_card",
-                 partner_dashboard: @partner_dashboard,
-                 profile: @profile %>
+    <div class="col-span-full space-y-6 xl:col-span-4">
       <%= render "dashboard/partner/payout_action_card",
                  partner_dashboard: @partner_dashboard,
                  metrics: @metrics,
@@ -81,24 +81,6 @@
       <%= render "dashboard/partner/program_snapshot_card",
                  partner_dashboard: @partner_dashboard,
                  metrics: @metrics %>
-      <%= render "dashboard/partner/request_health_card",
-                 current_request: @current_request,
-                 recent_payout_requests: @recent_payout_requests %>
-    </div>
-  </div>
-
-  <!-- Page content -->
-  <div class="grid grid-cols-12 gap-6">
-    <div id="partner-referrals" class="col-span-full xl:col-span-8 scroll-mt-24">
-      <%= render "dashboard/partner/referrals_section",
-                 pagy: @pagy,
-                 direct_referrals: @direct_referrals,
-                 direct_referral_records: @direct_referral_records,
-                 active_subscription_user_ids: @active_subscription_user_ids %>
-    </div>
-    <div class="col-span-full xl:col-span-4">
-      <%= render "dashboard/partner/payout_history_section",
-                 recent_payout_requests: @recent_payout_requests %>
     </div>
   </div>
 </div>

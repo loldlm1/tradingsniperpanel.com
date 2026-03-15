@@ -11,7 +11,6 @@ class Dashboard::PartnerController < ApplicationController
     @chart_summary = @partner_dashboard.chart_summary
     @current_request = @partner_dashboard.current_request
     @chart_data = @partner_dashboard.monthly_paid_chart
-    @recent_payout_requests = @partner_dashboard.recent_payout_requests
     @pagy, @direct_referrals = pagy(@partner_dashboard.direct_referrals_scope, limit: 10)
     @direct_referral_records = @partner_dashboard.referral_records_by_user_id(@direct_referrals)
     @active_subscription_user_ids = @partner_dashboard.active_subscription_user_ids_for(@direct_referrals)
