@@ -9,6 +9,7 @@ module Referrals
     def call
       return if user.blank?
       return if code.blank?
+      return handle_existing_referrer if user.referrer.present?
       return unless partner_profile
 
       Refer.refer(code:, referee: user)
@@ -24,6 +25,14 @@ module Referrals
     private
 
     attr_reader :user, :code, :logger
+
+    def handle_existing_referrer
+      current_referrer = user.referrer
+      return unless current_referrer.is_a?(User)
+      return unless current_referrer == partner_profile&.user
+
+      Partners::MembershipManager.new.assign_membership_for(user)
+    end
 
     def partner_profile
       @partner_profile ||= PartnerProfile.active.find_by(referral_code: code)

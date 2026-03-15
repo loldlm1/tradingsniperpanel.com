@@ -222,6 +222,35 @@ RSpec.describe "Marketplace", type: :request do
     expect(response).to redirect_to("https://checkout.test/session")
   end
 
+  it "does not apply referral discounts to marketplace checkout after redemption" do
+    referrer = create(:user)
+    referred_user = create(:user)
+    create(:partner_profile, user: referrer, referral_code: "PARTNER30", discount_percent: 10)
+    Referrals::AttachReferrer.new(user: referred_user, code: "PARTNER30").call
+    Referrals::MarkCompleted.new(user: referred_user).call
+
+    base_plan = create(:billing_plan, :one_time, key: "marketplace_referral_completed")
+    base_product = create(:marketplace_product, billing_plan: base_plan, title_en: "Completed Referral Bundle")
+    create(:billing_plan_entitlement, billing_plan: base_plan, expert_advisor: create(:expert_advisor, name: "Completed Referral EA"))
+
+    referred_user.pay_customers.create!(processor: "stripe", processor_id: "cus_marketplace_referral_completed", default: true)
+    sign_in referred_user, scope: :user
+
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+
+    expect(checkout_stub).to receive(:checkout) do |**params|
+      expect(params).not_to have_key(:discounts)
+      expect(params[:allow_promotion_codes]).to eq(true)
+      double(url: "https://checkout.test/marketplace-completed")
+    end
+
+    post dashboard_marketplace_product_checkout_path(base_product, locale: :en),
+         params: { refund_acknowledged: "1" }
+
+    expect(response).to redirect_to("https://checkout.test/marketplace-completed")
+  end
+
   it "renders the promotion modal and loading-label markup on marketplace product pages" do
     create(:promotion_code, :active, code: "MARCH25", title_en: "March special", body_en: "Use the code at checkout.", cta_label_en: "See plans")
     sign_in user, scope: :user

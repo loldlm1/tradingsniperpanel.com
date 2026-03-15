@@ -33,7 +33,7 @@ module Billing
     attr_reader :user, :checkout_params, :percent, :logger
 
     def eligible?
-      user.is_a?(User) && user.referrer.present?
+      redemption_state.redeemable?
     end
 
     def resolver
@@ -47,7 +47,7 @@ module Billing
     end
 
     def referral_metadata
-      referral = user.referral
+      referral = redemption_state.referral
       return {} unless referral
 
       partner_profile, partner_discount = resolver
@@ -62,6 +62,10 @@ module Billing
         "partner_referral_code" => partner_profile.referral_code,
         "partner_payout_mode" => partner_profile.payout_mode
       }.compact
+    end
+
+    def redemption_state
+      @redemption_state ||= Referrals::RedemptionState.new(user: user)
     end
 
     def merge_metadata!(params, metadata)

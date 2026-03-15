@@ -88,6 +88,29 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(response).to redirect_to("https://checkout.test/referral")
   end
 
+  it "falls back to dashboard promotions once a referral has been completed" do
+    promotion = create(:promotion_code, :active, stripe_promotion_code_id: "promo_dashboard")
+    referrer = create(:user)
+    referred_user = create(:user)
+    create(:partner_profile, user: referrer, referral_code: "PARTNER20", discount_percent: 10)
+    Referrals::AttachReferrer.new(user: referred_user, code: "PARTNER20").call
+    Referrals::MarkCompleted.new(user: referred_user).call
+
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+    sign_in referred_user, scope: :user
+
+    expect(checkout_stub).to receive(:checkout) do |**params|
+      expect(params[:discounts]).to eq([{ promotion_code: "promo_dashboard" }])
+      expect(params[:discounts]).not_to eq([{ coupon: "coupon_referral" }])
+      double(url: "https://checkout.test/promotion")
+    end
+
+    post dashboard_checkout_path, params: { price_key: "basic_monthly", promotion_code_id: promotion.id }
+
+    expect(response).to redirect_to("https://checkout.test/promotion")
+  end
+
   it "swaps an existing subscription instead of creating a new one" do
     existing = customer.subscriptions.create!(
       name: "default",

@@ -17,6 +17,8 @@ module Partners
 
       profile = membership.partner_profile
       return unless profile&.active?
+      redemption_state = Referrals::RedemptionState.new(user: user)
+      return unless redemption_state.owned_by?(profile.user)
 
       percent = profile.commission_percent_or_default.to_i
       return unless percent.positive?
@@ -31,30 +33,46 @@ module Partners
       net_cents, currency = net_amount_for(charge)
       return unless net_cents && net_cents.positive?
 
-      amount_cents = ((net_cents * percent) / 100.0).round
-      return if amount_cents <= 0
+      occurred_at = charge.created_at || Time.current
+      referral = redemption_state.referral
 
-      PartnerCommission.create!(
-        partner_profile: profile,
-        partner_membership: membership,
-        referred_user: user,
-        referral: user.referral,
-        pay_charge: charge,
-        pay_subscription: subscription,
-        commission_kind: commission_kind,
-        amount_cents: amount_cents,
-        currency: currency || "usd",
-        percent_applied: percent,
-        status: :pending,
-        occurred_at: charge.created_at || Time.current,
-        metadata: {
-          discount_percent: profile.discount_percent_or_default,
-          commission_percent: percent,
-          referral_code: profile.referral_code,
-          payout_mode: profile.payout_mode,
-          net_amount_cents: net_cents
-        }
-      )
+      if referral.present?
+        referral.with_lock do
+          referral.reload
+          return if reward_already_consumed?(profile:, user:, charge:)
+          return if referral.completed_at.present? && referral.completed_at < occurred_at
+
+          build_commission(
+            profile:,
+            membership:,
+            user:,
+            referral:,
+            charge:,
+            subscription:,
+            commission_kind:,
+            amount_cents: ((net_cents * percent) / 100.0).round,
+            currency: currency || "usd",
+            percent:,
+            occurred_at:,
+            net_cents:
+          )
+        end
+      else
+        build_commission(
+          profile:,
+          membership:,
+          user:,
+          referral:,
+          charge:,
+          subscription:,
+          commission_kind:,
+          amount_cents: ((net_cents * percent) / 100.0).round,
+          currency: currency || "usd",
+          percent:,
+          occurred_at:,
+          net_cents:
+        )
+      end
     rescue StandardError => e
       logger.warn("[Partners::CommissionBuilder] failed pay_charge_id=#{pay_charge_id}: #{e.class} - #{e.message}")
       nil
@@ -80,6 +98,38 @@ module Partners
       else
         :initial
       end
+    end
+
+    def reward_already_consumed?(profile:, user:, charge:)
+      PartnerCommission.where(partner_profile: profile, referred_user: user)
+                       .where.not(pay_charge_id: charge.id)
+                       .exists?
+    end
+
+    def build_commission(profile:, membership:, user:, referral:, charge:, subscription:, commission_kind:, amount_cents:, currency:, percent:, occurred_at:, net_cents:)
+      return if amount_cents <= 0
+
+      PartnerCommission.create!(
+        partner_profile: profile,
+        partner_membership: membership,
+        referred_user: user,
+        referral: referral,
+        pay_charge: charge,
+        pay_subscription: subscription,
+        commission_kind: commission_kind,
+        amount_cents: amount_cents,
+        currency: currency,
+        percent_applied: percent,
+        status: :pending,
+        occurred_at: occurred_at,
+        metadata: {
+          discount_percent: profile.discount_percent_or_default,
+          commission_percent: percent,
+          referral_code: profile.referral_code,
+          payout_mode: profile.payout_mode,
+          net_amount_cents: net_cents
+        }
+      )
     end
 
     def net_amount_for(charge)

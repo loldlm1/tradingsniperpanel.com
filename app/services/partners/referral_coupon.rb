@@ -1,6 +1,6 @@
 module Partners
   class ReferralCoupon
-    CACHE_VERSION = 1
+    CACHE_VERSION = 2
 
     def initialize(partner_profile:, percent:)
       @partner_profile = partner_profile
@@ -27,7 +27,7 @@ module Partners
       created = Stripe::Coupon.create(
         name: "Referral #{percent}% off (Partner ##{partner_profile&.id || 'unknown'})",
         percent_off: percent,
-        duration: "forever",
+        duration: coupon_duration,
         metadata: coupon_metadata
       )
       partner_profile&.update_column(:stripe_coupon_id, created.id) if partner_profile.present? && created&.id
@@ -40,7 +40,7 @@ module Partners
     def find_coupon
       if partner_profile&.stripe_coupon_id.present?
         coupon = retrieve_coupon(partner_profile.stripe_coupon_id)
-        return coupon if coupon&.percent_off.to_i == percent
+        return coupon if coupon_matches?(coupon)
       end
 
       Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
@@ -48,7 +48,7 @@ module Partners
       coupons.data.find do |coupon|
         coupon.metadata&.[]("kind") == "referral_partner" &&
           coupon.metadata&.[]("partner_profile_id").to_s == partner_profile&.id.to_s &&
-          coupon.percent_off.to_i == percent
+          coupon_matches?(coupon)
       end
     rescue StandardError => e
       Rails.logger.warn("[Partners::ReferralCoupon] failed to lookup coupon partner_profile_id=#{partner_profile&.id} percent=#{percent}: #{e.class} - #{e.message}")
@@ -65,6 +65,14 @@ module Partners
 
     def stripe_configured?
       ENV["STRIPE_PRIVATE_KEY"].present?
+    end
+
+    def coupon_matches?(coupon)
+      coupon&.percent_off.to_i == percent && coupon&.duration.to_s == coupon_duration
+    end
+
+    def coupon_duration
+      "once"
     end
 
     def cache_key
