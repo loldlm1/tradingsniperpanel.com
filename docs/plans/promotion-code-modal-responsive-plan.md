@@ -32,6 +32,8 @@ Fix the authenticated promotion code modal so long title/body/code content rende
   - The dialog container is vertically centered with `fixed inset-0 flex items-center`, which can clip the modal on short mobile viewports instead of allowing natural top alignment and scroll.
   - The shell uses `overflow-hidden`, which is visually desirable but can hide content once the modal exceeds viewport height.
   - Footer actions currently rely on a generic wrap row, which does not guarantee a clean mobile layout.
+- Follow-up finding after implementation QA on 2026-03-16:
+  - The footer action row can still overflow when the dismiss button and a long CTA share the same horizontal track, which clips the dismiss button and CTA text at some viewport widths.
 - User direction captured on 2026-03-16:
   - Small screens may rearrange to a mobile-first stack.
   - Footer actions may become stacked full-width buttons on mobile.
@@ -148,6 +150,8 @@ Fix the authenticated promotion code modal so long title/body/code content rende
 - Kept the existing Alpine modal lifecycle and copy-button hooks while adding dedicated hooks for code fitting.
 - Added a JS shrink-to-fit helper with a binary search plus exact-fit fallback because CSS-only sizing was insufficient for long single-line codes.
 - Preserved request-level route coverage and added a long-content render contract check in dashboard request specs.
+- Follow-up scope on 2026-03-16 is limited to footer action containment and long CTA wrapping, with no changes to the modal body or code-fit behavior.
+- Follow-up implementation on 2026-03-16 replaced the wide-screen footer flex row with a constrained grid track so the dismiss button and long CTA can coexist without clipping.
 
 ## Command Log (PASS/FAIL)
 - `PASS` `sed -n '1,260p' AGENTS.md`
@@ -169,8 +173,17 @@ Fix the authenticated promotion code modal so long title/body/code content rende
 - `PASS` `RAILS_ENV=test bin/rails runner '...create modal.qa@example.com and long active promotion...'`
 - `PASS` `npx -y -p playwright-core node <<'EOF' ... responsive login + screenshot + overflow metrics ... EOF`
 - `PASS` `find output/playwright -type f -delete && rmdir output/playwright`
+- `PASS` `sed -n '430,500p' app/assets/stylesheets/dashboard.css`
+- `PASS` `bundle exec rspec spec/requests/dashboard_spec.rb spec/requests/marketplace_spec.rb`
+- `PASS` `RAILS_ENV=test bin/rails server -p 3001`
+- `PASS` `RAILS_ENV=test bin/rails runner '...create modal.qa@example.com and follow-up long active promotion...'`
+- `PASS` `npx -y -p playwright-core node <<'EOF' ... footer containment desktop/mobile metrics ... EOF`
+- `PASS` `npx -y -p playwright-core node <<'EOF' ... mobile footer screenshot after scrollIntoViewIfNeeded ... EOF`
+- `PASS` `RAILS_ENV=test bin/rails runner 'PromotionCode.delete_all; User.where(email: "modal.qa@example.com").delete_all'`
+- `PASS` `find output/playwright -type f -delete && rmdir output/playwright`
 
 ## Audit Gate
 - `PASS` Code pattern and efficiency: modal layout stays isolated to the shared partial and dashboard stylesheet, while the new fit logic is a small dashboard JS helper with explicit DOM hooks instead of fragile inline measurement logic.
 - `PASS` Feature behavior and goal alignment: long title/body text now wraps inside the modal, small screens use a stacked footer layout with top-aligned viewport scrolling, and responsive browser QA confirmed no horizontal overflow for title/body/code in the exercised long-content scenario.
 - `PASS` Tests context: request specs for dashboard and marketplace remain green, with an added dashboard assertion for the responsive modal hooks. Gap noted: there is still no permanent automated visual regression test, so responsive layout coverage remains request-spec plus browser-QA based.
+- `PASS` Follow-up footer audit: responsive browser QA confirmed the dismiss button remains fully inside the shell and the long CTA wraps inside the primary button at both desktop and iPhone SE widths.
