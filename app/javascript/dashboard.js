@@ -138,6 +138,70 @@ const setupGuideCodeCopy = () => {
   });
 };
 
+const fitPromotionCodeText = (element) => {
+  if (!element || !element.isConnected) return;
+
+  const maxFontSize = parseFloat(element.dataset.maxFontSize || "1.8");
+  const minFontSize = parseFloat(element.dataset.minFontSize || "0.72");
+  const container = element.closest("[data-promotion-code-fit-container='true']") || element.parentElement;
+  if (!container || container.clientWidth < 1) return;
+
+  element.style.fontSize = `${maxFontSize}rem`;
+  if (element.scrollWidth <= container.clientWidth + 1) return;
+
+  let low = minFontSize;
+  let high = maxFontSize;
+  let best = minFontSize;
+
+  for (let iteration = 0; iteration < 12; iteration += 1) {
+    const candidate = (low + high) / 2;
+    element.style.fontSize = `${candidate}rem`;
+
+    if (element.scrollWidth <= container.clientWidth + 1) {
+      best = candidate;
+      low = candidate;
+    } else {
+      high = candidate;
+    }
+  }
+
+  element.style.fontSize = `${best.toFixed(3)}rem`;
+
+  if (element.scrollWidth > container.clientWidth + 1) {
+    const exactFitFontSize = (best * container.clientWidth) / Math.max(element.scrollWidth, 1);
+    element.style.fontSize = `${Math.max(exactFitFontSize, 0.5).toFixed(3)}rem`;
+  }
+};
+
+const setupPromotionCodeFit = () => {
+  document.querySelectorAll("[data-promotion-code-fit='true']").forEach((element) => {
+    const container = element.closest("[data-promotion-code-fit-container='true']") || element.parentElement;
+    let lastWidth = 0;
+    const scheduleFit = () => window.requestAnimationFrame(() => {
+      const measuredWidth = Math.round((container || element).getBoundingClientRect().width);
+      if (measuredWidth < 1) return;
+      if (element.dataset.promotionCodeFitInitialized === "true" && measuredWidth === lastWidth) return;
+
+      lastWidth = measuredWidth;
+      element.dataset.promotionCodeFitInitialized = "true";
+      fitPromotionCodeText(element);
+    });
+
+    scheduleFit();
+
+    if (element.dataset.promotionCodeFitBound === "true") return;
+    element.dataset.promotionCodeFitBound = "true";
+
+    if (typeof ResizeObserver === "function" && container) {
+      const observer = new ResizeObserver(() => scheduleFit());
+      observer.observe(container);
+      return;
+    }
+
+    window.addEventListener("resize", scheduleFit, { passive: true });
+  });
+};
+
 const setupGuideScrollSpy = () => {
   const container = document.querySelector("[data-scrollspy-container]");
   if (!container || container.dataset.scrollSpyBound === "true") return;
@@ -468,6 +532,7 @@ const schedulePartnerDashboardChart = () => {
 const bootstrapDashboardLayout = () => {
   applySidebarState();
   setupCopyHelper();
+  setupPromotionCodeFit();
   setupGuideCodeCopy();
   setupGuideScrollSpy();
   setupCourseProgressTracking();

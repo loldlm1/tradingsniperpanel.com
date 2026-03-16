@@ -112,6 +112,27 @@ RSpec.describe "Dashboard", type: :request do
     expect(response.body).to include("promotion_code_id=#{promotion.id}")
   end
 
+  it "renders long promotion content with the responsive modal hooks" do
+    promotion = create(
+      :promotion_code,
+      :active,
+      code: "LAUNCHINGGGGPROMOCODE2026SUPERLONG",
+      percent_off: 15,
+      title_en: "TESTING TESTINGTESTINGTESTING HERE WE GOOO",
+      body_en: "LONG BODYYYYYYYYY BODYYYYYYYYYBODYYYYYYYYYBODYYYYYYYYYBODY",
+      cta_label_en: "Get the limited offer nooooooooooooooooooooooooooooooooow"
+    )
+    sign_in user, scope: :user
+
+    get dashboard_path(locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include(promotion.code)
+    expect(response.body).to include("data-promotion-code-fit=\"true\"")
+    expect(response.body).to include("promotion-modal-actions")
+    expect(response.body).to include("promotion-modal-frame")
+  end
+
   it "does not show a discount modal when no active promotion exists" do
     create(:promotion_code)
     sign_in user, scope: :user

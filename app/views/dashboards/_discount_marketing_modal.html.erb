@@ -41,7 +41,7 @@
 
   <div
     id="dashboard-discount-modal"
-    class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:px-6"
+    class="fixed inset-0 z-50 overflow-y-auto px-4 py-4 sm:px-6 sm:py-8"
     role="dialog"
     aria-modal="true"
     aria-labelledby="dashboard-discount-modal-title"
@@ -54,72 +54,82 @@
     x-transition:leave-end="opacity-0 translate-y-4"
     x-cloak
   >
-    <div
-      class="promotion-modal-shell overflow-hidden max-w-2xl w-full"
-      @click.outside="close"
-      @keydown.escape.window="close"
-    >
-      <div class="promotion-modal-header">
-        <div class="flex items-center justify-between gap-3">
-          <span class="promotion-modal-badge">
-            <%= t("dashboard.discount_modal.badge") %>
-          </span>
-          <button
-            type="button"
-            class="promotion-modal-close"
-            aria-label="<%= t("dashboard.discount_modal.close") %>"
-            @click="close"
-          >
-            <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M7.95 6.536l4.242-4.243a1 1 0 111.415 1.414L9.364 7.95l4.243 4.242a1 1 0 11-1.415 1.415L7.95 9.364l-4.243 4.243a1 1 0 01-1.414-1.415L6.536 7.95 2.293 3.707a1 1 0 011.414-1.414L7.95 6.536z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div class="promotion-modal-body">
-        <div class="promotion-modal-orb" aria-hidden="true"></div>
-
-        <div class="promotion-modal-grid">
-          <div class="promotion-modal-copy">
-            <div class="promotion-modal-percent"><%= banner[:percent] %>%</div>
-            <h2 id="dashboard-discount-modal-title" class="promotion-modal-title">
-              <%= banner[:title] %>
-            </h2>
-            <div class="promotion-modal-text">
-              <%= simple_format(banner[:body]) %>
-            </div>
-          </div>
-
-          <div class="promotion-modal-code-panel">
-            <div class="promotion-modal-code-label"><%= t("dashboard.discount_modal.code_label") %></div>
-            <div class="promotion-modal-code"><%= banner[:code] %></div>
+    <div class="promotion-modal-frame flex min-h-full items-start justify-center">
+      <div
+        class="promotion-modal-shell overflow-hidden max-w-2xl w-full"
+        @click.outside="close"
+        @keydown.escape.window="close"
+      >
+        <div class="promotion-modal-header">
+          <div class="flex items-center justify-between gap-3">
+            <span class="promotion-modal-badge">
+              <%= t("dashboard.discount_modal.badge") %>
+            </span>
             <button
               type="button"
-              class="promotion-modal-copy-button"
-              data-copy-button="true"
-              data-copy-text="<%= banner[:code] %>"
-              data-default-text="<%= t("dashboard.copy") %>"
-              data-copied-text="<%= t("dashboard.copied") %>"
-              data-copy-failed-text="<%= t("dashboard.discount_modal.copy_failed") %>"
+              class="promotion-modal-close"
+              aria-label="<%= t("dashboard.discount_modal.close") %>"
+              @click="close"
             >
-              <%= t("dashboard.copy") %>
+              <svg class="fill-current" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M7.95 6.536l4.242-4.243a1 1 0 111.415 1.414L9.364 7.95l4.243 4.242a1 1 0 11-1.415 1.415L7.95 9.364l-4.243 4.243a1 1 0 01-1.414-1.415L6.536 7.95 2.293 3.707a1 1 0 011.414-1.414L7.95 6.536z" />
+              </svg>
             </button>
           </div>
         </div>
-      </div>
 
-      <div class="promotion-modal-footer">
-        <div class="flex flex-wrap items-center justify-end gap-2">
-          <button
-            type="button"
-            class="promotion-modal-secondary"
-            @click="close"
-          ><%= t("dashboard.discount_modal.dismiss") %></button>
-          <%= link_to banner[:cta_label],
-                      dashboard_plans_path(promotion_code_id: banner[:id]),
-                      class: "promotion-modal-primary",
-                      data: { loading_target: true } %>
+        <div class="promotion-modal-body">
+          <div class="promotion-modal-orb" aria-hidden="true"></div>
+
+          <div class="promotion-modal-grid">
+            <div class="promotion-modal-copy">
+              <div class="promotion-modal-percent"><%= banner[:percent] %>%</div>
+              <h2 id="dashboard-discount-modal-title" class="promotion-modal-title">
+                <%= banner[:title] %>
+              </h2>
+              <div class="promotion-modal-text">
+                <%= simple_format(banner[:body]) %>
+              </div>
+            </div>
+
+            <div class="promotion-modal-code-panel">
+              <div class="promotion-modal-code-label"><%= t("dashboard.discount_modal.code_label") %></div>
+              <div class="promotion-modal-code" data-promotion-code-fit-container="true">
+                <span
+                  class="promotion-modal-code-value"
+                  data-promotion-code-fit="true"
+                  data-max-font-size="1.8"
+                  data-min-font-size="0.62"
+                  title="<%= banner[:code] %>"
+                ><%= banner[:code] %></span>
+              </div>
+              <button
+                type="button"
+                class="promotion-modal-copy-button"
+                data-copy-button="true"
+                data-copy-text="<%= banner[:code] %>"
+                data-default-text="<%= t("dashboard.copy") %>"
+                data-copied-text="<%= t("dashboard.copied") %>"
+                data-copy-failed-text="<%= t("dashboard.discount_modal.copy_failed") %>"
+              >
+                <%= t("dashboard.copy") %>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="promotion-modal-footer">
+          <div class="promotion-modal-actions">
+            <button
+              type="button"
+              class="promotion-modal-secondary"
+              @click="close"
+            ><%= t("dashboard.discount_modal.dismiss") %></button>
+            <%= link_to banner[:cta_label],
+                        dashboard_plans_path(promotion_code_id: banner[:id]),
+                        class: "promotion-modal-primary",
+                        data: { loading_target: true } %>
+          </div>
         </div>
       </div>
     </div>
