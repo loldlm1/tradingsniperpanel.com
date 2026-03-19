@@ -52,6 +52,14 @@ bin/rails runner 'load Rails.root.join("db/seeds/shared.rb"); qa_users = Seeds::
 - The current v1 support bubble uses `tawk.to` as a site-wide embedded widget in `production`.
 - This does **not** require a Rails route like `/chat` for v1. The widget is intended to load across approved pages in the existing app layout.
 - Admins receive support messages through the `tawk.to` inbox and the official mobile app.
+- The widget is rendered from:
+  - `app/views/layouts/application.html.erb` for public + auth pages
+  - `app/views/layouts/dashboard.html.erb` for authenticated dashboard pages
+- The helper gate is in `app/helpers/application_helper.rb` and will only render the widget when all of these are true:
+  - Rails is running in `production`
+  - `SUPPORT_CHAT_EMBED_PROVIDER=tawk_to`
+  - `TAWKTO_PROPERTY_ID` is present
+  - `TAWKTO_WIDGET_ID` is present
 - App-side env vars for the widget:
 ```
 export SUPPORT_CHAT_EMBED_PROVIDER=tawk_to
@@ -60,6 +68,43 @@ export TAWKTO_WIDGET_ID=your_widget_id
 # Optional but recommended if you want the app to securely identify signed-in users
 export TAWKTO_API_KEY=your_tawkto_secure_mode_key
 ```
+
+### Env reference
+- `SUPPORT_CHAT_URL`
+  - Leave blank for the current `tawk.to` embed setup.
+  - This is for a generic support link and is not used by the embedded widget path.
+- `SUPPORT_CHAT_EMBED_PROVIDER`
+  - Required for the widget.
+  - Must be exactly `tawk_to` or the helper will not render the embed script.
+- `TAWKTO_PROPERTY_ID`
+  - Required for the widget.
+  - This is not a custom value; it comes from your `tawk.to` property and is used as the first path segment in the embed URL.
+- `TAWKTO_WIDGET_ID`
+  - Required for the widget.
+  - This is the widget identifier from your `tawk.to` dashboard and is used as the second path segment in the embed URL.
+- `TAWKTO_API_KEY`
+  - Optional.
+  - Only needed if you want secure signed-in visitor identification. Leaving it blank should still show the widget normally.
+
+### Where to get the `tawk.to` IDs
+1) In `tawk.to`, go to `Administration -> Chat Widget` and copy the full widget code.
+2) Find the script URL that looks like:
+```
+https://embed.tawk.to/PROPERTY_ID/WIDGET_ID
+```
+3) Use:
+   - `TAWKTO_PROPERTY_ID=PROPERTY_ID`
+   - `TAWKTO_WIDGET_ID=WIDGET_ID`
+
+### Quick troubleshooting
+- If nothing appears after deploy, first check that the app is really running in `production`. The widget is intentionally disabled outside production.
+- Confirm the exact env values loaded by the Rails process:
+```
+bin/rails runner 'pp({ env: Rails.env, provider: Rails.configuration.x.branding.support_chat_embed_provider, property: Rails.configuration.x.branding.tawkto_property_id, widget: Rails.configuration.x.branding.tawkto_widget_id, secure_mode: Rails.configuration.x.branding.tawkto_api_key.present? })'
+```
+- If `property` or `widget` prints `nil` or an empty string, the deploy environment did not load the values correctly.
+- If you only configured `TAWKTO_WIDGET_ID`, the widget will not load. The app needs both `TAWKTO_PROPERTY_ID` and `TAWKTO_WIDGET_ID`.
+- After changing env vars in production, restart the app processes so Rails reloads the branding initializer.
 
 ### Initial provider setup
 1) Create or sign in to your `tawk.to` account.
