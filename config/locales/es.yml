@@ -355,6 +355,20 @@ es:
       intro: "No pudimos procesar tu último pago de renovación."
       billing_cta: "Actualizar método de pago"
       help_text: "Actualiza tu método de pago para evitar interrupciones."
+  support_requests_mailer:
+    request_notification:
+      category: "Soporte"
+      title: "Nueva solicitud de soporte recibida"
+      intro: "Un cliente envió una solicitud de soporte desde el panel."
+      closing: "Responde desde tu flujo de soporte o contacta al cliente por el correo de su cuenta."
+      preheader: "Una nueva solicitud de soporte necesita revisión."
+      subject: "[%{app_short_name}] Nueva solicitud de soporte"
+      customer_name: "Cliente"
+      customer_email: "Correo"
+      customer_id: "ID de usuario"
+      locale: "Idioma"
+      submitted_at: "Enviado"
+      screenshots: "Capturas"
   footer:
     tagline: "Construido para traders disciplinados de MQL5."
     terms: "Términos"

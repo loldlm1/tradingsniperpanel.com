@@ -41,7 +41,20 @@ class DashboardsController < ApplicationController
 
   def billing; end
 
-  def support; end
+  def support
+    @support_request ||= build_support_request
+  end
+
+  def create_support_request
+    @support_request = build_support_request(support_request_params)
+
+    result = SupportRequests::CreateAndNotify.new(support_request: @support_request).call
+    if result.success?
+      redirect_to dashboard_support_path, notice: t("dashboard.support_submit_success")
+    else
+      render :support, status: :unprocessable_content
+    end
+  end
 
   def checkout
     price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
@@ -257,6 +270,20 @@ class DashboardsController < ApplicationController
 
   def set_invoices
     @invoices = @pay_customer.present? ? Pay::Charge.where(customer: @pay_customer).order(created_at: :desc).limit(20) : []
+  end
+
+  def build_support_request(attributes = {})
+    message = attributes[:message] || attributes["message"]
+    screenshots = Array(attributes[:screenshots] || attributes["screenshots"]).reject(&:blank?)
+
+    current_user.support_requests.new(message: message).tap do |support_request|
+      support_request.locale = I18n.locale.to_s
+      support_request.screenshots.attach(screenshots) if screenshots.any?
+    end
+  end
+
+  def support_request_params
+    params.require(:support_request).permit(:message, screenshots: [])
   end
 
   def ensure_payment_processor

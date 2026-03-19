@@ -355,6 +355,20 @@ en:
       intro: "We couldn't process your latest renewal payment."
       billing_cta: "Update payment method"
       help_text: "Update your payment method to avoid interruption."
+  support_requests_mailer:
+    request_notification:
+      category: "Support"
+      title: "New support request received"
+      intro: "A customer sent a support request from the dashboard."
+      closing: "Reply directly from your support workflow or contact the customer through their account email."
+      preheader: "A new support request needs review."
+      subject: "[%{app_short_name}] New support request"
+      customer_name: "Customer"
+      customer_email: "Email"
+      customer_id: "User ID"
+      locale: "Locale"
+      submitted_at: "Submitted at"
+      screenshots: "Screenshots"
   footer:
     tagline: "Built for disciplined MQL5 traders."
     terms: "Terms"

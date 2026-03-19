@@ -1,4 +1,6 @@
 module ApplicationHelper
+  require "openssl"
+
   def support_email
     Rails.configuration.x.branding.support_email
   end
@@ -9,6 +11,35 @@ module ApplicationHelper
 
   def support_chat_url
     Rails.configuration.x.branding.support_chat_url
+  end
+
+  def support_chat_embed_provider
+    Rails.configuration.x.branding.support_chat_embed_provider
+  end
+
+  def tawkto_property_id
+    Rails.configuration.x.branding.tawkto_property_id
+  end
+
+  def tawkto_widget_id
+    Rails.configuration.x.branding.tawkto_widget_id
+  end
+
+  def tawkto_api_key
+    Rails.configuration.x.branding.tawkto_api_key
+  end
+
+  def support_chat_widget_config
+    return unless Rails.env.production?
+    return unless support_chat_embed_provider == "tawk_to"
+    return if tawkto_property_id.blank? || tawkto_widget_id.blank?
+
+    {
+      provider: support_chat_embed_provider,
+      property_id: tawkto_property_id,
+      widget_id: tawkto_widget_id,
+      visitor: support_chat_tawk_visitor
+    }.compact
   end
 
   def support_discord_url
@@ -27,6 +58,24 @@ module ApplicationHelper
     links << { label: t("footer.contact.discord"), url: support_discord_url } if support_discord_url.present?
     links << { label: t("footer.contact.telegram"), url: support_telegram_url } if support_telegram_url.present?
     links
+  end
+
+  def support_chat_tawk_visitor
+    return if tawkto_api_key.blank?
+
+    user = current_user
+    return unless user.is_a?(User)
+
+    email = user.email.to_s
+    return if email.blank?
+
+    {
+      name: user.name.presence || email,
+      email: email,
+      hash: OpenSSL::HMAC.hexdigest("sha256", tawkto_api_key, email)
+    }
+  rescue Devise::MissingWarden
+    nil
   end
 
   def app_name

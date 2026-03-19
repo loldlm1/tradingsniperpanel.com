@@ -38,4 +38,42 @@ RSpec.describe ApplicationHelper, type: :helper do
     Rails.configuration.x.branding.short_name = original_short_name
     Rails.configuration.x.branding.support_email = original_support_email
   end
+
+  it "builds a production tawk.to widget config when the provider is configured" do
+    original_provider = Rails.configuration.x.branding.support_chat_embed_provider
+    original_property = Rails.configuration.x.branding.tawkto_property_id
+    original_widget = Rails.configuration.x.branding.tawkto_widget_id
+
+    allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("production"))
+    Rails.configuration.x.branding.support_chat_embed_provider = "tawk_to"
+    Rails.configuration.x.branding.tawkto_property_id = "property123"
+    Rails.configuration.x.branding.tawkto_widget_id = "widget456"
+
+    expect(helper.support_chat_widget_config).to include(
+      provider: "tawk_to",
+      property_id: "property123",
+      widget_id: "widget456"
+    )
+  ensure
+    Rails.configuration.x.branding.support_chat_embed_provider = original_provider
+    Rails.configuration.x.branding.tawkto_property_id = original_property
+    Rails.configuration.x.branding.tawkto_widget_id = original_widget
+  end
+
+  it "generates a secure tawk.to visitor payload for signed-in users" do
+    original_api_key = Rails.configuration.x.branding.tawkto_api_key
+    user = build_stubbed(:user, name: "Spec User", email: "spec@example.com")
+
+    Rails.configuration.x.branding.tawkto_api_key = "secret-key"
+    allow(helper).to receive(:user_signed_in?).and_return(true)
+    allow(helper).to receive(:current_user).and_return(user)
+
+    expect(helper.support_chat_tawk_visitor).to eq(
+      name: "Spec User",
+      email: "spec@example.com",
+      hash: OpenSSL::HMAC.hexdigest("sha256", "secret-key", "spec@example.com")
+    )
+  ensure
+    Rails.configuration.x.branding.tawkto_api_key = original_api_key
+  end
 end

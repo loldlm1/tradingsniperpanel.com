@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_12_143000) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_19_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -702,6 +702,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_12_143000) do
     t.index ["effective_at"], name: "index_revenue_split_rules_on_effective_at"
   end
 
+  create_table "support_requests", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.text "message", null: false
+    t.string "locale", default: "en", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_support_requests_on_created_at"
+    t.index ["user_id"], name: "index_support_requests_on_user_id"
+    t.check_constraint "char_length(message) > 0", name: "support_requests_message_not_blank"
+  end
+
   create_table "taggings", force: :cascade do |t|
     t.bigint "tag_id"
     t.string "taggable_type"
@@ -825,6 +836,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_12_143000) do
   add_foreign_key "pay_subscriptions", "pay_customers", column: "customer_id"
   add_foreign_key "refer_visits", "refer_referral_codes", column: "referral_code_id"
   add_foreign_key "revenue_split_payouts", "users", column: "paid_by_admin_id"
+  add_foreign_key "support_requests", "users"
   add_foreign_key "taggings", "tags"
   add_foreign_key "user_expert_advisors", "expert_advisors"
   add_foreign_key "user_expert_advisors", "users"

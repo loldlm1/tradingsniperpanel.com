@@ -88,6 +88,7 @@
     <% end %>
 
     <%= javascript_importmap_tags %>
+    <%= render "shared/support_chat_widget" %>
     <% if assets_template == "mosaic" %>
       <%= javascript_include_tag "mosaic/js/vendors/alpinejs.min", defer: true %>
       <%= javascript_include_tag "mosaic/js/main" %>

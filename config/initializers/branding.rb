@@ -18,6 +18,18 @@ support_phone = nil if support_phone.blank?
 support_chat_url = ENV.fetch("SUPPORT_CHAT_URL", "").to_s.strip
 support_chat_url = nil if support_chat_url.blank?
 
+support_chat_embed_provider = ENV.fetch("SUPPORT_CHAT_EMBED_PROVIDER", "").to_s.strip
+support_chat_embed_provider = nil if support_chat_embed_provider.blank?
+
+tawkto_property_id = ENV.fetch("TAWKTO_PROPERTY_ID", "").to_s.strip
+tawkto_property_id = nil if tawkto_property_id.blank?
+
+tawkto_widget_id = ENV.fetch("TAWKTO_WIDGET_ID", "").to_s.strip
+tawkto_widget_id = nil if tawkto_widget_id.blank?
+
+tawkto_api_key = ENV.fetch("TAWKTO_API_KEY", "").to_s.strip
+tawkto_api_key = nil if tawkto_api_key.blank?
+
 support_discord_url = ENV.fetch("SUPPORT_DISCORD_URL", "").to_s.strip
 support_discord_url = nil if support_discord_url.blank?
 
@@ -60,6 +72,10 @@ Rails.configuration.x.branding.email_subject_brand = short_name.presence || app_
 Rails.configuration.x.branding.support_email = support_email
 Rails.configuration.x.branding.support_phone = support_phone
 Rails.configuration.x.branding.support_chat_url = support_chat_url
+Rails.configuration.x.branding.support_chat_embed_provider = support_chat_embed_provider
+Rails.configuration.x.branding.tawkto_property_id = tawkto_property_id
+Rails.configuration.x.branding.tawkto_widget_id = tawkto_widget_id
+Rails.configuration.x.branding.tawkto_api_key = tawkto_api_key
 Rails.configuration.x.branding.support_discord_url = support_discord_url
 Rails.configuration.x.branding.support_telegram_url = support_telegram_url
 Rails.configuration.x.branding.brand_legal_name = brand_legal_name

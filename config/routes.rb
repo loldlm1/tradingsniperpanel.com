@@ -29,6 +29,7 @@ Rails.application.routes.draw do
     get "dashboard/plans", to: "dashboards#plans", as: :dashboard_plans
     get "dashboard/billing", to: "dashboards#billing", as: :dashboard_billing
     get "dashboard/support", to: "dashboards#support", as: :dashboard_support
+    post "dashboard/support", to: "dashboards#create_support_request"
     get "dashboard/settings", to: "dashboard/settings#show", as: :dashboard_settings
     patch "dashboard/settings", to: "dashboard/settings#update"
     get "dashboard/expert_advisors/:id", to: "expert_advisors#show", as: :dashboard_expert_advisor

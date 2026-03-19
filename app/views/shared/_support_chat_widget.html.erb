@@ -1,0 +1,19 @@
+<% widget_config = support_chat_widget_config %>
+<% if widget_config.present? %>
+  <script type="text/javascript">
+    window.Tawk_API = window.Tawk_API || {};
+    window.Tawk_LoadStart = new Date();
+    <% if widget_config[:visitor].present? %>
+      window.Tawk_API.visitor = <%= raw(json_escape(widget_config[:visitor].to_json)) %>;
+    <% end %>
+    (function() {
+      var script = document.createElement("script");
+      var firstScript = document.getElementsByTagName("script")[0];
+      script.async = true;
+      script.src = "https://embed.tawk.to/<%= widget_config[:property_id] %>/<%= widget_config[:widget_id] %>";
+      script.charset = "UTF-8";
+      script.setAttribute("crossorigin", "*");
+      firstScript.parentNode.insertBefore(script, firstScript);
+    })();
+  </script>
+<% end %>

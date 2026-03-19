@@ -1,0 +1,24 @@
+<%= render "shared/mailer/message",
+  category: t("support_requests_mailer.request_notification.category"),
+  title: t("support_requests_mailer.request_notification.title"),
+  intro: t("support_requests_mailer.request_notification.intro"),
+  detail_rows: detail_rows,
+  paragraphs: message_paragraphs,
+  closing: t("support_requests_mailer.request_notification.closing") %>
+
+<% if screenshot_links.any? %>
+  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="width: 100%; border-collapse: collapse; margin-top: 12px;">
+    <tr>
+      <td style="padding-bottom: 8px; font-family: 'Trebuchet MS', 'Helvetica Neue', Helvetica, sans-serif; font-size: 12px; line-height: 1.5; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5b6572;">
+        <%= t("support_requests_mailer.request_notification.screenshots") %>
+      </td>
+    </tr>
+    <% screenshot_links.each do |screenshot| %>
+      <tr>
+        <td style="padding-top: 8px; font-family: 'Trebuchet MS', 'Helvetica Neue', Helvetica, sans-serif; font-size: 14px; line-height: 1.7; color: #0f172a;">
+          <a href="<%= screenshot[:url] %>" style="color: #22438f; text-decoration: underline;"><%= screenshot[:filename] %></a>
+        </td>
+      </tr>
+    <% end %>
+  </table>
+<% end %>

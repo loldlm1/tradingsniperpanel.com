@@ -48,6 +48,71 @@ export PARTNER_PAYOUT_REQUEST_RECIPIENTS="ops@example.com, finance@example.com, 
 bin/rails runner 'load Rails.root.join("db/seeds/shared.rb"); qa_users = Seeds::QaUsers.seed!; Seeds::Partners.seed_qa!(partner: qa_users[:partner]); Seeds::Partners.seed_eligible_qa!(partner: qa_users[:eligible_partner])'
 ```
 
+## Support chat setup (`tawk.to`, production only)
+- The current v1 support bubble uses `tawk.to` as a site-wide embedded widget in `production`.
+- This does **not** require a Rails route like `/chat` for v1. The widget is intended to load across approved pages in the existing app layout.
+- Admins receive support messages through the `tawk.to` inbox and the official mobile app.
+- App-side env vars for the widget:
+```
+export SUPPORT_CHAT_EMBED_PROVIDER=tawk_to
+export TAWKTO_PROPERTY_ID=your_property_id
+export TAWKTO_WIDGET_ID=your_widget_id
+# Optional but recommended if you want the app to securely identify signed-in users
+export TAWKTO_API_KEY=your_tawkto_secure_mode_key
+```
+
+### Initial provider setup
+1) Create or sign in to your `tawk.to` account.
+2) Create/select the property for `tradingsniperpanel.com`.
+3) In the `tawk.to` dashboard, go to `Administration -> Chat Widget`.
+4) Copy the widget JavaScript snippet or note the property/widget identifiers from it. The Rails app uses env-backed widget identifiers in production.
+5) Invite 1-2 admins:
+   - Dashboard path: `Administration -> Property Members -> Invite Member`
+   - Use `Admin` for full access or `Agent` for reply-only staff.
+6) Ask each invited admin to accept the invite from email and log in once before testing mobile notifications.
+
+### Android/iOS agent setup
+1) Install the official `tawk.to` mobile app on each admin phone.
+2) Sign in with the same email used for the property invite.
+3) Accept the property invitation if the app/dashboard prompts for it.
+4) Open the property in the mobile app and confirm:
+   - personal status is `Online` or `Away`
+   - property/site status is enabled
+   - Do Not Disturb inside the app is off unless intentionally used
+
+### Android notification checklist
+1) In the Android app, open `You -> App Settings -> Configure Alerts`.
+2) Enable the notification types you want, then choose sound/vibration behavior.
+3) Make sure your agent status is `Online` or `Away` or you may miss live chats.
+4) On the Android device itself:
+   - allow notifications for the `tawk.to` app
+   - remove `tawk.to` from battery optimization if notifications are delayed
+   - allow auto-start / background activity on vendors that restrict background apps
+5) If chats are not coming through, re-open the app once after changing notification settings and test again from the live site.
+
+### iPhone / iPad notification checklist
+1) In the iOS app, open `You -> App Settings -> Notifications and Sounds`.
+2) Enable the notification types you want and confirm in-app `Do Not Disturb` is off.
+3) In iOS Settings, open the `tawk.to` app notification settings and enable `Allow Notifications`.
+4) If alerts still do not appear, enable banners/sounds for the app and re-open `tawk.to`.
+
+### Quick production QA
+1) Confirm the widget appears on the approved production pages.
+2) Send a test message from a private/incognito browser window.
+3) Verify:
+   - the conversation reaches the `tawk.to` dashboard
+   - at least one admin phone receives the notification
+   - the admin can reply from the mobile app
+
+### Official references
+- Widget install: https://help.tawk.to/article/adding-a-widget-to-your-website
+- Invite/manage agents: https://help.tawk.to/article/how-to-invite-and-manage-agents
+- Android widget code access: https://help.tawk.to/article/where-to-find-your-widget-code-on-android
+- Android notifications: https://help.tawk.to/article/enabling-notifications-on-android
+- Android notification troubleshooting: https://help.tawk.to/article/not-receiving-chat-notifications
+- iOS notifications: https://help.tawk.to/article/how-to-manage-sounds-and-notifications-in-ios
+- iOS notification troubleshooting: https://help.tawk.to/article/why-am-i-not-getting-notifications-on-ios
+
 ## Server setup (Ubuntu 22.04, staging + production on the same VPS)
 
 ### Recommended: setup scripts
