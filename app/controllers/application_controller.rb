@@ -18,6 +18,7 @@ class ApplicationController < ActionController::Base
   before_action :set_marketplace_nav_products, if: :user_signed_in?
   before_action :set_sidebar_recent_items, if: :user_signed_in?
   before_action :set_dashboard_discount_banner, if: :dashboard_html_request?
+  before_action :set_product_release_notification, if: :dashboard_html_request?
 
   def after_sign_in_path_for(_resource)
     desired_plan = stored_desired_plan
@@ -212,6 +213,16 @@ class ApplicationController < ActionController::Base
 
   def set_dashboard_discount_banner
     @discount_banner = Marketing::DiscountBanner.new(locale: I18n.locale).call
+  end
+
+  def set_product_release_notification
+    @product_release_notification = Dashboard::ProductReleaseNotificationPresenter.new(
+      user: current_user,
+      accessible_eas: @accessible_eas,
+      accessible_courses: @accessible_courses,
+      marketplace_available: @marketplace_available,
+      locale: I18n.locale
+    ).call
   end
 
   def dashboard_html_request?

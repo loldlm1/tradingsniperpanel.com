@@ -158,6 +158,17 @@ bin/rails runner 'pp({ env: Rails.env, provider: Rails.configuration.x.branding.
 - iOS notifications: https://help.tawk.to/article/how-to-manage-sounds-and-notifications-in-ios
 - iOS notification troubleshooting: https://help.tawk.to/article/why-am-i-not-getting-notifications-on-ios
 
+## Product release notifications (production admin flow)
+- V1 release notifications are published from production ActiveAdmin after product changes are live.
+- Update the qualifying products first:
+  - EA downloadable file or active bundle changed
+  - new add-on became available
+  - new course became published
+- Then open `Admin -> Product Releases` and click `Publish Product Release`.
+- The app will diff the current tracked catalog against the last published snapshot.
+- If qualifying changes are found, one grouped release batch is created for dashboard users.
+- If nothing qualifies, ActiveAdmin returns a clean no-op notice and no user-facing release is created.
+
 ## Server setup (Ubuntu 22.04, staging + production on the same VPS)
 
 ### Recommended: setup scripts

@@ -95,6 +95,22 @@ es:
         max_redemptions: "Límite opcional de redenciones en Stripe."
       errors:
         invalid_expiration: "La expiración debe ser una fecha y hora válidas."
+    product_releases:
+      actions:
+        publish: "Publicar release de productos"
+      publish:
+        success: "Release de productos publicado con %{count} items."
+        no_changes: "No se detectaron cambios de producto que califiquen."
+      sections:
+        items: "Items del release"
+      labels:
+        items: "Items"
+        position: "Posición"
+        kind: "Tipo"
+        action: "Acción"
+        subject: "Objetivo"
+        title_en: "Título en inglés"
+        title_es: "Título en español"
     partner_profiles:
       created: "Perfil de socio creado."
       updated: "Perfil de socio actualizado."

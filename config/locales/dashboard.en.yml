@@ -6,6 +6,23 @@ en:
     expires_at: "Expires"
     alerts:
       dismiss: "Dismiss"
+    product_releases:
+      button: "Notifications"
+      dropdown_title: "Notifications"
+      latest_release: "Latest product release"
+      empty: "No new product notifications."
+      summary:
+        one: "1 product change in this release"
+        other: "%{count} product changes in this release"
+      dismiss_button: "Dismiss release"
+      dismissed: "Release notification dismissed."
+      badges:
+        expert_advisor:
+          updated: "EA Updated"
+        addon:
+          added: "New Add-on"
+        course:
+          added: "New Course"
     header:
       open_sidebar: "Open sidebar"
       language: "Language"

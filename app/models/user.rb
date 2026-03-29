@@ -12,6 +12,9 @@ class User < ApplicationRecord
   has_many :course_enrollments, dependent: :destroy
   has_many :courses, through: :course_enrollments
   has_many :course_lesson_progresses, dependent: :destroy
+  has_many :product_releases, foreign_key: :published_by_id, dependent: :nullify, inverse_of: :published_by
+  has_many :product_release_dismissals, dependent: :destroy
+  has_many :dismissed_product_releases, through: :product_release_dismissals, source: :product_release
   has_one :partner_profile, dependent: :destroy
 
   # Include default devise modules. Others available are:

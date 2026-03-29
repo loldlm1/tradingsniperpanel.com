@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_19_150000) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_29_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -614,6 +614,53 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_19_150000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "product_release_dismissals", force: :cascade do |t|
+    t.bigint "product_release_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "dismissed_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_release_id", "user_id"], name: "index_product_release_dismissals_on_release_and_user", unique: true
+    t.index ["product_release_id"], name: "index_product_release_dismissals_on_product_release_id"
+    t.index ["user_id"], name: "index_product_release_dismissals_on_user_id"
+  end
+
+  create_table "product_release_items", force: :cascade do |t|
+    t.bigint "product_release_id", null: false
+    t.string "subject_type", null: false
+    t.bigint "subject_id", null: false
+    t.string "product_kind", null: false
+    t.string "action_type", null: false
+    t.string "title_en", null: false
+    t.string "title_es", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["action_type"], name: "index_product_release_items_on_action_type"
+    t.index ["product_kind"], name: "index_product_release_items_on_product_kind"
+    t.index ["product_release_id"], name: "index_product_release_items_on_product_release_id"
+    t.index ["subject_type", "subject_id"], name: "index_product_release_items_on_subject_type_and_subject_id"
+  end
+
+  create_table "product_release_snapshots", force: :cascade do |t|
+    t.string "subject_type", null: false
+    t.bigint "subject_id", null: false
+    t.string "product_kind", null: false
+    t.string "signature", null: false
+    t.datetime "tracked_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["subject_type", "subject_id", "product_kind"], name: "index_product_release_snapshots_on_subject_and_kind", unique: true
+  end
+
+  create_table "product_releases", force: :cascade do |t|
+    t.bigint "published_by_id"
+    t.datetime "published_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["published_by_id"], name: "index_product_releases_on_published_by_id"
+  end
+
   create_table "promotion_codes", force: :cascade do |t|
     t.string "code", null: false
     t.integer "percent_off", null: false
@@ -834,6 +881,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_19_150000) do
   add_foreign_key "pay_charges", "pay_subscriptions", column: "subscription_id"
   add_foreign_key "pay_payment_methods", "pay_customers", column: "customer_id"
   add_foreign_key "pay_subscriptions", "pay_customers", column: "customer_id"
+  add_foreign_key "product_release_dismissals", "product_releases"
+  add_foreign_key "product_release_dismissals", "users"
+  add_foreign_key "product_release_items", "product_releases"
+  add_foreign_key "product_releases", "users", column: "published_by_id"
   add_foreign_key "refer_visits", "refer_referral_codes", column: "referral_code_id"
   add_foreign_key "revenue_split_payouts", "users", column: "paid_by_admin_id"
   add_foreign_key "support_requests", "users"

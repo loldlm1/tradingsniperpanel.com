@@ -44,6 +44,11 @@ RSpec.describe "Ransack allowlists" do
                    associations: []
 
   include_examples "ransackable model",
+                   ProductRelease,
+                   attributes: %w[published_at published_by_id],
+                   associations: %w[product_release_items published_by]
+
+  include_examples "ransackable model",
                    ExpertAdvisorBundle,
                    attributes: %w[bundle_key active],
                    associations: %w[expert_advisor]

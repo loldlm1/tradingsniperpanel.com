@@ -336,6 +336,8 @@
 
               <!-- Header: Right side -->
               <div class="flex items-center space-x-3">
+                <%= render "dashboard/shared/product_release_notifications", notification: @product_release_notification %>
+
                 <!-- Language toggle -->
                 <div class="relative inline-flex" x-data="{ open: false }">
                   <button

@@ -6,6 +6,23 @@ es:
     expires_at: "Vence"
     alerts:
       dismiss: "Cerrar"
+    product_releases:
+      button: "Notificaciones"
+      dropdown_title: "Notificaciones"
+      latest_release: "Último release de productos"
+      empty: "No hay notificaciones nuevas de productos."
+      summary:
+        one: "1 cambio de producto en este release"
+        other: "%{count} cambios de producto en este release"
+      dismiss_button: "Descartar release"
+      dismissed: "Notificación de release descartada."
+      badges:
+        expert_advisor:
+          updated: "EA Actualizado"
+        addon:
+          added: "Nuevo Add-on"
+        course:
+          added: "Nuevo Curso"
     header:
       open_sidebar: "Abrir sidebar"
       language: "Idioma"

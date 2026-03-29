@@ -95,6 +95,22 @@ en:
         max_redemptions: "Optional Stripe redemption cap."
       errors:
         invalid_expiration: "Expiration must be a valid date and time."
+    product_releases:
+      actions:
+        publish: "Publish Product Release"
+      publish:
+        success: "Published product release with %{count} items."
+        no_changes: "No qualifying product changes were detected."
+      sections:
+        items: "Release items"
+      labels:
+        items: "Items"
+        position: "Position"
+        kind: "Kind"
+        action: "Action"
+        subject: "Subject"
+        title_en: "English title"
+        title_es: "Spanish title"
     partner_profiles:
       created: "Partner profile created."
       updated: "Partner profile updated."
