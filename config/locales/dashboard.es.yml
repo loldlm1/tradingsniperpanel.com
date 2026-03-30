@@ -10,12 +10,18 @@ es:
       button: "Notificaciones"
       dropdown_title: "Notificaciones"
       latest_release: "Último release de productos"
+      release_label: "Release de productos"
       empty: "No hay notificaciones nuevas de productos."
+      collection_summary:
+        one: "1 release sin leer"
+        other: "%{count} releases sin leer"
       summary:
         one: "1 cambio de producto en este release"
         other: "%{count} cambios de producto en este release"
       dismiss_button: "Descartar release"
+      clear_button: "Limpiar notificaciones"
       dismissed: "Notificación de release descartada."
+      cleared: "Las notificaciones de releases de productos fueron limpiadas."
       badges:
         expert_advisor:
           updated: "EA Actualizado"

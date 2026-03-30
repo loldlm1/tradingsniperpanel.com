@@ -2,6 +2,14 @@ module Dashboard
   class ProductReleaseNotificationPresenter
     include Rails.application.routes.url_helpers
 
+    Release = Struct.new(
+      :record,
+      :summary,
+      :published_at_label,
+      :items,
+      keyword_init: true
+    )
+
     Item = Struct.new(
       :record,
       :badge_label,
@@ -23,7 +31,7 @@ module Dashboard
     end
 
     def present?
-      release.present?
+      releases.any?
     end
 
     def unread?
@@ -31,29 +39,37 @@ module Dashboard
     end
 
     def release
-      @release ||= candidate_releases.find { |candidate| visible_items_for(candidate).any? }
+      releases.first&.record
     end
 
     def items
-      @items ||= visible_items_for(release).map { |item| build_item(item) }
+      @items ||= releases.flat_map(&:items)
     end
 
     def published_at_label
-      return unless release
-
-      I18n.l(release.published_at, format: :short_with_year, locale: locale)
+      releases.first&.published_at_label
     end
 
     def release_summary
+      releases.first&.summary || I18n.t("dashboard.product_releases.empty")
+    end
+
+    def releases
+      @releases ||= visible_releases.map { |entry| build_release(entry) }
+    end
+
+    def collection_summary
       return I18n.t("dashboard.product_releases.empty") unless present?
 
-      I18n.t("dashboard.product_releases.summary", count: items.size)
+      I18n.t("dashboard.product_releases.collection_summary", count: releases.size, item_count: items.size)
+    end
+
+    def clear_path
+      clear_dashboard_product_releases_path(locale: locale)
     end
 
     def dismiss_path
-      return unless release
-
-      dismiss_dashboard_product_release_path(release, locale: locale)
+      clear_path
     end
 
     def default_url_options
@@ -64,23 +80,22 @@ module Dashboard
 
     attr_reader :user, :accessible_eas, :accessible_courses, :marketplace_available, :locale
 
-    def candidate_releases
-      ProductRelease.latest_first
-                    .includes(product_release_items: :subject)
-                    .where.not(id: user.product_release_dismissals.select(:product_release_id))
-                    .limit(10)
-    end
-
-    def visible_items_for(candidate_release)
-      return [] unless candidate_release
-
-      ProductReleases::VisibleItems.new(
+    def visible_releases
+      ProductReleases::UnreadVisibleReleases.new(
         user: user,
-        release: candidate_release,
         accessible_eas: accessible_eas,
         accessible_courses: accessible_courses,
         marketplace_available: marketplace_available
       ).call
+    end
+
+    def build_release(entry)
+      Release.new(
+        record: entry.release,
+        summary: I18n.t("dashboard.product_releases.summary", count: entry.items.size),
+        published_at_label: I18n.l(entry.release.published_at, format: :short_with_year, locale: locale),
+        items: entry.items.map { |item| build_item(item) }
+      )
     end
 
     def build_item(item)

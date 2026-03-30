@@ -259,6 +259,20 @@ body[data-dashboard-palette="teal"] {
   gap: 1.15rem;
 }
 
+[data-product-release-dropdown="true"] {
+  max-height: 75vh;
+}
+
+[data-product-release-scroll-region="true"] {
+  min-height: 0;
+}
+
+@media (min-width: 640px) {
+  [data-product-release-dropdown="true"] {
+    max-height: 36rem;
+  }
+}
+
 .promotion-modal-orb {
   position: absolute;
   top: 2.25rem;

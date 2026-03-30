@@ -39,6 +39,7 @@ Rails.application.routes.draw do
     get "dashboard/courses/:id", to: "courses#show", as: :dashboard_course
     get "dashboard/courses/:course_id/lessons/:id", to: "course_lessons#show", as: :dashboard_course_lesson
     patch "dashboard/courses/:course_id/lessons/:id/progress", to: "course_lessons#update_progress", as: :dashboard_course_lesson_progress
+    post "dashboard/product_releases/clear", to: "dashboard/product_releases#clear", as: :clear_dashboard_product_releases
     post "dashboard/product_releases/:id/dismiss", to: "dashboard/product_releases#dismiss", as: :dismiss_dashboard_product_release
     post "dashboard/checkout", to: "dashboards#checkout", as: :dashboard_checkout
     post "dashboard/plans/cancel", to: "dashboards#cancel_scheduled_downgrade", as: :dashboard_cancel_scheduled_downgrade

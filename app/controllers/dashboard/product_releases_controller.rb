@@ -6,23 +6,33 @@ module Dashboard
     before_action :set_accessible_courses
     before_action :set_marketplace_availability
 
+    def clear
+      releases = unread_visible_releases
+      head :not_found and return if releases.empty?
+
+      dismissed_at = Time.current
+      releases.each do |entry|
+        current_user.product_release_dismissals.find_or_create_by!(product_release: entry.release) do |dismissal|
+          dismissal.dismissed_at = dismissed_at
+        end
+      end
+
+      redirect_back fallback_location: dashboard_path(locale: I18n.locale), notice: t("dashboard.product_releases.cleared")
+    end
+
     def dismiss
-      release = ProductRelease.find(params[:id])
-      visible_items = ProductReleases::VisibleItems.new(
+      clear
+    end
+
+    private
+
+    def unread_visible_releases
+      ProductReleases::UnreadVisibleReleases.new(
         user: current_user,
-        release: release,
         accessible_eas: @accessible_eas,
         accessible_courses: @accessible_courses,
         marketplace_available: @marketplace_available
       ).call
-
-      head :not_found and return if visible_items.empty?
-
-      current_user.product_release_dismissals.find_or_create_by!(product_release: release) do |dismissal|
-        dismissal.dismissed_at = Time.current
-      end
-
-      redirect_back fallback_location: dashboard_path(locale: I18n.locale), notice: t("dashboard.product_releases.dismissed")
     end
   end
 end

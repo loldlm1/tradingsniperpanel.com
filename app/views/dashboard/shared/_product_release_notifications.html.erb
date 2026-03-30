@@ -20,7 +20,7 @@
     <% end %>
   </button>
   <div
-    class="origin-top-left sm:origin-top-right z-10 absolute top-full left-0 sm:left-auto sm:right-0 min-w-80 max-w-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden mt-1"
+    class="origin-top-left sm:origin-top-right z-10 absolute top-full left-0 sm:left-auto sm:right-0 min-w-80 max-w-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 rounded-lg shadow-lg overflow-hidden mt-1 flex max-h-[75vh] sm:max-h-[36rem] flex-col"
     data-product-release-dropdown="true"
     @click.outside="open = false"
     @keydown.escape.window="open = false"
@@ -33,47 +33,63 @@
     x-transition:leave-end="opacity-0"
     x-cloak
   >
-    <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase pt-1.5 pb-2 px-4"><%= t("dashboard.product_releases.dropdown_title") %></div>
+    <div class="shrink-0 border-b border-gray-200 dark:border-gray-700/60 px-4 py-3">
+      <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase"><%= t("dashboard.product_releases.dropdown_title") %></div>
+      <% if notification&.present? %>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-2" data-product-release-collection-summary="true"><%= notification.collection_summary %></div>
+      <% end %>
+    </div>
 
     <% if notification&.present? %>
-      <div class="border-b border-gray-200 dark:border-gray-700/60 px-4 py-3">
-        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.product_releases.latest_release") %></div>
-        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= notification.release_summary %></div>
-        <div class="text-xs font-medium text-gray-400 dark:text-gray-500 mt-2"><%= notification.published_at_label %></div>
+      <div class="grow overflow-y-auto overscroll-contain" data-product-release-scroll-region="true">
+        <ul>
+          <% notification.releases.each do |release| %>
+            <li class="border-b border-gray-200 dark:border-gray-700/60 last:border-0 px-4 py-4" data-product-release-group="true">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="text-sm font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.product_releases.release_label") %></div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1"><%= release.summary %></div>
+                </div>
+                <div class="shrink-0 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500" data-product-release-published-at="true"><%= release.published_at_label %></div>
+              </div>
+
+              <ul class="mt-3 space-y-2">
+                <% release.items.each do |item| %>
+                  <li data-product-release-item="true">
+                    <% link_classes = "block rounded-lg border border-gray-200/80 dark:border-gray-700/80 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/20" %>
+                    <% content = capture do %>
+                      <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700/60 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300"><%= item.badge_label %></span>
+                      <span class="block text-sm mt-2 text-gray-800 dark:text-gray-100"><%= item.title %></span>
+                    <% end %>
+
+                    <% if item.path.present? %>
+                      <%= link_to item.path, class: link_classes, "@click": "open = false" do %>
+                        <%= content %>
+                      <% end %>
+                    <% else %>
+                      <div class="<%= link_classes %>">
+                        <%= content %>
+                      </div>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            </li>
+          <% end %>
+        </ul>
       </div>
 
-      <ul class="max-h-80 overflow-y-auto">
-        <% notification.items.each do |item| %>
-          <li class="border-b border-gray-200 dark:border-gray-700/60 last:border-0">
-            <% link_classes = "block py-2 px-4 hover:bg-gray-50 dark:hover:bg-gray-700/20" %>
-            <% content = capture do %>
-              <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700/60 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300"><%= item.badge_label %></span>
-              <span class="block text-sm mt-2 text-gray-800 dark:text-gray-100"><%= item.title %></span>
-            <% end %>
-
-            <% if item.path.present? %>
-              <%= link_to item.path, class: link_classes, "@click": "open = false" do %>
-                <%= content %>
-              <% end %>
-            <% else %>
-              <div class="<%= link_classes %>">
-                <%= content %>
-              </div>
-            <% end %>
-          </li>
-        <% end %>
-      </ul>
-
-      <div class="px-4 py-3">
-        <%= button_to notification.dismiss_path,
+      <div class="shrink-0 border-t border-gray-200 dark:border-gray-700/60 px-4 py-3 bg-white dark:bg-gray-800">
+        <%= button_to notification.clear_path,
                       method: :post,
                       form: { class: "w-full" },
-                      class: "btn-sm w-full bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600" do %>
-          <%= t("dashboard.product_releases.dismiss_button") %>
+                      class: "btn-sm w-full bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600",
+                      data: { product_release_clear_button: true } do %>
+          <%= t("dashboard.product_releases.clear_button") %>
         <% end %>
       </div>
     <% else %>
-      <div class="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
+      <div class="grow px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
         <%= t("dashboard.product_releases.empty") %>
       </div>
     <% end %>
