@@ -23,6 +23,31 @@ RSpec.describe "Dashboard product releases", type: :request do
     expect(response.body).to include("Session Filter")
   end
 
+  it "shows EA update items to users who can access that EA on the real dashboard route" do
+    expert_advisor = create(:expert_advisor, name: "Visible EA Update")
+    create(:license, user: user, expert_advisor: expert_advisor, status: :active, trial_ends_at: nil, expires_at: 2.weeks.from_now)
+
+    release = create(:product_release)
+    create(
+      :product_release_item,
+      product_release: release,
+      subject: expert_advisor,
+      product_kind: :expert_advisor,
+      action_type: :updated,
+      title_en: expert_advisor.name,
+      title_es: expert_advisor.name
+    )
+
+    get dashboard_path(locale: :en)
+
+    expect(response).to have_http_status(:ok)
+    expect(parsed_body.at_css("[data-product-release-bell-dot='true']")).to be_present
+
+    dropdown_text = parsed_body.at_css("[data-product-release-dropdown='true']")&.text.to_s
+    expect(dropdown_text).to include("EA Updated")
+    expect(dropdown_text).to include("Visible EA Update")
+  end
+
   it "does not show course releases when the signed-in user cannot access the course" do
     course = create(:course, title_en: "Locked Course", title_es: "Curso Bloqueado")
     create(:course_plan_entitlement, course: course, billing_plan: create(:billing_plan, tier: "pro"))

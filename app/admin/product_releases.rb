@@ -54,12 +54,16 @@ ActiveAdmin.register ProductRelease do
 
     panel t("active_admin.product_releases.sections.items") do
       table_for resource.product_release_items do
-        column t("active_admin.product_releases.labels.position"), :position
-        column t("active_admin.product_releases.labels.kind") { |item| item.product_kind.humanize }
-        column t("active_admin.product_releases.labels.action") { |item| item.action_type.humanize }
-        column t("active_admin.product_releases.labels.title_en"), :title_en
-        column t("active_admin.product_releases.labels.title_es"), :title_es
-        column t("active_admin.product_releases.labels.subject") do |item|
+        column :position
+        column :product_kind do |item|
+          item.product_kind.humanize
+        end
+        column :action_type do |item|
+          item.action_type.humanize
+        end
+        column :title_en
+        column :title_es
+        column :subject do |item|
           next "#{item.subject_type}##{item.subject_id}" unless item.subject.present?
 
           auto_link(item.subject)

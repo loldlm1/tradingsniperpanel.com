@@ -218,9 +218,9 @@ class ApplicationController < ActionController::Base
   def set_product_release_notification
     @product_release_notification = Dashboard::ProductReleaseNotificationPresenter.new(
       user: current_user,
-      accessible_eas: @accessible_eas,
-      accessible_courses: @accessible_courses,
-      marketplace_available: @marketplace_available,
+      accessible_eas: @accessible_eas || Licenses::AccessibleExpertAdvisors.new(user: current_user).call,
+      accessible_courses: @accessible_courses || Courses::AccessibleCourses.new(user: current_user).call,
+      marketplace_available: @marketplace_available.nil? ? Marketplace::Availability.new.call : @marketplace_available,
       locale: I18n.locale
     ).call
   end

@@ -1,7 +1,7 @@
 # Plan: Dashboard Product Release Visual QA Sprint
 
 **Generated**: 2026-03-29
-**Status**: Next step after implementation
+**Status**: Completed after follow-up fixes
 **Estimated Complexity**: Medium
 
 ## Goal
@@ -142,3 +142,29 @@ Run a dedicated visual QA sprint for the new dashboard product release notificat
 
 ## Next Step Trigger
 - Start this sprint only after the current feature branch is considered implementation-complete and a release batch can be published for QA.
+
+## Execution Notes
+- PASS: local QA target resolved to `http://127.0.0.1:3000`
+- PASS: `command -v npx >/dev/null 2>&1`
+- PASS: Firefox headless preflight via local Playwright package
+- PASS: sourced `.envrc` and ran `bundle exec rails db:seed`
+- PASS: created a local grouped `ProductRelease` batch for QA with one add-on, one EA update, and one course item
+- PASS: ran `node script/product_release_visual_qa.mjs`
+- PASS: artifacts saved under `output/playwright/product-release-qa/`
+- PASS: report written to `docs/ux-audit-product-release-notifications-2026-03-29.md`
+- FAIL: deploy readiness due owner-visible EA update missing from the dropdown
+- FAIL: mobile `375px` dropdown shifts off-canvas to the left
+
+## Outcome
+- PASS: initial audit surfaced the two blocking defects clearly
+- PASS: follow-up fixes resolved the owner EA visibility issue
+- PASS: follow-up fixes resolved the mobile `375px` dropdown alignment issue
+- PASS: rerun confirmed add-on, EA, and course visibility rules in EN and ES
+- PASS: dismiss still removes the unread dot and persists after reload
+- PASS: final report updated to deploy-ready status for this feature slice
+
+## Rerun Notes
+- PASS: command `set -a && source .envrc && set +a && bundle exec rails runner 'ProductReleaseDismissal.delete_all'`
+- PASS: command `node script/product_release_visual_qa.mjs`
+- PASS: rerun artifacts updated under `output/playwright/product-release-qa/`
+- PASS: rerun report updated in `docs/ux-audit-product-release-notifications-2026-03-29.md`

@@ -25,6 +25,23 @@ RSpec.describe "Product releases admin", type: :request do
     expect(release.product_release_items.map(&:product_kind)).to include("addon")
   end
 
+  it "renders the admin show page after publishing a release" do
+    admin = create(:user, :admin)
+    create(:expert_advisor, name: "Show Page EA")
+    create(:course, title_en: "Show Page Course", title_es: "Curso Show Page")
+    addon_product = create(:marketplace_product, title_en: "Show Page Add-on")
+    create(:addon, billing_plan: addon_product.billing_plan, addonable: create(:expert_advisor))
+    sign_in admin, scope: :user
+
+    release = ProductReleases::Publish.new(published_by: admin).call.release
+
+    get admin_product_release_path(release)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("Show Page Add-on")
+    expect(response.body).to include("Show Page Course")
+  end
+
   it "returns a no-op notice when no qualifying changes are found" do
     admin = create(:user, :admin)
     expert_advisor = create(:expert_advisor)
