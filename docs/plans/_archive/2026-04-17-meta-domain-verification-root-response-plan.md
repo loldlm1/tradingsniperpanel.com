@@ -63,6 +63,10 @@ Investigate why `https://tradingsniperpanel.com/` returns `204 No Content` for s
 - PASS: `bundle exec rspec spec/requests/root_response_spec.rb spec/requests/home_pricing_cta_spec.rb spec/requests/landing_template_locale_branding_spec.rb spec/requests/branding_spec.rb spec/requests/localization_spec.rb spec/requests/landing_template_spec.rb spec/requests/seo_meta_spec.rb --format progress`
 - PASS: `bundle exec rubocop app/controllers/pages_controller.rb spec/requests/root_response_spec.rb`
 - PASS: Reviewed `git diff -- app/controllers/pages_controller.rb spec/requests/root_response_spec.rb`
+- PASS: Production smoke on `2026-04-17` showed `https://tradingsniperpanel.com/` now returns `HTTP/2 200 text/html` for default curl requests, explicit `Accept: text/html`, and `User-Agent: facebookexternalhit/1.1`.
+- PASS: Production smoke on `2026-04-17` showed `http://tradingsniperpanel.com/` returns `301` to `https://tradingsniperpanel.com/`, and the followed response is `HTTP/2 200 text/html` with the verification meta tag.
+- PASS: Production smoke on `2026-04-17` showed `https://www.tradingsniperpanel.com/` returns `HTTP/2 200 text/html` with the verification meta tag for default curl and `facebookexternalhit/1.1`.
+- PASS: Production smoke on `2026-04-17` showed `http://www.tradingsniperpanel.com/` redirects to `https://tradingsniperpanel.com/`, and the followed response includes the verification meta tag.
 
 ## Sprint 1: Reproduce And Fix The Root HTML Contract
 **Goal**: Prove the exact failing request shape, then harden the Rails root action so `/` returns HTML consistently.
@@ -162,7 +166,7 @@ Investigate why `https://tradingsniperpanel.com/` returns `204 No Content` for s
 - PASS: Feature behavior and goal alignment
   The new request spec proves the original failure mode and now verifies `GET /` returns `200 text/html` with the Meta verification tag even for `Accept: */*`.
 - PASS: Tests context
-  Relevant request coverage passed across the root contract, localization, landing-template selection, branding, pricing CTA behavior, and SEO meta output. Production smoke verification remains pending deploy because this workspace does not deploy automatically.
+  Relevant request coverage passed across the root contract, localization, landing-template selection, branding, pricing CTA behavior, and SEO meta output. Production smoke verification also passed after deploy on April 17, 2026. Meta retry remains the only pending external validation step.
 
 ## Rollback Plan
 - Revert the controller/request-spec change if the landing page regresses.
