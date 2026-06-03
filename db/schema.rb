@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_29_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_03_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -286,6 +286,27 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_29_120000) do
     t.index ["ea_id"], name: "index_expert_advisors_on_ea_id", unique: true
     t.index ["ea_type"], name: "index_expert_advisors_on_ea_type"
     t.index ["tier_rank"], name: "index_expert_advisors_on_tier_rank"
+  end
+
+  create_table "license_instance_magic_numbers", force: :cascade do |t|
+    t.bigint "license_id", null: false
+    t.bigint "broker_account_id", null: false
+    t.bigint "expert_advisor_id", null: false
+    t.string "source", null: false
+    t.string "email", null: false
+    t.string "instance_id", null: false
+    t.bigint "magic_number", null: false
+    t.datetime "first_seen_at", null: false
+    t.datetime "last_seen_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["broker_account_id", "expert_advisor_id", "instance_id"], name: "index_license_instance_magic_on_identity", unique: true
+    t.index ["broker_account_id", "magic_number"], name: "index_license_instance_magic_on_broker_magic", unique: true
+    t.index ["broker_account_id"], name: "index_license_instance_magic_numbers_on_broker_account_id"
+    t.index ["expert_advisor_id"], name: "index_license_instance_magic_numbers_on_expert_advisor_id"
+    t.index ["license_id"], name: "index_license_instance_magic_numbers_on_license_id"
+    t.check_constraint "char_length(instance_id::text) <= 64 AND instance_id::text ~ '^[A-Za-z0-9_-]+$'::text", name: "license_instance_magic_numbers_instance_id_format_check"
+    t.check_constraint "magic_number > 0", name: "license_instance_magic_numbers_magic_positive_check"
   end
 
   create_table "license_lane_magic_numbers", force: :cascade do |t|
@@ -850,6 +871,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_29_120000) do
   add_foreign_key "course_plan_entitlements", "billing_plans"
   add_foreign_key "course_plan_entitlements", "courses"
   add_foreign_key "expert_advisor_bundles", "expert_advisors"
+  add_foreign_key "license_instance_magic_numbers", "broker_accounts"
+  add_foreign_key "license_instance_magic_numbers", "expert_advisors"
+  add_foreign_key "license_instance_magic_numbers", "licenses"
   add_foreign_key "license_lane_magic_numbers", "licenses"
   add_foreign_key "license_online_sessions", "expert_advisors"
   add_foreign_key "license_online_sessions", "users"

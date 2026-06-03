@@ -3,6 +3,7 @@ class BrokerAccount < ApplicationRecord
 
   belongs_to :license
   has_many :broker_account_daily_results, dependent: :destroy
+  has_many :license_instance_magic_numbers, dependent: :destroy
 
   validates :company, presence: true
   validates :account_number, presence: true, numericality: { only_integer: true }
