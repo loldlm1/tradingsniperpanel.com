@@ -6,6 +6,7 @@ Canonical reusable license service for MT5 EAs in this repository.
 - Keep one implementation for verify/heartbeat lane guard, backend magic-number caching, and optional daily results reporting.
 - Avoid duplicated web requests across charts for the same lane identity.
 - Provide a deterministic migration target for old and new EAs.
+- For upgraded EAs, separate license-lane authorization from per-chart runtime trade magic.
 
 ## Canonical Files
 - `services/license_service_setup.mqh` (EA bootstrap wrapper; recommended integration point)
@@ -15,6 +16,7 @@ Canonical reusable license service for MT5 EAs in this repository.
 - `services/shared/license_guard_v1/daily_results_online.mqh`
 - `services/shared/license_guard_v1/core/addon_catalog.mqh`
 - `services/shared/license_guard_v1/backend-entitlements-contract.md`
+- `services/shared/license_guard_v1/backend-instance-magic-contract.md`
 - `services/shared/license_guard_v1/license-shared-service-migration-plan.md`
 
 ## Shared Core Layout
@@ -37,9 +39,10 @@ Canonical reusable license service for MT5 EAs in this repository.
 4. Call `LicenseServiceInit()` in `OnInit` before trading initialization.
 5. Wire `OnTimer` to `LicenseServiceOnTimer()`.
 6. Wire `OnDeinit` to `LicenseServiceOnDeinit()`.
-7. Use `LicenseGetCachedMagicNumber()` as the runtime trading magic in live mode.
-8. If `LicenseGetCachedMagicNumber() <= 0` after startup verify, fail closed and remove EA.
-9. If a rollout reassigns an oversized legacy lane value, trust the latest successful `verify` response as the new runtime magic source.
+7. Legacy EAs use `LicenseGetCachedMagicNumber()` from successful `verify` as the runtime trading magic in live mode.
+8. Upgraded EAs resolve or generate a stable chart `instance_id`, call `POST /licenses/instance_magic` after lane authorization is healthy, and use the returned instance magic as the runtime trading magic.
+9. If the selected runtime magic is missing or invalid after startup, fail closed and remove EA.
+10. If a rollout reassigns an oversized legacy lane value, trust the latest successful `verify` response as the new runtime magic source.
 
 Advanced/custom option:
 - Include `services/shared/license_guard_v1/license_service.mqh` directly only when a repo intentionally does not use `services/license_service_setup.mqh`.
@@ -102,9 +105,42 @@ Runtime rules:
 - One leader sends `verify/heartbeat` for a lane.
 - Followers consume shared lane state and avoid duplicate requests.
 - Followers can request leader reverify (`LicenseOnline_RequestLeaderReverify`).
+- Upgraded charts may call `POST /licenses/instance_magic` for their own `instance_id` after the lane is authorized; this call must not make the chart a heartbeat leader.
+- `instance_magic` requires an active lane session and may return retryable `lane_session_required` when the leader has not verified/refreshed recently enough.
+
+## Instance-Scoped Trade Magic
+Legacy EAs continue to trade with lane magic returned by `POST /licenses/verify`.
+Upgraded EAs use the lane for entitlement, online seat, heartbeat, and request sharing, then resolve a per-chart trade magic:
+
+1. Complete existing license verification/authorization.
+2. Resolve or generate a local opaque `instance_id`.
+3. Request `POST /licenses/instance_magic`.
+4. Validate the returned signed-32-bit-safe positive `magic_number`.
+5. Set `g_magic_number` and `CTrade.SetExpertMagicNumber()` from the instance magic.
+6. Report daily results with the same instance magic.
+
+`instance_id` rules:
+- Max length: 64 ASCII characters.
+- Allowed characters: `A-Z`, `a-z`, `0-9`, `_`, `-`.
+- Stable across restart/recompile for the same chart instance.
+- Unique enough that two charts do not intentionally share it.
+- Must not contain account numbers, license tokens, API keys, broker credentials, emails, proprietary strategy settings, or other sensitive data.
+
+Do not switch a chart to instance-scoped magic while it still has open positions under legacy lane magic. Safe default: block initialization with a clear migration status until positions are flat, or keep the previous EA version managing those positions until they close.
+
+## Pandora Box Rollout Handoff
+- Pandora Box (`ea_id=pandora_box`) is the first target for the upgraded shared guard.
+- Backend support must be deployed first; old EAs remain compatible through `POST /licenses/verify` but keep the old same-lane magic overlap risk until upgraded.
+- Shared guard calls `POST /licenses/instance_magic` only after lane authorization is healthy and the local instance magic cache is missing, invalid, or tied to a changed identity.
+- `lane_session_required` is retryable: request leader verify/refresh, retry with backoff, and avoid parallel verify/heartbeat calls from followers.
+- If legacy lane-magic open positions exist for the current chart symbol/account, block initialization with a migration status instead of switching magic while positions are open.
+- Live trading must never use local/random fallback magic. Missing or invalid backend trade magic is fail-closed.
+- Staging/demo validation should cover two Pandora Box charts on the same broker account getting different instance magic values, restart stability for the same chart, accepted daily results with instance magic, rejection of unallocated magic, and no request storm when the leader session is stale.
+- Future EAs should adopt the same shared contract after Pandora Box validation.
 
 ## Daily Results Rules
-- Daily results use backend `magic_number` from verify cache only.
+- Legacy daily results use backend `magic_number` from verify cache.
+- Upgraded daily results use instance magic returned by `POST /licenses/instance_magic`.
 - Shared service expects a signed-32-bit-safe positive `magic_number` (`1..2147483647`).
 - Local dedupe key includes `account + ea_id + magic_number`.
 - Closed PnL aggregation filters by `DEAL_MAGIC == magic_number`.
