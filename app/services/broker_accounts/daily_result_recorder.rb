@@ -25,11 +25,12 @@ module BrokerAccounts
       return failure(:missing_magic_number, :unprocessable_content) if parsed_magic_number == :missing
       return failure(:invalid_magic_number, :unprocessable_content) if parsed_magic_number.nil?
 
-      unless valid_lane_magic_number?(
+      unless authorized_magic_number?(
         license: verification.license,
         source: source,
         email: email,
-        broker_account: normalized_broker,
+        broker_account: account,
+        broker_identity: normalized_broker,
         magic_number: parsed_magic_number
       )
         return failure(:invalid_magic_number, :unprocessable_content)
@@ -150,6 +151,20 @@ module BrokerAccounts
         .exists?
     end
 
+    def authorized_magic_number?(license:, source:, email:, broker_account:, broker_identity:, magic_number:)
+      valid_lane_magic_number?(
+        license: license,
+        source: source,
+        email: email,
+        broker_account: broker_identity,
+        magic_number: magic_number
+      ) || valid_instance_magic_number?(
+        license: license,
+        broker_account: broker_account,
+        magic_number: magic_number
+      )
+    end
+
     def valid_lane_magic_number?(license:, source:, email:, broker_account:, magic_number:)
       LicenseLaneMagicNumber.exists?(
         license_id: license.id,
@@ -158,6 +173,15 @@ module BrokerAccounts
         company: broker_account[:company].to_s.strip.downcase,
         account_number: broker_account[:account_number],
         account_type: broker_account[:account_type],
+        magic_number: magic_number
+      )
+    end
+
+    def valid_instance_magic_number?(license:, broker_account:, magic_number:)
+      LicenseInstanceMagicNumber.exists?(
+        license_id: license.id,
+        broker_account_id: broker_account.id,
+        expert_advisor_id: license.expert_advisor_id,
         magic_number: magic_number
       )
     end

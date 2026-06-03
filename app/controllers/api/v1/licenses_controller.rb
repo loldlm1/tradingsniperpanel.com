@@ -111,6 +111,64 @@ module Api
         render json: { ok: false, error: :internal_error }, status: :internal_server_error
       end
 
+      def instance_magic
+        result = verifier.call(
+          source: params[:source],
+          email: params[:email],
+          ea_id: params[:ea_id],
+          license_key: params[:license_key]
+        )
+
+        unless result.ok?
+          render json: { ok: false, error: result.error }, status: result.code and return
+        end
+
+        broker_account_attrs = normalized_broker_account
+        unless broker_account_attrs
+          render json: { ok: false, error: :invalid_payload }, status: :unprocessable_content and return
+        end
+
+        instance_id = normalized_instance_id
+        if instance_id.blank?
+          render json: { ok: false, error: :missing_instance_id }, status: :unprocessable_content and return
+        end
+
+        unless valid_instance_id?(instance_id)
+          render json: { ok: false, error: :invalid_instance_id }, status: :unprocessable_content and return
+        end
+
+        broker_account = find_broker_account(result.license, broker_account_attrs)
+        unless broker_account
+          render json: { ok: false, error: :broker_account_not_found }, status: :not_found and return
+        end
+
+        unless active_lane_session?(license: result.license, broker_account: broker_account_attrs)
+          render json: { ok: false, error: :lane_session_required }, status: :conflict and return
+        end
+
+        allocation = allocate_instance_magic_number(
+          license: result.license,
+          source: params[:source],
+          email: params[:email],
+          broker_account: broker_account,
+          instance_id: instance_id
+        )
+        unless allocation.ok?
+          render json: { ok: false, error: allocation.error }, status: allocation.code
+          return
+        end
+
+        render json: {
+          ok: true,
+          instance_id: allocation.record.instance_id,
+          magic_number: allocation.magic_number,
+          trade_identity_scope: "instance"
+        }
+      rescue StandardError => e
+        Rails.logger.error("LicensesController#instance_magic failed: #{e.class} - #{e.message}")
+        render json: { ok: false, error: :internal_error }, status: :internal_server_error
+      end
+
       private
 
       def verifier
@@ -141,6 +199,15 @@ module Api
         }
       end
 
+      def normalized_instance_id
+        params[:instance_id].to_s.strip
+      end
+
+      def valid_instance_id?(value)
+        value.length <= LicenseInstanceMagicNumber::MAX_INSTANCE_ID_LENGTH &&
+          value.match?(LicenseInstanceMagicNumber::INSTANCE_ID_FORMAT)
+      end
+
       def upsert_broker_account(license, attrs)
         return nil if attrs.blank?
 
@@ -168,6 +235,15 @@ module Api
         retry
       end
 
+      def find_broker_account(license, attrs)
+        BrokerAccount.find_by(
+          license_id: license.id,
+          company: attrs[:company],
+          account_number: attrs[:account_number],
+          account_type: attrs[:account_type]
+        )
+      end
+
       def allocate_online_seat(license:, broker_account:)
         Licenses::OnlineSeatAllocator.new(
           license: license,
@@ -182,6 +258,28 @@ module Api
           email: email,
           broker_account: broker_account
         ).call
+      end
+
+      def allocate_instance_magic_number(license:, source:, email:, broker_account:, instance_id:)
+        Licenses::InstanceMagicNumberAllocator.new(
+          license: license,
+          source: source,
+          email: email,
+          broker_account: broker_account,
+          instance_id: instance_id
+        ).call
+      end
+
+      def active_lane_session?(license:, broker_account:)
+        LicenseOnlineSession
+          .active_since(Time.current - Licenses::OnlineSeatAllocator::DEFAULT_TTL_SECONDS.seconds)
+          .exists?(
+            user_id: license.user_id,
+            expert_advisor_id: license.expert_advisor_id,
+            company: broker_account[:company].to_s.strip.downcase,
+            account_number: broker_account[:account_number],
+            account_type: broker_account[:account_type]
+          )
       end
 
       def render_allocation_failure(allocation)
@@ -220,11 +318,17 @@ module Api
       def rate_limited?
         return false unless defined?(Rails.cache)
 
-        key = "licenses/verify/#{params[:email].to_s.downcase}"
+        key = "#{rate_limit_bucket}/#{params[:email].to_s.downcase}"
         count = Rails.cache.increment(key, 1, expires_in: 1.minute)
         count && count > 60
       rescue StandardError
         false
+      end
+
+      def rate_limit_bucket
+        return "licenses/instance_magic" if action_name == "instance_magic"
+
+        "licenses/verify"
       end
     end
   end

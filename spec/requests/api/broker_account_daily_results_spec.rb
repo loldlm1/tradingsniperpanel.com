@@ -62,6 +62,41 @@ RSpec.describe "Broker account daily results API", type: :request do
     expect(body["result_value"]).to eq("10.50")
   end
 
+  it "creates a daily result with instance-scoped magic" do
+    instance_magic = create(
+      :license_instance_magic_number,
+      license: license,
+      broker_account: broker_account,
+      expert_advisor: expert_advisor,
+      instance_id: "pandora_box_ABC123",
+      magic_number: 490_654_321
+    )
+    params = {
+      source: source_id,
+      email: user.email,
+      ea_id: expert_advisor.ea_id,
+      license_key: license_key,
+      broker_account: {
+        company: broker_account.company,
+        account_number: broker_account.account_number,
+        account_type: broker_account.account_type
+      },
+      magic_number: instance_magic.magic_number,
+      result_timestamp: timestamp,
+      result_value: "8.25"
+    }
+
+    expect do
+      post "/api/v1/broker_accounts/daily_results", params: params
+    end.to change(BrokerAccountDailyResult, :count).by(1)
+
+    expect(response).to have_http_status(:created)
+    body = JSON.parse(response.body)
+    expect(body["ok"]).to eq(true)
+    expect(body["result_on"]).to eq("2025-01-15")
+    expect(body["result_value"]).to eq("8.25")
+  end
+
   it "rejects duplicates for the same UTC day" do
     create(
       :broker_account_daily_result,
