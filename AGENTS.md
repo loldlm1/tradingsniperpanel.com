@@ -148,8 +148,13 @@ Default execution policy:
 - High complexity: execute at most 33% of total Sprints per batch, usually with
   a practical cap of 3 Sprints per batch.
 - Critical or security-sensitive plans: execute one Sprint per batch.
-- Complete validation before moving forward. Create commits only when the user
-  asks for commits or the plan explicitly requires them.
+- Complete validation before moving forward.
+- For `$planner`-driven Sprint work, create one commit per completed and
+  validated Sprint/batch before moving to the next batch unless the user
+  explicitly says not to commit. If a Sprint cannot be cleanly split after the
+  fact, document the exception in the handoff.
+- For non-planner work, create commits only when the user asks for commits or
+  the plan explicitly requires them.
 - Stop after each batch and provide a handoff unless the user explicitly asked
   to execute the full plan.
 
