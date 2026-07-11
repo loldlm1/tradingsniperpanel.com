@@ -1,11 +1,30 @@
-This is a Rails web application.
+<!-- token-saver-orchestrator:rtk:start -->
+## Token Saver: RTK
+
+For Codex coding work, prefer `rtk` for noisy shell output before raw commands:
+- Use `rtk git status`, `rtk git diff`, `rtk git log`, `rtk grep`, `rtk find`, `rtk ls`, `rtk test <cmd>`, and RTK wrappers for test/lint/build output when available.
+- Keep exact raw output only when it matters: subtle compiler errors, security diagnostics, one-off failures, or when a compressed result omits needed evidence.
+- If compressed output is insufficient, rerun the smallest raw command needed and mention why.
+- Do not store full logs in chat. Save raw artifacts to files and summarize paths plus first useful failure lines.
+<!-- token-saver-orchestrator:rtk:end -->
+
+<!-- token-saver-orchestrator:ponytail-lite:start -->
+## Token Saver: Ponytail Lite
+
+For normal Codex coding tasks, default to minimal code without reducing correctness:
+- Build only what was requested and needed for acceptance criteria.
+- Prefer deletion, stdlib/platform-native features, existing dependencies, and existing local helpers before adding abstractions or packages.
+- Keep changes scoped to the touched behavior; avoid speculative architecture and unrelated refactors.
+- Bypass this rule for research, code review, architecture, security, DevOps, premium UI, documents, and any task that asks for robust output.
+- Never save tokens by skipping validation, accessibility, data-loss protections, rollback notes, or production readiness when they matter.
+<!-- token-saver-orchestrator:ponytail-lite:end -->
 
 # Trading Sniper Panel Agent Rules
 
-Use this file for local project invariants. Keep reusable production-grade Rails
-rules in the `rails-production-engineering` skill, keep Mosaic dashboard/account
-porting rules in `.agents/skills/mosaic-html-rails`, and keep deeper project
-architecture/security rationale in `docs/`.
+Use this file for project-specific invariants. Keep reusable framework guidance
+in installed Codex skills, Mosaic porting procedure in
+`.agents/skills/mosaic-html-rails`, and deeper architecture or operational
+rationale in `docs/`.
 
 ## Instruction Precedence
 
@@ -13,385 +32,276 @@ When instructions conflict, use this order:
 
 1. Explicit user instruction for the current task.
 2. This `AGENTS.md` file.
-3. Project documentation in `docs/`.
-4. The `rails-production-engineering` skill and any narrower applicable skill.
+3. Project documentation in `docs/` and `README.md`.
+4. `rails-production-engineering` and narrower applicable installed skills.
 5. Existing local code conventions.
-6. General framework knowledge.
+6. Official/current documentation for the installed version.
 
-## Skill Stack
+## Current Skill Routing
 
-- Use `rails-production-engineering` as the base Rails implementation, review,
-  refactor, security, migration, job, test, and deployment-readiness authority.
-- Use `.agents/skills/mosaic-html-rails` for authenticated dashboard, settings,
-  billing, plans, support, FAQ, and Mosaic-based auth/account frontend work.
-- Use `premium-product-ui-builder` for browser-facing UX/UI work, accessibility,
-  responsive behavior, theming, forms, modals, dashboard polish, and design-system
-  changes.
-- Use `typescript-production-engineering` for substantial JavaScript,
-  TypeScript, Stimulus, frontend asset, browser protocol, or behavior-preserving
-  browser-code refactors.
-- Use `token-efficient-web-qa` for browser QA, Playwright smoke tests,
-  screenshots, browser-console/network checks, and compact UI regression triage.
-- Use `unix-macos-engineer` for shell scripts, deployment scripts, process
-  management, systemd, nginx, Unix tooling, or server troubleshooting.
-- Use `mermaid-diagrams` when creating or updating architecture, data-flow,
-  sequence, ERD, or workflow diagrams.
-- Use `find-skills` when the task asks for capabilities that may exist as an
-  installable skill.
+Use the smallest skill set that covers the task. Read each selected `SKILL.md`
+before planning or editing, and load only the references required by that skill.
 
-If multiple skills apply, use the smallest set that covers the task and follow
-local repository conventions over reusable defaults.
+- `rails-production-engineering`: base authority for Rails implementation,
+  review, refactoring, migrations, jobs, APIs, security, tests, and release
+  readiness.
+- `.agents/skills/mosaic-html-rails`: authenticated Mosaic dashboard, settings,
+  billing, plans, support, FAQ, and Mosaic auth/account porting.
+- `premium-product-ui-builder`: user-visible UX/UI quality, accessibility,
+  responsive behavior, forms, states, dashboard polish, and design-system work.
+- `typescript-production-engineering`: substantial JavaScript/TypeScript,
+  Stimulus, browser protocol, asset, or behavior-preserving frontend refactors.
+- `postgres-production-engineering`: PostgreSQL schema/SQL, constraints,
+  indexes, query plans, locking, backfills, roles, backup/restore, and database
+  operational work beyond ordinary Rails model changes.
+- `devops-release-production-engineering`: Docker, Kamal, Ubuntu/VPS, secrets,
+  environment variables, health checks, rollback, logs, backups, systemd,
+  proxy, and release runbooks.
+- `mql5-production-engineering`: `.mq5`/`.mqh`, EA licensing clients, trade
+  lifecycle, magic numbers, broker/risk controls, MetaEditor, and Strategy
+  Tester work.
+- `token-efficient-web-qa`: browser smoke/E2E QA, Playwright setup, compact
+  failure triage, screenshots/traces, and browser environment troubleshooting.
+- `ai-agent-app-production-engineering`: only when adding or reviewing actual
+  OpenAI/agent features, tool calls, MCP integration, prompts, evals, traces, or
+  model-visible data boundaries in this app.
+- `token-saver-orchestrator`: RTK-first output, Ponytail Lite, Headroom policy,
+  compaction handling, and token-saver metrics. It never overrides quality or
+  safety gates.
+- `create-plan`: only for a user-requested concise, read-only plan in chat.
+- `planner`: only when the user explicitly invokes `$planner` for a saved,
+  phased, sprint-based plan. Never invoke it implicitly.
 
-Before planning or editing, identify applicable skills, open the relevant
-`SKILL.md`, and keep any skill-specific file/tool usage minimal and on-scope.
+Do not reference or wait for skills that are not installed. If no narrower
+skill applies, use this file, the Rails skill, local code, and current official
+documentation.
 
-## Research And MCP Usage
+## Local-First Workflow
 
-Use MCPs only when local repo files, this `AGENTS.md`, project docs, and
-applicable skills are insufficient for the task. Prefer the smallest useful
-lookup and stop researching once the implementation decision is clear.
+- Inspect `git status --short`, the current branch, relevant existing diffs,
+  `Gemfile.lock`, configuration, routes, nearby code, nearby specs, and project
+  docs before meaningful edits.
+- Preserve user changes in a dirty worktree. Ignore unrelated changes; stop if
+  an unexpected concurrent edit overlaps the files being changed.
+- Follow versions in the Ruby/project lockfiles and the established Rails 8,
+  Propshaft, importmap, Stimulus, Tailwind v4, RSpec, Sidekiq, Pay/Stripe, and
+  PostgreSQL conventions.
+- Prefer local binstubs, scripts, helpers, patterns, dependencies, and template
+  assets over new abstractions or tooling.
+- Treat routes, JSON shapes/error codes, job arguments, DOM IDs/classes,
+  Turbo/Stimulus hooks, data attributes, JS events, and storage keys as public
+  contracts until proven private.
+- Keep normal implementation plans concise. Create a durable file under
+  `docs/plans/` only when the user requests one or the work needs multi-step,
+  high-risk, or cross-session coordination. Keep active plans out of the
+  archive until completion, then archive or delete them.
 
-MCP usage order:
+## Saved Plan Execution
 
-1. Local first: inspect existing code, tests, lockfiles, config, `docs/`, and
-   nearby conventions before using networked MCPs.
-2. `context7`: use for version-specific library/framework/API documentation,
-   especially Rails, Active Record, Hotwire, Stimulus, importmap, Propshaft,
-   Tailwind, Pay, Stripe, Devise, ActiveAdmin, Pagy, Sidekiq, and JavaScript or
-   TypeScript APIs. Query the exact package or framework and ask only for the
-   topic needed for the current change.
-3. `tavily`: use for current or broader web research that local files and
-   `context7` cannot answer, such as vendor changes, security advisories,
-   compatibility notes, or comparing official integration options. Prefer
-   official sources and recent primary documentation over blog posts.
-4. `fetch`: use only when a specific URL is already known or a search result
-   needs exact page details. Do not use it as a general search tool.
-5. Postgres MCP, when available: use only for targeted database inspection that
-   cannot be answered from schema, seeds, factories, or docs. Never inspect or
-   expose private customer data unless the user explicitly requests it and it is
-   necessary for the task.
-6. Playwright MCP, when available: use for browser-facing QA after native checks
-   or when the task requires screenshot/console/network inspection.
-7. Stop early: after enough evidence exists to make or reject the change,
-   proceed with the narrowest implementation and verification.
+- A `$planner` planning turn changes only its plan artifact; it does not begin
+  implementation or create the proposed commits.
+- When the user later authorizes execution, read the planner execution-state
+  reference, initialize active-plan state, execute sprints strictly in order,
+  validate each sprint, and create exactly one sprint-specific commit before
+  advancing.
+- Do not skip sprints or begin later work while the current sprint has failed
+  validation, unresolved risk, or stale assumptions.
+- For non-planner work, create commits only when the user explicitly requests
+  them. Never amend, squash, rebase, or force-push without explicit approval.
 
-Token-budget rules for MCPs:
+## Research And External Tools
 
-- Start with one focused query; add more only when the first result is
-  insufficient or conflicting.
-- Prefer package/version-aware documentation over generic examples.
-- Capture only the useful facts: API names, required options, constraints,
-  source URL, and short rationale. Do not paste long external excerpts into
-  notes, commits, or handoffs.
-- Reuse context gathered earlier in the same task instead of repeating identical
-  lookups.
-- If external docs conflict with local lockfiles, code, or project docs, trust
-  the local project state unless the task is explicitly to upgrade or migrate.
-- Avoid MCP research for purely local refactors, formatting, naming, tests that
-  follow existing patterns, or project rules already covered in this file.
-- For security-sensitive work involving auth, admin boundaries, license keys,
-  billing, webhooks, OAuth, support widgets, external HTTP, background jobs, or
-  logging, verify the relevant local rules and use official external docs when
-  framework or provider behavior is uncertain.
-- Never send secrets, raw tokens, credentials, private customer data, raw
-  license keys, authorization headers, webhook payload secrets, or `.env` values
-  to MCP tools.
-- Do not fetch private, localhost, internal-network, cloud-metadata, admin,
-  signed, or credential-bearing URLs unless the user explicitly requests it and
-  the task cannot be completed safely another way.
-- In final handoffs, mention external MCP sources only when they materially
-  changed the implementation decision.
+Use external tools only when local files, installed skills, and project docs are
+insufficient. Stop researching once the implementation decision is clear.
 
-## Planning And Audit Discipline
+1. Inspect local code, tests, lockfiles, configs, docs, and installed gem source.
+2. Use version-aware official documentation for Rails, gems, Hotwire, Stripe,
+   Pay, deployment, PostgreSQL, MQL5, or OpenAI behavior that may have changed.
+3. Use Context7 or another docs lookup only for the exact package/topic needed.
+4. Use broader web search only for current vendor changes, advisories, or
+   compatibility facts that official/local sources do not answer.
+5. Use browser or database tools only for targeted evidence unavailable from
+   deterministic local checks.
 
-For non-trivial changes, create or update `docs/plans/<slug>.md` before coding.
-Keep plans short: Goal, Definition of Done, Constraints, Steps, Open Questions,
-Decisions, and Commands. Update commands with PASS/FAIL only, not long logs.
-
-Default execution flow for non-trivial work:
-
-1. Plan.
-2. Resolve open questions or state explicit assumptions when the safe path is
-   clear.
-3. Mark the plan ready.
-4. Implement the task.
-5. Run the Audit Gate.
-6. Provide a concise feature-done summary.
-
-Audit Gate is required before finalizing non-trivial work:
-
-- Check code pattern and efficiency.
-- Check feature behavior and goal alignment.
-- Check tests context: coverage, relevance, and gaps for the change.
-- Use the most relevant available skill. For Rails work, use
-  `rails-production-engineering` and its Review Gate.
-- If FAIL is clear, fix and re-audit.
-- If FAIL is ambiguous, create a mini-plan with at most 3 steps, ask the user,
-  then continue and re-audit.
-
-Keep `docs/plans/` for active work only. Once a feature is verified and merged,
-move its plan to `docs/plans/_archive/<YYYY-MM-DD>-<slug>.md` or delete it after
-copying a 5-10 line Post-Implementation Summary into the PR description.
-
-## Planner Execution Discipline
-
-When executing a plan created by `$planner` or any equivalent sprint-based plan,
-treat the plan as the execution contract, not as background context.
-
-Default execution policy:
-
-- Execute Sprints strictly in the order written.
-- Use contiguous Sprint batches only; never skip ahead.
-- Low complexity: may execute the full plan only when it has 1-2 Sprints and no
-  high-risk areas.
-- Medium complexity: execute at most 50% of total Sprints per batch.
-- High complexity: execute at most 33% of total Sprints per batch, usually with
-  a practical cap of 3 Sprints per batch.
-- Critical or security-sensitive plans: execute one Sprint per batch.
-- Complete validation before moving forward.
-- For `$planner`-driven Sprint work, create one commit per completed and
-  validated Sprint/batch before moving to the next batch unless the user
-  explicitly says not to commit. If a Sprint cannot be cleanly split after the
-  fact, document the exception in the handoff.
-- For non-planner work, create commits only when the user asks for commits or
-  the plan explicitly requires them.
-- Stop after each batch and provide a handoff unless the user explicitly asked
-  to execute the full plan.
-
-Reduce batch size when work touches migrations, auth, admin access, license
-keys, billing, Stripe/Pay, partner payouts, referral attribution, OAuth, browser
-security, external integrations, background jobs, public APIs, data contracts,
-or large refactors.
-
-If the plan becomes stale, unsafe, ambiguous, or incomplete during
-implementation, stop and update or request revision of the plan before
-continuing.
-
-For `$planner`-driven phased work, compact window context only when the current
-sprint/phase task is finalized and the next one is starting, only if usage is
-over 50%, and carry forward a safe summary so the next sprint/phase starts with
-enough context.
+Never send secrets, raw tokens, credentials, authorization headers, license
+keys, private customer/billing data, webhook secrets, `.env` values, private
+logs, proprietary EA parameters, or internal URLs to external tools. Do not
+fetch private, metadata, admin, signed, or credential-bearing URLs with
+networked research tools unless the user explicitly requests it and the task
+cannot be completed safely another way. Local browser QA may use the app's
+localhost test/development URL with fake or seeded data.
 
 ## Project Identity
 
-- App name: Trading Sniper Panel.
-- Rails namespace: `TradingsniperpanelCom`.
-- Product: SaaS app that markets and manages MQL5 Expert Advisors, tools,
+- App: Trading Sniper Panel; Rails namespace: `TradingsniperpanelCom`.
+- Product: SaaS marketing and management for MQL5 Expert Advisors, tools,
   indicators, scripts, courses, marketplace assets, subscriptions, licensing,
-  partner referrals, and partner payouts.
-- Primary public site: localized marketing, auth, legal, pricing, and checkout
-  flows for `tradingsniperpanel.com`.
+  partner referrals, and payouts.
+- Public surface: localized marketing, authentication, legal, pricing, and
+  checkout for `tradingsniperpanel.com`.
 - Authenticated surface: Cruip Mosaic dashboard for licenses, analytics,
-  marketplace, courses, billing, plans, support, settings, and partner areas.
-- Admin surface: ActiveAdmin for catalog, billing, partner, release, and content
-  management.
-- API style: REST JSON v1 for license verification, heartbeats, and broker
-  daily-result ingestion.
-- Database: PostgreSQL.
-- Background jobs: Active Job is currently configured with Sidekiq. The Solid
-  Queue gem is present, and Solid Cache/Solid Cable are available, but do not
-  switch queue backends without an explicit plan.
-- Payments: Pay gem with Stripe as the default processor.
-- Authentication: Devise, Google OAuth, roles on `User`, and ActiveAdmin admin
-  boundaries.
-- Localization: English and Spanish with route locale, session/user preference,
-  IP/Accept-Language detection, and `I18n.fallbacks = [:en]`.
-- Assets: Propshaft, importmap, Stimulus, Tailwind via `tailwindcss-rails` and
-  Node CLI, Cruip template assets under `app/assets/templates/...`.
+  marketplace, courses, billing, support, settings, releases, and partners.
+- Admin: ActiveAdmin for catalog, billing, partner, release, and content work.
+- Database: PostgreSQL. Tests: RSpec with FactoryBot.
+- Jobs: Active Job uses Sidekiq. Solid Queue is installed but is not the current
+  adapter; do not switch backends without an explicit migration plan.
+- Payments: Pay with Stripe as the default processor.
+- Authentication: Devise, Google OAuth, user roles, and ActiveAdmin boundaries.
+- Localization: English and Spanish with route/session/user preference,
+  detection, and `I18n.fallbacks = [:en]`.
+- Assets: Propshaft, importmap, Stimulus, Tailwind v4 through
+  `tailwindcss-rails` and Node CLI, with Cruip assets under
+  `app/assets/templates/...`.
 
-## Non-Negotiable Rules
+## Public Contracts And Security
 
-- Keep licensing and entitlement checks server-authoritative. Do not trust
-  browser params, EA client params, or admin form state for ownership, active
-  subscription, add-on access, trial access, or marketplace access.
-- Preserve public API contracts for `/api/v1/licenses/verify`,
-  `/api/v1/licenses/heartbeat`, and `/api/v1/broker_accounts/daily_results`
-  unless the task explicitly plans a versioned contract change.
-- Preserve API error codes and response shapes documented in
-  `docs/database_model_reference.md` unless a planned API change updates docs
-  and tests together.
-- Never expose license keys, `encrypted_key` values, Stripe secrets, webhook
-  secrets, OAuth secrets, Tawk.to secure-mode keys, MaxMind license data,
-  session tokens, raw credentials, or private customer/billing data in rendered
-  HTML, JavaScript payloads, data attributes, URLs, logs, errors, telemetry, or
-  MCP requests.
+- Keep licensing and entitlement decisions server-authoritative. Never trust
+  browser, EA client, or admin form state for ownership, subscriptions,
+  add-ons, trials, or marketplace access.
+- Preserve the documented REST JSON v1 contracts for
+  `/api/v1/licenses/verify`, `/api/v1/licenses/heartbeat`,
+  `/api/v1/licenses/instance_magic`, and
+  `/api/v1/broker_accounts/daily_results` unless a versioned change updates
+  implementation, `docs/database_model_reference.md`, EA clients, and tests
+  together.
+- Preserve documented API error codes, response shapes, signed-32-bit-safe
+  magic-number behavior, online-seat semantics, and idempotency.
+- Never expose license keys, `encrypted_key`, Stripe or webhook secrets, OAuth
+  secrets, Tawk.to secure-mode keys, MaxMind license data, session tokens,
+  credentials, or private customer/billing data in HTML, JavaScript, JSON not
+  intended for that authenticated caller, data attributes, URLs, logs, errors,
+  traces, telemetry, screenshots, or external tool requests.
+- Enforce ownership, role, entitlement, and admin boundaries in the domain or
+  query layer where practical, not only in controllers or views.
 - Use integer cents and decimal-safe calculations for money. Never use floats
   for money or exact decimal values.
-- Keep Stripe calls idempotent, store processor/client references when
-  available, and let Pay webhooks sync processor state.
-- Never rescue-and-forget Stripe, Pay, OAuth, email, GeoIP, or licensing errors.
-  Log structured context and re-raise or handle narrowly.
-- Preserve referral attribution: set referral cookies on marketing entry points,
-  call referral linking after sign-up, generate referral codes, and respect
-  locale in shareable/referral links.
-- Avoid duplicate commissions, duplicate payouts, duplicate license grants, and
-  double access when manual billing, one-time purchases, subscriptions, refunds,
-  or partner payout states change.
-- Keep external API calls, Stripe sync, GeoIP lookups, email delivery, release
-  notifications, and bulk work out of request hot paths unless intentionally
-  synchronous and covered by tests.
-- Do not edit vendor template assets under `app/assets/templates/...`,
-  `mosaic-html/`, `neon-html/`, `fintech-html/`, or `cruip-docs-html/` to make
-  a single app change easier.
-- Do not add or upgrade gems, Node packages, payment providers, frontend
-  runtimes, background job backends, or template systems unless the task clearly
-  needs it and the compatibility impact is reviewed.
+- Keep Stripe operations idempotent, store processor/client references, and let
+  Pay webhooks synchronize processor state.
+- Preserve referral attribution: set referral cookies on marketing entry,
+  link referrals after sign-up, generate referral codes, keep share links
+  locale-aware, and preserve partner depth, payout transitions, and commission
+  idempotency.
+- Prevent duplicate commissions, payouts, license grants, charges, purchases,
+  and access when billing or payout states change.
+- Never rescue-and-forget Stripe, Pay, OAuth, email, GeoIP, licensing, or
+  external-provider failures. Handle narrowly with structured, non-sensitive
+  context and re-raise or transition explicitly when required.
+- Keep external HTTP, Stripe sync, GeoIP, email, release notifications, AI model
+  calls, and bulk work out of request hot paths unless intentionally synchronous
+  and covered by tests.
 
 ## Domain Boundaries
 
-Core areas in this app:
+Use `docs/database_model_reference.md` as the high-signal persisted model, API,
+service, and data-flow map. Keep changes inside the smallest relevant context:
 
-- `Accounts/Auth`: Devise users, OAuth callbacks, terms acceptance, roles,
-  locale preference, and admin access.
-- `Catalog`: ExpertAdvisors, bundles, add-ons, courses, lessons, marketplace
-  assets, tags, release snapshots, and product release notifications.
-- `Licensing`: licenses, license verification, heartbeats, online sessions,
-  broker accounts, lane magic numbers, and daily broker results.
-- `Billing`: billing plans, plan entitlements, Pay customers/subscriptions/
-  charges/webhooks, Stripe Checkout, billing portal, manual transactions, and
-  manual subscriptions.
-- `Referrals/Partners`: refer gem records, partner profiles, memberships,
-  commissions, payout requests, discount resolution, and payout notifications.
-- `Dashboard`: authenticated user workflows for analytics, downloads, courses,
-  marketplace access, billing, support, settings, product releases, and partner
-  state.
-- `Admin`: ActiveAdmin workflows for operational catalog, billing, partner,
-  release, and content management.
-- `Localization/Branding`: EN/ES routes and copy, `LANDING_TEMPLATE`, support
-  chat config, SEO/sitemap/robots, and branded mailers.
+- `Accounts/Auth`: Devise, OAuth, terms, roles, locale, admin access.
+- `Catalog`: EAs, bundles, add-ons, courses, lessons, marketplace, releases.
+- `Licensing`: keys, verification, heartbeat, online sessions, broker accounts,
+  lane/instance magic numbers, daily results, and MQL5 client contracts.
+- `Billing`: plans, entitlements, Pay/Stripe, checkout, portal, manual billing.
+- `Referrals/Partners`: attribution, memberships, commissions, payouts.
+- `Dashboard`: authenticated analytics, downloads, content, billing, support,
+  settings, releases, and partner workflows.
+- `Admin`: ActiveAdmin operational catalog, billing, partner, release, content.
+- `Localization/Branding`: EN/ES, `LANDING_TEMPLATE`, support chat, SEO, mailers.
 
-Use `docs/database_model_reference.md` as the high-signal map for persisted
-models, common services, API payloads, and data-flow highlights.
+## Rails Implementation Rules
 
-## Implementation Rules
+- Keep controllers thin: authentication/authorization, parameter
+  normalization, orchestration, and response shape.
+- Put business rules in the local model/domain/service/policy/command/query
+  boundary. Prefer explicit current-user/current-role inputs over raw IDs for
+  sensitive operations.
+- Use validations plus database constraints, unique indexes, transactions,
+  locks, idempotent jobs, and retry-safe services for durable invariants.
+- Review migrations for current production data, locks, defaults, indexes,
+  backfills, reversibility, rolling deploys, and rollback. Use the PostgreSQL
+  skill for engine-level or operational database work.
+- Keep API controllers JSON-only where expected. Validate payload shape before
+  domain calls and keep error normalization stable.
+- Use Active Job for durable Stripe/Pay sync, GeoIP, email, release, payout,
+  licensing maintenance, and bulk/admin work. Jobs must be idempotent and
+  retry-safe.
+- Keep gated Active Storage downloads behind ownership and entitlement checks.
+- Use Pagy or the established pattern for growing lists and eager-load
+  associations on dashboard/admin hot paths.
+- Drive durable UI copy through I18n in EN/ES. Use interpolation, never string
+  concatenation, and account for longer Spanish copy.
+- Keep helpers pure and presentation-focused. Prefer explicit composition over
+  broad concerns and avoid speculative layers.
+- For ActiveAdmin, preserve authorization, ransack allowlists, permitted params,
+  safe scopes, and operational auditability.
+- For Pay/Stripe, keep `pay_customer default_payment_processor: :stripe` on
+  billable models, checkout/session idempotency, and webhook-driven sync.
+- For referral/partner work, preserve refer callbacks, membership depth,
+  discount resolution, payout transitions, and notification idempotency.
+- For support chat, retain production-only gating and never expose the secure
+  mode key. For mailers, follow `docs/email_deliverability_checklist.md`.
+- Do not add or upgrade gems, Node packages, payment providers, job backends,
+  frontend runtimes, or template systems unless the task requires it and the
+  compatibility, rollout, and rollback impact is reviewed.
 
-- Put business rules in models, domain modules, services, policies, commands,
-  or query objects as the local architecture expects. Keep controllers thin:
-  authentication/authorization, parameter normalization, orchestration, and
-  response shape.
-- Enforce ownership, role, entitlement, and admin boundaries inside the
-  domain/query layer where practical, not only in controllers or views.
-- Prefer explicit scopes and current-user/current-role inputs over raw IDs from
-  params for sensitive operations.
-- Use strong params, model validations, database constraints, unique indexes,
-  transactions, idempotent jobs, and retry-safe service objects for data
-  integrity.
-- Review migrations for production data, locks, defaults, indexes, extension
-  usage, backfills, reversibility, and rollback behavior before running or
-  handing off.
-- Keep Active Storage attachments behind authorization checks and entitlement
-  checks. Do not expose direct download paths for gated EA bundles, marketplace
-  files, or course assets without checking access.
-- Use Active Job for durable work that touches Stripe/Pay sync, GeoIP, email,
-  product releases, partner payout notifications, licensing maintenance, or
-  bulk/admin operations. Jobs must be retry-safe and idempotent.
-- Keep API controllers JSON-only where expected. Validate required payload
-  shapes before invoking domain services and keep documented error codes stable.
-- Use Pagy or another existing project pagination pattern for user-facing lists
-  that can grow.
-- Eager load associations for dashboard/admin hot paths that render collections
-  or aggregate billing/partner/license state.
-- Drive durable UI copy through `I18n` in EN/ES. Never concatenate translated
-  strings; use interpolation and fallbacks.
-- Keep helpers pure and presentation-focused.
-- Avoid concerns when explicit composition or a small service object is clearer.
-- Avoid inline `<style>` and `<script>` in views. Extract app-owned CSS/JS to
-  the existing Rails asset paths and include it with the appropriate tags.
+## Frontend And Template Rules
 
-## Rails, Admin, And API Rules
+- Use `.agents/skills/mosaic-html-rails` for authenticated Mosaic work. Start
+  from the closest local `mosaic-html/*.html` page or comment-bounded section,
+  then adapt to ERB, partials, I18n, Rails helpers, and local assets.
+- Keep landing and marketing pages on the configured `LANDING_TEMPLATE` family.
+  Neon is the default; Fintech is available where explicitly selected. Do not
+  mix Mosaic dashboard patterns into marketing pages without a boundary task.
+- Preserve Cruip source comments, Tailwind utility stacks, DOM IDs, `data-*`,
+  Stimulus/Alpine/Chart/Flatpickr hooks, canvas IDs, and asset namespaces unless
+  every dependent call site is updated.
+- Never edit vendor sources under `app/assets/templates/...`, `mosaic-html/`,
+  `neon-html/`, `fintech-html/`, or `cruip-docs-html/` for an app-specific fix.
+  Put app-owned dashboard CSS in `app/assets/stylesheets/dashboard.css` or the
+  established Rails-owned path.
+- Preserve Propshaft, importmap, Stimulus, and Tailwind v4 conventions. Run
+  `npm run build:css` when templates or CSS change Tailwind extraction/builds.
+- Avoid inline `<style>` and `<script>` in views. Extract app-owned behavior to
+  the existing Rails asset paths.
+- Do not introduce React, Vue, shadcn/ui, Radix, Vite, Webpacker, or another
+  runtime unless explicitly planned.
+- Browser-facing work must cover keyboard/focus behavior, accessible labels,
+  mobile layout, EN/ES length, loading/empty/error/success states, validation,
+  double actions where relevant, and console/network failures.
 
-- Use Rails 8 conventions from `rails-production-engineering` for framework
-  details.
-- Prefer local binstubs and repo scripts: `bin/rails`, `bundle exec rspec`,
-  `bin/rubocop`, `bin/brakeman`, `npm run build:css`, and documented scripts.
-- Use RSpec for tests. Prefer request specs for auth, referrals, billing
-  webhooks, dashboard/API flows, admin boundaries, and localization; model specs
-  for validations/calculations; service specs for business rules; mailer specs
-  for branded email behavior.
-- Stub external HTTP/Stripe/OAuth/provider calls. Do not hit live providers in
-  tests.
-- Use factories with lean traits. Avoid brittle copy assertions; prefer I18n
-  keys or stable semantic assertions where practical.
-- For ActiveAdmin changes, preserve authorization boundaries, ransack
-  allowlists, permitted params, safe scopes, and operational auditability.
-- For Pay/Stripe changes, use `pay_customer default_payment_processor: :stripe`
-  on billable models, keep checkout/session creation idempotent, and let Pay
-  webhook models reflect processor state.
-- For referral/partner changes, preserve refer gem callbacks, partner membership
-  depth logic, payout state transitions, and commission idempotency.
-- For support chat changes, keep production-only gating and never expose the
-  Tawk.to secure-mode API key.
-- For email changes, use `docs/email_deliverability_checklist.md` for rollout
-  and deliverability checks.
+## Verification And Review Gate
 
-## Frontend And UI Rules
-
-- Use `.agents/skills/mosaic-html-rails` for authenticated dashboard, settings,
-  billing, plans, support, FAQ, and Mosaic auth/account pages. Start from the
-  closest local `mosaic-html/*.html` source page or comment-bounded section,
-  then adapt to ERB, partials, I18n, Rails asset paths, and helpers.
-- Keep landing and marketing pages on the configured `LANDING_TEMPLATE`
-  boundary. Neon is the default; Fintech is available where the app explicitly
-  selects it. Do not mix Mosaic dashboard patterns into marketing pages unless
-  the task explicitly concerns that boundary.
-- Preserve Cruip source section comments, Tailwind utility stacks, DOM IDs,
-  `data-*` hooks, Stimulus identifiers, Alpine/Chart/Flatpickr hooks, canvas
-  IDs, and asset namespaces unless the task updates every dependent call site.
-- Do not edit vendor template CSS/JS. Put app-owned dashboard CSS in
-  `app/assets/stylesheets/dashboard.css` or the established Rails-owned asset
-  path.
-- Preserve Propshaft/importmap/Stimulus/Tailwind conventions unless a plan
-  explicitly changes the asset pipeline.
-- Preserve Tailwind v4 and `tailwindcss-rails` build conventions. Use
-  `npm run build:css` when CSS or template class extraction changes need
-  verification.
-- Use `premium-product-ui-builder` for user-visible UI quality: accessibility,
-  responsive behavior, empty/loading/error/success states, forms, modals,
-  dashboard density, visual polish, and EN/ES copy length.
-- Use `typescript-production-engineering` for substantial browser-code work in
-  Stimulus controllers, importmap modules, frontend assets, or JS-to-TS
-  refactors.
-- Do not introduce React, Vue, shadcn/ui, Radix, Vite, Webpacker, or a new
-  frontend runtime unless explicitly planned.
-- Browser-facing changes must account for mobile, long localized text, keyboard
-  navigation, focus states, validation states, and console/network errors.
-
-## Verification
-
-- Use the narrowest meaningful checks while developing.
-- Documentation-only changes: review the diff and run no Rails test suite unless
-  the docs change includes executable snippets or task-specific commands.
-- Focused Rails code changes: run the relevant `bundle exec rspec path/to/spec.rb`
-  files and any directly affected request/service/model specs.
-- Broader Rails changes: run `bundle exec rspec` or the repo's documented
-  equivalent when practical.
-- Autoloading/routing/config changes: run `bin/rails zeitwerk:check` and a
-  focused boot or request check when practical.
-- Lint/security-sensitive changes: run `bin/rubocop` and/or `bin/brakeman` when
-  available and relevant.
-- CSS/template extraction changes: run `npm run build:css` when class extraction
-  or generated CSS can be affected.
-- Browser-facing changes to views, layouts, helpers, navigation, forms,
-  Stimulus, CSS, dashboard, admin, checkout, support, or auth flows require a
-  Browser QA Gate. Use `token-efficient-web-qa` or project-native browser tests
-  after native checks.
-- Security-sensitive changes require tests or focused review for authorization,
-  admin boundaries, token secrecy, log safety, webhook authenticity, payout
-  state, and license/entitlement ownership.
-- If a command cannot run, report the exact limitation, command, and residual
-  risk.
-- Before final handoff, review the diff and call out changed files,
-  verification, skipped checks, browser QA status, and remaining risks.
+- Run the narrowest meaningful checks first, fix deterministic failures caused
+  by the change, and re-run the exact failed command before expanding scope.
+- Documentation-only changes: review the diff, run `git diff --check`, validate
+  referenced files/skill metadata, and skip Rails/browser suites unless snippets
+  or executable behavior changed.
+- Focused Rails changes: run directly affected RSpec files. Broader changes:
+  run the relevant non-system RSpec directories or full suite when practical.
+- Constants, routes, config, or autoloading: run `bin/rails zeitwerk:check` and
+  focused boot/route checks.
+- Lint/security-sensitive work: run configured commands such as `bin/rubocop`,
+  `bin/brakeman --no-pager`, dependency audit, or importmap audit as relevant.
+- Browser-visible changes require the Browser QA Gate. Start with project-native
+  deterministic checks, then a focused one-browser smoke/E2E run; use targeted
+  screenshots, traces, or interactive debugging only when needed. Report
+  `Browser QA: PASS`, `FAIL`, `Not applicable`, or `Not run` with the reason.
+- Security-sensitive work must explicitly review authorization, ownership,
+  admin boundaries, secret/log safety, webhook authenticity, payout state,
+  billing idempotency, and licensing/entitlement scope.
+- Before finalizing non-trivial work, apply the Rails Review Gate: code quality,
+  behavior/goal alignment, tests context, database/data safety,
+  security/privacy, frontend contracts, Browser QA, and residual risk. Fix clear
+  failures and re-run the gate.
+- Before committing or handing off, review `git status --short`, the scoped
+  diff, generated/dependency files, skipped checks, and unrelated user changes.
 
 ## Project Documentation
 
-- `README.md`: stack, local setup, support chat setup, production QA, product
-  release flow, and server/deploy notes.
-- `docs/database_model_reference.md`: persisted model map, common services, API
-  surface, and data-flow highlights.
+- `README.md`: stack, setup, support chat, production QA, releases, deployment.
+- `docs/database_model_reference.md`: persisted models, services, API contracts,
+  and data-flow highlights.
 - `docs/email_deliverability_checklist.md`: branded mailer rollout and inbox
-  deliverability checklist.
-- `docs/plans/`: active implementation plans only; archive completed plans under
-  `docs/plans/_archive/` when appropriate.
+  deliverability.
+- `docs/plans/`: active durable plans only; archive completed plans under
+  `docs/plans/_archive/` or delete them after preserving the useful summary.
 - `.agents/skills/mosaic-html-rails/SKILL.md`: local Mosaic dashboard/account/
   auth porting workflow and template boundary rules.

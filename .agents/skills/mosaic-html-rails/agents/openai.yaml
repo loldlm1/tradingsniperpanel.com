@@ -1,7 +1,7 @@
 interface:
   display_name: "Mosaic HTML Rails"
   short_description: "Port Cruip Mosaic UI into Rails with close parity."
-  default_prompt: "Use $mosaic-html-rails to build or refactor a Mosaic-based dashboard, settings, support, or auth page in this Rails repo with closest practical parity to the local source."
+  default_prompt: "Use $mosaic-html-rails to build or refactor a Mosaic dashboard, settings, support, or auth page with local-source parity, Rails/I18n adaptation, and the required Browser QA Gate."
 
 policy:
   allow_implicit_invocation: true

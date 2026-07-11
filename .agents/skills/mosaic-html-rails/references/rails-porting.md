@@ -7,7 +7,7 @@
 3. Port the structure into ERB with the fewest structural changes possible.
 4. Extract repeated units to partials without hiding the top-level section map.
 5. Replace static copy and paths with Rails helpers and locale keys.
-6. Verify hook compatibility, layout parity, and manual QA states.
+6. Verify hook compatibility, layout parity, native checks, and the Browser QA Gate.
 
 ## Layout Placement
 
@@ -70,12 +70,13 @@
   - reusable partial extraction
 - If a closer source section exists, use it instead of improvising new dashboard UI.
 
-## Manual QA
+## Browser QA Gate
 
+- Run `npm run build:css` when Tailwind extraction or generated CSS can change.
+- Run the narrowest relevant Rails/request/system or project-native check first.
 - Compare the Rails result against the chosen `mosaic-html/` source at desktop width.
-- Check mobile and tablet collapse behavior.
-- Check light and dark themes.
-- Check EN and ES copy length.
-- Check validation, empty, and long-content states when touched by the task.
-- Check Alpine, chart, date-picker, and dropdown behavior when the section depends on them.
-- Use Playwright only when the user explicitly asks for browser QA or screenshots.
+- Check mobile and tablet collapse behavior, light/dark themes, keyboard focus, and EN/ES copy length.
+- Check validation, empty, loading, error, success, and long-content states when touched by the task.
+- Check Alpine, chart, date-picker, dropdown, console, and network behavior when the section depends on them.
+- Use `token-efficient-web-qa` for deterministic browser automation when available. Start with one focused browser and capture screenshots or traces on failure or when visual evidence is required.
+- Report `Browser QA: PASS`, `FAIL`, `Not applicable`, or `Not run` with the exact limitation.

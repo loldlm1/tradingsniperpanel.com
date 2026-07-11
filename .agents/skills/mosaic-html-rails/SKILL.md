@@ -14,7 +14,7 @@ Use this skill to keep authenticated UI work anchored to the local `mosaic-html/
 3. Lift the smallest complete section that solves the task.
 4. Preserve section comments, utility classes, DOM hooks, and layout rhythm.
 5. Adapt the section to ERB, partials, I18n keys, Rails asset paths, and existing helpers.
-6. Verify manually. Use Playwright only if the prompt explicitly asks for browser QA.
+6. Run the project Browser QA Gate at the smallest useful depth.
 
 ## Boundary
 
@@ -64,9 +64,13 @@ Use this skill to keep authenticated UI work anchored to the local `mosaic-html/
 
 ### 6. Verify
 
-- Run a manual QA pass for parity, responsiveness, dark mode, and EN/ES copy length.
-- Check empty, loading, validation, and long-content states when the feature touches them.
-- Use Playwright only when the task explicitly asks for browser automation, screenshots, or browser debugging.
+- Run `npm run build:css` when changed templates or CSS affect Tailwind class extraction or generated styles.
+- Start with the narrowest project-native checks, then run deterministic browser QA for every browser-visible change.
+- Use `token-efficient-web-qa` when available: prefer an existing project runner, then one focused Playwright browser before broader coverage.
+- Check source parity, mobile/tablet/desktop layout, light/dark themes, keyboard/focus behavior, and EN/ES copy length.
+- Check empty, loading, validation, error, success, and long-content states when the feature touches them.
+- Inspect console and network failures for the changed flow. Use interactive screenshots, traces, or browser debugging only as targeted evidence or when the task requests a visual audit.
+- Report `Browser QA: PASS`, `FAIL`, `Not applicable`, or `Not run` with the exact limitation.
 
 ## Non-Negotiables
 
@@ -76,9 +80,10 @@ Use this skill to keep authenticated UI work anchored to the local `mosaic-html/
 - Do not leave inline copy in new durable UI when the surface is already localized.
 - Do not edit vendor template CSS or JS to make a single page easier to port.
 - Do not partialize one-off structural wrappers so aggressively that the source hierarchy becomes harder to review.
+- Do not skip the Browser QA Gate for browser-visible changes.
 
 ## References
 
 - `references/mosaic-catalog.md`: source-page selection, page families, hook inventory, `LANDING_TEMPLATE` boundary
-- `references/rails-porting.md`: HTML-to-ERB workflow, partialization, I18n, assets, JS preservation, manual QA
+- `references/rails-porting.md`: HTML-to-ERB workflow, partialization, I18n, assets, JS preservation, Browser QA Gate
 - `references/local-examples.md`: repo-local examples that map Mosaic source pages to current Rails views
