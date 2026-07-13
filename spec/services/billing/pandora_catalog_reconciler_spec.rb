@@ -64,6 +64,28 @@ RSpec.describe Billing::PandoraCatalogReconciler do
     expect(stale.fetch(:marketplace_product).reload).to be_active
   end
 
+  it "allows legacy entitlements on canonical plans until retirement" do
+    legacy_ea = create(:expert_advisor, ea_id: "legacy_ea", allowed_subscription_tiers: [ "legacy" ])
+    canonical_plan = BillingPlan.find_by(key: Billing::PandoraPricing::MONTHLY_KEY) || create(
+      :billing_plan,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
+      name: "Legacy Pandora Monthly",
+      tier: Billing::PandoraPricing::TIER
+    )
+    create(:billing_plan_entitlement, billing_plan: canonical_plan, expert_advisor: legacy_ea)
+
+    result = described_class.new(
+      profile: Seeds::Profiles::PROD_MIRROR,
+      allow_local: true,
+      migrator: successful_migrator
+    ).call
+
+    expect(result.retirement.removed_entitlements).to eq(1)
+    expect(BillingPlanEntitlement.order(:billing_plan_id, :expert_advisor_id).pluck(:billing_plan_id, :expert_advisor_id)).to eq(
+      result.plans.sort_by(&:id).map { |plan| [ plan.id, result.expert_advisor.id ] }
+    )
+  end
+
   it "is idempotent across repeated local reconciliation" do
     service = described_class.new(
       profile: Seeds::Profiles::PROD_MIRROR,

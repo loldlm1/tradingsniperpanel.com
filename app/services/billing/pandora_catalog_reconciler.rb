@@ -114,7 +114,8 @@ module Billing
 
       expected_entitlements = plans.map { |plan| [ plan.id, pandora.id ] }.sort
       actual_entitlements = BillingPlanEntitlement.where(billing_plan_id: plans.map(&:id)).pluck(:billing_plan_id, :expert_advisor_id).sort
-      raise "Pandora entitlements are incomplete" unless actual_entitlements == expected_entitlements
+      raise "Pandora entitlements are incomplete" if (expected_entitlements - actual_entitlements).any?
+      raise "Legacy Pandora entitlements remain" if final && actual_entitlements != expected_entitlements
 
       verify_remote_catalog!(plans) if remote?
       verify_final_state!(plans:, pandora:) if final
