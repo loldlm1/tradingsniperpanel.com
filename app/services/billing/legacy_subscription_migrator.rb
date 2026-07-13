@@ -80,7 +80,7 @@ module Billing
     attr_reader :logger, :schedule_factory, :subscription_scope, :now
 
     def legacy_scope
-      (subscription_scope || Pay::Subscription.active.stripe).order(:id)
+      (subscription_scope || Pay::Subscription.active.stripe).reorder(nil)
     end
 
     def current_plans

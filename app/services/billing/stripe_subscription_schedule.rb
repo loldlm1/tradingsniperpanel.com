@@ -132,11 +132,25 @@ module Billing
       schedule_id = strict_remote_schedule_id
       schedule = strict_retrieve_schedule(schedule_id) if schedule_id.present?
 
-      if schedule && !terminal_schedule?(schedule) && !catalog_schedule_owned?(schedule, metadata)
-        schedule = recover_created_catalog_schedule(schedule, metadata)
+      if schedule && !terminal_schedule?(schedule)
+        schedule = recover_created_catalog_schedule(schedule, metadata) unless catalog_schedule_owned?(schedule, metadata)
+
+        if catalog_transition_matches?(
+          schedule,
+          target_price_id: target_price_id,
+          target_plan_key: target_plan_key,
+          effective_at: effective_at,
+          migration_key: migration_key
+        )
+          return CatalogTransition.new(schedule: schedule, created: false)
+        end
+
+        raise_elapsed_transition_conflict(schedule) if transition_elapsed?(effective_at)
       end
 
       created = schedule_id.blank? || terminal_schedule?(schedule)
+      raise_elapsed_transition_conflict(schedule) if created && transition_elapsed?(effective_at)
+
       if created
         schedule = Stripe::SubscriptionSchedule.create(
           { from_subscription: subscription.processor_id },
@@ -354,6 +368,16 @@ module Billing
             "subscription #{subscription.processor_id} has unmanaged schedule #{normalize_schedule_id(schedule)}"
     end
 
+    def raise_elapsed_transition_conflict(schedule)
+      schedule_id = normalize_schedule_id(schedule) || "none"
+      raise ConflictingScheduleError,
+            "subscription #{subscription.processor_id} has elapsed catalog transition with non-matching schedule #{schedule_id}"
+    end
+
+    def transition_elapsed?(effective_at)
+      effective_at.to_i <= Time.current.to_i
+    end
+
     def catalog_metadata(target_price_id:, target_plan_key:, effective_at:, migration_key:)
       {
         "managed_by" => CATALOG_MANAGED_BY,
@@ -381,6 +405,7 @@ module Billing
         migration_key: migration_key
       )
       return false unless catalog_schedule_owned?(schedule, expected_metadata)
+      return false unless value_for(schedule, :end_behavior).to_s == "release"
 
       phases = schedule_phases(schedule).last(2)
       return false unless phases.size == 2

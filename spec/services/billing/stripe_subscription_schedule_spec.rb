@@ -48,7 +48,7 @@ RSpec.describe Billing::StripeSubscriptionSchedule do
     expect(result.schedule.id).to eq("sub_sched_catalog")
   end
 
-  it "reuses a matching managed schedule without creating another" do
+  it "verifies a matching managed schedule without mutating Stripe" do
     subscription = create_subscription
     effective_at = subscription.current_period_end
     metadata = catalog_metadata(subscription:, effective_at:)
@@ -62,7 +62,107 @@ RSpec.describe Billing::StripeSubscriptionSchedule do
     allow(Stripe::Subscription).to receive(:retrieve).and_return(OpenStruct.new(schedule: existing.id))
     allow(Stripe::SubscriptionSchedule).to receive(:retrieve).with(existing.id).and_return(existing)
     expect(Stripe::SubscriptionSchedule).not_to receive(:create)
-    allow(Stripe::SubscriptionSchedule).to receive(:update).and_return(existing)
+    expect(Stripe::SubscriptionSchedule).not_to receive(:update)
+
+    result = described_class.new(subscription: subscription).schedule_catalog_transition(
+      target_price_id: "price_pandora_annual",
+      target_plan_key: Billing::PandoraPricing::ANNUAL_KEY,
+      effective_at: effective_at,
+      migration_key: Billing::LegacySubscriptionMigrator::MIGRATION_KEY
+    )
+
+    expect(result.created).to be(false)
+    expect(result.schedule.id).to eq(existing.id)
+  end
+
+  it "does not rewrite an already-ended phase when the managed transition matches" do
+    effective_at = 1.minute.ago
+    subscription = create_subscription(
+      current_period_start: 1.month.ago,
+      current_period_end: effective_at
+    )
+    metadata = catalog_metadata(subscription: subscription, effective_at: effective_at)
+    existing = schedule_from(
+      schedule_id: "sub_sched_transitioned",
+      params: {
+        metadata: metadata,
+        phases: phases_for(subscription: subscription, effective_at: effective_at)
+      }
+    )
+    allow(Stripe::Subscription).to receive(:retrieve).and_return(OpenStruct.new(schedule: existing.id))
+    allow(Stripe::SubscriptionSchedule).to receive(:retrieve).with(existing.id).and_return(existing)
+    expect(Stripe::SubscriptionSchedule).not_to receive(:create)
+    expect(Stripe::SubscriptionSchedule).not_to receive(:update)
+
+    result = described_class.new(subscription: subscription).schedule_catalog_transition(
+      target_price_id: "price_pandora_annual",
+      target_plan_key: Billing::PandoraPricing::ANNUAL_KEY,
+      effective_at: effective_at,
+      migration_key: Billing::LegacySubscriptionMigrator::MIGRATION_KEY
+    )
+
+    expect(result.created).to be(false)
+    expect(result.schedule.id).to eq(existing.id)
+  end
+
+  it "fails closed instead of rewriting an elapsed managed transition that does not match" do
+    effective_at = 1.minute.ago
+    subscription = create_subscription(
+      current_period_start: 1.month.ago,
+      current_period_end: effective_at
+    )
+    metadata = catalog_metadata(subscription: subscription, effective_at: effective_at)
+    mismatched_phases = phases_for(subscription: subscription, effective_at: effective_at)
+    mismatched_phases.last[:items].first[:price] = "price_unexpected"
+    existing = schedule_from(
+      schedule_id: "sub_sched_mismatched",
+      params: { metadata: metadata, phases: mismatched_phases }
+    )
+    allow(Stripe::Subscription).to receive(:retrieve).and_return(OpenStruct.new(schedule: existing.id))
+    allow(Stripe::SubscriptionSchedule).to receive(:retrieve).with(existing.id).and_return(existing)
+    expect(Stripe::SubscriptionSchedule).not_to receive(:create)
+    expect(Stripe::SubscriptionSchedule).not_to receive(:update)
+
+    expect do
+      described_class.new(subscription: subscription).schedule_catalog_transition(
+        target_price_id: "price_pandora_annual",
+        target_plan_key: Billing::PandoraPricing::ANNUAL_KEY,
+        effective_at: effective_at,
+        migration_key: Billing::LegacySubscriptionMigrator::MIGRATION_KEY
+      )
+    end.to raise_error(Billing::StripeSubscriptionSchedule::ConflictingScheduleError, /elapsed catalog transition/)
+  end
+
+  it "repairs a matching managed transition before its first phase ends" do
+    subscription = create_subscription
+    effective_at = subscription.current_period_end
+    metadata = catalog_metadata(subscription: subscription, effective_at: effective_at)
+    mismatched_phases = phases_for(subscription: subscription, effective_at: effective_at)
+    mismatched_phases.last[:items].first[:price] = "price_unexpected"
+    existing = schedule_from(
+      schedule_id: "sub_sched_repairable",
+      params: { metadata: metadata, phases: mismatched_phases }
+    )
+    allow(Stripe::Subscription).to receive(:retrieve).and_return(OpenStruct.new(schedule: existing.id))
+    allow(Stripe::SubscriptionSchedule).to receive(:retrieve).with(existing.id).and_return(existing)
+    expect(Stripe::SubscriptionSchedule).not_to receive(:create)
+    expect(Stripe::SubscriptionSchedule).to receive(:update).with(
+      existing.id,
+      hash_including(
+        end_behavior: "release",
+        metadata: metadata,
+        phases: phases_for(subscription: subscription, effective_at: effective_at)
+      )
+    ).and_return(
+      schedule_from(
+        schedule_id: existing.id,
+        params: {
+          end_behavior: "release",
+          metadata: metadata,
+          phases: phases_for(subscription: subscription, effective_at: effective_at)
+        }
+      )
+    )
 
     result = described_class.new(subscription: subscription).schedule_catalog_transition(
       target_price_id: "price_pandora_annual",
@@ -118,7 +218,7 @@ RSpec.describe Billing::StripeSubscriptionSchedule do
     expect(result.schedule.id).to eq(pending.id)
   end
 
-  def create_subscription(quantity: 1)
+  def create_subscription(quantity: 1, current_period_start: 1.day.ago, current_period_end: 29.days.from_now)
     user = create(:user)
     customer = user.pay_customers.create!(processor: "stripe", processor_id: "cus_legacy", default: true)
     customer.subscriptions.create!(
@@ -127,8 +227,8 @@ RSpec.describe Billing::StripeSubscriptionSchedule do
       processor_plan: "price_legacy_monthly",
       status: "active",
       quantity: quantity,
-      current_period_start: 1.day.ago,
-      current_period_end: 29.days.from_now,
+      current_period_start: current_period_start,
+      current_period_end: current_period_end,
       type: "Pay::Stripe::Subscription"
     )
   end
@@ -163,6 +263,7 @@ RSpec.describe Billing::StripeSubscriptionSchedule do
     OpenStruct.new(
       id: schedule_id,
       status: "active",
+      end_behavior: params.fetch(:end_behavior, "release"),
       metadata: params.fetch(:metadata),
       phases: params.fetch(:phases)
     )
