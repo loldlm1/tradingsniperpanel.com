@@ -41,5 +41,8 @@
 # GeoIP databases
 /maxmind/*.mmdb
 
+# Codex runtime state
+/.codex-hook-state/
+
 # Plans archived
 /docs/plans/_archive/*
