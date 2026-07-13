@@ -568,6 +568,8 @@ en:
         license_title: "System license"
         license_copy: "Activation license to enable the system."
         license_key_label: "Full key"
+        token_metadata: "Token version %{version}"
+        token_metadata_rotated: "Token version %{version} · Rotated %{date}"
         pnl_title: "Latest system earnings"
         pnl_average_label: "average per day"
         pnl_empty: "No PnL data yet."

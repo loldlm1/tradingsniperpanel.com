@@ -89,4 +89,29 @@ RSpec.describe Licenses::PaySubscriptionCallbacks do
       subscription.update!(status: "canceled", ends_at: Time.current)
     end.to have_enqueued_job(Licenses::SyncSubscriptionJob).with(subscription.id)
   end
+
+  it "enqueues a user license reissue when the subscription period renews" do
+    customer = user.pay_customers.create!(
+      processor: "stripe",
+      processor_id: "cus_#{SecureRandom.hex(4)}",
+      default: true
+    )
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: "price_pandora_monthly",
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now
+    )
+    clear_enqueued_jobs
+
+    expect do
+      subscription.update!(
+        current_period_start: subscription.current_period_end,
+        current_period_end: subscription.current_period_end + 1.month
+      )
+    end.to have_enqueued_job(Licenses::SyncSubscriptionJob).with(subscription.id)
+  end
 end

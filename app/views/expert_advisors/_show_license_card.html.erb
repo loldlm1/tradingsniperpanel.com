@@ -30,7 +30,7 @@
     <div class="flex items-center gap-4 mt-2">
       <div class="flex-1 min-w-0">
         <div class="flex items-center rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 font-mono text-sm text-gray-800 dark:text-gray-100">
-          <span class="truncate" data-license-value title="<%= presenter.license_key_display %>"><%= presenter.license_key_display %></span>
+          <code class="block min-w-0 w-full break-all select-all" data-license-value><%= presenter.license_key_display %></code>
         </div>
       </div>
       <% if presenter.license_copy_enabled? %>
@@ -53,6 +53,9 @@
         ><%= copy_label %></button>
       <% end %>
     </div>
+    <% if presenter.license_token_metadata_label.present? %>
+      <div class="text-xs font-medium text-gray-600 dark:text-gray-300 mt-2"><%= presenter.license_token_metadata_label %></div>
+    <% end %>
     <div class="text-xs text-gray-500 dark:text-gray-400 mt-2"><%= license_hint %></div>
   </div>
 

@@ -160,6 +160,65 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
     expect(license.encrypted_key).to eq("VERSIONED")
   end
 
+  it "reissues the key for a renewed period without incrementing the admin rotation version" do
+    renewal_end = 1.month.from_now
+    subscription = create_subscription(
+      processor_plan: basic_plan.stripe_price_id,
+      current_period_end: renewal_end
+    )
+    rotated_at = 2.days.ago.change(usec: 0)
+    license = create(
+      :license,
+      user: user,
+      expert_advisor: basic_ea,
+      status: "active",
+      token_version: 2,
+      token_rotated_at: rotated_at,
+      trial_ends_at: nil,
+      expires_at: 1.week.from_now
+    )
+    previous_key = license.encrypted_key
+    other_license = create(
+      :license,
+      user: create(:user),
+      expert_advisor: basic_ea,
+      status: "active",
+      token_version: 2,
+      token_rotated_at: 3.days.ago,
+      trial_ends_at: nil,
+      expires_at: 2.weeks.from_now
+    )
+    other_license_state = other_license.slice("encrypted_key", "expires_at", "token_version", "token_rotated_at")
+    real_encoder = Licenses::LicenseKeyEncoder.new
+
+    expect do
+      described_class.new(subscription_id: subscription.id, encoder: real_encoder).call
+    end.not_to change(AdminAuditEvent, :count)
+
+    license.reload
+    verifier = Licenses::LicenseVerifier.new(encoder: real_encoder)
+    previous_result = verifier.call(
+      source: ENV.fetch("EA_LICENSE_SOURCE_ID"),
+      email: user.email,
+      ea_id: basic_ea.ea_id,
+      license_key: previous_key
+    )
+    current_result = verifier.call(
+      source: ENV.fetch("EA_LICENSE_SOURCE_ID"),
+      email: user.email,
+      ea_id: basic_ea.ea_id,
+      license_key: license.encrypted_key
+    )
+
+    expect(license.token_version).to eq(2)
+    expect(license.token_rotated_at.to_i).to eq(rotated_at.to_i)
+    expect(license.expires_at.to_i).to eq(renewal_end.to_i)
+    expect(license.encrypted_key).not_to eq(previous_key)
+    expect(previous_result.error).to eq(:invalid_key)
+    expect(current_result.ok?).to be(true)
+    expect(other_license.reload.slice(*other_license_state.keys)).to eq(other_license_state)
+  end
+
   it "permanently supersedes active manual grants when Stripe becomes active" do
     manual = create(
       :manual_subscription,

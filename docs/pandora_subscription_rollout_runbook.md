@@ -18,6 +18,9 @@ production deploy, customer communication, EA publication, or token rotation.
 - API request/response JSON is unchanged. Version 1 license payloads contain
   `email,ea_id,expires_at`; version 2 and later add a positive
   `token_version` fourth field.
+- Admin rotation increments the token version. Stripe renewal reissues only that
+  user's subscription key with the renewed period end while preserving the
+  existing token version and admin rotation timestamp.
 
 ## Hard Safety Gates
 
@@ -165,6 +168,9 @@ after a manual grant, Stripe access wins and remaining manual access is marked
    event, affected count, token versions, and rotation timestamp.
 6. Verify the new token succeeds and the prior token returns `invalid_key` on
    verify, heartbeat, instance-magic, and daily-results requests.
+7. Ask the user to refresh the EA detail page and use `Copy`; the page is
+   non-cacheable, shows the complete key and token version, and copies the full
+   current value including the changed suffix.
 
 Never put either rotation action in seeds, migrations, deployment scripts,
 background maintenance, or role-change callbacks.

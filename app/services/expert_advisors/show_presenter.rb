@@ -146,6 +146,25 @@ module ExpertAdvisors
       license_key.present?
     end
 
+    def license_token_metadata_label
+      return if license.blank? || license_key.blank?
+
+      if license.token_rotated_at.present?
+        I18n.t(
+          "dashboard.expert_advisors.show.token_metadata_rotated",
+          version: license.token_version,
+          date: I18n.l(license.token_rotated_at, format: :short_with_year, locale: locale),
+          locale: locale
+        )
+      else
+        I18n.t(
+          "dashboard.expert_advisors.show.token_metadata",
+          version: license.token_version,
+          locale: locale
+        )
+      end
+    end
+
     def license_expires_label
       expires_at = license_expires_at
       return nil if expires_at.blank?

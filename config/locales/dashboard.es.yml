@@ -568,6 +568,8 @@ es:
         license_title: "Licencia del sistema"
         license_copy: "Licencia activadora, colocar en el sistema para el funcionamiento."
         license_key_label: "Clave completa"
+        token_metadata: "Versión del token %{version}"
+        token_metadata_rotated: "Versión del token %{version} · Rotado %{date}"
         pnl_title: "Ultimos ingresos del sistema"
         pnl_average_label: "promedio diario"
         pnl_empty: "Sin datos de PnL todavia."

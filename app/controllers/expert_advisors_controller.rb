@@ -1,14 +1,15 @@
 class ExpertAdvisorsController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
+  before_action :prevent_license_key_caching, only: [ :index, :show ]
   before_action :set_accessible_expert_advisors
-  before_action :set_expert_advisor_entry, only: [:show, :guides, :addon_guide, :download]
-  before_action :set_addon, only: [:addon_guide]
-  before_action :ensure_guide_access!, only: [:guides]
-  before_action :ensure_addon_guide_access!, only: [:addon_guide]
-  before_action :ensure_download_access!, only: [:download]
-  before_action :set_markdown, only: [:guides]
-  before_action :set_addon_markdown, only: [:addon_guide]
+  before_action :set_expert_advisor_entry, only: [ :show, :guides, :addon_guide, :download ]
+  before_action :set_addon, only: [ :addon_guide ]
+  before_action :ensure_guide_access!, only: [ :guides ]
+  before_action :ensure_addon_guide_access!, only: [ :addon_guide ]
+  before_action :ensure_download_access!, only: [ :download ]
+  before_action :set_markdown, only: [ :guides ]
+  before_action :set_addon_markdown, only: [ :addon_guide ]
 
   def index
     @filter_query = params[:q].to_s.strip
@@ -58,6 +59,11 @@ class ExpertAdvisorsController < ApplicationController
   end
 
   private
+
+  def prevent_license_key_caching
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
+  end
 
   def set_expert_advisor_entry
     @expert_advisor_entry = @accessible_eas.detect { |entry| entry.expert_advisor.ea_id == params[:id] }

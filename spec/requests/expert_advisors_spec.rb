@@ -118,6 +118,47 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(copy_button["data-copy-failed-text"]).to eq(I18n.t("dashboard.expert_advisors.copy_failed", locale: :en))
   end
 
+  it "serves the complete rotated key without caching stale license credentials" do
+    license = create(
+      :license,
+      user: user,
+      expert_advisor: expert_advisor,
+      status: "active",
+      trial_ends_at: nil,
+      expires_at: 1.month.from_now
+    )
+    previous_key = license.encrypted_key
+    Licenses::RotateTokens.new(
+      scope: :user,
+      user: user,
+      actor: create(:user, :admin),
+      request_id: SecureRandom.uuid
+    ).call
+
+    get dashboard_expert_advisor_path(expert_advisor, locale: :en)
+
+    license.reload
+    doc = parsed_body
+    key_value = doc.at_css("[data-license-value]")
+    copy_button = doc.at_css("button[data-copy-button='true']")
+    expect(response).to be_successful
+    expect(response.headers["Cache-Control"]).to include("no-store")
+    expect(key_value.text.strip).to eq(license.encrypted_key)
+    expect(key_value["class"]).to include("break-all")
+    expect(key_value["class"]).to include("min-w-0")
+    expect(key_value["class"]).to include("w-full")
+    expect(copy_button["data-copy-text"]).to eq(license.encrypted_key)
+    expect(response.body).not_to include(previous_key)
+    expect(response.body).to include(
+      I18n.t(
+        "dashboard.expert_advisors.show.token_metadata_rotated",
+        version: license.token_version,
+        date: I18n.l(license.token_rotated_at, format: :short_with_year, locale: :en),
+        locale: :en
+      )
+    )
+  end
+
   it "shows lifetime expiration labels on index and show when the license is one-time" do
     create(:license, :one_time, user: user, expert_advisor: expert_advisor, status: "active")
     lifetime_label = I18n.t(
