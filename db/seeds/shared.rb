@@ -58,16 +58,13 @@ module Seeds
     end
 
     def core_definitions(profile: Seeds::Profiles.current)
-      profile.to_s == Seeds::Profiles::PROD_MIRROR ? prod_mirror_definitions(profile: profile) : full_qa_definitions(profile: profile)
+      [ pandora_definition(profile: profile) ]
     end
 
     def prune_for_profile!(profile: Seeds::Profiles.current)
       return unless defined?(ExpertAdvisor)
 
       keep_ids = core_definitions(profile: profile).map { |attrs| attrs[:ea_id] }
-      keep_ids += qa_definitions(profile: profile).map { |attrs| attrs[:ea_id] } if profile.to_s == Seeds::Profiles::FULL_QA
-      keep_ids = keep_ids.uniq
-      return if keep_ids.empty?
 
       ExpertAdvisor.unscoped.where.not(ea_id: keep_ids).where(deleted_at: nil).update_all(
         deleted_at: Time.current,
@@ -76,176 +73,37 @@ module Seeds
     end
 
     def prod_mirror_definitions(profile: Seeds::Profiles.current)
-      [
-        {
-          name: "Sniper Advanced Panel",
-          tier_rank: 1,
-          ea_id: "sniper_advanced_panel",
-          description: "Risk-first trading panel with precision execution, multi-targets, and preconfigured order workflows.",
-          ea_type: :ea_tool,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[basic],
-          doc_guide_en: guide_for(ea_id: "sniper_advanced_panel", locale: :en, profile: profile),
-          doc_guide_es: guide_for(ea_id: "sniper_advanced_panel", locale: :es, profile: profile),
-          tags: %w[panel execution risk]
-        },
-        {
-          name: "Fibonacci Elite EA",
-          tier_rank: 2,
-          ea_id: "fibonacci_elite",
-          description: "Automated Fibonacci structure strategy with configurable risk controls and precision execution rules.",
-          ea_type: :ea_robot,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[fibonacci_elite],
-          doc_guide_en: guide_for(ea_id: "fibonacci_elite", locale: :en, profile: profile),
-          doc_guide_es: guide_for(ea_id: "fibonacci_elite", locale: :es, profile: profile),
-          tags: %w[fibonacci automation structure]
-        },
-        {
-          name: "PANDORA BOX EA",
-          tier_rank: 3,
-          ea_id: "pandora_box",
-          description: "Breakout EA for MT5 with configurable direction modes and grid controls.",
-          ea_type: :ea_robot,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[pandora_pro],
-          doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en, profile: profile),
-          doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es, profile: profile),
-          tags: %w[automation breakout]
-        }
-      ]
+      [ pandora_definition(profile: profile) ]
     end
 
     def full_qa_definitions(profile: Seeds::Profiles.current)
-      [
-        {
-          name: "Sniper Advanced Panel",
-          tier_rank: 1,
-          ea_id: "sniper_advanced_panel",
-          description: "Risk-first trading panel with crosshair scope, grid depth control, and hotkey-driven execution.",
-          ea_type: :ea_tool,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: guide_for(ea_id: "sniper_advanced_panel", locale: :en, profile: profile),
-          doc_guide_es: guide_for(ea_id: "sniper_advanced_panel", locale: :es, profile: profile),
-          tags: %w[panel execution risk]
-        },
-        {
-          name: "PANDORA BOX EA",
-          tier_rank: 2,
-          ea_id: "pandora_box",
-          description: "Adaptive multi-symbol EA with protective filters and dynamic risk throttling.",
-          ea_type: :ea_robot,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[hft pro],
-          doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en, profile: profile),
-          doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es, profile: profile),
-          tags: %w[automation filters]
-        },
-        {
-          name: "Fibonacci Elite EA",
-          tier_rank: 3,
-          ea_id: "fibonacci_elite",
-          description: "Automated Fibonacci structure strategy with configurable risk controls and precision execution rules.",
-          ea_type: :ea_robot,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[fibonacci_elite],
-          doc_guide_en: guide_for(ea_id: "fibonacci_elite", locale: :en, profile: profile),
-          doc_guide_es: guide_for(ea_id: "fibonacci_elite", locale: :es, profile: profile),
-          tags: %w[fibonacci automation structure]
-        },
-        {
-          name: "Momentum Pulse Indicator",
-          tier_rank: 4,
-          ea_id: "momentum_pulse_indicator",
-          description: "Momentum indicator with visual alerts for high-probability setups.",
-          ea_type: :indicator,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en(profile: profile),
-          doc_guide_es: manual_es(profile: profile),
-          tags: %w[indicator momentum]
-        },
-        {
-          name: "Session Break Script",
-          tier_rank: 5,
-          ea_id: "session_break_script",
-          description: "Session management script with risk and timing controls.",
-          ea_type: :script,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en(profile: profile),
-          doc_guide_es: manual_es(profile: profile),
-          tags: %w[script session]
-        }
-      ]
+      [ pandora_definition(profile: profile) ]
     end
 
     def qa_definitions(profile: Seeds::Profiles.current)
-      [
-        {
-          name: "QA Trial EA",
-          ea_id: "qa_trial_ea",
-          tier_rank: 10,
-          description: "QA-only EA for trial status checks.",
-          ea_type: :ea_robot,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en(profile: profile),
-          doc_guide_es: manual_es(profile: profile)
-        },
-        {
-          name: "QA Active EA",
-          ea_id: "qa_active_ea",
-          tier_rank: 11,
-          description: "QA-only EA for active status checks.",
-          ea_type: :ea_robot,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en(profile: profile),
-          doc_guide_es: manual_es(profile: profile)
-        },
-        {
-          name: "QA Expired EA",
-          ea_id: "qa_expired_ea",
-          tier_rank: 12,
-          description: "QA-only EA for expired status checks.",
-          ea_type: :ea_robot,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en(profile: profile),
-          doc_guide_es: manual_es(profile: profile)
-        },
-        {
-          name: "QA Revoked EA",
-          ea_id: "qa_revoked_ea",
-          tier_rank: 13,
-          description: "QA-only EA for revoked status checks.",
-          ea_type: :ea_robot,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en(profile: profile),
-          doc_guide_es: manual_es(profile: profile)
-        },
-        {
-          name: "QA Locked EA",
-          ea_id: "qa_locked_ea",
-          tier_rank: 14,
-          description: "QA-only EA for locked status checks.",
-          ea_type: :ea_robot,
-          trial_enabled: false,
-          allowed_subscription_tiers: %w[basic hft pro],
-          doc_guide_en: manual_en(profile: profile),
-          doc_guide_es: manual_es(profile: profile)
-        }
-      ]
+      []
+    end
+
+    def pandora_definition(profile: Seeds::Profiles.current)
+      {
+        name: "PANDORA BOX EA",
+        tier_rank: 1,
+        ea_id: "pandora_box",
+        description: "Breakout EA for MT5 with configurable direction modes and grid controls.",
+        ea_type: :ea_robot,
+        trial_enabled: false,
+        allowed_subscription_tiers: [ Billing::PandoraPricing::TIER ],
+        doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en, profile: profile),
+        doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es, profile: profile),
+        tags: %w[automation breakout]
+      }
     end
 
     def upsert_expert_advisor(attrs, bundle_path: nil)
       allowed_tiers = attrs.delete(:allowed_subscription_tiers)
       tags = attrs.delete(:tags)
 
-      record = ExpertAdvisor.unscoped.find_or_initialize_by(name: attrs[:name])
+      record = ExpertAdvisor.unscoped.find_or_initialize_by(ea_id: attrs[:ea_id])
       record.assign_attributes(attrs)
       record.allowed_subscription_tiers = allowed_tiers
       record.tag_list = Array(tags).map(&:to_s) if tags
@@ -306,6 +164,16 @@ module Seeds
       configured_paths = GUIDE_PATHS.dig(ea_id.to_s, locale_key)
       configured_paths ||= GUIDE_PATHS.dig(DEFAULT_GUIDE_EA_ID, locale_key)
       first_existing_path(*Array(configured_paths))
+    end
+
+    def bundle_path_for(ea_id)
+      return unless ea_id.to_s == "pandora_box"
+
+      first_existing_path(
+        Rails.root.join("docs_eas", "pandora_box_ea", "PANDORA_BOX_EA.zip"),
+        Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_ea.zip"),
+        Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_ea.rar")
+      )
     end
 
     def first_existing_path(*paths)
@@ -1014,57 +882,50 @@ module Seeds
   module BillingPlans
     module_function
 
-    DEFAULT_CURRENCY = "usd"
-    FULL_QA_TIER_DEFINITIONS = [
-      { tier: "basic", sort_order: 1, monthly_cents: 2000 },
-      { tier: "hft", sort_order: 2, monthly_cents: 4000 },
-      { tier: "pro", sort_order: 3, monthly_cents: 6000 },
-      { tier: "elite", sort_order: 4, monthly_cents: 8000 },
-      { tier: "enterprise", sort_order: 5, monthly_cents: 10_000 },
-      { tier: "fibonacci_elite", sort_order: 6, monthly_cents: 4000 }
-    ].freeze
-    FULL_QA_INTERVAL_DEFINITIONS = [
-      { interval: "day", interval_count: 1, multiplier: (12.0 / 365) },
-      { interval: "week", interval_count: 1, multiplier: (12.0 / 52) },
-      { interval: "month", interval_count: 1, multiplier: 1.0 },
-      { interval: "year", interval_count: 1, multiplier: 9.0 }
-    ].freeze
-    PROD_MIRROR_TIER_DEFINITIONS = [
-      { tier: "basic", sort_order: 1, monthly_cents: 2499 },
-      { tier: "fibonacci_elite", sort_order: 2, monthly_cents: 6999 },
-      { tier: "pandora_pro", sort_order: 3, monthly_cents: 9999 }
-    ].freeze
-    PROD_MIRROR_INTERVAL_DEFINITIONS = [
-      { interval: "month", interval_count: 1, multiplier: 1.0 },
-      { interval: "year", interval_count: 1, multiplier: 7.8 }
-    ].freeze
+    DEFAULT_CURRENCY = Billing::PandoraPricing::CURRENCY
+    LOCAL_PRODUCT_ID = "seed_product_pandora_box".freeze
 
     def definitions(profile: Seeds::Profiles.current)
-      tier_definitions(profile: profile).flat_map do |tier_def|
-        interval_definitions(profile: profile).map do |interval_def|
-          amount = interval_amount(
-            base_cents: tier_def[:monthly_cents],
-            multiplier: interval_def[:multiplier]
-          )
-          plan_definition(
-            tier: tier_def[:tier],
-            interval: interval_def[:interval],
-            interval_count: interval_def[:interval_count],
-            amount_cents: amount,
-            sort_order: tier_def[:sort_order]
-          )
-        end
+      Billing::PandoraPricing::PLAN_DEFINITIONS.map.with_index do |(key, pricing), index|
+        interval_label = Billing::IntervalLabeler.label(
+          interval: pricing.fetch(:interval),
+          interval_count: pricing.fetch(:interval_count)
+        )
+        {
+          key: key,
+          name: "#{Billing::PandoraPricing::PRODUCT_NAME} #{interval_label}",
+          description: "Pandora Box EA recurring subscription.",
+          kind: "subscription",
+          tier: Billing::PandoraPricing::TIER,
+          interval: pricing.fetch(:interval),
+          interval_count: pricing.fetch(:interval_count),
+          amount_cents: pricing.fetch(:amount_cents),
+          currency: DEFAULT_CURRENCY,
+          active: true,
+          sort_order: index + 1,
+          metadata: { "catalog_product" => "pandora_box" },
+          stripe_product_name: Billing::PandoraPricing::PRODUCT_NAME
+        }
       end
     end
 
-    def seed_plans!(allow_local: false, profile: Seeds::Profiles.current)
+    def seed_plans!(allow_local: false, profile: Seeds::Profiles.current, retire_superseded_prices: true)
+      return seed_local_plans!(profile: profile) if allow_local && Rails.env.test?
+
       if stripe_seeding_enabled?
         return unless defined?(Billing::PlanCreator)
 
-        definitions(profile: profile).each do |attrs|
-          Billing::PlanCreator.new(attrs).call
+        shared_product_id = nil
+        return definitions(profile: profile).map do |definition|
+          attrs = definition.dup
+          attrs[:stripe_product_id] = shared_product_id if shared_product_id.present?
+          result = Billing::PlanCreator.new(
+            attrs,
+            retire_superseded_prices: retire_superseded_prices
+          ).call
+          shared_product_id ||= result.product.id
+          result.plan
         end
-        return
       end
 
       return unless allow_local
@@ -1075,9 +936,7 @@ module Seeds
     def seed_local_plans!(profile: Seeds::Profiles.current)
       return unless defined?(BillingPlan)
 
-      definitions(profile: profile).each do |attrs|
-        upsert_local_plan(attrs)
-      end
+      definitions(profile: profile).map { |attrs| upsert_local_plan(attrs) }
     end
 
     def prune_for_profile!(profile: Seeds::Profiles.current)
@@ -1100,97 +959,81 @@ module Seeds
       BillingPlanEntitlement.where.not(expert_advisor_id: expert_advisor_ids).delete_all
     end
 
-    def tier_definitions(profile:)
-      if profile.to_s == Seeds::Profiles::PROD_MIRROR
-        PROD_MIRROR_TIER_DEFINITIONS
-      else
-        FULL_QA_TIER_DEFINITIONS
-      end
-    end
-
-    def interval_definitions(profile:)
-      if profile.to_s == Seeds::Profiles::PROD_MIRROR
-        PROD_MIRROR_INTERVAL_DEFINITIONS
-      else
-        FULL_QA_INTERVAL_DEFINITIONS
-      end
-    end
-
     def upsert_local_plan(attrs)
-      plan = BillingPlan.find_or_initialize_by(key: attrs[:key])
-      plan.assign_attributes(attrs)
-      plan.stripe_price_id ||= "seed_price_#{attrs[:key]}"
-      plan.stripe_product_id ||= "seed_product_#{attrs[:key]}"
-      plan.save!
+      plan_attrs = attrs.except(:stripe_product_name)
+      price_id = "seed_price_#{attrs.fetch(:key)}_#{attrs.fetch(:amount_cents)}"
+      now = Time.current
+
+      BillingPlan.transaction do
+        plan = BillingPlan.find_or_initialize_by(key: attrs.fetch(:key))
+        plan.lock! if plan.persisted?
+        previous = local_price_snapshot(plan)
+        plan.assign_attributes(plan_attrs)
+        plan.stripe_product_id = LOCAL_PRODUCT_ID
+        plan.stripe_price_id = price_id
+        plan.save!
+
+        current = BillingPlanPrice.find_or_initialize_by(stripe_price_id: price_id)
+        current.assign_attributes(
+          billing_plan: plan,
+          amount_cents: plan.amount_cents,
+          currency: plan.currency,
+          interval: plan.interval,
+          interval_count: plan.interval_count,
+          active: true,
+          current: true,
+          retired_at: nil,
+          metadata: { "billing_plan_key" => plan.key }
+        )
+
+        plan.billing_plan_prices.current.where.not(id: current.id).lock.each do |history|
+          history.update!(current: false, retired_at: history.retired_at || now)
+        end
+        preserve_local_price_snapshot!(plan:, snapshot: previous, current_price_id: price_id, retired_at: now)
+        current.save!
+        plan
+      end
     end
 
     def seed_entitlements!(profile: Seeds::Profiles.current)
       return unless defined?(BillingPlanEntitlement)
 
-      plans = BillingPlan.subscription.active
-      return if plans.empty?
+      pandora = ExpertAdvisor.unscoped.find_by(ea_id: "pandora_box")
+      return unless pandora
 
-      plans_by_tier = plans.group_by(&:tier)
-
-      ExpertAdvisor.active.find_each do |expert_advisor|
-        tiers = entitlement_tiers_for(
-          expert_advisor: expert_advisor,
-          plans_by_tier: plans_by_tier,
-          profile: profile
-        )
-        tiers.each do |tier|
-          Array(plans_by_tier[tier]).each do |plan|
-            BillingPlanEntitlement.find_or_create_by!(
-              billing_plan: plan,
-              expert_advisor: expert_advisor
-            )
-          end
-        end
+      BillingPlan.where(key: Billing::PandoraPricing::PLAN_KEYS).find_each do |plan|
+        BillingPlanEntitlement.find_or_create_by!(billing_plan: plan, expert_advisor: pandora)
       end
     end
 
-    def entitlement_tiers_for(expert_advisor:, plans_by_tier:, profile:)
-      tiers = Array(expert_advisor.allowed_subscription_tiers).presence || plans_by_tier.keys
-      expand_tiers_for_profile(tiers: tiers, profile: profile)
-    end
+    def local_price_snapshot(plan)
+      return unless plan.persisted? && plan.stripe_price_id.present?
 
-    def expand_tiers_for_profile(tiers:, profile:)
-      normalized = Array(tiers).map(&:to_s).reject(&:blank?)
-      return normalized if normalized.empty?
-      return normalized.uniq unless profile.to_s == Seeds::Profiles::PROD_MIRROR
-
-      ordered_tiers = ordered_tiers_for_profile(profile: profile)
-      return normalized.uniq if ordered_tiers.empty?
-
-      normalized.flat_map do |tier|
-        index = ordered_tiers.index(tier)
-        index ? ordered_tiers[index..] : tier
-      end.uniq
-    end
-
-    def ordered_tiers_for_profile(profile:)
-      tier_definitions(profile: profile).sort_by { |tier_def| tier_def[:sort_order].to_i }.map { |tier_def| tier_def[:tier].to_s }
-    end
-
-    def plan_definition(tier:, interval:, interval_count:, amount_cents:, sort_order:)
-      interval_key = Billing::IntervalLabeler.interval_key(interval: interval, interval_count: interval_count)
       {
-        key: "#{tier}_#{interval_key}",
-        name: "#{tier.to_s.humanize} #{Billing::IntervalLabeler.label(interval: interval, interval_count: interval_count)}",
-        kind: "subscription",
-        tier: tier,
-        interval: interval,
-        interval_count: interval_count,
-        amount_cents: amount_cents,
-        currency: DEFAULT_CURRENCY,
-        active: true,
-        sort_order: sort_order
+        stripe_price_id: plan.stripe_price_id,
+        amount_cents: plan.amount_cents,
+        currency: plan.currency,
+        interval: plan.interval,
+        interval_count: plan.interval_count
       }
     end
 
-    def interval_amount(base_cents:, multiplier:)
-      amount = (base_cents * multiplier).round
-      amount.positive? ? amount : 1
+    def preserve_local_price_snapshot!(plan:, snapshot:, current_price_id:, retired_at:)
+      return if snapshot.blank? || snapshot[:stripe_price_id] == current_price_id
+
+      history = BillingPlanPrice.find_or_initialize_by(stripe_price_id: snapshot.fetch(:stripe_price_id))
+      history.assign_attributes(
+        billing_plan: plan,
+        amount_cents: snapshot.fetch(:amount_cents),
+        currency: snapshot.fetch(:currency),
+        interval: snapshot[:interval],
+        interval_count: snapshot[:interval_count],
+        active: true,
+        current: false,
+        retired_at: history.retired_at || retired_at,
+        metadata: { "billing_plan_key" => plan.key }
+      )
+      history.save!
     end
 
     def stripe_seeding_enabled?
@@ -1204,7 +1047,7 @@ module Seeds
   module Subscriptions
     module_function
 
-    def seed_manual_subscription_for(user:, recorded_by: nil, tier: "basic", interval_key: "monthly")
+    def seed_manual_subscription_for(user:, recorded_by: nil, tier: Billing::PandoraPricing::TIER, interval_key: "monthly")
       return unless user
       return unless defined?(ManualSubscription) && defined?(BillingPlan)
       return if ManualSubscription.active.where(user: user).exists?
@@ -1218,6 +1061,8 @@ module Seeds
       subscription = ManualSubscription.find_or_initialize_by(user: user, billing_plan: plan)
       subscription.assign_attributes(
         amount_cents: plan.amount_cents,
+        granted_days: 30,
+        payment_status: ManualSubscription::PAYMENT_STATUSES[:paid],
         currency: plan.currency,
         paid_at: now - 15.days,
         starts_at: now - 15.days,
@@ -1695,16 +1540,15 @@ module Seeds
     module_function
 
     def definitions(profile: Seeds::Profiles.current)
-      profile.to_s == Seeds::Profiles::PROD_MIRROR ? prod_mirror_definitions : full_qa_definitions
+      []
     end
 
     def prune_for_profile!(profile: Seeds::Profiles.current)
       return unless defined?(MarketplaceProduct)
 
       keep_slugs = definitions(profile: profile).map { |attrs| attrs[:slug] }
-      return if keep_slugs.empty?
-
-      MarketplaceProduct.where.not(slug: keep_slugs).includes(:billing_plan).find_each do |product|
+      scope = keep_slugs.empty? ? MarketplaceProduct.all : MarketplaceProduct.where.not(slug: keep_slugs)
+      scope.includes(:billing_plan).find_each do |product|
         product.update!(status: "draft") if product.active?
         product.billing_plan&.update!(active: false) if product.billing_plan&.active?
       end
@@ -1897,13 +1741,16 @@ module Seeds
       return unless defined?(MarketplaceProduct)
       return unless defined?(BillingPlan)
 
+      desired_definitions = definitions(profile: profile)
+      return if desired_definitions.empty?
+
       enforce_stripe_requirement!
       stripe_available = ENV["STRIPE_PRIVATE_KEY"].present?
       force_stripe = !Rails.env.test?
       stripe_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
       local_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: false)
 
-      definitions(profile: profile).each do |attrs|
+      desired_definitions.each do |attrs|
         attrs = attrs.dup
         stripe_required = force_stripe || attrs.delete(:stripe_required) { true }
         if stripe_required && !stripe_available
@@ -2067,11 +1914,7 @@ module Seeds
     FIBONACCI_ADDONABLE_KEY = "fibonacci_elite".freeze
 
     def definitions(profile: Seeds::Profiles.current)
-      if profile.to_s == Seeds::Profiles::PROD_MIRROR
-        fibonacci_definitions
-      else
-        legacy_full_qa_definitions + fibonacci_definitions
-      end
+      []
     end
 
     def legacy_full_qa_definitions
@@ -2267,13 +2110,16 @@ module Seeds
       return unless defined?(MarketplaceProduct)
       return unless defined?(BillingPlan)
 
+      desired_definitions = definitions(profile: profile)
+      return if desired_definitions.empty?
+
       enforce_stripe_requirement!
       stripe_available = ENV["STRIPE_PRIVATE_KEY"].present?
       force_stripe = !Rails.env.test?
       stripe_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: true)
       local_manager = Marketplace::ProductManager.new(logger: Rails.logger, stripe_required: false)
 
-      definitions(profile: profile).each do |attrs|
+      desired_definitions.each do |attrs|
         attrs = attrs.dup
         stripe_required = force_stripe || attrs.delete(:stripe_required) { true }
         if stripe_required && !stripe_available

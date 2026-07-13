@@ -4,6 +4,10 @@ module Billing
   class StripeSubscriptionSchedule
     UPDATABLE_STATUSES = %w[not_started active].freeze
     TERMINAL_STATUSES = %w[released canceled completed].freeze
+    CATALOG_MANAGED_BY = "pandora_catalog_reconciler".freeze
+
+    ConflictingScheduleError = Class.new(StandardError)
+    CatalogTransition = Struct.new(:schedule, :created, keyword_init: true)
 
     def initialize(subscription:, logger: Rails.logger)
       @subscription = subscription
@@ -117,6 +121,69 @@ module Billing
       schedule_id
     end
 
+    def schedule_catalog_transition(target_price_id:, target_plan_key:, effective_at:, migration_key:)
+      Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
+      metadata = catalog_metadata(
+        target_price_id: target_price_id,
+        target_plan_key: target_plan_key,
+        effective_at: effective_at,
+        migration_key: migration_key
+      )
+      schedule_id = strict_remote_schedule_id
+      schedule = strict_retrieve_schedule(schedule_id) if schedule_id.present?
+
+      if schedule && !terminal_schedule?(schedule) && !catalog_schedule_owned?(schedule, metadata)
+        schedule = recover_created_catalog_schedule(schedule, metadata)
+      end
+
+      created = schedule_id.blank? || terminal_schedule?(schedule)
+      if created
+        schedule = Stripe::SubscriptionSchedule.create(
+          { from_subscription: subscription.processor_id },
+          { idempotency_key: catalog_idempotency_key(metadata) }
+        )
+        schedule_id = schedule.id
+      end
+
+      schedule = Stripe::SubscriptionSchedule.update(
+        schedule_id,
+        {
+          end_behavior: "release",
+          metadata: metadata,
+          phases: phases_for(target_price_id: target_price_id, effective_at: effective_at)
+        }
+      )
+      unless catalog_transition_matches?(
+        schedule,
+        target_price_id: target_price_id,
+        target_plan_key: target_plan_key,
+        effective_at: effective_at,
+        migration_key: migration_key
+      )
+        raise "Stripe schedule verification failed for subscription #{subscription.processor_id}"
+      end
+
+      CatalogTransition.new(schedule: schedule, created: created)
+    rescue StandardError => e
+      logger.error(
+        "[Billing::StripeSubscriptionSchedule] catalog transition failed " \
+        "subscription_id=#{subscription.id} processor_id=#{subscription.processor_id}: #{e.class} - #{e.message}"
+      )
+      raise
+    end
+
+    def verify_catalog_transition(schedule_id:, target_price_id:, target_plan_key:, effective_at:, migration_key:)
+      Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
+      schedule = strict_retrieve_schedule(schedule_id)
+      catalog_transition_matches?(
+        schedule,
+        target_price_id: target_price_id,
+        target_plan_key: target_plan_key,
+        effective_at: effective_at,
+        migration_key: migration_key
+      )
+    end
+
     private
 
     attr_reader :subscription, :logger
@@ -223,12 +290,12 @@ module Billing
     def phases_for(target_price_id:, effective_at:)
       [
         {
-          items: [{ price: subscription.processor_plan, quantity: subscription.quantity || 1 }],
+          items: [ { price: subscription.processor_plan, quantity: subscription.quantity || 1 } ],
           start_date: phase_start,
           end_date: effective_at.to_i
         },
         {
-          items: [{ price: target_price_id, quantity: subscription.quantity || 1 }],
+          items: [ { price: target_price_id, quantity: subscription.quantity || 1 } ],
           start_date: effective_at.to_i
         }
       ]
@@ -254,6 +321,135 @@ module Billing
       return value.id if value.respond_to?(:id) && value.id.present?
 
       value.to_s.presence
+    end
+
+    def strict_remote_schedule_id
+      stripe_subscription = Stripe::Subscription.retrieve(subscription.processor_id)
+      schedule = stripe_subscription.respond_to?(:schedule) ? stripe_subscription.schedule : nil
+      normalize_schedule_id(schedule)
+    end
+
+    def strict_retrieve_schedule(schedule_id)
+      return if schedule_id.blank?
+
+      Stripe::SubscriptionSchedule.retrieve(schedule_id)
+    end
+
+    def recover_created_catalog_schedule(schedule, metadata)
+      raise_conflicting_schedule(schedule) if schedule_metadata(schedule).present?
+
+      replayed = Stripe::SubscriptionSchedule.create(
+        { from_subscription: subscription.processor_id },
+        { idempotency_key: catalog_idempotency_key(metadata) }
+      )
+      return replayed if normalize_schedule_id(replayed) == normalize_schedule_id(schedule)
+
+      raise_conflicting_schedule(schedule)
+    rescue Stripe::InvalidRequestError
+      raise_conflicting_schedule(schedule)
+    end
+
+    def raise_conflicting_schedule(schedule)
+      raise ConflictingScheduleError,
+            "subscription #{subscription.processor_id} has unmanaged schedule #{normalize_schedule_id(schedule)}"
+    end
+
+    def catalog_metadata(target_price_id:, target_plan_key:, effective_at:, migration_key:)
+      {
+        "managed_by" => CATALOG_MANAGED_BY,
+        "migration_key" => migration_key.to_s,
+        "pay_subscription_id" => subscription.id.to_s,
+        "source_price_id" => subscription.processor_plan.to_s,
+        "target_plan_key" => target_plan_key.to_s,
+        "target_price_id" => target_price_id.to_s,
+        "effective_at" => effective_at.to_i.to_s
+      }
+    end
+
+    def catalog_schedule_owned?(schedule, expected_metadata)
+      metadata = schedule_metadata(schedule)
+      expected_metadata.all? { |key, value| metadata[key].to_s == value.to_s }
+    end
+
+    def catalog_transition_matches?(schedule, target_price_id:, target_plan_key:, effective_at:, migration_key:)
+      return false if schedule.blank? || terminal_schedule?(schedule)
+
+      expected_metadata = catalog_metadata(
+        target_price_id: target_price_id,
+        target_plan_key: target_plan_key,
+        effective_at: effective_at,
+        migration_key: migration_key
+      )
+      return false unless catalog_schedule_owned?(schedule, expected_metadata)
+
+      phases = schedule_phases(schedule).last(2)
+      return false unless phases.size == 2
+
+      current_phase, target_phase = phases
+      current_item = phase_items(current_phase).first
+      target_item = phase_items(target_phase).first
+      expected_quantity = subscription.quantity || 1
+
+      phase_price_id(current_item) == subscription.processor_plan.to_s &&
+        phase_quantity(current_item) == expected_quantity &&
+        phase_end_epoch(current_phase) == effective_at.to_i &&
+        phase_price_id(target_item) == target_price_id.to_s &&
+        phase_quantity(target_item) == expected_quantity &&
+        phase_start_epoch(target_phase) == effective_at.to_i
+    end
+
+    def schedule_metadata(schedule)
+      metadata = value_for(schedule, :metadata)
+      metadata.respond_to?(:to_h) ? metadata.to_h.stringify_keys : {}
+    end
+
+    def schedule_phases(schedule)
+      collection_for(value_for(schedule, :phases))
+    end
+
+    def phase_items(phase)
+      collection_for(value_for(phase, :items))
+    end
+
+    def collection_for(value)
+      return value.data.to_a if value.respond_to?(:data)
+
+      Array(value)
+    end
+
+    def phase_price_id(item)
+      price = value_for(item, :price)
+      normalize_schedule_id(price).to_s
+    end
+
+    def phase_quantity(item)
+      value_for(item, :quantity).to_i
+    end
+
+    def phase_start_epoch(phase)
+      value_for(phase, :start_date).to_i
+    end
+
+    def phase_end_epoch(phase)
+      value_for(phase, :end_date).to_i
+    end
+
+    def value_for(source, key)
+      return if source.blank?
+      return source.public_send(key) if source.respond_to?(key)
+      return source[key] || source[key.to_s] if source.is_a?(Hash)
+
+      nil
+    end
+
+    def catalog_idempotency_key(metadata)
+      [
+        "pandora-catalog",
+        metadata.fetch("migration_key"),
+        subscription.processor_id,
+        metadata.fetch("target_price_id"),
+        metadata.fetch("effective_at")
+      ].join(":")
     end
   end
 end

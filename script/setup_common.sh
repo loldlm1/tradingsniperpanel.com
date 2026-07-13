@@ -676,7 +676,7 @@ prepare_app_assets() {
   local rails_env="$2"
 
   log "Preparing database and seeds"
-  run_as_app_user "cd '${app_dir}' && set -a && source .envrc && set +a && RAILS_ENV='${rails_env}' bin/rails db:prepare db:seed"
+  run_as_app_user "cd '${app_dir}' && set -a && source .envrc && set +a && RAILS_ENV='${rails_env}' bin/rails db:prepare db:seed catalog:pandora:verify"
 
   log "Building CSS assets"
   run_as_app_user "cd '${app_dir}' && set -a && source .envrc && set +a && RAILS_ENV='${rails_env}' npm run build:css"

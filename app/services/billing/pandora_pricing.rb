@@ -1,6 +1,7 @@
 module Billing
   module PandoraPricing
     TIER = "pandora_pro".freeze
+    PRODUCT_NAME = "Pandora Box EA".freeze
     CURRENCY = "usd".freeze
     MONTHLY_CENTS = 7_900
     ANNUAL_DISCOUNT_PERCENT = 35
