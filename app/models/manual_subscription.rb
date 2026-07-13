@@ -1,4 +1,6 @@
 class ManualSubscription < ApplicationRecord
+  attr_accessor :request_id
+
   STATUSES = {
     active: "active",
     expired: "expired",

@@ -8,6 +8,14 @@ class User < ApplicationRecord
   has_many :marketplace_purchases, dependent: :destroy
   has_many :manual_transactions, dependent: :destroy
   has_many :manual_subscriptions, dependent: :destroy
+  has_many :admin_audit_events,
+           foreign_key: :actor_id,
+           dependent: :restrict_with_exception,
+           inverse_of: :actor
+  has_many :targeted_admin_audit_events,
+           as: :target,
+           class_name: "AdminAuditEvent",
+           dependent: :restrict_with_exception
   has_many :support_requests, dependent: :destroy
   has_many :course_enrollments, dependent: :destroy
   has_many :courses, through: :course_enrollments
