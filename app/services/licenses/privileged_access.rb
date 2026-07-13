@@ -6,7 +6,7 @@ module Licenses
       Access::PrivilegedRolePolicy.full_access?(user)
     end
 
-    def self.generated_key_for(user:, expert_advisor:, encoder: LicenseKeyEncoder.new)
+    def self.generated_key_for(user:, expert_advisor:, encoder: LicenseKeyEncoder.new, token_version: 1)
       return nil unless user.is_a?(User)
       return nil unless expert_advisor.is_a?(ExpertAdvisor)
       return nil unless encoder.configured?
@@ -14,7 +14,8 @@ module Licenses
       encoder.generate(
         email: user.email,
         ea_id: expert_advisor.ea_id,
-        expires_at: License::LIFETIME_EXPIRES_AT
+        expires_at: License::LIFETIME_EXPIRES_AT,
+        token_version: token_version
       )
     end
 
@@ -90,7 +91,12 @@ module Licenses
     end
 
     def apply_role_license_attributes(license:, expert_advisor:)
-      encrypted_key = self.class.generated_key_for(user: user, expert_advisor: expert_advisor, encoder: encoder)
+      encrypted_key = self.class.generated_key_for(
+        user: user,
+        expert_advisor: expert_advisor,
+        encoder: encoder,
+        token_version: license.token_version
+      )
 
       license.status = "active"
       license.access_source = "one_time"

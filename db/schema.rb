@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_03_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_13_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -358,6 +358,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_03_120000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "access_source"
+    t.integer "token_version", default: 1, null: false
+    t.datetime "token_rotated_at"
     t.index ["access_source"], name: "index_licenses_on_access_source"
     t.index ["expert_advisor_id"], name: "index_licenses_on_expert_advisor_id"
     t.index ["expires_at"], name: "index_licenses_on_expires_at"
@@ -365,6 +367,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_03_120000) do
     t.index ["trial_ends_at"], name: "index_licenses_on_trial_ends_at"
     t.index ["user_id", "expert_advisor_id"], name: "index_licenses_on_user_id_and_expert_advisor_id", unique: true
     t.index ["user_id"], name: "index_licenses_on_user_id"
+    t.check_constraint "token_version > 0", name: "licenses_token_version_positive_check"
   end
 
   create_table "manual_subscriptions", force: :cascade do |t|

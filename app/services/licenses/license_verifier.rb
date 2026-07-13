@@ -36,7 +36,8 @@ module Licenses
         provided_key: license_key,
         email: user.email,
         ea_id: expert_advisor.ea_id,
-        expires_at: license.key_expires_at
+        expires_at: license.key_expires_at,
+        token_version: license.token_version
       )
 
       success(license)
@@ -50,7 +51,7 @@ module Licenses
       license = License.find_by(user:, expert_advisor:) || privileged_access_for(user).ensure_role_license_for(expert_advisor: expert_advisor)
       return failure(:license_not_found, :not_found) unless license
 
-      expected_key, expected_expires_at = privileged_key_material_for(
+      expected_key, expected_expires_at, token_version = privileged_key_material_for(
         user: user,
         expert_advisor: expert_advisor,
         license: license
@@ -60,7 +61,8 @@ module Licenses
         provided_key: provided_key,
         email: user.email,
         ea_id: expert_advisor.ea_id,
-        expires_at: expected_expires_at
+        expires_at: expected_expires_at,
+        token_version: token_version
       )
 
       success(license, trial: false, expires_at: expected_expires_at)
@@ -68,16 +70,17 @@ module Licenses
 
     def privileged_key_material_for(user:, expert_advisor:, license:)
       if license.persisted? && !license.revoked? && !license.expired_by_time? && license.encrypted_key.present?
-        return [license.encrypted_key, license.key_expires_at]
+        return [ license.encrypted_key, license.key_expires_at, license.token_version ]
       end
 
       generated_key = Licenses::PrivilegedAccess.generated_key_for(
         user: user,
         expert_advisor: expert_advisor,
-        encoder: encoder
+        encoder: encoder,
+        token_version: license.token_version
       )
 
-      [generated_key, License::LIFETIME_EXPIRES_AT]
+      [ generated_key, License::LIFETIME_EXPIRES_AT, license.token_version ]
     end
 
     def privileged_access_for(user)
@@ -85,14 +88,15 @@ module Licenses
       @privileged_access_by_user_id[user.id] ||= Licenses::PrivilegedAccess.new(user: user, encoder: encoder)
     end
 
-    def key_matches?(expected_key:, provided_key:, email:, ea_id:, expires_at:)
+    def key_matches?(expected_key:, provided_key:, email:, ea_id:, expires_at:, token_version:)
       return false unless secure_compare(expected_key, provided_key)
 
       encoder.valid_key?(
         license_key: provided_key,
         email: email,
         ea_id: ea_id,
-        expires_at: expires_at
+        expires_at: expires_at,
+        token_version: token_version
       )
     end
 

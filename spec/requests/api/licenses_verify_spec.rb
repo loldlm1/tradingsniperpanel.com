@@ -6,7 +6,15 @@ RSpec.describe "Licenses API", type: :request do
   let(:user) { create(:user, email: "api-user@example.com") }
   let(:expert_advisor) { create(:expert_advisor, ea_id: "ea-api") }
   let(:expires_at) { 5.days.from_now }
-  let(:license_key) { encoder.generate(email: user.email, ea_id: expert_advisor.ea_id, expires_at: expires_at) }
+  let(:token_version) { 2 }
+  let(:license_key) do
+    encoder.generate(
+      email: user.email,
+      ea_id: expert_advisor.ea_id,
+      expires_at: expires_at,
+      token_version: token_version
+    )
+  end
   let(:source_id) { ENV.fetch("EA_LICENSE_SOURCE_ID", "trading_sniper_floor") }
   let(:broker_account_payload) do
     {
@@ -22,6 +30,7 @@ RSpec.describe "Licenses API", type: :request do
       user: user,
       expert_advisor: expert_advisor,
       status: "active",
+      token_version: token_version,
       trial_ends_at: nil,
       expires_at: expires_at,
       encrypted_key: license_key
@@ -39,6 +48,21 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["magic_number"]).to be > 0
     expect(body["magic_number"]).to be <= Licenses::MagicNumberPolicy::MAX_VALUE
     expect(body["granted_addons"]).to eq([])
+  end
+
+  it "rejects the previous token after rotation and accepts the current token" do
+    previous_key = license.encrypted_key
+    Licenses::RotateTokens.new(scope: :user, user: user, encoder: encoder).call
+
+    post "/api/v1/licenses/verify", params: verify_params(license_key: previous_key)
+
+    expect(response).to have_http_status(:unauthorized)
+    expect(JSON.parse(response.body)["error"]).to eq("invalid_key")
+
+    post "/api/v1/licenses/verify", params: verify_params(license_key: license.reload.encrypted_key)
+
+    expect(response).to have_http_status(:ok)
+    expect(JSON.parse(response.body)["ok"]).to eq(true)
   end
 
   it "treats blank addon payloads as base access" do
@@ -203,7 +227,8 @@ RSpec.describe "Licenses API", type: :request do
     lifetime_key = encoder.generate(
       email: user.email,
       ea_id: expert_advisor.ea_id,
-      expires_at: License::LIFETIME_EXPIRES_AT
+      expires_at: License::LIFETIME_EXPIRES_AT,
+      token_version: token_version
     )
     license.update!(
       status: "active",

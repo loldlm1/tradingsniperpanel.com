@@ -138,6 +138,28 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
     expect(license.expires_at.to_i).to eq(past_end.to_i)
   end
 
+  it "reissues a synced license at its current token version" do
+    subscription = create_subscription(
+      processor_plan: basic_plan.stripe_price_id,
+      current_period_end: 1.month.from_now
+    )
+    license = create(
+      :license,
+      user: user,
+      expert_advisor: basic_ea,
+      status: "active",
+      token_version: 2,
+      trial_ends_at: nil,
+      expires_at: 1.week.from_now
+    )
+    expect(encoder).to receive(:generate).with(hash_including(token_version: 2)).and_return("VERSIONED")
+
+    described_class.new(subscription_id: subscription.id, encoder: encoder).call
+
+    expect(license.reload.token_version).to eq(2)
+    expect(license.encrypted_key).to eq("VERSIONED")
+  end
+
   it "activates pro-only EAs when on a pro plan" do
     subscription = create_subscription(
       processor_plan: pro_plan.stripe_price_id,
@@ -169,5 +191,4 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
       ends_at: ends_at
     )
   end
-
 end

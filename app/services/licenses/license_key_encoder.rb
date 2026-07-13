@@ -13,9 +13,9 @@ module Licenses
       primary_key.present? && secondary_key.present?
     end
 
-    def generate(email:, ea_id:, expires_at:)
+    def generate(email:, ea_id:, expires_at:, token_version: 1)
       validate_configuration!
-      payload = build_payload(email:, ea_id:, expires_at:)
+      payload = build_payload(email:, ea_id:, expires_at:, token_version:)
       encrypt(payload)
     end
 
@@ -24,9 +24,9 @@ module Licenses
       decrypt_hex(license_key).delete_suffix("\x00")
     end
 
-    def valid_key?(license_key:, email:, ea_id:, expires_at:)
+    def valid_key?(license_key:, email:, ea_id:, expires_at:, token_version: 1)
       validate_configuration!
-      expected = generate(email:, ea_id:, expires_at:)
+      expected = generate(email:, ea_id:, expires_at:, token_version:)
       secure_compare(expected, license_key)
     rescue ConfigurationError, ArgumentError
       false
@@ -36,8 +36,11 @@ module Licenses
 
     attr_reader :primary_key, :secondary_key
 
-    def build_payload(email:, ea_id:, expires_at:)
-      [email.to_s.strip.downcase, ea_id.to_s, normalize_expires_at(expires_at)].join(",")
+    def build_payload(email:, ea_id:, expires_at:, token_version:)
+      payload = [ email.to_s.strip.downcase, ea_id.to_s, normalize_expires_at(expires_at) ]
+      version = normalize_token_version(token_version)
+      payload << version if version > 1
+      payload.join(",")
     end
 
     def normalize_expires_at(expires_at)
@@ -45,6 +48,14 @@ module Licenses
       raise ArgumentError, "expires_at must be present" unless value.positive?
 
       value
+    end
+
+    def normalize_token_version(token_version)
+      unless token_version.is_a?(Integer) && token_version.between?(1, License::MAX_TOKEN_VERSION)
+        raise ArgumentError, "token_version must be a positive integer"
+      end
+
+      token_version
     end
 
     def validate_configuration!

@@ -71,4 +71,19 @@ RSpec.describe Licenses::LicenseVerifier do
     expect(result.ok?).to be(false)
     expect(result.error).to eq(:invalid_key)
   end
+
+  it "accepts a current version 2 token" do
+    license.update!(token_version: 2)
+    current_key = encoder.generate(**license.token_generation_attributes)
+    license.update!(encrypted_key: current_key)
+
+    result = verifier.call(
+      source: source_id,
+      email: user.email,
+      ea_id: expert_advisor.ea_id,
+      license_key: current_key
+    )
+
+    expect(result.ok?).to be(true)
+  end
 end

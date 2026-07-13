@@ -5,7 +5,7 @@ module Licenses
     sidekiq_options queue: :default
 
     def perform
-      Licenses::RegenerateKeys.new.call
+      Rails.logger.warn("[Licenses::RegenerateKeysWorker] retired without rotating license tokens")
     end
   end
 end
