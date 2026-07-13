@@ -4,6 +4,9 @@ require "ostruct"
 RSpec.describe Billing::LegacySubscriptionMigrator do
   before do
     create_pandora_plans
+    allow(Stripe::Subscription).to receive(:update) do |_processor_id, params|
+      OpenStruct.new(metadata: params.fetch(:metadata))
+    end
   end
 
   it "schedules an interval-matched annual transition and persists retry markers" do
@@ -20,6 +23,12 @@ RSpec.describe Billing::LegacySubscriptionMigrator do
       migration_key: described_class::MIGRATION_KEY
     ).and_return(transition)
     allow(schedule).to receive(:verify_catalog_transition).and_return(true)
+    remote_metadata = nil
+    allow(Stripe::Subscription).to receive(:update) do |processor_id, params|
+      expect(processor_id).to eq(subscription.processor_id)
+      remote_metadata = params.fetch(:metadata).stringify_keys
+      OpenStruct.new(metadata: remote_metadata)
+    end
     service = described_class.new(
       schedule_factory: ->(_record) { schedule },
       subscription_scope: Pay::Subscription.where(id: subscription.id),
@@ -34,6 +43,13 @@ RSpec.describe Billing::LegacySubscriptionMigrator do
     expect(metadata[described_class::METADATA_KEYS.fetch(:target_plan)]).to eq(Billing::PandoraPricing::ANNUAL_KEY)
     expect(metadata[described_class::METADATA_KEYS.fetch(:schedule)]).to eq("sub_sched_annual")
     expect(metadata["scheduled_schedule_id"]).to eq("sub_sched_annual")
+    expect(remote_metadata).to include(
+      described_class::METADATA_KEYS.fetch(:migration) => described_class::MIGRATION_KEY,
+      described_class::METADATA_KEYS.fetch(:target_plan) => Billing::PandoraPricing::ANNUAL_KEY,
+      described_class::METADATA_KEYS.fetch(:schedule) => "sub_sched_annual"
+    )
+
+    subscription.update!(metadata: remote_metadata)
     expect(service.verify!).to be(true)
   end
 
@@ -74,6 +90,24 @@ RSpec.describe Billing::LegacySubscriptionMigrator do
     )
 
     expect { service.call }.to raise_error(Billing::StripeSubscriptionSchedule::ConflictingScheduleError)
+    expect(subscription.reload.metadata.to_h).not_to include(described_class::METADATA_KEYS.fetch(:migration))
+  end
+
+  it "fails closed when Stripe subscription metadata cannot be persisted" do
+    subscription = create_legacy_subscription(interval: "month")
+    schedule = instance_double(Billing::StripeSubscriptionSchedule)
+    transition = Billing::StripeSubscriptionSchedule::CatalogTransition.new(
+      schedule: OpenStruct.new(id: "sub_sched_monthly"),
+      created: false
+    )
+    allow(schedule).to receive(:schedule_catalog_transition).and_return(transition)
+    allow(Stripe::Subscription).to receive(:update).and_raise(StandardError, "metadata update failed")
+    service = described_class.new(
+      schedule_factory: ->(_record) { schedule },
+      subscription_scope: Pay::Subscription.where(id: subscription.id)
+    )
+
+    expect { service.call }.to raise_error(StandardError, "metadata update failed")
     expect(subscription.reload.metadata.to_h).not_to include(described_class::METADATA_KEYS.fetch(:migration))
   end
 

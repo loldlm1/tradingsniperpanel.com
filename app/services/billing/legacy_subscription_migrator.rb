@@ -126,19 +126,29 @@ module Billing
     end
 
     def persist_metadata!(subscription:, target_plan:, schedule_id:)
+      metadata = normalized_metadata(subscription)
+      migration_metadata = {
+        METADATA_KEYS.fetch(:migration) => MIGRATION_KEY,
+        METADATA_KEYS.fetch(:target_plan) => target_plan.key,
+        METADATA_KEYS.fetch(:target_price) => target_plan.stripe_price_id,
+        METADATA_KEYS.fetch(:schedule) => schedule_id,
+        METADATA_KEYS.fetch(:effective_at) => subscription.current_period_end.iso8601,
+        METADATA_KEYS.fetch(:scheduled_at) => metadata[METADATA_KEYS.fetch(:scheduled_at)] || now.iso8601,
+        "scheduled_plan_key" => target_plan.key,
+        "scheduled_change_at" => subscription.current_period_end.iso8601,
+        "scheduled_schedule_id" => schedule_id
+      }
+      Stripe.api_key = ENV["STRIPE_PRIVATE_KEY"]
+      remote_subscription = Stripe::Subscription.update(
+        subscription.processor_id,
+        { metadata: migration_metadata }
+      )
+      remote_metadata = value_for(remote_subscription, :metadata)
+
       subscription.with_lock do
         metadata = normalized_metadata(subscription)
-        metadata.merge!(
-          METADATA_KEYS.fetch(:migration) => MIGRATION_KEY,
-          METADATA_KEYS.fetch(:target_plan) => target_plan.key,
-          METADATA_KEYS.fetch(:target_price) => target_plan.stripe_price_id,
-          METADATA_KEYS.fetch(:schedule) => schedule_id,
-          METADATA_KEYS.fetch(:effective_at) => subscription.current_period_end.iso8601,
-          METADATA_KEYS.fetch(:scheduled_at) => metadata[METADATA_KEYS.fetch(:scheduled_at)] || now.iso8601,
-          "scheduled_plan_key" => target_plan.key,
-          "scheduled_change_at" => subscription.current_period_end.iso8601,
-          "scheduled_schedule_id" => schedule_id
-        )
+        metadata.merge!(remote_metadata.to_h.stringify_keys) if remote_metadata.respond_to?(:to_h)
+        metadata.merge!(migration_metadata)
         subscription.update!(metadata: metadata)
       end
     end
