@@ -1,6 +1,7 @@
 class AdminAuditEvent < ApplicationRecord
   ACTIONS = {
     manual_subscription_granted: "manual_subscription.granted",
+    manual_subscription_revoked: "manual_subscription.revoked",
     subscription_licenses_rotated: "licenses.subscription_rotated",
     all_licenses_rotated: "licenses.all_rotated"
   }.freeze

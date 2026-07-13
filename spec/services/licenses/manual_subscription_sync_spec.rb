@@ -99,6 +99,23 @@ RSpec.describe Licenses::ManualSubscriptionSync, type: :service do
     expect(license.expires_at.to_i).to eq(extension.ends_at.to_i)
   end
 
+  it "expires subscription licenses after the manual grant is revoked" do
+    user = create(:user)
+    plan = create(:billing_plan, tier: "pro", interval: "month", interval_count: 1)
+    allowed_ea = create(:expert_advisor)
+    create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: allowed_ea)
+    subscription = create(:manual_subscription, user: user, billing_plan: plan)
+
+    described_class.new(manual_subscription_id: subscription.id).call
+    license = License.find_by!(user: user, expert_advisor: allowed_ea)
+    expect(license).to be_active
+
+    subscription.update!(status: "cancelled")
+    described_class.new(manual_subscription_id: subscription.id).call
+
+    expect(license.reload).to be_expired
+  end
+
   it "supersedes a delayed manual job without overwriting Stripe access" do
     user = create(:user)
     plan = create(:billing_plan, tier: "pro", interval: "month", interval_count: 1)

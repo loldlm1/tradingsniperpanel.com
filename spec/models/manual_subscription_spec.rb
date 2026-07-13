@@ -20,6 +20,20 @@ RSpec.describe ManualSubscription, type: :model do
     expect(subscription.errors[:amount_cents]).to be_present
   end
 
+  it "allows active or future periods to be revoked but not ended or terminal records" do
+    active = build(:manual_subscription, starts_at: 1.day.ago, ends_at: 1.day.from_now, status: "active")
+    future = build(:manual_subscription, starts_at: 1.day.from_now, ends_at: 2.days.from_now, status: "active")
+    expired = build(:manual_subscription, starts_at: 2.days.ago, ends_at: 1.day.ago, status: "expired")
+    cancelled = build(:manual_subscription, ends_at: 1.day.from_now, status: "cancelled")
+    superseded = build(:manual_subscription, ends_at: 1.day.from_now, status: "superseded")
+
+    expect(active).to be_revocable
+    expect(future).to be_revocable
+    expect(expired).not_to be_revocable
+    expect(cancelled).not_to be_revocable
+    expect(superseded).not_to be_revocable
+  end
+
   it "requires ends_at after starts_at" do
     subscription = build(:manual_subscription, starts_at: Time.current, ends_at: 1.day.ago)
     expect(subscription).not_to be_valid

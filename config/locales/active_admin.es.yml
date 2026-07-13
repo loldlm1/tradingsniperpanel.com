@@ -33,7 +33,15 @@ es:
       master_admin_hidden: "Esta cuenta está restringida."
     manual_subscriptions:
       granted: "Acceso manual a Pandora otorgado."
+      revoked: "Acceso manual a Pandora revocado. El acceso de las licencias se está sincronizando."
+      revoke_failed: "No se pudo revocar el acceso manual a Pandora: %{message}"
+      revoke_confirm: "¿Revocar el acceso manual a Pandora de %{email}? El período original que termina el %{ends_at} se conserva en el historial de auditoría, pero el acceso se detiene de inmediato."
       automatic: "Automático"
+      actions:
+        revoke: "Revocar acceso"
+      user_lookup:
+        label: "Correo del usuario"
+        hint: "Escribe al menos 2 caracteres del correo. Los resultados muestran correo y nombre; también puedes pegar el correo completo y enviar."
       sections:
         access: "Acceso manual a Pandora"
         payment: "Detalles de pago opcionales"
@@ -125,6 +133,7 @@ es:
         pending: "Pendiente"
       events:
         manual_subscription_granted: "Suscripción manual otorgada"
+        manual_subscription_revoked: "Suscripción manual revocada"
         licenses_subscription_rotated: "Licencias de suscripción del usuario rotadas"
         licenses_all_rotated: "Todas las licencias activas/en prueba rotadas"
       empty:

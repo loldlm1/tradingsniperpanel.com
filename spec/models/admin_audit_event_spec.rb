@@ -32,4 +32,14 @@ RSpec.describe AdminAuditEvent do
     expect(user_operation).not_to be_valid
     expect(global_operation).not_to be_valid
   end
+
+  it "accepts manual subscription revocation events targeted at users" do
+    event = build(
+      :admin_audit_event,
+      action: described_class::ACTIONS.fetch(:manual_subscription_revoked),
+      metadata: { "manual_subscription_id" => 123, "revoked_at" => Time.current.iso8601(6) }
+    )
+
+    expect(event).to be_valid
+  end
 end

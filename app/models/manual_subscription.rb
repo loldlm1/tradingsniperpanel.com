@@ -1,5 +1,5 @@
 class ManualSubscription < ApplicationRecord
-  attr_accessor :request_id
+  attr_accessor :request_id, :user_lookup
 
   STATUSES = {
     active: "active",
@@ -97,6 +97,10 @@ class ManualSubscription < ApplicationRecord
     return false if starts_at.blank? || ends_at.blank?
 
     starts_at <= time && ends_at >= time
+  end
+
+  def revocable?(at = Time.current)
+    !cancelled? && !superseded? && ends_at.present? && ends_at > at
   end
 
   def settled_amount_cents

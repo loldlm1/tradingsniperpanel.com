@@ -101,7 +101,13 @@ RSpec.describe "Admin form rendering", type: :request do
   it "renders manual subscription forms" do
     get new_admin_manual_subscription_path
     expect_form_ok
-    expect(response.body).to include('name="manual_subscription[user_id]"')
+    page = Nokogiri::HTML(response.body)
+    user_lookup = page.at_css('input[name="manual_subscription[user_lookup]"][type="search"]')
+
+    expect(user_lookup).to be_present
+    expect(user_lookup["data-search-url"]).to eq(user_search_admin_manual_subscriptions_path)
+    expect(page.at_css('input[name="manual_subscription[user_id]"][type="hidden"]')).to be_present
+    expect(page.at_css('select[name="manual_subscription[user_id]"]')).to be_nil
     expect(response.body).to include('name="manual_subscription[billing_plan_id]"')
     expect(response.body).to include('name="manual_subscription[granted_days]"')
     expect(response.body).to include('name="manual_subscription[paid_at]"')

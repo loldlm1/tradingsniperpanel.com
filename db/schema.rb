@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_13_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_13_131000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -84,8 +84,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_120000) do
     t.index ["created_at"], name: "index_admin_audit_events_on_created_at"
     t.index ["request_id"], name: "index_admin_audit_events_on_request_id", unique: true
     t.index ["target_type", "target_id", "created_at"], name: "index_admin_audit_events_on_target_and_created_at"
-    t.check_constraint "action::text = 'licenses.all_rotated'::text AND target_type IS NULL AND target_id IS NULL OR (action::text = ANY (ARRAY['manual_subscription.granted'::character varying, 'licenses.subscription_rotated'::character varying]::text[])) AND target_type::text = 'User'::text AND target_id IS NOT NULL", name: "admin_audit_events_target_action_check"
-    t.check_constraint "action::text = ANY (ARRAY['manual_subscription.granted'::character varying, 'licenses.subscription_rotated'::character varying, 'licenses.all_rotated'::character varying]::text[])", name: "admin_audit_events_action_check"
+    t.check_constraint "action::text = 'licenses.all_rotated'::text AND target_type IS NULL AND target_id IS NULL OR (action::text = ANY (ARRAY['manual_subscription.granted'::character varying, 'manual_subscription.revoked'::character varying, 'licenses.subscription_rotated'::character varying]::text[])) AND target_type::text = 'User'::text AND target_id IS NOT NULL", name: "admin_audit_events_target_action_check"
+    t.check_constraint "action::text = ANY (ARRAY['manual_subscription.granted'::character varying, 'manual_subscription.revoked'::character varying, 'licenses.subscription_rotated'::character varying, 'licenses.all_rotated'::character varying]::text[])", name: "admin_audit_events_action_check"
     t.check_constraint "char_length(request_id::text) >= 1 AND char_length(request_id::text) <= 128", name: "admin_audit_events_request_id_length_check"
     t.check_constraint "jsonb_typeof(metadata) = 'object'::text", name: "admin_audit_events_metadata_object_check"
   end
@@ -902,6 +902,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_120000) do
     t.jsonb "oauth_data", default: {}, null: false
     t.datetime "terms_accepted_at"
     t.integer "role", default: 0, null: false
+    t.index "lower((email)::text) text_pattern_ops", name: "index_users_on_lower_email_pattern"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true

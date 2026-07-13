@@ -33,7 +33,15 @@ en:
       master_admin_hidden: "This account is restricted."
     manual_subscriptions:
       granted: "Manual Pandora access granted."
+      revoked: "Manual Pandora access revoked. License access is being synchronized."
+      revoke_failed: "Manual Pandora access could not be revoked: %{message}"
+      revoke_confirm: "Revoke manual Pandora access for %{email}? The original period ending %{ends_at} remains in the audit history, but access stops immediately."
       automatic: "Automatic"
+      actions:
+        revoke: "Revoke access"
+      user_lookup:
+        label: "User email"
+        hint: "Type at least 2 email characters. Results show email and name, or paste the full email and submit."
       sections:
         access: "Manual Pandora access"
         payment: "Optional payment details"
@@ -125,6 +133,7 @@ en:
         pending: "Pending"
       events:
         manual_subscription_granted: "Manual subscription granted"
+        manual_subscription_revoked: "Manual subscription revoked"
         licenses_subscription_rotated: "User subscription licenses rotated"
         licenses_all_rotated: "All active/trial licenses rotated"
       empty:

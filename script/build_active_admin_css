@@ -17,4 +17,6 @@ JQUERY_RAILS_PATH=$(bundle exec ruby -e 'print Gem::Specification.find_by_name("
   app/assets/builds/active_admin.css
 
 cp "$ACTIVEADMIN_PATH/app/assets/javascripts/active_admin/base.js" app/assets/builds/active_admin.js
+printf '\n' >> app/assets/builds/active_admin.js
+cat app/javascript/active_admin/manual_subscription_user_search.js >> app/assets/builds/active_admin.js
 cp "$JQUERY_RAILS_PATH/vendor/assets/javascripts/jquery_ujs.js" app/assets/builds/jquery_ujs.js
