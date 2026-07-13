@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe "Landing template locale and branding", type: :request do
   TEMPLATE_EXPECTATIONS = {
-    "neon" => "COMPLETE FOREX PORTFOLIOS",
+    "neon" => "Pandora Box EA for MetaTrader 5",
     "fintech" => "Execution playbooks"
   }.freeze
 

@@ -162,12 +162,24 @@ bin/rails runner 'pp({ env: Rails.env, provider: Rails.configuration.x.branding.
 - V1 release notifications are published from production ActiveAdmin after product changes are live.
 - Update the qualifying products first:
   - EA downloadable file or active bundle changed
-  - new add-on became available
   - new course became published
 - Then open `Admin -> Product Releases` and click `Publish Product Release`.
 - The app will diff the current tracked catalog against the last published snapshot.
 - If qualifying changes are found, one grouped release batch is created for dashboard users.
 - If nothing qualifies, ActiveAdmin returns a clean no-op notice and no user-facing release is created.
+
+## Pandora subscription operations
+
+- Pandora Box EA is the only active purchasable product. The canonical plans are `$79.00/month` (`pandora_pro_monthly`) and `$616.20/year` (`pandora_pro_annual`). The annual amount is the integer-cent calculation `7900 * 12 * 65 / 100`, a 35% discount from twelve monthly periods.
+- Historical plans, Stripe price mappings, marketplace purchases, charges, and invoices remain stored for audit, but retired products cannot start a new checkout or grant access.
+- Existing renewable Stripe subscriptions keep their current price and quantity through `current_period_end`. Seed reconciliation schedules the interval-matched Pandora price for the next period without immediate swaps or proration; subscriptions already ending are not renewed.
+- `Admin -> Subscription Audits` shows the effective access source, status, period, products, promotions/discounts, gross/refunds/net totals by currency, invoice history, manual grants, license status, token version, and safe processor references.
+- `Admin -> Manual Subscriptions -> New` grants Pandora access by user, plan, and days. A grant starts after the later of now or the user's current manual end. Complimentary and pending grants contribute `$0` settled revenue; a later paid Stripe subscription supersedes remaining manual access.
+- Admins and master admins can rotate one user's active/trial subscription license tokens. Only master admins can rotate all active/trial tokens. Rotation is atomic, idempotently audited, and immediately invalidates prior keys on every licensing endpoint.
+- User roles never grant product access. Admin roles authorize administration only; product access still requires a current Stripe subscription or active manual grant.
+- Never rotate tokens from a seed, migration, deploy hook, or role callback. Compile, distribute, and confirm the Pandora client with v2 token parsing before any rotation.
+
+The production sequence, staging rehearsal, post-deploy checks, schedule rollback limits, manual grant procedure, and token-rotation gate are documented in `docs/pandora_subscription_rollout_runbook.md`.
 
 ## Server setup (Ubuntu 22.04, staging + production on the same VPS)
 
@@ -244,7 +256,7 @@ sudo bash /opt/tradingsniperpanel-deploy/setup_staging.sh
   - `invoice.payment_action_required`
   - `payment_intent.succeeded`
   - `payment_intent.payment_failed`
-Scripts run `db:seed` on each deploy. Seed profiles default to `prod_mirror` in production and `full_qa` in staging/development, and are safe to re-run.
+Scripts run `db:seed` and `catalog:pandora:verify` on each deploy. Seed profiles default to `prod_mirror` in production and `full_qa` in staging/development; both converge the active commerce catalog on Pandora Box EA and are safe to re-run.
 7) SSL files (production only):
 ```
 CERT_SRC_DIR="$(pwd)"
@@ -599,7 +611,7 @@ See `.envrc.example` for the full list. Key server variables:
 - Dashboard promotions: manage active Stripe promotion codes from ActiveAdmin; the dashboard modal is database-backed rather than env-driven.
 - OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_HD`.
 - Stripe (Pay): `STRIPE_PRIVATE_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_SIGNING_SECRET`.
-- Billing plans: stored in `billing_plans` and created via `Billing::PlanCreator` (see `db/seeds`).
+- Billing plans: the active catalog is seed-managed Pandora monthly/annual data in `billing_plans`; current and retired Stripe mappings are stored in `billing_plan_prices`.
 - Licensing: `EA_LICENSE_PRIMARY_KEY`, `EA_LICENSE_SECRET_KEY`, `EA_LICENSE_SOURCE_ID`.
 - Referrals: `REFER_DEFAULT_DISCOUNT_PERCENT`.
 - MaxMind: `MAXMIND_LICENSE_KEY`, `MAXMIND_DB_PATH`.
