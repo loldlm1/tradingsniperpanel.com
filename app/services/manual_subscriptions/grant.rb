@@ -4,6 +4,7 @@ module ManualSubscriptions
 
     MAX_GRANTED_DAYS = 730
     PANDORA_EA_ID = "pandora_box".freeze
+    PANDORA_TIER = Billing::PandoraPricing::TIER
 
     def initialize(user:, billing_plan:, granted_days:, recorded_by_admin:, request_id:, payment_status: nil,
                    amount_cents: nil, paid_at: nil, currency: "usd", payment_method: nil,
