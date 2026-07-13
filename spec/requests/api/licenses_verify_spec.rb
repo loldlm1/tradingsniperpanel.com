@@ -200,33 +200,59 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["granted_addons"]).to eq([addon.key])
   end
 
-  it "allows privileged users with role-based access and no addon purchases" do
-    privileged_user = create(:user, :full_trader, email: "privileged-api@example.com")
-    privileged_ea = create(:expert_advisor, ea_id: "ea-privileged-api")
-    addon = create(:addon, key: "risk_guard", addonable: privileged_ea)
-    privileged_key = Licenses::PrivilegedAccess.generated_key_for(
-      user: privileged_user,
-      expert_advisor: privileged_ea,
-      encoder: encoder
+  it "returns license_not_found for every product role without entitlement" do
+    role_ea = create(:expert_advisor, ea_id: "ea-role-only-api")
+
+    %i[admin master_admin full_trader].each do |role|
+      role_user = create(:user, role: role)
+
+      expect do
+        post "/api/v1/licenses/verify", params: {
+          source: source_id,
+          email: role_user.email,
+          ea_id: role_ea.ea_id,
+          license_key: "ROLE_ONLY_KEY",
+          broker_account: broker_account_payload
+        }
+      end.not_to change(License, :count)
+
+      expect(response).to have_http_status(:not_found)
+      expect(JSON.parse(response.body)["error"]).to eq("license_not_found")
+    end
+  end
+
+  it "accepts a subscription-backed admin license" do
+    admin = create(:user, :admin, email: "subscribed-admin@example.com")
+    admin_ea = create(:expert_advisor, ea_id: "ea-subscribed-admin")
+    admin_expires_at = 1.month.from_now
+    admin_key = encoder.generate(
+      email: admin.email,
+      ea_id: admin_ea.ea_id,
+      expires_at: admin_expires_at,
+      token_version: 1
+    )
+    create(
+      :license,
+      user: admin,
+      expert_advisor: admin_ea,
+      status: "active",
+      access_source: "subscription",
+      source: "stripe_subscription",
+      trial_ends_at: nil,
+      expires_at: admin_expires_at,
+      encrypted_key: admin_key
     )
 
     post "/api/v1/licenses/verify", params: {
       source: source_id,
-      email: privileged_user.email,
-      ea_id: privileged_ea.ea_id,
-      license_key: privileged_key,
-      addons: addon.key,
+      email: admin.email,
+      ea_id: admin_ea.ea_id,
+      license_key: admin_key,
       broker_account: broker_account_payload
     }
 
     expect(response).to have_http_status(:ok)
-    body = JSON.parse(response.body)
-    expect(body["ok"]).to eq(true)
-    expect(body["trial"]).to eq(false)
-    expect(body["magic_number"]).to be > 0
-    expect(body["magic_number"]).to be <= Licenses::MagicNumberPolicy::MAX_VALUE
-    expect(body["granted_addons"]).to eq([addon.key])
-    expect(privileged_user.licenses.find_by(expert_advisor: privileged_ea)&.source).to eq("role_access")
+    expect(JSON.parse(response.body)["ok"]).to eq(true)
   end
 
   it "returns lifetime expiration after subscription sync when the license is one-time" do

@@ -141,6 +141,25 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(response).to have_http_status(:not_found)
   end
 
+  it "does not grant guides or downloads from a product role" do
+    attach_bundle(expert_advisor)
+    sign_out user
+
+    %i[admin master_admin full_trader].each do |role|
+      role_user = create(:user, role: role)
+      sign_in role_user, scope: :user
+
+      get dashboard_expert_advisor_guides_path(expert_advisor, locale: :en)
+      expect(response).to have_http_status(:not_found)
+
+      get dashboard_expert_advisor_download_path(expert_advisor, locale: :en)
+      expect(response).to redirect_to(dashboard_expert_advisors_path(locale: :en))
+      expect(role_user.licenses).to be_empty
+
+      sign_out role_user
+    end
+  end
+
   it "renders addon guides when user owns base access and addon purchase" do
     create(:license, user: user, expert_advisor: expert_advisor, status: "active")
     addon_product = create(

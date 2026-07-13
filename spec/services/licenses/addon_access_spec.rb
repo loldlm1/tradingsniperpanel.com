@@ -37,12 +37,13 @@ RSpec.describe Licenses::AddonAccess do
     expect(result.missing).to eq(["unknown_addon"])
   end
 
-  it "allows privileged users without addon purchases" do
-    privileged_user = create(:user, :full_trader)
+  it "requires add-on purchases for every product role" do
+    %i[admin master_admin full_trader].each do |role|
+      role_user = create(:user, role: role)
+      result = described_class.new(user: role_user, expert_advisor: expert_advisor, addon_keys: addon.key).call
 
-    result = described_class.new(user: privileged_user, expert_advisor: expert_advisor, addon_keys: addon.key).call
-
-    expect(result).to be_allowed
-    expect(result.missing).to eq([])
+      expect(result.allowed?).to be(false)
+      expect(result.missing).to eq([ addon.key ])
+    end
   end
 end

@@ -3,7 +3,6 @@ class MarketplaceController < ApplicationController
   before_action :authenticate_user!
   before_action :set_marketplace_entry, only: [:show, :checkout]
   before_action :ensure_payment_processor, only: [:checkout]
-  before_action :block_privileged_checkout!, only: [:checkout]
 
   def index
     @marketplace = Marketplace::IndexPresenter.new(
@@ -79,13 +78,6 @@ class MarketplaceController < ApplicationController
 
   def ensure_payment_processor
     current_user.set_payment_processor(:stripe) unless current_user.payment_processor
-  end
-
-  def block_privileged_checkout!
-    return unless Access::PrivilegedRolePolicy.full_access?(current_user)
-
-    redirect_to dashboard_marketplace_product_path(@entry.product, locale: I18n.locale),
-                alert: t("dashboard.marketplace.errors.privileged_checkout_blocked")
   end
 
   def render_marketplace_description(markdown)

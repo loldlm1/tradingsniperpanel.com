@@ -25,12 +25,14 @@ RSpec.describe Addons::Eligibility do
   end
 
   describe "expert advisor add-ons" do
-    it "allows privileged users without base purchases" do
-      privileged_user = create(:user, :full_trader)
+    it "requires base access for every product role" do
+      %i[admin master_admin full_trader].each do |role|
+        role_user = create(:user, role: role)
+        result = described_class.new(user: role_user, addon: addon).call
 
-      result = described_class.new(user: privileged_user, addon: addon).call
-
-      expect(result).to be_allowed
+        expect(result.allowed?).to be(false)
+        expect(result.reason).to eq(:base_inactive)
+      end
     end
 
     it "allows one-time licenses" do
@@ -114,12 +116,14 @@ RSpec.describe Addons::Eligibility do
       expect(result.reason).to eq(:missing_base)
     end
 
-    it "allows privileged users without course entitlements" do
-      privileged_user = create(:user, :full_trader)
+    it "requires course access for every product role" do
+      %i[admin master_admin full_trader].each do |role|
+        role_user = create(:user, role: role)
+        result = described_class.new(user: role_user, addon: course_addon).call
 
-      result = described_class.new(user: privileged_user, addon: course_addon).call
-
-      expect(result).to be_allowed
+        expect(result.allowed?).to be(false)
+        expect(result.reason).to eq(:base_inactive)
+      end
     end
   end
 
@@ -147,12 +151,14 @@ RSpec.describe Addons::Eligibility do
       expect(result.reason).to eq(:missing_base)
     end
 
-    it "allows privileged users without asset purchases" do
-      privileged_user = create(:user, :full_trader)
+    it "requires asset access for every product role" do
+      %i[admin master_admin full_trader].each do |role|
+        role_user = create(:user, role: role)
+        result = described_class.new(user: role_user, addon: asset_addon).call
 
-      result = described_class.new(user: privileged_user, addon: asset_addon).call
-
-      expect(result).to be_allowed
+        expect(result.allowed?).to be(false)
+        expect(result.reason).to eq(:missing_base)
+      end
     end
   end
 end

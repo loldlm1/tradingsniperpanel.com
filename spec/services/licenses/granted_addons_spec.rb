@@ -30,13 +30,15 @@ RSpec.describe Licenses::GrantedAddons do
     expect(granted).to eq(["addon_session_time_filter"])
   end
 
-  it "returns all addon keys for privileged users" do
-    privileged_user = create(:user, :full_trader)
+  it "does not grant add-ons from a product role" do
     create(:addon, key: "addon_session_time_filter", addonable: expert_advisor)
     create(:addon, key: "addon_grid_strategy_config", addonable: expert_advisor)
 
-    granted = described_class.new(user: privileged_user, expert_advisor: expert_advisor).call
+    %i[admin master_admin full_trader].each do |role|
+      role_user = create(:user, role: role)
+      granted = described_class.new(user: role_user, expert_advisor: expert_advisor).call
 
-    expect(granted).to eq(%w[addon_grid_strategy_config addon_session_time_filter])
+      expect(granted).to eq([])
+    end
   end
 end

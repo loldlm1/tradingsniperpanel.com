@@ -37,14 +37,24 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(flash[:alert]).to eq(I18n.t("dashboard.plans.manual_unavailable"))
   end
 
-  it "blocks subscription checkout for privileged users" do
-    privileged_user = create(:user, :full_trader)
-    sign_in privileged_user, scope: :user
+  it "allows every product role to start subscription checkout" do
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+    expect(checkout_stub).to receive(:checkout).exactly(3).times do |**params|
+      expect(params[:mode]).to eq("subscription")
+      expect(params[:line_items]).to eq([ { price: basic_plan.stripe_price_id, quantity: 1 } ])
+      double(url: "https://checkout.test/role-subscription")
+    end
 
-    post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+    %i[admin master_admin full_trader].each do |role|
+      role_user = create(:user, role: role)
+      sign_in role_user, scope: :user
 
-    expect(response).to redirect_to(dashboard_plans_path(locale: :en))
-    expect(flash[:alert]).to eq(I18n.t("dashboard.billing.privileged_checkout_blocked"))
+      post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+
+      expect(response).to redirect_to("https://checkout.test/role-subscription")
+      sign_out role_user
+    end
   end
 
   it "pre-applies the selected dashboard promotion code to checkout" do

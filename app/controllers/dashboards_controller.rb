@@ -3,7 +3,6 @@ class DashboardsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_accessible_expert_advisors
   before_action :ensure_payment_processor, only: [:checkout, :billing_portal]
-  before_action :block_privileged_checkout!, only: [:checkout]
   before_action :set_subscription, only: [:show, :plans, :billing, :checkout, :cancel_scheduled_downgrade, :cancel_subscription, :resume_subscription]
   before_action :set_plan_context, only: [:show, :billing]
   before_action :set_invoices, only: [:billing]
@@ -288,13 +287,6 @@ class DashboardsController < ApplicationController
 
   def ensure_payment_processor
     current_user.set_payment_processor(:stripe) unless current_user.payment_processor
-  end
-
-  def block_privileged_checkout!
-    return unless Access::PrivilegedRolePolicy.full_access?(current_user)
-
-    redirect_to dashboard_plans_path(locale: I18n.locale),
-                alert: t("dashboard.billing.privileged_checkout_blocked")
   end
 
   def manual_subscription?

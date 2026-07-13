@@ -25,7 +25,6 @@
                     end %>
 <% plan_states = plan[:states] || {} %>
 <% upgrade_confirm = t("dashboard.plans.upgrade_confirm") %>
-<% privileged_full_access = Access::PrivilegedRolePolicy.full_access?(current_user) %>
 
 <% plan_name = current_tier ? t("dashboard.plans.tiers.#{current_tier}.name", default: current_tier.to_s.humanize) : nil %>
 <% interval_label = plan[:current_interval_label].presence || Billing::IntervalLabeler.legacy_label(plan[:current_interval_key]) %>
@@ -60,9 +59,6 @@
         <div class="text-sm"><%= summary_text %></div>
         <% if manual_subscription %>
           <div class="mt-3 text-sm text-amber-600 dark:text-amber-300"><%= t("dashboard.plans.manual_unavailable") %></div>
-        <% end %>
-        <% if privileged_full_access %>
-          <div class="mt-3 text-sm text-emerald-600 dark:text-emerald-300"><%= t("dashboard.plans.privileged_access_notice") %></div>
         <% end %>
         <% if scheduled_label.present? && scheduled_change[:effective_at].present? %>
           <div class="mt-2 flex flex-col gap-2 text-sm text-amber-600 dark:text-amber-300 sm:flex-row sm:items-center sm:justify-between">
@@ -143,11 +139,7 @@
                   <% interval_state = plan_states.dig(tier_key, interval_key) %>
                   <% scheduled_for_interval = scheduled_price_key == plan_key %>
                   <div x-show="period === '<%= interval_key %>'" x-cloak>
-                    <% if privileged_full_access %>
-                      <button class="btn w-full border-gray-200 dark:border-gray-700/60 text-emerald-700 dark:text-emerald-300 disabled:cursor-not-allowed" disabled>
-                        <%= t("dashboard.plans.cta.privileged_included") %>
-                      </button>
-                    <% elsif available %>
+                    <% if available %>
                       <% if subscribed && interval_state == :current %>
                         <button class="btn w-full bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white disabled:border-gray-200 dark:disabled:border-gray-700 disabled:bg-white dark:disabled:bg-gray-800 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed" disabled>
                           <svg class="w-3 h-3 shrink-0 fill-current mr-2" viewBox="0 0 12 12">

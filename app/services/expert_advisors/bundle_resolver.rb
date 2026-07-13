@@ -47,7 +47,6 @@ module ExpertAdvisors
     def purchased_addon_keys
       addons = Addon.where(addonable: expert_advisor).pluck(:key, :billing_plan_id)
       return [] if addons.empty?
-      return addons.map(&:first).sort if Access::PrivilegedRolePolicy.full_access?(user)
 
       plan_ids = addons.map(&:last)
       purchased_ids = MarketplacePurchase.where(user: user, billing_plan_id: plan_ids).pluck(:billing_plan_id)

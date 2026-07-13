@@ -23,10 +23,6 @@ module Licenses
       expert_advisor = ExpertAdvisor.find_by(ea_id: ea_id)
       return failure(:ea_not_found, :not_found) unless expert_advisor
 
-      if Licenses::PrivilegedAccess.full_access?(user)
-        return verify_privileged_access(user: user, expert_advisor: expert_advisor, provided_key: license_key)
-      end
-
       license = License.find_by(user:, expert_advisor:)
       return failure(:license_not_found, :not_found) unless license
       return failure(:trial_disabled, :unauthorized) if license.trial? && !expert_advisor.trial_enabled?
@@ -46,47 +42,6 @@ module Licenses
     private
 
     attr_reader :encoder, :expected_source
-
-    def verify_privileged_access(user:, expert_advisor:, provided_key:)
-      license = License.find_by(user:, expert_advisor:) || privileged_access_for(user).ensure_role_license_for(expert_advisor: expert_advisor)
-      return failure(:license_not_found, :not_found) unless license
-
-      expected_key, expected_expires_at, token_version = privileged_key_material_for(
-        user: user,
-        expert_advisor: expert_advisor,
-        license: license
-      )
-      return failure(:invalid_key, :unauthorized) unless key_matches?(
-        expected_key: expected_key,
-        provided_key: provided_key,
-        email: user.email,
-        ea_id: expert_advisor.ea_id,
-        expires_at: expected_expires_at,
-        token_version: token_version
-      )
-
-      success(license, trial: false, expires_at: expected_expires_at)
-    end
-
-    def privileged_key_material_for(user:, expert_advisor:, license:)
-      if license.persisted? && !license.revoked? && !license.expired_by_time? && license.encrypted_key.present?
-        return [ license.encrypted_key, license.key_expires_at, license.token_version ]
-      end
-
-      generated_key = Licenses::PrivilegedAccess.generated_key_for(
-        user: user,
-        expert_advisor: expert_advisor,
-        encoder: encoder,
-        token_version: license.token_version
-      )
-
-      [ generated_key, License::LIFETIME_EXPIRES_AT, license.token_version ]
-    end
-
-    def privileged_access_for(user)
-      @privileged_access_by_user_id ||= {}
-      @privileged_access_by_user_id[user.id] ||= Licenses::PrivilegedAccess.new(user: user, encoder: encoder)
-    end
 
     def key_matches?(expected_key:, provided_key:, email:, ea_id:, expires_at:, token_version:)
       return false unless secure_compare(expected_key, provided_key)
