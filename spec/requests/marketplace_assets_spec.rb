@@ -54,7 +54,7 @@ RSpec.describe "Marketplace assets", type: :request do
     get dashboard_marketplace_asset_path(asset, locale: :en)
 
     expect(response).to have_http_status(:found)
-    expect(response.headers["Location"]).to include(dashboard_marketplace_path(locale: :en))
+    expect(response.headers["Location"]).to include(dashboard_path(locale: :en))
     expect(flash[:alert]).to eq(I18n.t("dashboard.marketplace.assets.access_denied", locale: :en))
   end
 
@@ -81,7 +81,7 @@ RSpec.describe "Marketplace assets", type: :request do
     get dashboard_marketplace_asset_download_path(asset, locale: :es)
 
     expect(response).to have_http_status(:found)
-    expect(response.headers["Location"]).to include(dashboard_marketplace_path(locale: :es))
+    expect(response.headers["Location"]).to include(dashboard_path(locale: :es))
     expect(flash[:alert]).to eq(I18n.t("dashboard.marketplace.assets.missing_file", locale: :es))
   end
 end

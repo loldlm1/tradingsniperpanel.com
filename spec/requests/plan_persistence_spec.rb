@@ -1,6 +1,22 @@
 require "rails_helper"
 
 RSpec.describe "Plan persistence across auth", type: :request do
+  before do
+    create(
+      :billing_plan,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
+      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
+    )
+    create(
+      :billing_plan,
+      :annual,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::ANNUAL_KEY,
+      amount_cents: Billing::PandoraPricing::ANNUAL_CENTS
+    )
+  end
+
   shared_examples "plan persistence" do |price_key|
     it "redirects to dashboard plans with the selected plan after signup" do
       get new_user_registration_path(locale: :en, price_key:)
@@ -19,24 +35,28 @@ RSpec.describe "Plan persistence across auth", type: :request do
     end
   end
 
-  include_examples "plan persistence", "basic_monthly"
-  include_examples "plan persistence", "pro_annual"
+  include_examples "plan persistence", Billing::PandoraPricing::MONTHLY_KEY
+  include_examples "plan persistence", Billing::PandoraPricing::ANNUAL_KEY
 
-  it "parses underscore-tier plan keys and silently falls back to default intervals" do
-    create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, amount_cents: 2000)
-    create(:billing_plan, :annual, tier: "basic", key: "basic_annual", amount_cents: 18_000)
-    create(:billing_plan, tier: "pandora_pro", key: "pandora_pro_monthly", interval: "month", interval_count: 1, amount_cents: 3000)
-    create(:billing_plan, :annual, tier: "pandora_pro", key: "pandora_pro_annual", amount_cents: 27_000)
+  it "does not persist retired or unknown plan hints" do
+    get new_user_registration_path(locale: :en, price_key: "basic_monthly")
 
+    expect(cookies["desired_plan"]).to be_blank
+  end
+
+  it "renders the one Pandora card and silently falls back for invalid hints" do
+    create(:billing_plan, tier: "basic", key: "basic_monthly", amount_cents: 2_000)
     user = create(:user)
     sign_in user, scope: :user
 
-    get dashboard_plans_path(locale: :en, price_key: "pandora_pro_annual")
+    get dashboard_plans_path(locale: :en, price_key: Billing::PandoraPricing::ANNUAL_KEY)
 
     expect(response).to be_successful
     expect(response.body).to include("x-data=\"{ period: 'annual' }\"")
     expect(response.body).to include(I18n.t("dashboard.plans.requested_plan", locale: :en))
-    expect(response.body).to include(I18n.t("licenses.online_seats.subscription_feature", count: 5, locale: :en))
+    expect(response.body).to include("79.00")
+    expect(response.body).to include("616.20")
+    expect(response.body).not_to include("basic_monthly")
 
     get dashboard_plans_path(locale: :en, price_key: "pandora_pro_invalid")
 

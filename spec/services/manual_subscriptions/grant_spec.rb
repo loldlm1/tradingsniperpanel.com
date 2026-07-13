@@ -9,7 +9,14 @@ RSpec.describe ManualSubscriptions::Grant do
   let(:admin) { create(:user, :admin) }
   let(:pandora_ea) { create(:expert_advisor, ea_id: "pandora_box") }
   let(:plan) do
-    create(:billing_plan, tier: "pandora_pro", key: "pandora_pro_monthly", interval: "month", interval_count: 1).tap do |billing_plan|
+    create(
+      :billing_plan,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
+      interval: "month",
+      interval_count: 1,
+      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
+    ).tap do |billing_plan|
       create(:billing_plan_entitlement, billing_plan: billing_plan, expert_advisor: pandora_ea)
     end
   end

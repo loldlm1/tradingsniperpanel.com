@@ -151,6 +151,7 @@ es:
           revoked: "Revocado"
           unknown: "Desconocido"
     marketplace:
+      unavailable: "Las nuevas compras del marketplace no están disponibles. Pandora Box se ofrece por suscripción."
       index:
         title: "Marketplace"
         heading: "Encuentra el producto ideal para ti"
@@ -267,7 +268,7 @@ es:
           total: "Total final"
           progress_label: "Progreso de add-ons"
       assets:
-        back: "Volver al Marketplace"
+        back: "Volver al Dashboard"
         description_title: "Resumen"
         empty_description: "Aún no hay descripción disponible."
         download_label: "Descarga"
@@ -356,12 +357,12 @@ es:
         copy: "¿No estás seguro de qué plan elegir? Podemos ayudarte."
         secondary: "Respondemos en un día hábil."
     plans:
-      page_title: "Planes"
-      landing_title: "Encuentra el plan adecuado para ti"
-      landing_subtitle: "Elige facturación mensual o anual. La anual muestra el precio mensual efectivo."
-      subtitle: "Revisa tu plan actual y haz upgrade cuando estés listo."
+      page_title: "Suscripción de Pandora Box"
+      landing_title: "Elige el intervalo de Pandora Box"
+      landing_subtitle: "Paga $79 al mes o $616.20 al año y ahorra 35%."
+      subtitle: "Revisa tu suscripción de Pandora Box y su intervalo de facturación."
       summary: "Plan actual: %{plan_name} (%{interval})."
-      no_plan_summary: "No hay un plan activo. Elige un plan para comenzar."
+      no_plan_summary: "No hay una suscripción activa de Pandora Box. Elige un intervalo para comenzar."
       scheduled_notice: "Baja programada a %{plan} el %{date}."
       cancel_scheduled: "Cancelar baja programada"
       cancel_success: "Baja programada cancelada."
@@ -372,6 +373,10 @@ es:
       manual_unavailable: "Esta suscripción se gestiona manualmente. Contacta soporte para cambiar de plan."
       scheduled_badge: "Programado"
       placeholder: "—"
+      effective_monthly: "Equivale a $%{amount}/mes"
+      unavailable:
+        title: "El checkout de Pandora Box no está disponible temporalmente"
+        body: "Los precios mensual y anual deben estar verificados antes de habilitar el checkout. Contacta soporte si continúa."
       toggle:
         monthly: "Mensual"
         annually: "Anual"
@@ -435,9 +440,8 @@ es:
             - "Órdenes preconfiguradas"
         pandora_pro:
           name: "Pandora Box"
-          description: "Todo en Sniper Panel y Fibonacci, más automatización breakout y mayor control sobre la ejecución."
+          description: "Pandora Box EA para automatización breakout, ejecución configurable y control disciplinado de operaciones."
           features:
-            - "Todo en Fibonacci"
             - "Breakout"
             - "Modos de Dirección"
             - "Configuración Flexible"
@@ -497,18 +501,18 @@ es:
         unavailable: "No disponible"
       upgrade_confirm: "¿Hacer upgrade ahora? Se cobrará de inmediato y los pagos no son reembolsables."
       contact:
-        title: "¿Necesitas una configuración a medida?"
-        body: "Podemos ayudar con onboarding personalizado, acceso para equipos o facturación especializada."
+        title: "¿Necesitas ayuda con Pandora Box?"
+        body: "Contacta soporte para instalación, facturación, cambios de intervalo o preguntas de tu cuenta."
         cta: "Contactar soporte"
       faq:
         title: "Preguntas frecuentes"
         items:
-          - q: "¿Qué diferencia hay entre los planes?"
-            a: "Los niveles superiores desbloquean más herramientas y capacidad (EAs, cuentas y funciones de flujo de trabajo)."
-          - q: "¿Puedo cambiar de plan después?"
-            a: "Sí; puedes subir o bajar de plan en cualquier momento. Los cambios se aplican de inmediato y se prorratean cuando corresponde."
+          - q: "¿Qué incluye la suscripción?"
+            a: "Ambos intervalos incluyen acceso a Pandora Box EA, licencias, actualizaciones, guías y soporte mientras la suscripción esté activa."
+          - q: "¿Puedo cambiar el intervalo de facturación después?"
+            a: "Sí. El cambio a anual se aplica de inmediato; el cambio a mensual se programa para el final del período pagado actual."
           - q: "¿Mensual vs anual, qué cambia?"
-            a: "La facturación anual se cobra una vez al año e incluye cualquier descuento disponible; la mensual se cobra cada mes."
+            a: "El acceso al producto es el mismo. Mensual cuesta $79 al mes; anual cuesta $616.20 al año y ahorra 35%."
           - q: "¿Dónde gestiono facturas y métodos de pago?"
             a: "Usa la página de Facturación para abrir el portal y descargar facturas."
           - q: "¿Los referidos se aplican automáticamente?"

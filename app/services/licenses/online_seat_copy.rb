@@ -21,13 +21,13 @@ module Licenses
         return nil if tier_rank.nil?
 
         base_plus_rank = Licenses::OnlineSeatLimits::BASE_SUBSCRIPTION_CAP + tier_rank
-        [base_plus_rank, Licenses::OnlineSeatLimits::MAX_SUBSCRIPTION_CAP].min
+        [ base_plus_rank, Licenses::OnlineSeatLimits::MAX_SUBSCRIPTION_CAP ].min
       end
 
       private
 
       def ordered_tiers
-        BillingPlan.subscription_tiers.map { |plan| plan.tier.to_s }
+        BillingPlan.purchasable.distinct.pluck(:tier).map(&:to_s)
       end
     end
   end

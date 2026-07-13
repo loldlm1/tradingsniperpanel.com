@@ -13,9 +13,13 @@ RSpec.describe "Courses", type: :request do
     expect(response.body).to include("Trading Foundations")
   end
 
-  it "prefers marketplace unlock links when available" do
+  it "uses the Pandora plan link instead of retired marketplace commerce" do
     course = create(:course, slug: "marketplace-course", title_en: "Marketplace Course")
-    subscription_plan = create(:billing_plan, tier: "pro")
+    subscription_plan = create(
+      :billing_plan,
+      tier: Billing::PandoraPricing::TIER,
+      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
+    )
     create(:course_plan_entitlement, course: course, billing_plan: subscription_plan)
     product = create(:marketplace_product, title_en: "Marketplace Course Product")
     create(:course_plan_entitlement, course: course, billing_plan: product.billing_plan)
@@ -24,7 +28,8 @@ RSpec.describe "Courses", type: :request do
     get dashboard_courses_path(locale: :en)
 
     expect(response).to be_successful
-    expect(response.body).to include(dashboard_marketplace_product_path(product, locale: :en))
+    expect(response.body).to include(dashboard_plans_path(locale: :en, price_key: subscription_plan.key))
+    expect(response.body).not_to include(dashboard_marketplace_product_path(product, locale: :en))
   end
 
   it "allows access to a free course but blocks locked lessons" do

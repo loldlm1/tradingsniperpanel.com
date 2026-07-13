@@ -219,8 +219,7 @@ module ExpertAdvisors
       tier = entry.allowed_tiers.first
       return nil if tier.blank?
 
-      plan = BillingPlan.subscription.active.where(tier: tier).order(:sort_order).first
-      plan&.key || "#{tier}_monthly"
+      BillingPlan.purchasable.where(tier: tier).order(:sort_order).pick(:key)
     end
 
     def addon_items_for(expert_advisor)
@@ -228,7 +227,7 @@ module ExpertAdvisors
       return [] if addons.empty?
 
       owned, unowned = addons.partition { |addon| @purchased_plan_ids.include?(addon.billing_plan_id) }
-      ordered = unowned + owned
+      ordered = marketplace_available ? unowned + owned : owned
 
       ordered.first(3).map do |addon|
         AddonItem.new(

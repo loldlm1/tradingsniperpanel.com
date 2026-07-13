@@ -422,7 +422,7 @@ es:
       label: "Reconozco que las compras son finales y no se ofrecen reembolsos (salvo que la ley lo exija)."
       helper: "Las renovaciones de suscripción se pueden cancelar en cualquier momento; las compras únicas se cobran una sola vez."
       required: "Confirma la política de no reembolsos para continuar."
-    subscription_notice_html: "No ofrecemos reembolsos. Las renovaciones de suscripción se pueden cancelar en cualquier momento y las compras digitales únicas son finales salvo que la ley exija lo contrario. Consulta la %{refunds_link}."
+    subscription_notice_html: "No ofrecemos reembolsos. Las renovaciones de suscripción se pueden cancelar en cualquier momento. Consulta la %{refunds_link}."
   legal:
     links:
       terms: "Términos del servicio"
@@ -574,9 +574,9 @@ es:
       brand:
         logo_alt: "Logo Snipe Oficial"
       hero:
-        title: "Trading Sniper"
-        title_emphasis: "Panel"
-        subtitle: "Panel MetaTrader 5 que mejora la ejecución y calcula entradas precisas. Un ecosistema forex completo."
+        title: "Pandora Box"
+        title_emphasis: "EA"
+        subtitle: "Automatización breakout para MetaTrader 5 con ejecución configurable, licencias, actualizaciones y soporte."
         cta: "comenzar ahora"
       press_logos:
         binance: "Binance"
@@ -585,32 +585,34 @@ es:
         mql5: "MQL5"
         tradingview: "TradingView"
       features:
-        title: "PORTAFOLIOS COMPLETOS PARA FOREX"
+        title: "PANDORA BOX PARA MT5"
         items:
           execution:
-            title: "Ejecución y control"
-            body: "Panel para MT5 para gestión de órdenes, con herramientas de configuración rápida."
+            title: "Ejecución configurable"
+            body: "Ajusta entradas, salidas, modos de dirección y controles de operación para tu flujo."
           systems:
-            title: "Sistemas y EAs"
-            body: "Automatizaciones y módulos con reglas: setups, horarios, salidas."
+            title: "Automatización breakout"
+            body: "Ejecuta las reglas de Pandora Box con setups consistentes y manejo disciplinado de posiciones."
           indicators:
-            title: "Indicadores y plantillas"
-            body: "Plantillas e indicadores para un análisis claro de forex."
+            title: "Acceso con licencia"
+            body: "Gestiona licencia, descargas, guías, facturación y actualizaciones de Pandora Box desde una cuenta."
       features2:
-        title: "UNA PLATAFORMA PARA TRADERS"
-        subtitle: "Accede a paneles, plantillas y sistemas (EA) para MT5, con licencias y actualizaciones desde tu cuenta."
-        content_title: "Ecosistema de herramientas para MT5"
-        content_body: "Un catálogo de paneles, sistemas, indicadores y recursos diseñados para estandarizar tu operativa, organizar tu flujo de trabajo y operar con reglas claras."
+        title: "UN EA, UNA SUSCRIPCIÓN CLARA"
+        subtitle: "Elige acceso mensual o anual a Pandora Box con las mismas funciones en ambos intervalos."
+        content_title: "Centro de cuenta de Pandora Box"
+        content_body: "Usa tu cuenta para gestionar la licencia del EA, la guía de instalación, descargas, período de suscripción, facturas y soporte."
         bullets:
-          - "Paneles de ejecución y gestión para MetaTrader 5"
-          - "Sistemas y módulos con reglas configurables y automatización"
-          - "Indicadores, plantillas y recursos para visualización y análisis"
+          - "Pandora Box EA para MetaTrader 5"
+          - "Licencias versionadas y actualizaciones del producto"
+          - "Guías, historial de facturación y soporte en un solo lugar"
       pricing:
-        title: "ELIGE TU PLAN IDEAL PARA TI"
-        subtitle: "Planes recurrentes para acceso continuo, más productos de compra única en marketplace para herramientas y recursos digitales."
+        title: "ELIGE TU INTERVALO DE PANDORA BOX"
+        subtitle: "$79 al mes o $616.20 al año. La facturación anual ahorra 35%."
         per_month: "/mes"
-        cta: "Ver planes"
+        cta: "Elegir Pandora Box"
         most_popular: "Más popular"
+        unavailable_title: "El checkout de Pandora Box no está disponible temporalmente"
+        unavailable_body: "Los dos intervalos deben estar verificados antes de habilitar el checkout."
         tiers:
           basic:
             name: "Sniper Panel"
@@ -624,8 +626,8 @@ es:
               - "Órdenes preconfiguradas"
           pandora_pro:
             name: "Pandora Box"
-            description: "Para traders que necesitan el stack completo: control de Sniper Panel, automatización Fibonacci y ejecución breakout de Pandora."
-            features_title: "Todo en Fibonacci, más:"
+            description: "Automatización breakout con ejecución configurable y control disciplinado de operaciones."
+            features_title: "Incluye:"
             features:
               - "Breakout"
               - "Modos de Dirección"
@@ -712,7 +714,7 @@ es:
             name: "Lucía C."
             role: "Trader MT5"
       resources:
-        title: "RECURSOS DEL ECOSISTEMA SNIPER"
+        title: "RECURSOS DE PANDORA BOX"
         categories:
           manual: "Manual"
           indicators: "Indicadores"
@@ -726,9 +728,9 @@ es:
           quick_guide: "Guía rápida"
           video_tutorial: "Video tutorial"
       cta:
-        title: "Únete a Sniper"
-        body: "Herramientas para MT5 para operar con reglas y estructura: panel, plantillas e indicadores."
-        button: "Comenzar ahora"
+        title: "Comienza con Pandora Box"
+        body: "Elige acceso mensual o anual a Pandora Box EA para MetaTrader 5."
+        button: "Elegir intervalo"
       media:
         hero_illustration_alt: "Ilustración del hero"
         features_image_alt: "Características"

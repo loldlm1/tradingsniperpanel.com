@@ -10,9 +10,27 @@ RSpec.describe "Subscription upgrades", type: :request do
       default: true
     )
   end
-  let!(:basic_plan) { create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_basic_monthly", amount_cents: 1000) }
-  let!(:hft_plan) { create(:billing_plan, tier: "hft", key: "hft_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_hft_monthly", amount_cents: 2000) }
-  let!(:pro_plan) { create(:billing_plan, tier: "pro", key: "pro_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_pro_monthly", amount_cents: 3000) }
+  let!(:monthly_plan) do
+    create(
+      :billing_plan,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
+      interval: "month",
+      interval_count: 1,
+      stripe_price_id: "price_pandora_monthly",
+      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
+    )
+  end
+  let!(:annual_plan) do
+    create(
+      :billing_plan,
+      :annual,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::ANNUAL_KEY,
+      stripe_price_id: "price_pandora_annual",
+      amount_cents: Billing::PandoraPricing::ANNUAL_CENTS
+    )
+  end
 
   around do |example|
     original_env = ENV.to_hash
@@ -28,10 +46,10 @@ RSpec.describe "Subscription upgrades", type: :request do
   end
 
   it "blocks checkout when a manual subscription exists for the same plan" do
-    create(:manual_subscription, user: user, billing_plan: basic_plan, starts_at: 1.day.ago, ends_at: 1.day.from_now)
+    create(:manual_subscription, user: user, billing_plan: monthly_plan, starts_at: 1.day.ago, ends_at: 1.day.from_now)
     sign_in user, scope: :user
 
-    post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::MONTHLY_KEY }
 
     expect(response).to redirect_to(dashboard_plans_path)
     expect(flash[:alert]).to eq(I18n.t("dashboard.plans.manual_unavailable"))
@@ -42,7 +60,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
     expect(checkout_stub).to receive(:checkout).exactly(3).times do |**params|
       expect(params[:mode]).to eq("subscription")
-      expect(params[:line_items]).to eq([ { price: basic_plan.stripe_price_id, quantity: 1 } ])
+      expect(params[:line_items]).to eq([ { price: monthly_plan.stripe_price_id, quantity: 1 } ])
       double(url: "https://checkout.test/role-subscription")
     end
 
@@ -50,11 +68,46 @@ RSpec.describe "Subscription upgrades", type: :request do
       role_user = create(:user, role: role)
       sign_in role_user, scope: :user
 
-      post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+      post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::MONTHLY_KEY }
 
       expect(response).to redirect_to("https://checkout.test/role-subscription")
       sign_out role_user
     end
+  end
+
+  it "rejects active non-Pandora and one-time plan keys" do
+    old_plan = create(:billing_plan, tier: "basic", key: "basic_monthly")
+    one_time_plan = create(:billing_plan, :one_time)
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+    expect(checkout_stub).not_to receive(:checkout)
+    sign_in user, scope: :user
+
+    [ old_plan.key, one_time_plan.key ].each do |price_key|
+      post dashboard_checkout_path, params: { price_key: price_key }
+
+      expect(response).to redirect_to(dashboard_plans_path)
+      expect(flash[:alert]).to eq(I18n.t("dashboard.billing.invalid_price"))
+    end
+  end
+
+  it "rejects inactive, stale-priced, and retired Pandora checkout values" do
+    retired_price = create(:billing_plan_price, billing_plan: monthly_plan, active: false, retired_at: Time.current)
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+    expect(checkout_stub).not_to receive(:checkout)
+    sign_in user, scope: :user
+
+    monthly_plan.update!(active: false)
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::MONTHLY_KEY }
+    expect(response).to redirect_to(dashboard_plans_path)
+
+    monthly_plan.update!(active: true, amount_cents: 9_999)
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::MONTHLY_KEY }
+    expect(response).to redirect_to(dashboard_plans_path)
+
+    post dashboard_checkout_path, params: { price_key: retired_price.stripe_price_id }
+    expect(response).to redirect_to(dashboard_plans_path)
   end
 
   it "pre-applies the selected dashboard promotion code to checkout" do
@@ -64,12 +117,12 @@ RSpec.describe "Subscription upgrades", type: :request do
     sign_in user, scope: :user
 
     expect(checkout_stub).to receive(:checkout) do |**params|
-      expect(params[:discounts]).to eq([{ promotion_code: "promo_dashboard" }])
+      expect(params[:discounts]).to eq([ { promotion_code: "promo_dashboard" } ])
       expect(params).not_to have_key(:allow_promotion_codes)
       double(url: "https://checkout.test/subscription")
     end
 
-    post dashboard_checkout_path, params: { price_key: "basic_monthly", promotion_code_id: promotion.id }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::MONTHLY_KEY, promotion_code_id: promotion.id }
 
     expect(response).to redirect_to("https://checkout.test/subscription")
   end
@@ -88,12 +141,12 @@ RSpec.describe "Subscription upgrades", type: :request do
     sign_in referred_user, scope: :user
 
     expect(checkout_stub).to receive(:checkout) do |**params|
-      expect(params[:discounts]).to eq([{ coupon: "coupon_referral" }])
-      expect(params[:discounts]).not_to eq([{ promotion_code: "promo_dashboard" }])
+      expect(params[:discounts]).to eq([ { coupon: "coupon_referral" } ])
+      expect(params[:discounts]).not_to eq([ { promotion_code: "promo_dashboard" } ])
       double(url: "https://checkout.test/referral")
     end
 
-    post dashboard_checkout_path, params: { price_key: "basic_monthly", promotion_code_id: promotion.id }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::MONTHLY_KEY, promotion_code_id: promotion.id }
 
     expect(response).to redirect_to("https://checkout.test/referral")
   end
@@ -111,12 +164,12 @@ RSpec.describe "Subscription upgrades", type: :request do
     sign_in referred_user, scope: :user
 
     expect(checkout_stub).to receive(:checkout) do |**params|
-      expect(params[:discounts]).to eq([{ promotion_code: "promo_dashboard" }])
-      expect(params[:discounts]).not_to eq([{ coupon: "coupon_referral" }])
+      expect(params[:discounts]).to eq([ { promotion_code: "promo_dashboard" } ])
+      expect(params[:discounts]).not_to eq([ { coupon: "coupon_referral" } ])
       double(url: "https://checkout.test/promotion")
     end
 
-    post dashboard_checkout_path, params: { price_key: "basic_monthly", promotion_code_id: promotion.id }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::MONTHLY_KEY, promotion_code_id: promotion.id }
 
     expect(response).to redirect_to("https://checkout.test/promotion")
   end
@@ -125,7 +178,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     existing = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: basic_plan.stripe_price_id,
+      processor_plan: monthly_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -133,11 +186,11 @@ RSpec.describe "Subscription upgrades", type: :request do
       type: "Pay::Stripe::Subscription"
     )
 
-    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).with(hft_plan.stripe_price_id, hash_including(proration_behavior: "always_invoice")).and_return(true)
+    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).with(annual_plan.stripe_price_id, hash_including(proration_behavior: "always_invoice")).and_return(true)
 
     sign_in user, scope: :user
 
-    post dashboard_checkout_path, params: { price_key: "hft_monthly" }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::ANNUAL_KEY }
 
     expect(response).to redirect_to(dashboard_plans_path)
     expect(flash[:notice]).to eq(I18n.t("dashboard.billing.upgraded"))
@@ -147,7 +200,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: hft_plan.stripe_price_id,
+      processor_plan: annual_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -167,12 +220,12 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     sign_in user, scope: :user
 
-    post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::MONTHLY_KEY }
 
     expect(response).to redirect_to(dashboard_plans_path)
 
     subscription.reload
-    expect(subscription.metadata["scheduled_plan_key"]).to eq("basic_monthly")
+    expect(subscription.metadata["scheduled_plan_key"]).to eq(Billing::PandoraPricing::MONTHLY_KEY)
     expect(subscription.metadata["scheduled_schedule_id"]).to eq("sub_sched_123")
     expect(subscription.metadata["scheduled_change_at"]).to be_present
   end
@@ -181,7 +234,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: hft_plan.stripe_price_id,
+      processor_plan: annual_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -198,7 +251,7 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     sign_in user, scope: :user
 
-    post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::MONTHLY_KEY }
 
     expect(response).to redirect_to(dashboard_plans_path)
 
@@ -210,7 +263,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: hft_plan.stripe_price_id,
+      processor_plan: annual_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -233,7 +286,7 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     sign_in user, scope: :user
 
-    post dashboard_checkout_path, params: { price_key: "basic_monthly" }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::MONTHLY_KEY }
 
     expect(response).to redirect_to(dashboard_plans_path)
 
@@ -245,7 +298,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: hft_plan.stripe_price_id,
+      processor_plan: annual_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -253,8 +306,8 @@ RSpec.describe "Subscription upgrades", type: :request do
       type: "Pay::Stripe::Subscription"
     )
 
-    phase = double(start_date: 1.month.from_now.to_i, items: [double(price: basic_plan.stripe_price_id)])
-    schedule = double(id: "sub_sched_backfill", phases: [phase])
+    phase = double(start_date: 1.month.from_now.to_i, items: [ double(price: monthly_plan.stripe_price_id) ])
+    schedule = double(id: "sub_sched_backfill", phases: [ phase ])
     allow(Stripe::Subscription).to receive(:retrieve).and_return(double(schedule: "sub_sched_backfill"))
     allow(Stripe::SubscriptionSchedule).to receive(:retrieve).and_return(schedule)
 
@@ -266,20 +319,20 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(response.body).to include(I18n.t("dashboard.plans.scheduled_badge"))
 
     subscription.reload
-    expect(subscription.metadata["scheduled_plan_key"]).to eq("basic_monthly")
+    expect(subscription.metadata["scheduled_plan_key"]).to eq(Billing::PandoraPricing::MONTHLY_KEY)
   end
 
   it "releases a scheduled downgrade when upgrading" do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: hft_plan.stripe_price_id,
+      processor_plan: monthly_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
       current_period_end: 1.month.from_now,
       metadata: {
-        "scheduled_plan_key" => "basic_monthly",
+        "scheduled_plan_key" => Billing::PandoraPricing::MONTHLY_KEY,
         "scheduled_schedule_id" => "sub_sched_789",
         "scheduled_change_at" => 1.month.from_now.iso8601
       },
@@ -288,11 +341,11 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     allow(Stripe::SubscriptionSchedule).to receive(:release).and_return(true)
     expect(Stripe::SubscriptionSchedule).to receive(:release).with("sub_sched_789")
-    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).with(pro_plan.stripe_price_id, hash_including(proration_behavior: "always_invoice")).and_return(true)
+    expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).with(annual_plan.stripe_price_id, hash_including(proration_behavior: "always_invoice")).and_return(true)
 
     sign_in user, scope: :user
 
-    post dashboard_checkout_path, params: { price_key: "pro_monthly" }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::ANNUAL_KEY }
 
     expect(response).to redirect_to(dashboard_plans_path)
 
@@ -304,13 +357,13 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: hft_plan.stripe_price_id,
+      processor_plan: annual_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
       current_period_end: 1.month.from_now,
       metadata: {
-        "scheduled_plan_key" => "basic_monthly",
+        "scheduled_plan_key" => Billing::PandoraPricing::MONTHLY_KEY,
         "scheduled_schedule_id" => "sub_sched_789",
         "scheduled_change_at" => 1.month.from_now.iso8601
       },
@@ -337,7 +390,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: hft_plan.stripe_price_id,
+      processor_plan: monthly_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -360,7 +413,7 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     sign_in user, scope: :user
 
-    post dashboard_checkout_path, params: { price_key: "pro_monthly" }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::ANNUAL_KEY }
 
     expect(response).to redirect_to(dashboard_plans_path)
   end
@@ -369,7 +422,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: basic_plan.stripe_price_id,
+      processor_plan: monthly_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -389,7 +442,7 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     sign_in user, scope: :user
 
-    post dashboard_checkout_path, params: { price_key: "hft_monthly" }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::ANNUAL_KEY }
 
     expect(response).to redirect_to(dashboard_plans_path)
     expect(flash[:notice]).to eq(I18n.t("dashboard.billing.upgraded"))
@@ -399,7 +452,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: basic_plan.stripe_price_id,
+      processor_plan: monthly_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -409,13 +462,13 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     expect_any_instance_of(Pay::Stripe::Subscription).to receive(:swap).once.and_raise(ActiveRecord::Deadlocked)
     allow_any_instance_of(Pay::Stripe::Subscription).to receive(:sync!) do |record|
-      record.update!(processor_plan: hft_plan.stripe_price_id)
+      record.update!(processor_plan: annual_plan.stripe_price_id)
       true
     end
 
     sign_in user, scope: :user
 
-    post dashboard_checkout_path, params: { price_key: "hft_monthly" }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::ANNUAL_KEY }
 
     expect(response).to redirect_to(dashboard_plans_path)
     expect(flash[:notice]).to eq(I18n.t("dashboard.billing.upgraded"))
@@ -425,7 +478,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: hft_plan.stripe_price_id,
+      processor_plan: monthly_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -442,12 +495,12 @@ RSpec.describe "Subscription upgrades", type: :request do
 
     expect_any_instance_of(Pay::Stripe::Subscription)
       .to receive(:swap)
-      .with(pro_plan.stripe_price_id, hash_including(proration_behavior: "always_invoice"))
+      .with(annual_plan.stripe_price_id, hash_including(proration_behavior: "always_invoice"))
       .and_return(true)
 
     sign_in user, scope: :user
 
-    post dashboard_checkout_path, params: { price_key: "pro_monthly" }
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::ANNUAL_KEY }
 
     expect(response).to redirect_to(dashboard_plans_path)
   end
@@ -456,13 +509,13 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: hft_plan.stripe_price_id,
+      processor_plan: annual_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
       current_period_end: 1.month.from_now,
       metadata: {
-        "scheduled_plan_key" => "basic_monthly",
+        "scheduled_plan_key" => Billing::PandoraPricing::MONTHLY_KEY,
         "scheduled_schedule_id" => "sub_sched_released",
         "scheduled_change_at" => 1.month.from_now.iso8601
       },
@@ -486,13 +539,13 @@ RSpec.describe "Subscription upgrades", type: :request do
     subscription = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: hft_plan.stripe_price_id,
+      processor_plan: annual_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
       current_period_end: 1.month.from_now,
       metadata: {
-        "scheduled_plan_key" => "basic_monthly",
+        "scheduled_plan_key" => Billing::PandoraPricing::MONTHLY_KEY,
         "scheduled_schedule_id" => "sub_sched_missing",
         "scheduled_change_at" => 1.month.from_now.iso8601
       },
@@ -517,7 +570,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     older = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: basic_plan.stripe_price_id,
+      processor_plan: monthly_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: 2.months.ago,
@@ -529,7 +582,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     newer = customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: hft_plan.stripe_price_id,
+      processor_plan: annual_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -545,8 +598,8 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(response).to be_successful
     plan_label = I18n.t(
       "dashboard.plan_card.plan_label",
-      tier: I18n.t("dashboard.plans.tiers.hft.name"),
-      interval: I18n.t("dashboard.plans.toggle.monthly")
+      tier: I18n.t("dashboard.plans.tiers.pandora_pro.name"),
+      interval: I18n.t("dashboard.plans.toggle.annually")
     )
     expect(response.body).to include(plan_label)
   end
@@ -555,7 +608,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: basic_plan.stripe_price_id,
+      processor_plan: monthly_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -577,7 +630,7 @@ RSpec.describe "Subscription upgrades", type: :request do
     customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_#{SecureRandom.hex(4)}",
-      processor_plan: pro_plan.stripe_price_id,
+      processor_plan: annual_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,

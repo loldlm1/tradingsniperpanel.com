@@ -20,7 +20,7 @@ module ProductReleases
         when "course"
           accessible_course_ids.include?(item.subject_id)
         when "addon"
-          marketplace_available || item.subject.is_a?(MarketplaceProduct)
+          marketplace_available && item.subject.is_a?(MarketplaceProduct)
         else
           false
         end

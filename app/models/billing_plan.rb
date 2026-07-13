@@ -23,6 +23,17 @@ class BillingPlan < ApplicationRecord
   scope :active, -> { where(active: true) }
   scope :ordered, -> { order(:sort_order, :name) }
 
+  def self.purchasable
+    base = subscription.active
+                       .where(tier: Billing::PandoraPricing::TIER, currency: Billing::PandoraPricing::CURRENCY)
+                       .where.not(stripe_price_id: nil)
+                       .where.not(stripe_price_id: "")
+
+    Billing::PandoraPricing::PLAN_DEFINITIONS.reduce(none) do |relation, (key, definition)|
+      relation.or(base.where(key: key, **definition))
+    end
+  end
+
   def self.for_key(key)
     return nil if key.blank?
 

@@ -75,16 +75,16 @@ module Billing
 
     def parse_price_key(price_key)
       parts = price_key.to_s.split("_")
-      return [nil, nil] if parts.size < 2
+      return [ nil, nil ] if parts.size < 2
 
-      [parts.shift.to_s, parts.join("_")]
+      [ parts.shift.to_s, parts.join("_") ]
     end
 
     def visible_tiers
       tiers = pricing_catalog&.dig(:tiers)
       return tiers if tiers.present?
 
-      BillingPlan.subscription_tiers.map(&:tier)
+      BillingPlan.purchasable.distinct.pluck(:tier)
     end
 
     def pricing_intervals(tiers)

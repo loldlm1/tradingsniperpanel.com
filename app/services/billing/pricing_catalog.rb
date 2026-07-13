@@ -3,11 +3,11 @@ require "bigdecimal"
 
 module Billing
   class PricingCatalog
-    CACHE_VERSION = 3
+    CACHE_VERSION = 4
 
     def call
-      plans = BillingPlan.subscription.active
-      return {} if plans.empty?
+      plans = BillingPlan.purchasable
+      return {} unless complete_catalog?(plans)
 
       cache_key = "billing/pricing_catalog/v#{CACHE_VERSION}/#{I18n.locale}/#{Digest::SHA256.hexdigest(cache_signature(plans))}"
       Rails.cache.fetch(cache_key, expires_in: 12.hours) do
@@ -53,9 +53,7 @@ module Billing
 
       sorted.map do |interval, count|
         interval_key = Billing::IntervalLabeler.interval_key(interval:, interval_count: count)
-        uses_effective_monthly = interval.to_s == "year" && count.to_i == 1
         per_label = Billing::IntervalLabeler.per_label(interval:, interval_count: count)
-        per_label = Billing::IntervalLabeler.per_label(interval: "month", interval_count: 1) if uses_effective_monthly
         {
           key: interval_key,
           interval: interval,
@@ -63,7 +61,7 @@ module Billing
           label: Billing::IntervalLabeler.label(interval:, interval_count: count),
           billed_label: Billing::IntervalLabeler.billed_label(interval:, interval_count: count),
           per_label: per_label,
-          uses_effective_monthly: uses_effective_monthly
+          uses_effective_monthly: interval.to_s == "year" && count.to_i == 1
         }
       end
     end
@@ -94,8 +92,13 @@ module Billing
         display: format_amount(plan.amount_cents),
         effective_monthly_cents: effective_monthly_cents,
         effective_monthly_display: format_amount(effective_monthly_cents),
-        plan_key: plan.key
+        plan_key: plan.key,
+        stripe_price_id: plan.stripe_price_id
       }
+    end
+
+    def complete_catalog?(plans)
+      plans.pluck(:key).sort == Billing::PandoraPricing::PLAN_KEYS.sort
     end
 
     def effective_monthly_cents(plan)

@@ -422,7 +422,7 @@ en:
       label: "I acknowledge that purchases are final and no refunds are offered (except where required by law)."
       helper: "Subscription renewals can be canceled anytime; one-time purchases are charged once."
       required: "Please acknowledge the no-refunds policy to continue."
-    subscription_notice_html: "No refunds. Subscription renewals can be canceled anytime, and one-time digital purchases are final except where required by law. See the %{refunds_link}."
+    subscription_notice_html: "No refunds. Subscription renewals can be canceled anytime. See the %{refunds_link}."
   legal:
     links:
       terms: "Terms of Service"
@@ -574,9 +574,9 @@ en:
       brand:
         logo_alt: "Sniper Panel logo"
       hero:
-        title: "Trading Sniper"
-        title_emphasis: "Panel"
-        subtitle: "MetaTrader 5 panel that improves execution and calculates precise entries. A complete forex ecosystem."
+        title: "Pandora Box"
+        title_emphasis: "EA"
+        subtitle: "Breakout-focused automation for MetaTrader 5 with configurable execution, licensing, updates, and support."
         cta: "Get started"
       press_logos:
         binance: "Binance"
@@ -585,32 +585,34 @@ en:
         mql5: "MQL5"
         tradingview: "TradingView"
       features:
-        title: "COMPLETE FOREX PORTFOLIOS"
+        title: "PANDORA BOX FOR MT5"
         items:
           execution:
-            title: "Execution and control"
-            body: "MT5 order management panel with quick-setup tools."
+            title: "Configurable execution"
+            body: "Tune entries, exits, direction modes, and operation controls for your workflow."
           systems:
-            title: "Systems and EAs"
-            body: "Automation modules with rules: setups, schedules, exits."
+            title: "Breakout automation"
+            body: "Run Pandora Box rules with consistent setups and disciplined position handling."
           indicators:
-            title: "Indicators and templates"
-            body: "Templates and indicators for clear forex analysis."
+            title: "Licensed access"
+            body: "Manage your Pandora Box license, downloads, guides, billing, and updates from one account."
       features2:
-        title: "A PLATFORM FOR TRADERS"
-        subtitle: "Access panels, templates, and systems (EAs) for MT5, with licenses and updates from your account."
-        content_title: "MT5 tools ecosystem"
-        content_body: "A catalog of panels, systems, indicators, and resources designed to standardize your trading, organize your workflow, and operate with clear rules."
+        title: "ONE EA, ONE CLEAR SUBSCRIPTION"
+        subtitle: "Choose monthly or annual Pandora Box access with the same product features in both intervals."
+        content_title: "Pandora Box account hub"
+        content_body: "Use your account to manage the EA license, installation guide, downloads, subscription period, invoices, and support."
         bullets:
-          - "Execution and management panels for MetaTrader 5"
-          - "Systems and modules with configurable rules and automation"
-          - "Indicators, templates, and resources for visualization and analysis"
+          - "Pandora Box EA for MetaTrader 5"
+          - "Versioned licenses and product updates"
+          - "Guides, billing history, and support in one place"
       pricing:
-        title: "CHOOSE YOUR IDEAL PLAN"
-        subtitle: "Recurring plans for ongoing access, plus one-time marketplace products for extra tools and digital assets."
+        title: "CHOOSE YOUR PANDORA BOX INTERVAL"
+        subtitle: "$79 monthly or $616.20 annually. Annual billing saves 35%."
         per_month: "/mo"
-        cta: "View plans"
+        cta: "Choose Pandora Box"
         most_popular: "Most popular"
+        unavailable_title: "Pandora Box checkout is temporarily unavailable"
+        unavailable_body: "Both subscription intervals must be verified before checkout opens."
         tiers:
           basic:
             name: "Sniper Panel"
@@ -624,8 +626,8 @@ en:
               - "Preconfigured order workflows"
           pandora_pro:
             name: "Pandora Box"
-            description: "For traders who need the full stack: Sniper Panel controls, Fibonacci automation, and Pandora breakout execution."
-            features_title: "Everything in Fibonacci, plus:"
+            description: "Breakout-focused automation with configurable execution and disciplined operation control."
+            features_title: "Included:"
             features:
               - "Breakout strategy automation"
               - "Direction modes"
@@ -712,7 +714,7 @@ en:
             name: "Lucía C."
             role: "MT5 Trader"
       resources:
-        title: "SNIPER ECOSYSTEM RESOURCES"
+        title: "PANDORA BOX RESOURCES"
         categories:
           manual: "Manual"
           indicators: "Indicators"
@@ -726,9 +728,9 @@ en:
           quick_guide: "Quick guide"
           video_tutorial: "Video tutorial"
       cta:
-        title: "Join Sniper"
-        body: "MT5 tools to trade with rules and structure: panel, templates, and indicators."
-        button: "Get started"
+        title: "Start with Pandora Box"
+        body: "Choose monthly or annual access to Pandora Box EA for MetaTrader 5."
+        button: "Choose your interval"
       media:
         hero_illustration_alt: "Hero Illustration"
         features_image_alt: "Features"
