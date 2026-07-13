@@ -39,7 +39,7 @@ RSpec.describe Billing::InvoicePlanLabeler do
   end
 
   it "labels a single plan invoice from stored pricing details" do
-    invoice = build_charge(lines: [pricing_line(amount: 1200, price_id: "price_basic_monthly")])
+    invoice = build_charge(lines: [ pricing_line(amount: 1200, price_id: "price_basic_monthly") ])
 
     expect(Stripe::Invoice).not_to receive(:retrieve)
 
@@ -121,8 +121,8 @@ RSpec.describe Billing::InvoicePlanLabeler do
   end
 
   it "falls back when no plan lines are detected" do
-    invoice = build_charge(lines: [{ "amount" => 1000 }])
-    stripe_invoice = OpenStruct.new(lines: OpenStruct.new(data: [{ "amount" => 1000 }]))
+    invoice = build_charge(lines: [ { "amount" => 1000 } ])
+    stripe_invoice = OpenStruct.new(lines: OpenStruct.new(data: [ { "amount" => 1000 } ]))
 
     allow(Stripe::Invoice).to receive(:retrieve).and_return(stripe_invoice)
 
@@ -133,7 +133,7 @@ RSpec.describe Billing::InvoicePlanLabeler do
 
   it "uses product ids when price ids do not map" do
     invoice = build_charge(
-      lines: [pricing_line(amount: 1200, price_id: "price_unknown", product_id: "prod_basic")]
+      lines: [ pricing_line(amount: 1200, price_id: "price_unknown", product_id: "prod_basic") ]
     )
 
     expect(Stripe::Invoice).not_to receive(:retrieve)
@@ -149,11 +149,34 @@ RSpec.describe Billing::InvoicePlanLabeler do
     expect(label).to eq(expected)
   end
 
+  it "labels invoices that reference a retired historical price" do
+    retired = create(
+      :billing_plan_price,
+      billing_plan: basic_plan,
+      stripe_price_id: "price_basic_retired",
+      amount_cents: 750,
+      active: false,
+      retired_at: Time.current
+    )
+    invoice = build_charge(lines: [ pricing_line(amount: retired.amount_cents, price_id: retired.stripe_price_id) ])
+
+    expect(Stripe::Invoice).not_to receive(:retrieve)
+
+    label = described_class.new.label_for(invoice)
+
+    expected = I18n.t(
+      "dashboard.plan_card.plan_label",
+      tier: I18n.t("dashboard.plans.tiers.basic.name"),
+      interval: I18n.t("dashboard.plans.toggle.monthly")
+    )
+    expect(label).to eq(expected)
+  end
+
   it "fetches Stripe invoice when stored lines are missing" do
     invoice = build_charge
     stripe_invoice = OpenStruct.new(
       lines: OpenStruct.new(
-        data: [pricing_line(amount: 1200, price_id: "price_basic_monthly")]
+        data: [ pricing_line(amount: 1200, price_id: "price_basic_monthly") ]
       )
     )
 

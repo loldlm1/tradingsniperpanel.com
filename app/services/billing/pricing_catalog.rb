@@ -1,8 +1,9 @@
 require "digest"
+require "bigdecimal"
 
 module Billing
   class PricingCatalog
-    CACHE_VERSION = 2
+    CACHE_VERSION = 3
 
     def call
       plans = BillingPlan.subscription.active
@@ -42,12 +43,12 @@ module Billing
         tier_plans = grouped[tier]
         min_sort = tier_plans.map(&:sort_order).min.to_i
         min_price = tier_plans.map { |plan| plan.amount_cents.to_i }.min
-        [min_sort, min_price || 0, tier.to_s]
+        [ min_sort, min_price || 0, tier.to_s ]
       end
     end
 
     def intervals_for(plans)
-      pairs = plans.map { |plan| [plan.interval, plan.interval_count] }.uniq
+      pairs = plans.map { |plan| [ plan.interval, plan.interval_count ] }.uniq
       sorted = pairs.sort_by { |interval, count| Billing::IntervalLabeler.sort_key(interval:, interval_count: count) }
 
       sorted.map do |interval, count|
@@ -105,9 +106,9 @@ module Billing
 
       case plan.interval
       when "year"
-        plan.amount_cents.to_f / (12 * count)
+        BigDecimal(plan.amount_cents.to_s) / (12 * count)
       when "month"
-        plan.amount_cents.to_f / count
+        BigDecimal(plan.amount_cents.to_s) / count
       end
     end
 
@@ -120,19 +121,22 @@ module Billing
         next unless monthly && annual
         next unless monthly[:amount_cents].to_i.positive?
 
-        effective_monthly = annual[:amount_cents].to_f / 12.0
-        discount = 1 - (effective_monthly / monthly[:amount_cents].to_f)
-        (discount * 100).round
+        baseline_cents = monthly[:amount_cents].to_i * 12
+        savings_cents = baseline_cents - annual[:amount_cents].to_i
+        next unless savings_cents.positive?
+
+        Rational(savings_cents * 100, baseline_cents).round
       end
 
       percents.max
     end
 
-    def format_amount(amount_cents_or_float)
-      return nil if amount_cents_or_float.blank?
+    def format_amount(amount_cents)
+      return nil if amount_cents.blank?
 
-      dollars = amount_cents_or_float.to_f / 100.0
-      format("%.2f", dollars).sub(/\.?0+$/, "")
+      dollars = (BigDecimal(amount_cents.to_s) / 100).round(2)
+      whole, fraction = dollars.to_s("F").split(".", 2)
+      "#{whole}.#{fraction.to_s.ljust(2, "0").first(2)}"
     end
 
     def self.filter_intervals(intervals:, prices:, tiers:)

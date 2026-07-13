@@ -18,4 +18,18 @@ RSpec.describe BillingPlan, type: :model do
 
     expect(plan).to be_valid
   end
+
+  it "resolves both canonical and historical Stripe price IDs" do
+    plan = create(:billing_plan, stripe_price_id: "price_current")
+    create(
+      :billing_plan_price,
+      billing_plan: plan,
+      stripe_price_id: "price_retired",
+      active: false,
+      retired_at: Time.current
+    )
+
+    expect(described_class.for_price_id("price_current")).to eq(plan)
+    expect(described_class.for_price_id("price_retired")).to eq(plan)
+  end
 end

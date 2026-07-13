@@ -2,6 +2,11 @@ class BillingPlan < ApplicationRecord
   INTERVALS = %w[day week month year].freeze
 
   has_many :billing_plan_entitlements, dependent: :destroy
+  has_many :billing_plan_prices, dependent: :restrict_with_exception, inverse_of: :billing_plan
+  has_one :current_billing_plan_price,
+          -> { where(current: true) },
+          class_name: "BillingPlanPrice",
+          inverse_of: :billing_plan
   has_many :course_plan_entitlements, dependent: :destroy
   has_many :asset_plan_entitlements, dependent: :destroy
   has_many :expert_advisors, through: :billing_plan_entitlements
@@ -27,7 +32,11 @@ class BillingPlan < ApplicationRecord
   def self.for_price_id(price_id)
     return nil if price_id.blank?
 
-    find_by(stripe_price_id: price_id)
+    canonical = find_by(stripe_price_id: price_id)
+    return canonical if canonical
+    return unless BillingPlanPrice.table_exists?
+
+    BillingPlanPrice.includes(:billing_plan).find_by(stripe_price_id: price_id)&.billing_plan
   end
 
   def self.for_product_id(product_id)
@@ -42,10 +51,10 @@ class BillingPlan < ApplicationRecord
 
     grouped = plans.group_by(&:tier)
     ordered = grouped.values.map do |tier_plans|
-      tier_plans.min_by { |plan| [plan.sort_order.to_i, plan.amount_cents.to_i] }
+      tier_plans.min_by { |plan| [ plan.sort_order.to_i, plan.amount_cents.to_i ] }
     end.compact
 
-    ordered.sort_by { |plan| [plan.sort_order.to_i, plan.amount_cents.to_i, plan.tier.to_s] }
+    ordered.sort_by { |plan| [ plan.sort_order.to_i, plan.amount_cents.to_i, plan.tier.to_s ] }
   end
 
   def self.ransackable_associations(_auth_object = nil)

@@ -20,7 +20,8 @@ module Billing
 
     def self.all_price_ids
       plan_ids = BillingPlan.where.not(stripe_price_id: nil).pluck(:stripe_price_id)
-      (plan_ids + legacy_env_price_ids).uniq
+      history_ids = BillingPlanPrice.table_exists? ? BillingPlanPrice.pluck(:stripe_price_id) : []
+      (plan_ids + history_ids + legacy_env_price_ids).uniq
     end
 
     def self.resolve_price_id(value)

@@ -112,10 +112,162 @@ RSpec.describe Billing::PlanCreator do
       stripe_price_id: "seed_price_pro_monthly_again"
     )
 
-    expect { described_class.new(attrs).call }.not_to raise_error
-    expect(plan.reload.stripe_product_id).not_to eq(first_product_id)
+    expect { described_class.new(attrs.merge(amount_cents: 7_000)).call }.not_to raise_error
+    expect(plan.reload.stripe_product_id).to eq(first_product_id)
     expect(plan.reload.stripe_price_id).not_to eq(first_price_id)
     expect(Stripe::Price.idempotency_keys.uniq.size).to eq(2)
+  end
+
+  it "preserves the retired price snapshot when the amount changes" do
+    attrs = subscription_attributes(key: "pandora_pro_monthly", amount_cents: 7_900)
+    first = described_class.new(attrs).call
+    old_price_id = first.price.id
+
+    second = described_class.new(attrs.merge(amount_cents: 8_900)).call
+
+    old_history = BillingPlanPrice.find_by!(stripe_price_id: old_price_id)
+    new_history = BillingPlanPrice.find_by!(stripe_price_id: second.price.id)
+    expect(first.plan.reload.stripe_price_id).to eq(second.price.id)
+    expect(old_history).not_to be_current
+    expect(old_history).not_to be_active
+    expect(old_history.retired_at).to be_present
+    expect(old_history.amount_cents).to eq(7_900)
+    expect(new_history).to be_current
+    expect(new_history.amount_cents).to eq(8_900)
+    expect(BillingPlan.for_price_id(old_price_id)).to eq(first.plan)
+  end
+
+  it "converges on the same current price when retried" do
+    attrs = subscription_attributes(key: "pandora_pro_annual", amount_cents: 61_620, interval: "year")
+
+    first = described_class.new(attrs).call
+    second = described_class.new(attrs).call
+
+    expect(second.price.id).to eq(first.price.id)
+    expect(Stripe::Price.counter).to eq(1)
+    expect(first.plan.billing_plan_prices.reload.count).to eq(1)
+    expect(first.plan.billing_plan_prices.current.first.stripe_price_id).to eq(first.price.id)
+  end
+
+  it "reuses the Stripe price when local persistence fails and is retried" do
+    attrs = subscription_attributes(key: "pandora_pro_monthly", amount_cents: 7_900)
+    failures = 0
+    allow_any_instance_of(BillingPlanPrice).to receive(:save!).and_wrap_original do |method, *args|
+      if failures.zero?
+        failures += 1
+        raise ActiveRecord::RecordInvalid, method.receiver
+      end
+
+      method.call(*args)
+    end
+
+    expect { described_class.new(attrs).call }.to raise_error(ActiveRecord::RecordInvalid)
+    expect(BillingPlan.find_by(key: attrs[:key])).to be_nil
+
+    result = described_class.new(attrs).call
+
+    expect(result.plan).to be_persisted
+    expect(Stripe::Product.counter).to eq(1)
+    expect(Stripe::Price.counter).to eq(1)
+    expect(result.plan.billing_plan_prices.current.first.stripe_price_id).to eq(result.price.id)
+  end
+
+  it "keeps the prior current mapping when Stripe price creation fails" do
+    plan = create_remote_subscription_plan(amount_cents: 7_900)
+    previous = create(
+      :billing_plan_price,
+      billing_plan: plan,
+      stripe_price_id: plan.stripe_price_id,
+      amount_cents: plan.amount_cents,
+      current: true
+    )
+    Stripe::Price.fail_next_create = true
+
+    expect do
+      described_class.new(subscription_attributes(key: plan.key, amount_cents: 8_900)).call
+    end.to raise_error(StandardError, "Stripe price creation failed")
+
+    expect(plan.reload.amount_cents).to eq(7_900)
+    expect(plan.stripe_price_id).to eq(previous.stripe_price_id)
+    expect(previous.reload).to be_current
+    expect(previous).to be_active
+  end
+
+  it "retries remote retirement without creating another current price" do
+    plan = create_remote_subscription_plan(amount_cents: 7_900)
+    old_history = create(
+      :billing_plan_price,
+      billing_plan: plan,
+      stripe_price_id: plan.stripe_price_id,
+      amount_cents: plan.amount_cents,
+      current: true
+    )
+    Stripe::Price.fail_updates_for = [ old_history.stripe_price_id ]
+    attrs = subscription_attributes(key: plan.key, amount_cents: 8_900)
+
+    expect { described_class.new(attrs).call }.to raise_error(StandardError, "Stripe price retirement failed")
+
+    new_price_id = plan.reload.stripe_price_id
+    expect(new_price_id).not_to eq(old_history.stripe_price_id)
+    expect(old_history.reload).not_to be_current
+    expect(old_history).to be_active
+    expect(BillingPlanPrice.find_by!(stripe_price_id: new_price_id)).to be_current
+
+    Stripe::Price.fail_updates_for = []
+    result = described_class.new(attrs).call
+
+    expect(result.price.id).to eq(new_price_id)
+    expect(Stripe::Price.counter).to eq(1)
+    expect(old_history.reload).not_to be_active
+  end
+
+  def subscription_attributes(key:, amount_cents:, interval: "month")
+    {
+      key: key,
+      name: key.humanize,
+      description: "Pandora subscription",
+      kind: "subscription",
+      tier: key.delete_suffix("_monthly").delete_suffix("_annual"),
+      interval: interval,
+      interval_count: 1,
+      amount_cents: amount_cents,
+      currency: "usd",
+      active: true,
+      sort_order: 1
+    }
+  end
+
+  def create_remote_subscription_plan(amount_cents:)
+    product = OpenStruct.new(
+      id: "prod_existing",
+      name: "Pandora Pro Monthly",
+      description: "Pandora subscription",
+      metadata: { "billing_plan_key" => "pandora_pro_monthly" }
+    )
+    price = OpenStruct.new(
+      id: "price_existing",
+      product: product.id,
+      unit_amount: amount_cents,
+      currency: "usd",
+      recurring: { interval: "month", interval_count: 1 },
+      metadata: { "billing_plan_key" => "pandora_pro_monthly" },
+      active: true
+    )
+    Stripe::Product.products[product.id] = product
+    Stripe::Price.prices[price.id] = price
+
+    create(
+      :billing_plan,
+      key: "pandora_pro_monthly",
+      name: product.name,
+      description: product.description,
+      tier: "pandora_pro",
+      interval: "month",
+      interval_count: 1,
+      amount_cents: amount_cents,
+      stripe_product_id: product.id,
+      stripe_price_id: price.id
+    )
   end
 
   def stub_stripe
@@ -154,7 +306,7 @@ RSpec.describe Billing::PlanCreator do
       end
 
       def self.list(limit:)
-        OpenStruct.new(data: [])
+        OpenStruct.new(data: products.values)
       end
 
       def self.create(params, _opts = {})
@@ -184,7 +336,8 @@ RSpec.describe Billing::PlanCreator do
 
     price_class = Class.new do
       class << self
-        attr_accessor :prices, :counter, :idempotent_requests, :idempotency_keys
+        attr_accessor :prices, :counter, :idempotent_requests, :idempotent_price_ids,
+                      :idempotency_keys, :fail_next_create, :fail_updates_for
       end
 
       def self.retrieve(id)
@@ -194,6 +347,11 @@ RSpec.describe Billing::PlanCreator do
       end
 
       def self.create(params, opts = {})
+        if fail_next_create
+          self.fail_next_create = false
+          raise StandardError, "Stripe price creation failed"
+        end
+
         idempotency_key = opts[:idempotency_key].to_s
         if idempotency_key.present?
           normalized_params = normalize_params(params)
@@ -205,6 +363,8 @@ RSpec.describe Billing::PlanCreator do
 
           idempotent_requests[idempotency_key] = normalized_params
           idempotency_keys << idempotency_key
+          existing_price_id = idempotent_price_ids[idempotency_key]
+          return prices.fetch(existing_price_id) if existing_price_id.present?
         end
 
         self.counter = counter.to_i + 1
@@ -215,13 +375,17 @@ RSpec.describe Billing::PlanCreator do
           unit_amount: params[:unit_amount],
           currency: params[:currency],
           recurring: params[:recurring],
+          metadata: params[:metadata] || {},
           active: true
         )
         prices[id] = price
+        idempotent_price_ids[idempotency_key] = id if idempotency_key.present?
         price
       end
 
       def self.update(id, params)
+        raise StandardError, "Stripe price retirement failed" if Array(fail_updates_for).include?(id)
+
         price = prices[id]
         return unless price
 
@@ -249,7 +413,10 @@ RSpec.describe Billing::PlanCreator do
     product_class.products = products
     price_class.prices = prices
     price_class.idempotent_requests = {}
+    price_class.idempotent_price_ids = {}
     price_class.idempotency_keys = []
+    price_class.fail_next_create = false
+    price_class.fail_updates_for = []
 
     stub_const("Stripe::Product", product_class)
     stub_const("Stripe::Price", price_class)

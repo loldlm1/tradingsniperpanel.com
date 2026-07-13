@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_13_100000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_13_110000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -106,6 +106,29 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_100000) do
     t.index ["billing_plan_id", "expert_advisor_id"], name: "index_billing_plan_entitlements_unique", unique: true
     t.index ["billing_plan_id"], name: "index_billing_plan_entitlements_on_billing_plan_id"
     t.index ["expert_advisor_id"], name: "index_billing_plan_entitlements_on_expert_advisor_id"
+  end
+
+  create_table "billing_plan_prices", force: :cascade do |t|
+    t.bigint "billing_plan_id", null: false
+    t.string "stripe_price_id", null: false
+    t.integer "amount_cents", null: false
+    t.string "currency", null: false
+    t.string "interval"
+    t.integer "interval_count"
+    t.boolean "active", default: true, null: false
+    t.boolean "current", default: false, null: false
+    t.datetime "retired_at"
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_billing_plan_prices_on_active"
+    t.index ["billing_plan_id"], name: "index_billing_plan_prices_on_billing_plan_id"
+    t.index ["billing_plan_id"], name: "index_billing_plan_prices_on_current_plan", unique: true, where: "(current = true)"
+    t.index ["retired_at"], name: "index_billing_plan_prices_on_retired_at"
+    t.index ["stripe_price_id"], name: "index_billing_plan_prices_on_stripe_price_id", unique: true
+    t.check_constraint "NOT current OR active = true AND retired_at IS NULL", name: "billing_plan_prices_current_coherence_check"
+    t.check_constraint "\"interval\" IS NULL AND interval_count IS NULL OR (\"interval\"::text = ANY (ARRAY['day'::character varying, 'week'::character varying, 'month'::character varying, 'year'::character varying]::text[])) AND interval_count > 0", name: "billing_plan_prices_recurrence_coherence_check"
+    t.check_constraint "amount_cents > 0", name: "billing_plan_prices_amount_positive_check"
   end
 
   create_table "billing_plans", force: :cascade do |t|
@@ -874,6 +897,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_100000) do
   add_foreign_key "billing_email_deliveries", "users"
   add_foreign_key "billing_plan_entitlements", "billing_plans"
   add_foreign_key "billing_plan_entitlements", "expert_advisors"
+  add_foreign_key "billing_plan_prices", "billing_plans"
   add_foreign_key "broker_account_daily_results", "broker_accounts"
   add_foreign_key "broker_account_daily_results", "expert_advisors"
   add_foreign_key "broker_accounts", "licenses"
