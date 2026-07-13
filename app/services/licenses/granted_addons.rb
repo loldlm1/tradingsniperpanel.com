@@ -17,7 +17,6 @@ module Licenses
       return [] if addon_pairs.empty?
 
       normalized_pairs = addon_pairs.map { |key, plan_id| [normalize_key(key), plan_id] }
-      return normalized_pairs.map(&:first).uniq if Access::PrivilegedRolePolicy.full_access?(user)
 
       purchased_plan_ids = MarketplacePurchase.where(
         user: user,

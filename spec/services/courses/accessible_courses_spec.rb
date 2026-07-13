@@ -62,11 +62,13 @@ RSpec.describe Courses::AccessibleCourses do
     expect(entry.accessible).to be(true)
   end
 
-  it "unlocks all courses for privileged roles" do
-    privileged_user = create(:user, :full_trader)
+  it "keeps paid courses locked for every product role without entitlement" do
+    %i[admin master_admin full_trader].each do |role|
+      role_user = create(:user, role: role)
+      entries = described_class.new(user: role_user, tier: nil).call
 
-    entries = described_class.new(user: privileged_user, tier: nil).call
-
-    expect(entries).to all(have_attributes(accessible: true))
+      expect(entries.find { |entry| entry.course == paid_course }.accessible).to be(false)
+      expect(entries.find { |entry| entry.course == marketplace_course }.accessible).to be(false)
+    end
   end
 end

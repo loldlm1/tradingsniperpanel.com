@@ -265,7 +265,6 @@ module Marketplace
     def owned_plan_ids_for(plan_ids)
       ids = Array(plan_ids).compact.uniq
       return [] if ids.empty?
-      return ids if Access::PrivilegedRolePolicy.full_access?(user)
 
       purchased_ids = MarketplacePurchase.where(user: user, billing_plan_id: ids).pluck(:billing_plan_id)
       manual_ids = ManualTransaction.where(user: user, billing_plan_id: ids).pluck(:billing_plan_id)

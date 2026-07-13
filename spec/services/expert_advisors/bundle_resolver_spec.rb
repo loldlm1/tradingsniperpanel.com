@@ -75,23 +75,32 @@ RSpec.describe ExpertAdvisors::BundleResolver do
     expect(result.addon_keys).to eq(["news_filter"])
   end
 
-  it "returns the privileged addon bundle without marketplace purchases" do
-    privileged_user = create(:user, :full_trader)
+  it "returns only the base bundle for product roles without add-on purchases" do
     create(:addon, key: "news_filter", addonable: expert_advisor)
     create(:addon, key: "moving_average_filter", addonable: expert_advisor)
 
-    bundle = create(
+    base_bundle = create(
+      :expert_advisor_bundle,
+      expert_advisor: expert_advisor,
+      bundle_key: "base",
+      required_addon_keys: ""
+    )
+    attach_bundle(base_bundle, filename: "#{expert_advisor.ea_id}__base.rar")
+    addon_bundle = create(
       :expert_advisor_bundle,
       expert_advisor: expert_advisor,
       bundle_key: "moving_average_filter__news_filter",
       required_addon_keys: "news_filter,moving_average_filter"
     )
-    attach_bundle(bundle, filename: "#{expert_advisor.ea_id}__moving_average_filter__news_filter.rar")
+    attach_bundle(addon_bundle, filename: "#{expert_advisor.ea_id}__moving_average_filter__news_filter.rar")
 
-    result = described_class.new(user: privileged_user, expert_advisor: expert_advisor).call
+    %i[admin master_admin full_trader].each do |role|
+      role_user = create(:user, role: role)
+      result = described_class.new(user: role_user, expert_advisor: expert_advisor).call
 
-    expect(result).to be_found
-    expect(result.bundle).to eq(bundle)
-    expect(result.addon_keys).to eq(%w[moving_average_filter news_filter])
+      expect(result).to be_found
+      expect(result.bundle).to eq(base_bundle)
+      expect(result.addon_keys).to eq([])
+    end
   end
 end

@@ -35,11 +35,13 @@ RSpec.describe Marketplace::AssetAccess do
     expect(refreshed).to be_allowed
   end
 
-  it "grants access for privileged users without purchases" do
-    privileged_user = create(:user, :full_trader)
+  it "requires purchases for every product role" do
+    %i[admin master_admin full_trader].each do |role|
+      role_user = create(:user, role: role)
+      result = described_class.new(user: role_user, asset: asset).call
 
-    result = described_class.new(user: privileged_user, asset: asset).call
-
-    expect(result).to be_allowed
+      expect(result.allowed?).to be(false)
+      expect(result.reason).to eq(:not_purchased)
+    end
   end
 end

@@ -38,8 +38,6 @@ class User < ApplicationRecord
   before_validation :set_terms_accepted_at_from_checkbox, on: :create
   validate :terms_must_be_accepted, on: :create
 
-  after_commit :sync_role_based_access, if: :saved_change_to_role?
-
   def pay_customer_name
     name.presence || email
   end
@@ -65,10 +63,6 @@ class User < ApplicationRecord
 
   def preferred_locale_code
     preferred_locale.presence || I18n.default_locale
-  end
-
-  def privileged_full_access?
-    admin? || master_admin? || full_trader?
   end
 
   # Send Devise emails asynchronously so auth flows do not block on SMTP latency.
@@ -98,9 +92,5 @@ class User < ApplicationRecord
     return if terms_accepted_at.present?
 
     errors.add(:terms_of_service, :accepted)
-  end
-
-  def sync_role_based_access
-    Licenses::PrivilegedAccess.new(user: self).sync_all
   end
 end

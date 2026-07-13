@@ -24,15 +24,17 @@ RSpec.describe Licenses::AccessibleExpertAdvisors do
     expect(entry.accessible).to be false
   end
 
-  it "unlocks all expert advisors for privileged users" do
-    privileged_user = create(:user, :full_trader)
-    other_ea = create(:expert_advisor, ea_id: "ea-privileged")
+  it "keeps missing licenses locked for every product role" do
+    other_ea = create(:expert_advisor, ea_id: "ea-role-only")
 
-    entries = described_class.new(user: privileged_user).call
-    entry = entries.find { |e| e.expert_advisor == other_ea }
+    %i[admin master_admin full_trader].each do |role|
+      role_user = create(:user, role: role)
+      entries = described_class.new(user: role_user).call
+      entry = entries.find { |e| e.expert_advisor == other_ea }
 
-    expect(entry).to be_present
-    expect(entry.status).to eq(:active)
-    expect(entry.accessible).to be(true)
+      expect(entry).to be_present
+      expect(entry.status).to eq(:locked)
+      expect(entry.accessible).to be(false)
+    end
   end
 end

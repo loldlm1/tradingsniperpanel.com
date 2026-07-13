@@ -69,20 +69,22 @@ RSpec.describe Marketplace::ShowPresenter do
     expect(presenter.addon_rows.map(&:plan_key)).not_to include(addon_plan.key)
   end
 
-  it "hides add-ons from checkout rows for privileged users" do
-    privileged_user = create(:user, :full_trader)
+  it "shows unowned add-ons to every product role" do
     base_plan = create(:billing_plan, :one_time)
     base_product = create(:marketplace_product, billing_plan: base_plan, title_en: "Base")
     create(:billing_plan_entitlement, billing_plan: base_plan, expert_advisor: expert_advisor)
 
     addon_plan = create(:billing_plan, :one_time)
     create(:addon, addonable: expert_advisor, billing_plan: addon_plan)
-    create(:marketplace_product, billing_plan: addon_plan, title_en: "Privileged Addon")
+    create(:marketplace_product, billing_plan: addon_plan, title_en: "Role Addon")
 
-    entry = Marketplace::Catalog.new(user: privileged_user).entry_for!(slug: base_product.slug)
-    presenter = described_class.new(user: privileged_user, entry: entry, locale: :en).call
+    %i[admin master_admin full_trader].each do |role|
+      role_user = create(:user, role: role)
+      entry = Marketplace::Catalog.new(user: role_user).entry_for!(slug: base_product.slug)
+      presenter = described_class.new(user: role_user, entry: entry, locale: :en).call
 
-    expect(presenter.addon_rows).to be_empty
+      expect(presenter.addon_rows.map(&:plan_key)).to eq([ addon_plan.key ])
+    end
   end
 
   it "computes cart totals when the base product is required" do

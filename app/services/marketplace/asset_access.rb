@@ -14,7 +14,6 @@ module Marketplace
     def call
       return Result.new(allowed: false, reason: :missing_user, asset: asset) unless user
       return Result.new(allowed: false, reason: :missing_asset, asset: asset) unless asset
-      return Result.new(allowed: true, asset: asset) if Access::PrivilegedRolePolicy.full_access?(user)
 
       allowed = MarketplacePurchase
                 .joins(billing_plan: :marketplace_assets)

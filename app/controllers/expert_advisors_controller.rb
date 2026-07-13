@@ -65,16 +65,12 @@ class ExpertAdvisorsController < ApplicationController
   end
 
   def ensure_guide_access!
-    return if Access::PrivilegedRolePolicy.full_access?(current_user)
-
-    has_license = @expert_advisor_entry&.license.present?
+    has_access = @expert_advisor_entry&.accessible
     has_user_ea = current_user.user_expert_advisors.where(expert_advisor_id: @expert_advisor.id).exists?
-    head :not_found unless has_license || has_user_ea
+    head :not_found unless has_access || has_user_ea
   end
 
   def ensure_addon_guide_access!
-    return if Access::PrivilegedRolePolicy.full_access?(current_user)
-
     has_base_access = @expert_advisor_entry&.accessible || current_user.user_expert_advisors.where(expert_advisor_id: @expert_advisor.id).exists?
     has_addon_purchase = MarketplacePurchase.where(user: current_user, billing_plan_id: @addon.billing_plan_id).exists? ||
                          ManualTransaction.where(user: current_user, billing_plan_id: @addon.billing_plan_id).exists?

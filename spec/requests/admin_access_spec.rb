@@ -1,9 +1,20 @@
 require "rails_helper"
 
 RSpec.describe "ActiveAdmin access", type: :request do
-  it "allows admin users to view the dashboard" do
+  it "allows subscription-backed admin users to view the dashboard" do
     admin = create(:user, :admin)
+    create(:license, user: admin, access_source: "subscription", source: "stripe_subscription")
     sign_in admin, scope: :user
+
+    get "/admin"
+    follow_redirect! if response.redirect?
+
+    expect(response).to have_http_status(:ok)
+  end
+
+  it "allows master admins to view the dashboard" do
+    master_admin = create(:user, :master_admin)
+    sign_in master_admin, scope: :user
 
     get "/admin"
     follow_redirect! if response.redirect?
@@ -14,6 +25,15 @@ RSpec.describe "ActiveAdmin access", type: :request do
   it "redirects non-admin users away from admin" do
     user = create(:user)
     sign_in user, scope: :user
+
+    get "/admin"
+
+    expect(response).to redirect_to(root_path)
+  end
+
+  it "does not grant ActiveAdmin access to full traders" do
+    full_trader = create(:user, :full_trader)
+    sign_in full_trader, scope: :user
 
     get "/admin"
 

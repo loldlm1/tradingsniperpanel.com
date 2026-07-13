@@ -105,11 +105,14 @@ RSpec.describe User, type: :model do
       expect(user).to be_full_trader
     end
 
-    it "flags privileged full-access roles" do
-      expect(create(:user, :admin).privileged_full_access?).to be(true)
-      expect(create(:user, :master_admin).privileged_full_access?).to be(true)
-      expect(create(:user, :full_trader).privileged_full_access?).to be(true)
-      expect(create(:user).privileged_full_access?).to be(false)
+    it "does not create product licenses when roles change" do
+      create(:expert_advisor)
+
+      %i[admin master_admin full_trader].each do |role|
+        user = create(:user)
+
+        expect { user.update!(role: role) }.not_to change(License, :count)
+      end
     end
   end
 

@@ -23,7 +23,6 @@ module Courses
                       .ordered
       enrollment_map = enrollments_indexed
       current_tier = resolved_tier
-      privileged_full_access = Access::PrivilegedRolePolicy.full_access?(user)
 
       courses.map do |course|
         enrollment = enrollment_map[course.id]
@@ -31,7 +30,7 @@ module Courses
         tier_access = course.allowed_for_tier?(current_tier)
         Entry.new(
           course: course,
-          accessible: privileged_full_access || purchased_access || tier_access,
+          accessible: purchased_access || tier_access,
           allowed_tiers: course.subscription_tiers,
           cta_plan: cta_plan_for(course),
           progress_percent: enrollment&.progress_percent

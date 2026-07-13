@@ -1,10 +1,10 @@
 require "rails_helper"
 
 RSpec.describe ExpertAdvisors::IndexPresenter, type: :service do
-  it "marks addons as owned for privileged users" do
-    privileged_user = create(:user, :full_trader)
-    expert_advisor = create(:expert_advisor, name: "Privileged EA")
-    license = create(:license, user: privileged_user, expert_advisor: expert_advisor, status: "active")
+  it "does not mark add-ons as owned from a product role" do
+    role_user = create(:user, :full_trader)
+    expert_advisor = create(:expert_advisor, name: "Role EA")
+    license = create(:license, user: role_user, expert_advisor: expert_advisor, status: "active")
     entry = Licenses::AccessibleExpertAdvisors::Entry.new(
       expert_advisor: expert_advisor,
       license: license,
@@ -22,15 +22,15 @@ RSpec.describe ExpertAdvisors::IndexPresenter, type: :service do
 
     presenter = described_class.new(
       entries: [entry],
-      user: privileged_user,
+      user: role_user,
       locale: :en,
       marketplace_available: true
     )
     card = presenter.cards.first
 
     expect(card.addons_total_count).to eq(2)
-    expect(card.addons_owned_count).to eq(2)
-    expect(card.addon_items.map(&:owned)).to eq([true, true])
+    expect(card.addons_owned_count).to eq(0)
+    expect(card.addon_items.map(&:owned)).to eq([ false, false ])
   end
 
   it "builds a lifetime expiration label for one-time licenses" do
