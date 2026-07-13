@@ -160,6 +160,49 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
     expect(license.encrypted_key).to eq("VERSIONED")
   end
 
+  it "permanently supersedes active manual grants when Stripe becomes active" do
+    manual = create(
+      :manual_subscription,
+      user: user,
+      billing_plan: basic_plan,
+      starts_at: 1.day.ago,
+      ends_at: 1.month.from_now
+    )
+    subscription = create_subscription(
+      processor_plan: basic_plan.stripe_price_id,
+      current_period_end: 1.month.from_now
+    )
+
+    described_class.new(subscription_id: subscription.id, encoder: encoder).call
+
+    expect(manual.reload).to be_superseded
+    expect(manual.superseded_by_pay_subscription).to eq(subscription)
+    expect(manual.superseded_at).to be_present
+  end
+
+  it "does not let an inactive Stripe callback overwrite current manual access" do
+    manual = create(
+      :manual_subscription,
+      user: user,
+      billing_plan: basic_plan,
+      starts_at: 1.day.ago,
+      ends_at: 1.month.from_now
+    )
+    Licenses::ManualSubscriptionSync.new(manual_subscription_id: manual.id, encoder: encoder).call
+    manual_license = License.find_by!(user: user, expert_advisor: basic_ea)
+    subscription = create_subscription(
+      processor_plan: basic_plan.stripe_price_id,
+      current_period_end: 1.day.ago,
+      ends_at: 1.day.ago
+    )
+
+    described_class.new(subscription_id: subscription.id, encoder: encoder).call
+
+    expect(manual.reload).to be_active
+    expect(manual_license.reload.source).to eq("manual_subscription")
+    expect(manual_license).to be_active
+  end
+
   it "activates pro-only EAs when on a pro plan" do
     subscription = create_subscription(
       processor_plan: pro_plan.stripe_price_id,

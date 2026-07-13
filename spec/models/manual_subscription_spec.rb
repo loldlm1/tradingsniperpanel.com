@@ -1,4 +1,5 @@
 require "rails_helper"
+require "securerandom"
 
 RSpec.describe ManualSubscription, type: :model do
   it "is valid with a subscription billing plan" do
@@ -11,19 +12,28 @@ RSpec.describe ManualSubscription, type: :model do
     expect(subscription).not_to be_valid
   end
 
+  it "requires positive granted days and non-negative money" do
+    subscription = build(:manual_subscription, granted_days: 0, amount_cents: -1)
+
+    expect(subscription).not_to be_valid
+    expect(subscription.errors[:granted_days]).to be_present
+    expect(subscription.errors[:amount_cents]).to be_present
+  end
+
   it "requires ends_at after starts_at" do
     subscription = build(:manual_subscription, starts_at: Time.current, ends_at: 1.day.ago)
     expect(subscription).not_to be_valid
   end
 
-  it "blocks overlaps with active Stripe subscriptions for the same plan" do
+  it "blocks grants while any active Stripe subscription exists" do
     plan = create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1)
+    other_plan = create(:billing_plan, tier: "pro", key: "pro_monthly", interval: "month", interval_count: 1)
     user = create(:user)
     customer = user.pay_customers.create!(processor: "stripe", processor_id: "cus_manual_conflict", default: true)
     customer.subscriptions.create!(
       name: "default",
       processor_id: "sub_manual_conflict",
-      processor_plan: plan.stripe_price_id,
+      processor_plan: other_plan.stripe_price_id,
       status: "active",
       quantity: 1,
       current_period_start: Time.current,
@@ -37,6 +47,40 @@ RSpec.describe ManualSubscription, type: :model do
     expect(subscription.errors[:base]).to include(I18n.t("errors.messages.billing_conflict"))
   end
 
+  it "keeps complimentary and pending amounts out of settled totals" do
+    complimentary = build(:manual_subscription, payment_status: "complimentary", amount_cents: 0, paid_at: nil)
+    pending = build(:manual_subscription, payment_status: "pending", amount_cents: 7900, paid_at: nil)
+    paid = build(:manual_subscription, payment_status: "paid", amount_cents: 7900, paid_at: Time.current)
+
+    expect(complimentary).to be_valid
+    expect(pending).to be_valid
+    expect(paid).to be_valid
+    expect(complimentary.settled_amount_cents).to eq(0)
+    expect(pending.settled_amount_cents).to eq(0)
+    expect(paid.settled_amount_cents).to eq(7900)
+  end
+
+  it "requires coherent payment details" do
+    complimentary = build(:manual_subscription, payment_status: "complimentary", amount_cents: 100, paid_at: nil)
+    pending = build(:manual_subscription, payment_status: "pending", amount_cents: 100, paid_at: Time.current)
+    paid = build(:manual_subscription, payment_status: "paid", amount_cents: 0, paid_at: nil)
+
+    expect(complimentary).not_to be_valid
+    expect(pending).not_to be_valid
+    expect(paid).not_to be_valid
+  end
+
+  it "excludes superseded grants from active access" do
+    subscription = create(:manual_subscription, starts_at: 1.day.ago, ends_at: 1.month.from_now)
+    pay_subscription = create_pay_subscription(user: subscription.user)
+
+    subscription.supersede_with!(pay_subscription: pay_subscription)
+
+    expect(subscription.reload).to be_superseded
+    expect(subscription).not_to be_active_for_time
+    expect(described_class.active_at(Time.current)).not_to include(subscription)
+  end
+
   it "scopes active subscriptions for a given time" do
     active = create(:manual_subscription, starts_at: 2.days.ago, ends_at: 2.days.from_now)
     inactive = create(:manual_subscription, starts_at: 10.days.ago, ends_at: 5.days.ago)
@@ -46,9 +90,42 @@ RSpec.describe ManualSubscription, type: :model do
   end
 
   it "allowlists ransack associations and attributes" do
-    expect(described_class.ransackable_associations).to match_array(%w[billing_plan recorded_by_admin user])
+    expect(described_class.ransackable_associations).to match_array(
+      %w[billing_plan recorded_by_admin superseded_by_pay_subscription user]
+    )
     expect(described_class.ransackable_attributes).to match_array(
-      %w[billing_plan_id created_at ends_at id paid_at recorded_by_admin_id status user_id]
+      %w[
+        billing_plan_id
+        created_at
+        ends_at
+        granted_days
+        id
+        paid_at
+        payment_status
+        recorded_by_admin_id
+        status
+        superseded_at
+        superseded_by_pay_subscription_id
+        user_id
+      ]
+    )
+  end
+
+
+  def create_pay_subscription(user:)
+    customer = user.pay_customers.create!(
+      processor: "stripe",
+      processor_id: "cus_#{SecureRandom.hex(4)}",
+      default: true
+    )
+    customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: "price_pandora_monthly",
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now
     )
   end
 end

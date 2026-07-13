@@ -101,10 +101,12 @@ RSpec.describe "Admin form rendering", type: :request do
   it "renders manual subscription forms" do
     get new_admin_manual_subscription_path
     expect_form_ok
-
-    subscription = create(:manual_subscription)
-    get edit_admin_manual_subscription_path(subscription)
-    expect_form_ok
+    expect(response.body).to include('name="manual_subscription[user_id]"')
+    expect(response.body).to include('name="manual_subscription[billing_plan_id]"')
+    expect(response.body).to include('name="manual_subscription[granted_days]"')
+    expect(response.body).to include('name="manual_subscription[paid_at]"')
+    expect(response.body).to include('<option value="">Automatic</option>')
+    expect(response.body).not_to include('<option selected="selected" value="paid">paid</option>')
   end
 
   it "renders revenue split rule forms" do

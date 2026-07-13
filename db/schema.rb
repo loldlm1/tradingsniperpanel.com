@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_13_090000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_13_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -373,9 +373,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_090000) do
   create_table "manual_subscriptions", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "billing_plan_id", null: false
-    t.integer "amount_cents", null: false
+    t.integer "amount_cents", default: 0, null: false
     t.string "currency", default: "usd", null: false
-    t.datetime "paid_at", null: false
+    t.datetime "paid_at"
     t.datetime "starts_at", null: false
     t.datetime "ends_at", null: false
     t.string "status", default: "active", null: false
@@ -385,12 +385,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_090000) do
     t.bigint "recorded_by_admin_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "granted_days"
+    t.string "payment_status", default: "paid", null: false
+    t.datetime "superseded_at"
+    t.bigint "superseded_by_pay_subscription_id"
     t.index ["billing_plan_id"], name: "index_manual_subscriptions_on_billing_plan_id"
     t.index ["ends_at"], name: "index_manual_subscriptions_on_ends_at"
     t.index ["paid_at"], name: "index_manual_subscriptions_on_paid_at"
+    t.index ["payment_status"], name: "index_manual_subscriptions_on_payment_status"
     t.index ["recorded_by_admin_id"], name: "index_manual_subscriptions_on_recorded_by_admin_id"
+    t.index ["superseded_at"], name: "index_manual_subscriptions_on_superseded_at"
+    t.index ["superseded_by_pay_subscription_id"], name: "idx_on_superseded_by_pay_subscription_id_0e57c5cf95"
     t.index ["user_id", "billing_plan_id"], name: "index_manual_subscriptions_on_user_id_and_billing_plan_id"
     t.index ["user_id"], name: "index_manual_subscriptions_on_user_id"
+    t.check_constraint "amount_cents >= 0", name: "manual_subscriptions_amount_non_negative_check"
+    t.check_constraint "ends_at > starts_at", name: "manual_subscriptions_period_order_check"
+    t.check_constraint "granted_days IS NULL OR granted_days > 0", name: "manual_subscriptions_granted_days_positive_check"
+    t.check_constraint "payment_status::text = 'paid'::text AND paid_at IS NOT NULL AND amount_cents > 0 OR payment_status::text = 'pending'::text AND paid_at IS NULL OR payment_status::text = 'complimentary'::text AND paid_at IS NULL AND amount_cents = 0", name: "manual_subscriptions_payment_coherence_check"
+    t.check_constraint "payment_status::text = ANY (ARRAY['complimentary'::character varying, 'pending'::character varying, 'paid'::character varying]::text[])", name: "manual_subscriptions_payment_status_check"
+    t.check_constraint "status::text = 'superseded'::text AND superseded_at IS NOT NULL OR status::text <> 'superseded'::text AND superseded_at IS NULL AND superseded_by_pay_subscription_id IS NULL", name: "manual_subscriptions_supersession_coherence_check"
+    t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'expired'::character varying, 'cancelled'::character varying, 'superseded'::character varying]::text[])", name: "manual_subscriptions_status_check"
   end
 
   create_table "manual_transactions", force: :cascade do |t|
@@ -883,6 +897,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_090000) do
   add_foreign_key "licenses", "expert_advisors"
   add_foreign_key "licenses", "users"
   add_foreign_key "manual_subscriptions", "billing_plans"
+  add_foreign_key "manual_subscriptions", "pay_subscriptions", column: "superseded_by_pay_subscription_id"
   add_foreign_key "manual_subscriptions", "users"
   add_foreign_key "manual_subscriptions", "users", column: "recorded_by_admin_id"
   add_foreign_key "manual_transactions", "billing_plans"

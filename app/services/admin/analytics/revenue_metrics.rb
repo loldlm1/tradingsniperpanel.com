@@ -72,7 +72,7 @@ module Admin
       def manual_subscriptions
         return ManualSubscription.none unless ManualSubscription.table_exists?
 
-        ManualSubscription.where(paid_at: range)
+        ManualSubscription.where(payment_status: ManualSubscription::PAYMENT_STATUSES[:paid], paid_at: range)
       end
 
       def partner_commissions_scope

@@ -261,7 +261,7 @@ class DashboardsController < ApplicationController
   def set_subscription
     result = Billing::ActiveSubscriptionFinder.new(user: current_user).call
     @subscription = result.subscription
-    @pay_customer = result.customer if result.stripe?
+    @pay_customer = result.customer
   end
 
   def set_plan_context

@@ -20,6 +20,19 @@ module Licenses
       tier, interval = parse_price_key(price_key) if tier.blank? || interval.blank?
       return unless tier && interval
 
+      authoritative_subscription = Billing::ActiveSubscriptionFinder.new(user: user).call
+      if !subscription_active?(subscription) &&
+         authoritative_subscription.stripe? &&
+         authoritative_subscription.subscription.id != subscription.id
+        return
+      end
+
+      if subscription_active?(subscription)
+        supersede_manual_grants(user:, subscription:)
+      elsif ManualSubscription.active_at(Time.current).where(user: user).exists?
+        return
+      end
+
       Rails.logger.info("[Licenses::SubscriptionLicenseSync] syncing subscription_id=#{subscription.id} user_id=#{user.id} price_key=#{price_key} tier=#{tier} interval=#{interval}")
 
       allowed_eas = ExpertAdvisor.active.includes(:billing_plan_entitlements, :billing_plans)
@@ -45,7 +58,7 @@ module Licenses
 
       tier = parts.shift
       interval_key = parts.join("_")
-      [tier, interval_key]
+      [ tier, interval_key ]
     end
 
     def sync_license_for(user:, expert_advisor:, interval:, subscription:)
@@ -73,6 +86,14 @@ module Licenses
       return true if active_until.nil?
 
       active_until.future?
+    end
+
+    def supersede_manual_grants(user:, subscription:)
+      ManualSubscription.supersede_for_stripe!(
+        user: user,
+        pay_subscription: subscription,
+        at: Time.current
+      )
     end
 
     def mark_referral_completed(user:, subscription:)
