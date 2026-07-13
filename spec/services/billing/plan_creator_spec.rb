@@ -221,6 +221,43 @@ RSpec.describe Billing::PlanCreator do
     expect(old_history.reload).not_to be_active
   end
 
+  it "can defer remote retirement until subscription schedules are verified" do
+    attrs = subscription_attributes(key: "pandora_pro_monthly", amount_cents: 7_900)
+    first = described_class.new(attrs).call
+
+    second = described_class.new(
+      attrs.merge(amount_cents: 8_900),
+      retire_superseded_prices: false
+    ).call
+
+    old_history = BillingPlanPrice.find_by!(stripe_price_id: first.price.id)
+    expect(second.price.id).not_to eq(first.price.id)
+    expect(old_history).not_to be_current
+    expect(old_history).to be_active
+    expect(Stripe::Price.prices.fetch(first.price.id).active).to be(true)
+  end
+
+  it "creates both Pandora interval prices on an explicitly shared Stripe product" do
+    monthly = described_class.new(
+      subscription_attributes(key: "pandora_pro_monthly", amount_cents: 7_900).merge(
+        stripe_product_name: Billing::PandoraPricing::PRODUCT_NAME
+      ),
+      retire_superseded_prices: false
+    ).call
+    annual = described_class.new(
+      subscription_attributes(key: "pandora_pro_annual", amount_cents: 61_620, interval: "year").merge(
+        stripe_product_id: monthly.product.id,
+        stripe_product_name: Billing::PandoraPricing::PRODUCT_NAME
+      ),
+      retire_superseded_prices: false
+    ).call
+
+    expect(annual.product.id).to eq(monthly.product.id)
+    expect(monthly.price.product).to eq(monthly.product.id)
+    expect(annual.price.product).to eq(monthly.product.id)
+    expect(Stripe::Product.counter).to eq(1)
+  end
+
   def subscription_attributes(key:, amount_cents:, interval: "month")
     {
       key: key,

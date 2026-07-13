@@ -4,9 +4,10 @@ module Billing
   class PlanCreator
     Result = Struct.new(:plan, :product, :price, keyword_init: true)
 
-    def initialize(attributes, logger: Rails.logger)
+    def initialize(attributes, logger: Rails.logger, retire_superseded_prices: true)
       @attributes = attributes.to_h.symbolize_keys
       @logger = logger
+      @retire_superseded_prices = retire_superseded_prices
     end
 
     def call
@@ -37,7 +38,7 @@ module Billing
         price: price,
         previous_snapshot: previous_snapshot
       )
-      retire_superseded_remote_prices!(persisted_plan, current_price_id: price.id)
+      retire_superseded_remote_prices!(persisted_plan, current_price_id: price.id) if retire_superseded_prices
 
       Result.new(plan: persisted_plan, product: product, price: price)
     rescue StandardError => e
@@ -47,7 +48,7 @@ module Billing
 
     private
 
-    attr_reader :attributes, :logger
+    attr_reader :attributes, :logger, :retire_superseded_prices
 
     def assign_plan_attributes(plan)
       plan.assign_attributes(attributes.slice(
@@ -76,7 +77,7 @@ module Billing
         return product
       end
 
-      product = find_product_by_name(plan.name)
+      product = find_product_by_name(product_name(plan))
       if product
         update_product_if_needed(product, plan)
         return product
@@ -119,7 +120,7 @@ module Billing
 
     def update_product_if_needed(product, plan)
       updates = {}
-      updates[:name] = plan.name if plan.name.present? && product.name != plan.name
+      updates[:name] = product_name(plan) if product_name(plan).present? && product.name != product_name(plan)
       updates[:description] = plan.description if plan.description.to_s != product.description.to_s
       updates[:metadata] = product_metadata(plan) if product.metadata.to_h != product_metadata(plan)
       return product if updates.blank?
@@ -131,7 +132,7 @@ module Billing
     def ensure_price(plan, product, candidate_ids:)
       Array(candidate_ids).compact_blank.uniq.each do |price_id|
         existing = retrieve_price(price_id)
-        return existing if price_matches?(existing, plan)
+        return existing if price_matches?(existing, plan, product_id: product.id)
       end
 
       create_price(plan, product.id)
@@ -160,9 +161,10 @@ module Billing
       )
     end
 
-    def price_matches?(price, plan)
+    def price_matches?(price, plan, product_id:)
       return false if price.blank?
       return false if value_for(price, :active) == false
+      return false if normalize_product_id(value_for(price, :product)) != product_id
       return false if value_for(price, :unit_amount).to_i != plan.amount_cents.to_i
       return false if value_for(price, :currency).to_s.downcase != plan.currency.to_s.downcase
 
@@ -288,12 +290,15 @@ module Billing
     end
 
     def product_metadata(plan)
-      (plan.metadata || {}).to_h.merge("billing_plan_key" => plan.key)
+      metadata = (plan.metadata || {}).to_h.stringify_keys
+      return metadata.merge("billing_plan_key" => plan.key) unless plan.subscription?
+
+      metadata.except("billing_plan_key").merge("billing_plan_tier" => plan.tier)
     end
 
     def product_create_params(plan)
       {
-        name: plan.name,
+        name: product_name(plan),
         description: plan.description,
         metadata: product_metadata(plan)
       }
@@ -334,6 +339,19 @@ module Billing
       else
         value
       end
+    end
+
+    def product_name(plan)
+      attributes[:stripe_product_name].presence || plan.name
+    end
+
+    def normalize_product_id(value)
+      return value if value.is_a?(String)
+      return value.id if value.respond_to?(:id)
+      return value["id"] if value.is_a?(Hash) && value["id"].present?
+      return value[:id] if value.is_a?(Hash) && value[:id].present?
+
+      value.to_s.presence
     end
 
     def value_for(source, key)
