@@ -5,7 +5,15 @@ RSpec.describe "Broker account daily results API", type: :request do
   let(:user) { create(:user, email: "api-user@example.com") }
   let(:expert_advisor) { create(:expert_advisor, ea_id: "ea-api") }
   let(:expires_at) { 5.days.from_now }
-  let(:license_key) { encoder.generate(email: user.email, ea_id: expert_advisor.ea_id, expires_at: expires_at) }
+  let(:token_version) { 2 }
+  let(:license_key) do
+    encoder.generate(
+      email: user.email,
+      ea_id: expert_advisor.ea_id,
+      expires_at: expires_at,
+      token_version: token_version
+    )
+  end
   let(:source_id) { ENV.fetch("EA_LICENSE_SOURCE_ID", "trading_sniper_floor") }
   let!(:license) do
     create(
@@ -13,6 +21,7 @@ RSpec.describe "Broker account daily results API", type: :request do
       user: user,
       expert_advisor: expert_advisor,
       status: "active",
+      token_version: token_version,
       trial_ends_at: nil,
       expires_at: expires_at,
       encrypted_key: license_key

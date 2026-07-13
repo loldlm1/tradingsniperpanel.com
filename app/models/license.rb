@@ -6,6 +6,7 @@ class License < ApplicationRecord
     revoked: "revoked"
   }.freeze
   LIFETIME_EXPIRES_AT = Time.utc(2099, 12, 31, 23, 59, 59)
+  MAX_TOKEN_VERSION = 2_147_483_647
 
   belongs_to :user
   belongs_to :expert_advisor
@@ -18,6 +19,8 @@ class License < ApplicationRecord
 
   validates :encrypted_key, presence: true
   validates :status, inclusion: { in: STATUSES.values }
+  validates :token_version,
+            numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: MAX_TOKEN_VERSION }
   validates :user_id, uniqueness: { scope: :expert_advisor_id }
 
   scope :active_or_trial, -> { where(status: %w[active trial]) }
@@ -46,6 +49,15 @@ class License < ApplicationRecord
     return LIFETIME_EXPIRES_AT if access_source_one_time?
 
     nil
+  end
+
+  def token_generation_attributes(token_version: self.token_version)
+    {
+      email: user.email,
+      ea_id: expert_advisor.ea_id,
+      expires_at: key_expires_at,
+      token_version: token_version
+    }
   end
 
   def period_expired?

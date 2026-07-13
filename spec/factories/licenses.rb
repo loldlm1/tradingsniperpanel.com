@@ -20,7 +20,12 @@ FactoryBot.define do
       Licenses::LicenseKeyEncoder.new(
         primary_key: ENV.fetch("EA_LICENSE_PRIMARY_KEY", "PRIMARY_KEY"),
         secondary_key: ENV.fetch("EA_LICENSE_SECRET_KEY", "SECONDARY_KEY")
-      ).generate(email: user.email, ea_id: expert_advisor.ea_id, expires_at: key_expires_at)
+      ).generate(
+        email: user.email,
+        ea_id: expert_advisor.ea_id,
+        expires_at: key_expires_at,
+        token_version: token_version
+      )
     end
 
     trait :one_time do

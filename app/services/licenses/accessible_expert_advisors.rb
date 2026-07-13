@@ -82,7 +82,11 @@ module Licenses
         return license.encrypted_key
       end
 
-      Licenses::PrivilegedAccess.generated_key_for(user: user, expert_advisor: expert_advisor)
+      Licenses::PrivilegedAccess.generated_key_for(
+        user: user,
+        expert_advisor: expert_advisor,
+        token_version: license&.token_version || 1
+      )
     end
 
     def allowed_tiers_for(expert_advisor)
