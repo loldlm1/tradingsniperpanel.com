@@ -9,11 +9,18 @@ module Licenses
     def call
       subscription = ManualSubscription.find_by(id: manual_subscription_id)
       return unless subscription
+      return if subscription.superseded?
 
       user = subscription.user
       plan = subscription.billing_plan
       return unless user.is_a?(User)
       return unless plan&.subscription?
+
+      stripe_result = Billing::ActiveSubscriptionFinder.new(user: user).call
+      if stripe_result.stripe?
+        subscription.supersede_with!(pay_subscription: stripe_result.subscription)
+        return
+      end
 
       tier = plan.tier
       interval = plan.interval_key
@@ -46,13 +53,17 @@ module Licenses
       license.with_lock do
         return if license.access_source_one_time?
 
+        manual_scope = ManualSubscription.where(user: user, status: ManualSubscription::STATUSES[:active])
+        effective_ends_at = manual_scope.maximum(:ends_at) || subscription.ends_at
+        currently_active = manual_scope.active_at(Time.current).exists?
+
         license.access_source = "subscription"
         license.plan_interval = interval
         license.source = "manual_subscription"
         license.last_synced_at = Time.current
         license.trial_ends_at = nil
-        license.status = subscription.active_for_time? ? "active" : "expired"
-        license.expires_at = subscription.ends_at
+        license.status = currently_active ? "active" : "expired"
+        license.expires_at = effective_ends_at
         license.encrypted_key = encoder.generate(**license.token_generation_attributes)
         license.save!
       end

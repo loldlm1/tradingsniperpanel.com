@@ -67,4 +67,26 @@ RSpec.describe Licenses::PaySubscriptionCallbacks do
       )
     end.to have_enqueued_job(Licenses::SyncSubscriptionJob)
   end
+
+  it "enqueues another sync when subscription status changes" do
+    customer = user.pay_customers.create!(
+      processor: "stripe",
+      processor_id: "cus_#{SecureRandom.hex(4)}",
+      default: true
+    )
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: "price_pandora_monthly",
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now
+    )
+    clear_enqueued_jobs
+
+    expect do
+      subscription.update!(status: "canceled", ends_at: Time.current)
+    end.to have_enqueued_job(Licenses::SyncSubscriptionJob).with(subscription.id)
+  end
 end
