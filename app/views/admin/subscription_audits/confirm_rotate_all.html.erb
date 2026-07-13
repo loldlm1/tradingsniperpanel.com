@@ -1,0 +1,27 @@
+<div class="panel">
+  <h3><%= t("active_admin.subscription_audits.rotation.all_title") %></h3>
+  <div class="panel_contents">
+    <p><%= t("active_admin.subscription_audits.rotation.all_warning", count: @affected_count) %></p>
+    <p><strong><%= t("active_admin.subscription_audits.rotation.all_irreversible") %></strong></p>
+
+    <%= form_with url: rotate_all_admin_subscription_audits_path, method: :post, local: true do |form| %>
+      <%= hidden_field_tag :request_id, @request_id %>
+      <div class="input string required">
+        <%= form.label :confirmation, t("active_admin.subscription_audits.rotation.confirmation_label"), for: "rotation_confirmation" %>
+        <%= form.text_field :confirmation,
+                            id: "rotation_confirmation",
+                            required: true,
+                            autocomplete: "off",
+                            aria: { describedby: "rotation-confirmation-hint" } %>
+        <p id="rotation-confirmation-hint" class="inline-hints">
+          <%= t("active_admin.subscription_audits.rotation.confirmation_hint", phrase: "ROTATE ALL") %>
+        </p>
+      </div>
+      <div class="buttons">
+        <%= form.submit t("active_admin.subscription_audits.actions.rotate_all"),
+                        data: { confirm: t("active_admin.subscription_audits.rotation.final_confirm") } %>
+        <%= link_to t("active_admin.subscription_audits.actions.cancel"), admin_subscription_audits_path %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_13_110000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_13_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -70,6 +70,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_110000) do
     t.check_constraint "addonable_type::text = ANY (ARRAY['ExpertAdvisor'::character varying::text, 'Course'::character varying::text, 'MarketplaceAsset'::character varying::text])", name: "addons_addonable_type_check"
   end
 
+  create_table "admin_audit_events", force: :cascade do |t|
+    t.bigint "actor_id", null: false
+    t.string "action", null: false
+    t.string "target_type"
+    t.bigint "target_id"
+    t.jsonb "metadata", default: {}, null: false
+    t.string "request_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["action", "created_at"], name: "index_admin_audit_events_on_action_and_created_at"
+    t.index ["actor_id"], name: "index_admin_audit_events_on_actor_id"
+    t.index ["created_at"], name: "index_admin_audit_events_on_created_at"
+    t.index ["request_id"], name: "index_admin_audit_events_on_request_id", unique: true
+    t.index ["target_type", "target_id", "created_at"], name: "index_admin_audit_events_on_target_and_created_at"
+    t.check_constraint "action::text = 'licenses.all_rotated'::text AND target_type IS NULL AND target_id IS NULL OR (action::text = ANY (ARRAY['manual_subscription.granted'::character varying, 'licenses.subscription_rotated'::character varying]::text[])) AND target_type::text = 'User'::text AND target_id IS NOT NULL", name: "admin_audit_events_target_action_check"
+    t.check_constraint "action::text = ANY (ARRAY['manual_subscription.granted'::character varying, 'licenses.subscription_rotated'::character varying, 'licenses.all_rotated'::character varying]::text[])", name: "admin_audit_events_action_check"
+    t.check_constraint "char_length(request_id::text) >= 1 AND char_length(request_id::text) <= 128", name: "admin_audit_events_request_id_length_check"
+    t.check_constraint "jsonb_typeof(metadata) = 'object'::text", name: "admin_audit_events_metadata_object_check"
+  end
+
   create_table "asset_plan_entitlements", force: :cascade do |t|
     t.bigint "billing_plan_id", null: false
     t.bigint "marketplace_asset_id", null: false
@@ -127,7 +147,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_110000) do
     t.index ["retired_at"], name: "index_billing_plan_prices_on_retired_at"
     t.index ["stripe_price_id"], name: "index_billing_plan_prices_on_stripe_price_id", unique: true
     t.check_constraint "NOT current OR active = true AND retired_at IS NULL", name: "billing_plan_prices_current_coherence_check"
-    t.check_constraint "\"interval\" IS NULL AND interval_count IS NULL OR (\"interval\"::text = ANY (ARRAY['day'::character varying, 'week'::character varying, 'month'::character varying, 'year'::character varying]::text[])) AND interval_count > 0", name: "billing_plan_prices_recurrence_coherence_check"
+    t.check_constraint "\"interval\" IS NULL AND interval_count IS NULL OR (\"interval\"::text = ANY (ARRAY['day'::character varying::text, 'week'::character varying::text, 'month'::character varying::text, 'year'::character varying::text])) AND interval_count > 0", name: "billing_plan_prices_recurrence_coherence_check"
     t.check_constraint "amount_cents > 0", name: "billing_plan_prices_amount_positive_check"
   end
 
@@ -425,9 +445,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_110000) do
     t.check_constraint "ends_at > starts_at", name: "manual_subscriptions_period_order_check"
     t.check_constraint "granted_days IS NULL OR granted_days > 0", name: "manual_subscriptions_granted_days_positive_check"
     t.check_constraint "payment_status::text = 'paid'::text AND paid_at IS NOT NULL AND amount_cents > 0 OR payment_status::text = 'pending'::text AND paid_at IS NULL OR payment_status::text = 'complimentary'::text AND paid_at IS NULL AND amount_cents = 0", name: "manual_subscriptions_payment_coherence_check"
-    t.check_constraint "payment_status::text = ANY (ARRAY['complimentary'::character varying, 'pending'::character varying, 'paid'::character varying]::text[])", name: "manual_subscriptions_payment_status_check"
+    t.check_constraint "payment_status::text = ANY (ARRAY['complimentary'::character varying::text, 'pending'::character varying::text, 'paid'::character varying::text])", name: "manual_subscriptions_payment_status_check"
     t.check_constraint "status::text = 'superseded'::text AND superseded_at IS NOT NULL OR status::text <> 'superseded'::text AND superseded_at IS NULL AND superseded_by_pay_subscription_id IS NULL", name: "manual_subscriptions_supersession_coherence_check"
-    t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'expired'::character varying, 'cancelled'::character varying, 'superseded'::character varying]::text[])", name: "manual_subscriptions_status_check"
+    t.check_constraint "status::text = ANY (ARRAY['active'::character varying::text, 'expired'::character varying::text, 'cancelled'::character varying::text, 'superseded'::character varying::text])", name: "manual_subscriptions_status_check"
   end
 
   create_table "manual_transactions", force: :cascade do |t|
@@ -890,6 +910,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_110000) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "addons", "billing_plans"
+  add_foreign_key "admin_audit_events", "users", column: "actor_id"
   add_foreign_key "asset_plan_entitlements", "billing_plans"
   add_foreign_key "asset_plan_entitlements", "marketplace_assets"
   add_foreign_key "billing_email_deliveries", "pay_charges"

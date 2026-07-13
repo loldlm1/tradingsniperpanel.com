@@ -52,7 +52,13 @@ RSpec.describe "Licenses API", type: :request do
 
   it "rejects the previous token after rotation and accepts the current token" do
     previous_key = license.encrypted_key
-    Licenses::RotateTokens.new(scope: :user, user: user, encoder: encoder).call
+    Licenses::RotateTokens.new(
+      scope: :user,
+      user: user,
+      actor: create(:user, :admin),
+      request_id: SecureRandom.uuid,
+      encoder: encoder
+    ).call
 
     post "/api/v1/licenses/verify", params: verify_params(license_key: previous_key)
 

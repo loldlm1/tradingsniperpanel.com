@@ -18,6 +18,7 @@ RSpec.describe "Admin manual subscriptions", type: :request do
     expect do
       post admin_manual_subscriptions_path, params: {
         manual_subscription: {
+          request_id: SecureRandom.uuid,
           user_id: customer.id,
           billing_plan_id: plan.id,
           granted_days: 45,
@@ -42,6 +43,7 @@ RSpec.describe "Admin manual subscriptions", type: :request do
     expect do
       post admin_manual_subscriptions_path, params: {
         manual_subscription: {
+          request_id: SecureRandom.uuid,
           user_id: customer.id,
           billing_plan_id: other_plan.id,
           granted_days: 30
@@ -57,6 +59,7 @@ RSpec.describe "Admin manual subscriptions", type: :request do
 
     post admin_manual_subscriptions_path, params: {
       manual_subscription: {
+        request_id: SecureRandom.uuid,
         user_id: customer.id,
         billing_plan_id: plan.id,
         granted_days: 30,

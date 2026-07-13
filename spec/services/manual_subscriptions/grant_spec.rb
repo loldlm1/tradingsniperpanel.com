@@ -23,7 +23,8 @@ RSpec.describe ManualSubscriptions::Grant do
         user: user,
         billing_plan: plan,
         granted_days: 45,
-        recorded_by_admin: admin
+        recorded_by_admin: admin,
+        request_id: SecureRandom.uuid
       ).call
 
       expect(grant.starts_at).to eq(Time.current)
@@ -41,14 +42,16 @@ RSpec.describe ManualSubscriptions::Grant do
       user: user,
       billing_plan: plan,
       granted_days: 30,
-      recorded_by_admin: admin
+      recorded_by_admin: admin,
+      request_id: SecureRandom.uuid
     ).call
 
     second = described_class.new(
       user: user,
       billing_plan: plan,
       granted_days: 15,
-      recorded_by_admin: admin
+      recorded_by_admin: admin,
+      request_id: SecureRandom.uuid
     ).call
 
     expect(second.starts_at).to eq(first.ends_at)
@@ -61,6 +64,7 @@ RSpec.describe ManualSubscriptions::Grant do
       billing_plan: plan,
       granted_days: 30,
       recorded_by_admin: admin,
+      request_id: SecureRandom.uuid,
       amount_cents: 7900,
       payment_status: "pending",
       reference: "invoice-1"
@@ -70,6 +74,7 @@ RSpec.describe ManualSubscriptions::Grant do
       billing_plan: plan,
       granted_days: 30,
       recorded_by_admin: admin,
+      request_id: SecureRandom.uuid,
       amount_cents: 7900,
       payment_status: "paid"
     ).call
@@ -90,7 +95,8 @@ RSpec.describe ManualSubscriptions::Grant do
         user: user,
         billing_plan: other_plan,
         granted_days: 30,
-        recorded_by_admin: admin
+        recorded_by_admin: admin,
+        request_id: SecureRandom.uuid
       ).call
     end.to raise_error(ArgumentError, "Pandora subscription plan is required")
 
@@ -99,7 +105,8 @@ RSpec.describe ManualSubscriptions::Grant do
         user: user,
         billing_plan: plan,
         granted_days: 0,
-        recorded_by_admin: admin
+        recorded_by_admin: admin,
+        request_id: SecureRandom.uuid
       )
     end.to raise_error(ArgumentError, /granted_days/)
   end
@@ -112,7 +119,8 @@ RSpec.describe ManualSubscriptions::Grant do
         user: user,
         billing_plan: plan,
         granted_days: 30,
-        recorded_by_admin: admin
+        recorded_by_admin: admin,
+        request_id: SecureRandom.uuid
       ).call
     end.to raise_error(ActiveRecord::RecordInvalid)
   end
@@ -124,8 +132,68 @@ RSpec.describe ManualSubscriptions::Grant do
       user: user,
       billing_plan: plan,
       granted_days: 30,
-      recorded_by_admin: admin
+      recorded_by_admin: admin,
+      request_id: SecureRandom.uuid
     ).call
+  end
+
+  it "records the grant atomically and treats a repeated request as idempotent" do
+    request_id = SecureRandom.uuid
+    attributes = {
+      user: user,
+      billing_plan: plan,
+      granted_days: 30,
+      recorded_by_admin: admin,
+      request_id: request_id
+    }
+
+    first = described_class.new(**attributes).call
+    second = described_class.new(**attributes).call
+
+    expect(second).to eq(first)
+    expect(user.manual_subscriptions.where(id: first.id).count).to eq(1)
+    event = AdminAuditEvent.find_by!(request_id: request_id)
+    expect(event.metadata).to include("manual_subscription_id" => first.id, "granted_days" => 30)
+    expect(event.metadata).not_to have_key("notes")
+  end
+
+  it "rejects reuse of a request identifier for different grant terms" do
+    request_id = SecureRandom.uuid
+    described_class.new(
+      user: user,
+      billing_plan: plan,
+      granted_days: 30,
+      recorded_by_admin: admin,
+      request_id: request_id
+    ).call
+
+    expect do
+      described_class.new(
+        user: user,
+        billing_plan: plan,
+        granted_days: 60,
+        recorded_by_admin: admin,
+        request_id: request_id
+      ).call
+    end.to raise_error(described_class::IdempotencyConflict)
+
+    expect(user.manual_subscriptions.count).to eq(1)
+  end
+
+  it "rolls back the grant when its audit event cannot be written" do
+    allow(AdminAuditEvent).to receive(:create!).and_raise(ActiveRecord::RecordInvalid.new(AdminAuditEvent.new))
+
+    expect do
+      described_class.new(
+        user: user,
+        billing_plan: plan,
+        granted_days: 30,
+        recorded_by_admin: admin,
+        request_id: SecureRandom.uuid
+      ).call
+    end.to raise_error(ActiveRecord::RecordInvalid)
+
+    expect(user.manual_subscriptions).to be_empty
   end
 
   def create_pay_subscription(user:)
