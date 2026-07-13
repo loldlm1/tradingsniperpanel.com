@@ -41,7 +41,7 @@ ActiveAdmin.register ManualSubscription do
       f.input :request_id, as: :hidden, input_html: { value: SecureRandom.uuid }
       f.input :user
       f.input :billing_plan,
-              collection: BillingPlan.subscription.active
+              collection: BillingPlan.purchasable
                                      .joins(:expert_advisors)
                                      .where(tier: ManualSubscriptions::Grant::PANDORA_TIER)
                                      .where(expert_advisors: { ea_id: ManualSubscriptions::Grant::PANDORA_EA_ID })

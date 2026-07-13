@@ -125,8 +125,9 @@ module ExpertAdvisors
         tier = allowed_tiers.first
         return dashboard_plans_path(locale: locale) if tier.blank?
 
-        plan = BillingPlan.subscription.active.where(tier: tier).order(:sort_order).first
-        price_key = plan&.key || "#{tier}_monthly"
+        price_key = BillingPlan.purchasable.where(tier: tier).order(:sort_order).pick(:key)
+        return dashboard_plans_path(locale: locale) if price_key.blank?
+
         dashboard_plans_path(locale: locale, price_key: price_key)
       end
     end
@@ -335,7 +336,7 @@ module ExpertAdvisors
       remainder = sorted.drop(5)
       if remainder.any?
         other_total = remainder.sum { |(_, value)| value.to_f }
-        top << [I18n.t("dashboard.expert_advisors.show.values.other", default: "Other"), other_total]
+        top << [ I18n.t("dashboard.expert_advisors.show.values.other", default: "Other"), other_total ]
       end
 
       labels = []
@@ -377,7 +378,7 @@ module ExpertAdvisors
     end
 
     def addon_items
-      addons = Array(@addons)
+      addons = displayed_addons
       return [] if addons.empty?
 
       owned, unowned = addons.partition { |addon| purchased?(addon) }
@@ -394,11 +395,11 @@ module ExpertAdvisors
     end
 
     def addons_total_count
-      @addons.size
+      displayed_addons.size
     end
 
     def addons_owned_count
-      @addons.count { |addon| purchased?(addon) }
+      displayed_addons.count { |addon| purchased?(addon) }
     end
 
     def addons_progress_percent
@@ -410,6 +411,10 @@ module ExpertAdvisors
 
     def purchased?(addon)
       @purchased_plan_ids.include?(addon.billing_plan_id)
+    end
+
+    def displayed_addons
+      @displayed_addons ||= marketplace_available ? Array(@addons) : Array(@addons).select { |addon| purchased?(addon) }
     end
 
     def addon_title(addon)

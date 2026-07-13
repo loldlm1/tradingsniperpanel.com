@@ -1,6 +1,30 @@
 require "rails_helper"
 
 RSpec.describe Billing::ConfiguredPrices do
+  describe ".price_id_for" do
+    it "returns only exact current Pandora prices" do
+      monthly = create(
+        :billing_plan,
+        tier: Billing::PandoraPricing::TIER,
+        key: Billing::PandoraPricing::MONTHLY_KEY,
+        amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
+      )
+      create(:billing_plan, tier: "basic", key: "basic_monthly", stripe_price_id: "price_old")
+
+      expect(described_class.price_id_for(Billing::PandoraPricing::MONTHLY_KEY)).to eq(monthly.stripe_price_id)
+      expect(described_class.price_id_for("basic_monthly")).to be_nil
+    end
+
+    it "does not fall back to legacy environment prices" do
+      original = ENV["STRIPE_PRICE_BASIC_MONTHLY"]
+      ENV["STRIPE_PRICE_BASIC_MONTHLY"] = "price_legacy"
+
+      expect(described_class.price_id_for("basic_monthly")).to be_nil
+    ensure
+      ENV["STRIPE_PRICE_BASIC_MONTHLY"] = original
+    end
+  end
+
   describe ".resolve_price_id" do
     it "returns price id when given a matching billing plan price" do
       create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1, stripe_price_id: "price_123")

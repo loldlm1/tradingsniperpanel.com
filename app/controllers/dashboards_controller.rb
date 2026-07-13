@@ -2,10 +2,10 @@ class DashboardsController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
   before_action :set_accessible_expert_advisors
-  before_action :ensure_payment_processor, only: [:checkout, :billing_portal]
-  before_action :set_subscription, only: [:show, :plans, :billing, :checkout, :cancel_scheduled_downgrade, :cancel_subscription, :resume_subscription]
-  before_action :set_plan_context, only: [:show, :billing]
-  before_action :set_invoices, only: [:billing]
+  before_action :ensure_payment_processor, only: [ :checkout, :billing_portal ]
+  before_action :set_subscription, only: [ :show, :plans, :billing, :checkout, :cancel_scheduled_downgrade, :cancel_subscription, :resume_subscription ]
+  before_action :set_plan_context, only: [ :show, :billing ]
+  before_action :set_invoices, only: [ :billing ]
 
   def show
     plan_hint = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
@@ -57,60 +57,11 @@ class DashboardsController < ApplicationController
 
   def checkout
     price_key = params[:price_key].presence || stored_desired_plan&.dig(:price_key)
-    plan = BillingPlan.active.find_by(key: price_key)
-    price_id = plan&.stripe_price_id || Billing::ConfiguredPrices.price_id_for(price_key)
-    unless price_id
+    plan = BillingPlan.purchasable.find_by(key: price_key)
+    unless plan
       redirect_to dashboard_plans_path, alert: t("dashboard.billing.invalid_price") and return
     end
-
-    if plan&.one_time?
-      if manual_billing_conflict?(plan)
-        redirect_to marketplace_redirect_path(plan),
-                    alert: t("dashboard.marketplace.errors.already_purchased") and return
-      end
-
-      guard = Marketplace::PurchaseGuard.new(user: current_user, billing_plan: plan).call
-      unless guard.allowed
-        alert_key = guard.reason == :already_purchased ? "dashboard.marketplace.errors.already_purchased" : "dashboard.marketplace.errors.addon_requires_base"
-        base_label = addonable_label(guard.addonable) || t("dashboard.marketplace.errors.addon_base_default")
-        redirect_to marketplace_redirect_path(plan), alert: t(alert_key, base: base_label) and return
-      end
-
-      success_url = price_key.present? ? dashboard_url(price_key: price_key) : dashboard_url
-      marketplace_product = MarketplaceProduct.find_by(billing_plan_id: plan.id)
-      payment_metadata = {
-        billing_plan_key: price_key
-      }
-      if marketplace_product
-        payment_metadata[:marketplace_product_key] = marketplace_product.key
-        payment_metadata[:marketplace_product_id] = marketplace_product.id.to_s
-      end
-      checkout_params = {
-        mode: "payment",
-        line_items: [{ price: price_id, quantity: 1 }],
-        success_url: success_url,
-        cancel_url: dashboard_plans_url,
-        allow_promotion_codes: true,
-        client_reference_id: current_user.id,
-        payment_intent_data: {
-          metadata: payment_metadata
-        }
-      }
-
-      checkout_params = Billing::ApplyReferralDiscount.new(
-        user: current_user,
-        checkout_params: checkout_params
-      ).call
-
-      checkout_params = Billing::ApplyDashboardPromotion.new(
-        user: current_user,
-        checkout_params: checkout_params,
-        promotion_code_id: params[:promotion_code_id]
-      ).call
-
-      session = current_user.payment_processor.checkout(**checkout_params)
-      redirect_to session.url, allow_other_host: true and return
-    end
+    price_id = plan.stripe_price_id
 
     if manual_billing_conflict?(plan)
       redirect_to dashboard_plans_path, alert: t("dashboard.plans.manual_unavailable") and return
@@ -151,7 +102,7 @@ class DashboardsController < ApplicationController
     success_url = price_key.present? ? dashboard_url(price_key: price_key) : dashboard_url
     checkout_params = {
       mode: "subscription",
-      line_items: [{ price: price_id, quantity: 1 }],
+      line_items: [ { price: price_id, quantity: 1 } ],
       success_url: success_url,
       cancel_url: dashboard_plans_url,
       allow_promotion_codes: true,
@@ -296,11 +247,7 @@ class DashboardsController < ApplicationController
   def manual_billing_conflict?(plan)
     return false unless plan && current_user
 
-    if plan.one_time?
-      ManualTransaction.where(user: current_user, billing_plan_id: plan.id).exists?
-    else
-      ManualSubscription.active_at(Time.current).where(user: current_user, billing_plan_id: plan.id).exists?
-    end
+    ManualSubscription.active_at(Time.current).where(user: current_user, billing_plan_id: plan.id).exists?
   end
 
   def plan_label_for(price_key)
@@ -333,20 +280,5 @@ class DashboardsController < ApplicationController
     else
       t("dashboard.billing.#{key}_no_date")
     end
-  end
-
-  def marketplace_redirect_path(plan)
-    product = MarketplaceProduct.find_by(billing_plan_id: plan.id)
-    return dashboard_marketplace_path(locale: I18n.locale) unless product
-
-    dashboard_marketplace_product_path(product, locale: I18n.locale)
-  end
-
-  def addonable_label(addonable)
-    return nil unless addonable
-    return addonable.name if addonable.is_a?(ExpertAdvisor)
-    return addonable.title_for(I18n.locale) if addonable.respond_to?(:title_for)
-
-    addonable.to_s
   end
 end

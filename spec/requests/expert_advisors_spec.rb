@@ -199,7 +199,7 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(response).to have_http_status(:not_found)
   end
 
-  it "shows addon purchase and guide CTAs on EA show page" do
+  it "shows owned addon guides without retired marketplace purchase CTAs" do
     create(:license, user: user, expert_advisor: expert_advisor, status: "active")
 
     owned_product = create(:marketplace_product, title_en: "Owned Add-on")
@@ -220,7 +220,8 @@ RSpec.describe "Expert advisor guides", type: :request do
 
     expect(addon_guide_link).to be_present
     expect(addon_guide_link.text).to include(I18n.t("dashboard.expert_advisors.addons.guide_cta", locale: :en))
-    expect(addon_purchase_link).to be_present
+    expect(addon_purchase_link).to be_nil
+    expect(doc.text).not_to include("Unowned Add-on")
   end
 
   it "redirects to the bundle download when licensed" do
@@ -314,7 +315,7 @@ RSpec.describe "Expert advisor guides", type: :request do
     ea4.tag_list.add("delta")
     ea5.tag_list.add("epsilon")
     ea6.tag_list.add("zeta")
-    [ea1, ea2, ea3, ea4, ea5, ea6].each(&:save!)
+    [ ea1, ea2, ea3, ea4, ea5, ea6 ].each(&:save!)
 
     get dashboard_expert_advisors_path(locale: :en)
 
@@ -368,7 +369,12 @@ RSpec.describe "Expert advisor guides", type: :request do
     license = create(:license, user: user, expert_advisor: accessible_ea, status: "active")
     attach_bundle(accessible_ea)
 
-    subscription_plan = create(:billing_plan, tier: "basic")
+    subscription_plan = create(
+      :billing_plan,
+      tier: Billing::PandoraPricing::TIER,
+      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
+    )
+    create(:billing_plan_entitlement, billing_plan: subscription_plan, expert_advisor: locked_plan_ea)
 
     product_plan = create(:billing_plan, :one_time)
     marketplace_product = create(:marketplace_product, billing_plan: product_plan)
@@ -399,7 +405,7 @@ RSpec.describe "Expert advisor guides", type: :request do
     copy_label = I18n.t("dashboard.expert_advisors.copy_code", locale: :en)
     copy_failed_label = I18n.t("dashboard.expert_advisors.copy_failed", locale: :en)
     locked_license = I18n.t("dashboard.expert_advisors.license.locked_value", locale: :en)
-    addons_progress = I18n.t("dashboard.expert_advisors.addons.progress", owned: 1, total: 3, locale: :en)
+    addons_progress = I18n.t("dashboard.expert_advisors.addons.progress", owned: 1, total: 1, locale: :en)
     zero_progress = I18n.t("dashboard.expert_advisors.addons.progress", owned: 0, total: 0, locale: :en)
 
     accessible_card = card_for(doc, accessible_ea.name)
@@ -413,8 +419,10 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(link_in(accessible_card, download_label)["href"])
       .to eq(dashboard_expert_advisor_download_path(accessible_ea, locale: :en))
     expect(accessible_card.text).to include(addons_progress)
-    expect(accessible_card.css("a").any? { |link| link.text.strip == purchase_label }).to be(true)
+    expect(accessible_card.css("a").any? { |link| link.text.strip == purchase_label }).to be(false)
     expect(accessible_card.css("button").any? { |button| button.text.strip == owned_label }).to be(true)
+    expect(accessible_card.text).not_to include(unowned_product.title_en)
+    expect(accessible_card.text).not_to include(extra_product.title_en)
     guide_actions_row = accessible_card.at_css("[data-guide-actions-row]")
     expect(guide_actions_row).to be_present
     expect(guide_actions_row["class"]).to include("flex")
@@ -430,7 +438,7 @@ RSpec.describe "Expert advisor guides", type: :request do
 
     marketplace_card = card_for(doc, locked_marketplace_ea.name)
     expect(link_in(marketplace_card, unlock_label)["href"])
-      .to eq(dashboard_marketplace_product_path(marketplace_product, locale: :en))
+      .to eq(dashboard_plans_path(locale: :en))
     download_button = button_in(marketplace_card, download_label)
     expect(download_button["disabled"]).to eq("disabled")
     expect(marketplace_card.text).to include(locked_license)

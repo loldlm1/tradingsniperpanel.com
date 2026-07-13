@@ -3,7 +3,6 @@ module ManualSubscriptions
     class IdempotencyConflict < StandardError; end
 
     MAX_GRANTED_DAYS = 730
-    PANDORA_TIER = "pandora_pro".freeze
     PANDORA_EA_ID = "pandora_box".freeze
 
     def initialize(user:, billing_plan:, granted_days:, recorded_by_admin:, request_id:, payment_status: nil,
@@ -68,9 +67,7 @@ module ManualSubscriptions
     def pandora_subscription_plan?
       billing_plan.is_a?(BillingPlan) &&
         billing_plan.persisted? &&
-        billing_plan.active? &&
-        billing_plan.subscription? &&
-        billing_plan.tier == PANDORA_TIER &&
+        BillingPlan.purchasable.exists?(id: billing_plan.id) &&
         billing_plan.expert_advisors.where(ea_id: PANDORA_EA_ID).exists?
     end
 

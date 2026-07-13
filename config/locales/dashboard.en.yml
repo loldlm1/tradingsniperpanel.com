@@ -151,6 +151,7 @@ en:
           revoked: "Revoked"
           unknown: "Unknown"
     marketplace:
+      unavailable: "New marketplace purchases are unavailable. Pandora Box is offered by subscription."
       index:
         title: "Marketplace"
         heading: "Find the right product for you"
@@ -267,7 +268,7 @@ en:
           total: "Final total"
           progress_label: "Add-ons progress"
       assets:
-        back: "Back to Marketplace"
+        back: "Back to Dashboard"
         description_title: "Overview"
         empty_description: "No description available yet."
         download_label: "Download"
@@ -356,12 +357,12 @@ en:
         copy: "Not sure which plan fits? We can help you choose."
         secondary: "We answer within one business day."
     plans:
-      page_title: "Plans"
-      landing_title: "Find a plan that's right for you"
-      landing_subtitle: "Choose monthly or annual billing. Annual shows the effective monthly price."
-      subtitle: "Review your current plan and upgrade when you're ready."
+      page_title: "Pandora Box subscription"
+      landing_title: "Choose your Pandora Box interval"
+      landing_subtitle: "Pay $79 monthly or $616.20 annually and save 35%."
+      subtitle: "Review your Pandora Box subscription and billing interval."
       summary: "Current plan: %{plan_name} (%{interval})."
-      no_plan_summary: "No active plan. Choose a plan to get started."
+      no_plan_summary: "No active Pandora Box subscription. Choose an interval to get started."
       scheduled_notice: "Downgrade scheduled to %{plan} on %{date}."
       cancel_scheduled: "Cancel scheduled downgrade"
       cancel_success: "Scheduled downgrade canceled."
@@ -372,6 +373,10 @@ en:
       manual_unavailable: "This subscription is managed manually. Contact support to change plans."
       scheduled_badge: "Scheduled"
       placeholder: "—"
+      effective_monthly: "Equivalent to $%{amount}/month"
+      unavailable:
+        title: "Pandora Box checkout is temporarily unavailable"
+        body: "The monthly and annual prices must both be verified before checkout opens. Please contact support if this persists."
       toggle:
         monthly: "Monthly"
         annually: "Annually"
@@ -435,9 +440,8 @@ en:
             - "Preconfigured order workflows"
         pandora_pro:
           name: "Pandora Box"
-          description: "Everything in Sniper Panel and Fibonacci plus breakout-focused automation and deeper execution control."
+          description: "Pandora Box EA for breakout-focused automation, configurable execution, and disciplined operation control."
           features:
-            - "Everything in Fibonacci"
             - "Breakout strategy automation"
             - "Direction modes"
             - "Flexible parameter configuration"
@@ -497,18 +501,18 @@ en:
         unavailable: "Unavailable"
       upgrade_confirm: "Upgrade now? You will be charged immediately and payments are non-refundable."
       contact:
-        title: "Need a custom configuration?"
-        body: "We can help with tailored onboarding, team access, or specialized billing for your desk."
+        title: "Need help with Pandora Box?"
+        body: "Contact support for installation, billing, interval changes, or account questions."
         cta: "Contact support"
       faq:
         title: "FAQs"
         items:
-          - q: "What's the difference between the plans?"
-            a: "Higher tiers unlock more tools and capacity (EAs, accounts, and workflow features)."
-          - q: "Can I change my plan later?"
-            a: "Yes - upgrade or downgrade anytime; changes apply immediately and are prorated when possible."
+          - q: "What does the subscription include?"
+            a: "Both intervals include Pandora Box EA access, licensing, updates, guides, and support while the subscription remains active."
+          - q: "Can I change my billing interval later?"
+            a: "Yes. Moving to annual billing applies immediately; moving to monthly billing is scheduled for the end of the current paid period."
           - q: "Monthly vs annual - what changes?"
-            a: "Annual billing is charged once per year and includes any available discount; monthly is billed each month."
+            a: "The product access is the same. Monthly is $79 per month; annual is $616.20 per year and saves 35%."
           - q: "Where do I manage invoices and payment methods?"
             a: "Use the Billing page to open the portal and download invoices."
           - q: "Do referrals apply automatically?"

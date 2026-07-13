@@ -1,7 +1,5 @@
 module Marketing
   class NeonLandingPricing
-    MAX_TIERS = 3
-
     def call
       catalog = Billing::PricingCatalog.new.call
       return {} if catalog.blank?
@@ -33,23 +31,18 @@ module Marketing
     private
 
     def build_tiers(catalog)
-      tier_keys = Array(catalog[:tiers]).map(&:to_s).first(MAX_TIERS)
-      return [] if tier_keys.empty?
+      tier = Billing::PandoraPricing::TIER
+      return [] unless Array(catalog[:tiers]).map(&:to_s).include?(tier)
 
-      plans = BillingPlan.subscription.active.where(tier: tier_keys)
-      plans_by_tier = plans.group_by(&:tier)
-
-      tier_keys.map.with_index do |tier, index|
-        plan = plans_by_tier[tier]&.min_by { |record| [record.sort_order.to_i, record.amount_cents.to_i] }
-        {
-          key: tier,
-          name: tier_name(tier),
-          description: tier_description(tier, plan),
-          features_title: tier_features_title(tier),
-          features: tier_features(tier) + Array(online_seat_feature(tier)),
-          featured: index == 1
-        }
-      end
+      plan = BillingPlan.purchasable.where(tier: tier).order(:sort_order, :amount_cents).first
+      [ {
+        key: tier,
+        name: tier_name(tier),
+        description: tier_description(tier, plan),
+        features_title: tier_features_title(tier),
+        features: tier_features(tier) + Array(online_seat_feature(tier)),
+        featured: false
+      } ]
     end
 
     def tier_name(tier)

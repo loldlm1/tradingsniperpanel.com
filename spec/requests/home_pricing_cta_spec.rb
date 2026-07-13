@@ -12,37 +12,45 @@ RSpec.describe "Home pricing CTAs", type: :request do
     Marketing::LandingTemplate.reset!
   end
 
-  it "includes both monthly and annual price keys so selections persist" do
-    %w[basic hft pro].each do |tier|
-      create(:billing_plan, tier: tier, key: "#{tier}_monthly", interval: "month", interval_count: 1)
-      create(:billing_plan, tier: tier, key: "#{tier}_annual", interval: "year", interval_count: 1)
-    end
+  before do
+    create(
+      :billing_plan,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
+      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
+    )
+    create(
+      :billing_plan,
+      :annual,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::ANNUAL_KEY,
+      amount_cents: Billing::PandoraPricing::ANNUAL_CENTS
+    )
+  end
+
+  it "shows only Pandora monthly and annual checkout choices" do
+    create(:billing_plan, tier: "basic", key: "basic_monthly")
 
     get root_path
 
     expect(response).to have_http_status(:ok)
-
-    %w[basic hft pro].each do |tier|
-      expect(response.body).to include("#{tier}_monthly")
-      expect(response.body).to include("#{tier}_annual")
-    end
-
-    expect(response.body).to include(I18n.t("licenses.online_seats.subscription_feature", count: 5, locale: :en))
+    expect(response.body).to include(Billing::PandoraPricing::MONTHLY_KEY)
+    expect(response.body).to include(Billing::PandoraPricing::ANNUAL_KEY)
+    expect(response.body).to include("79.00")
+    expect(response.body).to include("616.20")
+    expect(response.body).to include(I18n.t("dashboard.plans.toggle.save_up_to", percent: 35, locale: :en))
+    expect(response.body).not_to include("basic_monthly")
+    expect(response.body).not_to include("one-time marketplace")
     expect(response.body).to include("x-bind:href")
   end
 
-  it "detects interval suffixes for underscore-tier price keys" do
-    create(:billing_plan, tier: "basic", key: "basic_monthly", interval: "month", interval_count: 1)
-    create(:billing_plan, tier: "basic", key: "basic_annual", interval: "year", interval_count: 1)
-    create(:billing_plan, tier: "pandora_pro", key: "pandora_pro_monthly", interval: "month", interval_count: 1)
-    create(:billing_plan, tier: "pandora_pro", key: "pandora_pro_annual", interval: "year", interval_count: 1)
-
-    get root_path(price_key: "pandora_pro_annual")
+  it "selects only canonical Pandora interval hints" do
+    get root_path(price_key: Billing::PandoraPricing::ANNUAL_KEY)
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include("x-data=\"{ period: 'annual' }\"")
 
-    get root_path(price_key: "pandora_pro_invalid")
+    get root_path(price_key: "basic_annual")
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include("x-data=\"{ period: 'monthly' }\"")

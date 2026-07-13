@@ -3,13 +3,13 @@ class MarketplaceAssetsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_marketplace_asset
   before_action :ensure_access!
-  before_action :set_markdown, only: [:show]
+  before_action :set_markdown, only: [ :show ]
 
   def show; end
 
   def download
     unless @marketplace_asset.file.attached?
-      redirect_back fallback_location: dashboard_marketplace_path(locale: I18n.locale),
+      redirect_back fallback_location: dashboard_path(locale: I18n.locale),
                     alert: t("dashboard.marketplace.assets.missing_file")
       return
     end
@@ -27,7 +27,7 @@ class MarketplaceAssetsController < ApplicationController
     access = Marketplace::AssetAccess.new(user: current_user, asset: @marketplace_asset).call
     return if access.allowed?
 
-    redirect_to dashboard_marketplace_path(locale: I18n.locale),
+    redirect_to dashboard_path(locale: I18n.locale),
                 alert: t("dashboard.marketplace.assets.access_denied")
   end
 

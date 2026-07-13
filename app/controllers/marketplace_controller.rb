@@ -1,8 +1,9 @@
 class MarketplaceController < ApplicationController
   layout "dashboard"
   before_action :authenticate_user!
-  before_action :set_marketplace_entry, only: [:show, :checkout]
-  before_action :ensure_payment_processor, only: [:checkout]
+  before_action :ensure_marketplace_available
+  before_action :set_marketplace_entry, only: [ :show, :checkout ]
+  before_action :ensure_payment_processor, only: [ :checkout ]
 
   def index
     @marketplace = Marketplace::IndexPresenter.new(
@@ -71,6 +72,10 @@ class MarketplaceController < ApplicationController
   end
 
   private
+
+  def ensure_marketplace_available
+    redirect_to dashboard_plans_path, alert: t("dashboard.marketplace.unavailable") unless @marketplace_available
+  end
 
   def set_marketplace_entry
     @entry = Marketplace::Catalog.new(user: current_user, include_eligibility: true).entry_for!(slug: params[:id])

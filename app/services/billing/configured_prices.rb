@@ -3,19 +3,13 @@ module Billing
     def self.price_id_for(key)
       return if key.blank?
 
-      plan = BillingPlan.active.find_by(key: key)
-      return plan.stripe_price_id if plan&.stripe_price_id.present?
-
-      resolve_price_id(legacy_env_price_id(key))
+      BillingPlan.purchasable.find_by(key: key)&.stripe_price_id
     end
 
     def self.price_id_for_tier(tier, interval_key)
       return if tier.blank? || interval_key.blank?
 
-      plan = BillingPlan.subscription.active.find_by(tier: tier.to_s, key: "#{tier}_#{interval_key}")
-      return plan.stripe_price_id if plan&.stripe_price_id.present?
-
-      price_id_for("#{tier}_#{interval_key}")
+      BillingPlan.purchasable.find_by(tier: tier.to_s, key: "#{tier}_#{interval_key}")&.stripe_price_id
     end
 
     def self.all_price_ids

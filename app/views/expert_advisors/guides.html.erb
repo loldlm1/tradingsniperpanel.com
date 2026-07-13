@@ -5,9 +5,8 @@
 <% end %>
 
 <% entry = @expert_advisor_entry %>
-<% allowed_tier = @expert_advisor.subscription_tiers&.first || BillingPlan.subscription_tiers.map(&:tier).first %>
-<% cta_plan = allowed_tier ? BillingPlan.subscription.active.where(tier: allowed_tier).order(:sort_order).first : nil %>
-<% cta_key = cta_plan&.key || (allowed_tier ? "#{allowed_tier}_monthly" : nil) %>
+<% allowed_tier = @expert_advisor.subscription_tiers&.first %>
+<% cta_key = allowed_tier ? BillingPlan.purchasable.where(tier: allowed_tier).order(:sort_order).pick(:key) : nil %>
 <% status = entry&.status || :locked %>
 <% badge_class = case status
                 when :active then "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100"

@@ -15,7 +15,6 @@ class ApplicationController < ActionController::Base
   before_action :set_accessible_expert_advisors, if: :user_signed_in?
   before_action :set_accessible_courses, if: :user_signed_in?
   before_action :set_marketplace_availability, if: :user_signed_in?
-  before_action :set_marketplace_nav_products, if: :user_signed_in?
   before_action :set_sidebar_recent_items, if: :user_signed_in?
   before_action :set_dashboard_discount_banner, if: :dashboard_html_request?
   before_action :set_product_release_notification, if: :dashboard_html_request?
@@ -24,8 +23,6 @@ class ApplicationController < ActionController::Base
     desired_plan = stored_desired_plan
     if desired_plan&.dig(:price_key).present?
       return dashboard_plans_path(price_key: desired_plan[:price_key])
-    elsif desired_plan&.dig(:product_id).present?
-      return dashboard_plans_path(product_id: desired_plan[:product_id])
     end
 
     dashboard_path
@@ -125,17 +122,17 @@ class ApplicationController < ActionController::Base
   end
 
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_up, keys: [:name, :preferred_locale, :terms_of_service])
-    devise_parameter_sanitizer.permit(:account_update, keys: [:name, :preferred_locale])
+    devise_parameter_sanitizer.permit(:sign_up, keys: [ :name, :preferred_locale, :terms_of_service ])
+    devise_parameter_sanitizer.permit(:account_update, keys: [ :name, :preferred_locale ])
   end
 
   def capture_desired_plan
     plan_key = params[:price_key] || params[:plan] || params[:desired_plan]
-    product_id = params[:product_id]
-    return if plan_key.blank? && product_id.blank?
+    return if plan_key.blank?
+    return unless BillingPlan.purchasable.exists?(key: plan_key)
 
     cookies.signed[:desired_plan] = {
-      value: { price_key: plan_key, product_id: product_id },
+      value: { price_key: plan_key },
       expires: 1.hour.from_now,
       httponly: true
     }
@@ -173,26 +170,17 @@ class ApplicationController < ActionController::Base
     @marketplace_available ||= Marketplace::Availability.new.call
   end
 
-  def set_marketplace_nav_products
-    return unless @marketplace_available
-
-    active_slug = controller_path == "marketplace" ? params[:id] : nil
-    @marketplace_nav_products ||= Dashboard::SidebarMarketplaceProducts.new(
-      limit: 5,
-      active_slug: active_slug
-    ).call
-  end
-
   def set_sidebar_recent_items
     return unless request.path.include?("/dashboard")
 
     active_ea_id = controller_path == "expert_advisors" ? params[:id] : nil
-    active_course_slug = case controller_path
-                         when "courses"
-                           params[:id]
-                         when "course_lessons"
-                           params[:course_id]
-                         end
+    active_course_slug =
+      case controller_path
+      when "courses"
+        params[:id]
+      when "course_lessons"
+        params[:course_id]
+      end
 
     ea_entries = @accessible_eas || Licenses::AccessibleExpertAdvisors.new(user: current_user).call
     course_entries = @accessible_courses || Courses::AccessibleCourses.new(user: current_user).call

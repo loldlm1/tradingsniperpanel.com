@@ -19,7 +19,7 @@ module Billing
     def call
       return Result.new(status: :invalid_price) if price_key.blank?
 
-      target_price_id = Billing::ConfiguredPrices.price_id_for(price_key)
+      target_price_id = BillingPlan.purchasable.find_by(key: price_key)&.stripe_price_id
       return Result.new(status: :invalid_price) if target_price_id.blank?
 
       current_price_id = subscription.processor_plan
@@ -124,7 +124,7 @@ module Billing
 
       begin
         attempts += 1
-        return yield
+        yield
       rescue ActiveRecord::Deadlocked => e
         if upgraded_in_stripe?(target_price_id)
           logger.info(

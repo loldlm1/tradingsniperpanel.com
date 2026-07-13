@@ -2,34 +2,27 @@
 
 <% pricing = @pricing_catalog || {} %>
 <% plan = @plan_context || {} %>
+<% tier_key = Billing::PandoraPricing::TIER %>
 <% intervals = plan[:intervals] || pricing[:intervals] || [] %>
 <% interval_keys = intervals.map { |interval| interval[:key] } %>
 <% prices = pricing[:prices] || {} %>
-<% current_tier = plan[:current_tier] %>
-<% visible_tiers = plan[:visible_tiers] || pricing[:tiers] || [] %>
 <% discount_percent = pricing[:discount_percent] %>
 <% subscribed = @subscription.present? %>
 <% manual_subscription = @subscription.is_a?(ManualSubscription) %>
 <% scheduled_change = plan[:scheduled_change] || {} %>
 <% scheduled_price_key = scheduled_change[:price_key] %>
 <% requested_price_key = @requested_price_key.to_s.presence %>
-<% sorted_interval_keys = interval_keys.sort_by { |key| -key.to_s.length } %>
-<% requested_interval = if requested_price_key.present?
-                          sorted_interval_keys.find do |interval_key|
-                            requested_price_key == interval_key || requested_price_key.end_with?("_#{interval_key}")
-                          end
+<% requested_interval = if requested_price_key.in?(Billing::PandoraPricing::PLAN_KEYS)
+                          intervals.find { |interval| prices.dig(interval[:key], tier_key, :plan_key) == requested_price_key }&.dig(:key)
                         end %>
-<% requested_tier = if requested_price_key.present? && requested_interval.present?
-                      suffix = "_#{requested_interval}"
-                      requested_price_key.end_with?(suffix) ? requested_price_key.delete_suffix(suffix).presence : nil
-                    end %>
 <% plan_states = plan[:states] || {} %>
 <% upgrade_confirm = t("dashboard.plans.upgrade_confirm") %>
 
+<% current_tier = plan[:current_tier] %>
 <% plan_name = current_tier ? t("dashboard.plans.tiers.#{current_tier}.name", default: current_tier.to_s.humanize) : nil %>
-<% interval_label = plan[:current_interval_label].presence || Billing::IntervalLabeler.legacy_label(plan[:current_interval_key]) %>
-<% summary_text = if plan_name.present? && interval_label.present?
-                    t("dashboard.plans.summary", plan_name: plan_name, interval: interval_label)
+<% current_interval_label = plan[:current_interval_label].presence || Billing::IntervalLabeler.legacy_label(plan[:current_interval_key]) %>
+<% summary_text = if plan_name.present? && current_interval_label.present?
+                    t("dashboard.plans.summary", plan_name: plan_name, interval: current_interval_label)
                   else
                     t("dashboard.plans.no_plan_summary")
                   end %>
@@ -42,17 +35,12 @@
                          t("dashboard.plan_card.plan_label_tier_only", tier: scheduled_plan_name)
                        end
                      end %>
-
-<% tier_configs = {
-  "basic" => { accent: "bg-green-500", name: t("dashboard.plans.tiers.basic.name") },
-  "pandora_pro" => { accent: "bg-indigo-500", name: t("dashboard.plans.tiers.pandora_pro.name") },
-  "fibonacci_elite" => { accent: "bg-amber-500", name: t("dashboard.plans.tiers.fibonacci_elite.name") },
-  "hft" => { accent: "bg-sky-500", name: t("dashboard.plans.tiers.hft.name") },
-  "pro" => { accent: "bg-brand-500", name: t("dashboard.plans.tiers.pro.name") }
-} %>
+<% features = Array(t("dashboard.plans.tiers.#{tier_key}.features", default: [])) +
+              Array(Licenses::OnlineSeatCopy.subscription_feature_for_tier(tier_key, locale: I18n.locale)) %>
 
 <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl mb-8">
   <div class="p-6 space-y-6">
+    <!-- Page header -->
     <section>
       <div class="mb-8">
         <h2 class="text-2xl text-gray-800 dark:text-gray-100 font-bold mb-4"><%= t("dashboard.plans.page_title") %></h2>
@@ -62,9 +50,7 @@
         <% end %>
         <% if scheduled_label.present? && scheduled_change[:effective_at].present? %>
           <div class="mt-2 flex flex-col gap-2 text-sm text-amber-600 dark:text-amber-300 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <%= t("dashboard.plans.scheduled_notice", plan: scheduled_label, date: l(scheduled_change[:effective_at].to_date)) %>
-            </div>
+            <div><%= t("dashboard.plans.scheduled_notice", plan: scheduled_label, date: l(scheduled_change[:effective_at].to_date)) %></div>
             <%= button_to dashboard_cancel_scheduled_downgrade_path, method: :post, class: "btn-sm bg-white border border-amber-200 hover:border-amber-300 text-amber-700 hover:text-amber-800 dark:bg-gray-800 dark:border-amber-500/40 dark:text-amber-200 dark:hover:border-amber-400", data: { loading_target: true } do %>
               <%= loading_label(t("dashboard.plans.cancel_scheduled"), loading_text: t("loading.default")) %>
             <% end %>
@@ -72,61 +58,61 @@
         <% end %>
       </div>
 
-      <% initial_interval = requested_interval.presence || interval_keys.first || "monthly" %>
-      <div x-data="{ period: '<%= initial_interval %>' }">
-        <div class="mb-6 overflow-x-auto pb-1">
-          <div class="inline-flex min-w-max items-center rounded-full border border-gray-200 bg-gray-100 p-1 gap-1 dark:border-gray-600 dark:bg-gray-700/60">
-            <% intervals.each do |interval| %>
-              <button class="inline-flex items-center gap-1 whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition"
-                      :class="period === '<%= interval[:key] %>' ? 'bg-gray-900 text-gray-100 dark:bg-gray-100 dark:text-gray-800' : 'text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
-                      @click="period = '<%= interval[:key] %>'">
-                <span><%= interval[:label] %></span>
-                <% if interval[:key] == "annual" && discount_percent.present? %>
-                  <span class="text-xs font-semibold text-green-600 dark:text-green-400"><%= t("dashboard.plans.toggle.save_up_to", percent: discount_percent) %></span>
-                <% end %>
-              </button>
-            <% end %>
-          </div>
+      <% if intervals.empty? %>
+        <div class="rounded-xl border border-gray-200 bg-gray-50 px-5 py-8 text-center dark:border-gray-700 dark:bg-gray-900/40">
+          <h3 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.plans.unavailable.title") %></h3>
+          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.plans.unavailable.body") %></p>
+          <%= link_to t("dashboard.plans.contact.cta"), dashboard_support_path, class: "btn mt-5 bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white" %>
         </div>
+      <% else %>
+        <% initial_interval = requested_interval.presence || interval_keys.first || "monthly" %>
+        <div x-data="{ period: '<%= initial_interval %>' }">
+          <!-- Interval switch -->
+          <div class="mb-6 overflow-x-auto pb-1 text-center">
+            <div class="inline-flex min-w-max items-center rounded-full border border-gray-200 bg-gray-100 p-1 gap-1 dark:border-gray-600 dark:bg-gray-700/60">
+              <% intervals.each do |interval| %>
+                <button type="button"
+                        class="inline-flex min-h-10 items-center gap-1 whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
+                        :class="period === '<%= interval[:key] %>' ? 'bg-gray-900 text-gray-100 dark:bg-gray-100 dark:text-gray-800' : 'text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'"
+                        :aria-pressed="period === '<%= interval[:key] %>'"
+                        @click="period = '<%= interval[:key] %>'">
+                  <span><%= interval[:label] %></span>
+                  <% if interval[:key] == "annual" && discount_percent.present? %>
+                    <span class="text-xs font-semibold text-green-600 dark:text-green-400"><%= t("dashboard.plans.toggle.save_up_to", percent: discount_percent) %></span>
+                  <% end %>
+                </button>
+              <% end %>
+            </div>
+          </div>
 
-        <div class="grid grid-cols-12 gap-6">
-          <% visible_tiers.each do |tier| %>
-            <% tier_key = tier.to_s %>
-            <% config = tier_configs[tier_key] || { accent: "bg-slate-500", name: tier_key.humanize } %>
-            <% requested_for_card = requested_tier == tier_key %>
-            <% features = Array(t("dashboard.plans.tiers.#{tier_key}.features", default: [])) +
-                          Array(Licenses::OnlineSeatCopy.subscription_feature_for_tier(tier_key, locale: I18n.locale)) %>
-            <% scheduled_for_tier = scheduled_change[:tier].to_s == tier_key %>
-
-            <div class="relative col-span-full xl:col-span-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 shadow-xs rounded-b-lg">
-              <div class="absolute top-0 left-0 right-0 h-0.5 <%= config[:accent] %>" aria-hidden="true"></div>
-              <div class="px-5 pt-5 pb-6 border-b border-gray-200 dark:border-gray-700/60">
-                <header class="flex items-center mb-2">
-                  <div class="w-6 h-6 rounded-full shrink-0 <%= config[:accent] %> mr-3">
-                    <svg class="w-6 h-6 fill-current text-white" viewBox="0 0 24 24">
+          <!-- Pandora subscription card -->
+          <div class="mx-auto max-w-3xl">
+            <div class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs dark:border-gray-700/60 dark:bg-gray-800">
+              <div class="absolute inset-x-0 top-0 h-1 bg-brand-500" aria-hidden="true"></div>
+              <div class="px-5 pt-7 pb-6 border-b border-gray-200 dark:border-gray-700/60 sm:px-7">
+                <header class="flex flex-wrap items-center gap-3 mb-2">
+                  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-500">
+                    <svg class="h-5 w-5 fill-current text-white" viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M12 17a.833.833 0 01-.833-.833 3.333 3.333 0 00-3.334-3.334.833.833 0 110-1.666 3.333 3.333 0 003.334-3.334.833.833 0 111.666 0 3.333 3.333 0 003.334 3.334.833.833 0 110 1.666 3.333 3.333 0 00-3.334 3.334c0 .46-.373.833-.833.833z" />
                     </svg>
                   </div>
-                  <h3 class="text-lg text-gray-800 dark:text-gray-100 font-semibold"><%= config[:name] %></h3>
-                  <% if requested_for_card %>
+                  <h3 class="text-xl text-gray-800 dark:text-gray-100 font-semibold"><%= t("dashboard.plans.tiers.#{tier_key}.name") %></h3>
+                  <% if requested_price_key.in?(Billing::PandoraPricing::PLAN_KEYS) %>
                     <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold text-brand-600 dark:text-brand-300 bg-brand-500/10"><%= t("dashboard.plans.requested_plan") %></span>
-                  <% elsif scheduled_for_tier %>
+                  <% elsif scheduled_change[:tier].to_s == tier_key %>
                     <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10"><%= t("dashboard.plans.scheduled_badge") %></span>
                   <% end %>
                 </header>
-                <div class="text-sm mb-2"><%= t("dashboard.plans.tiers.#{tier_key}.description") %></div>
-                <div class="text-gray-800 dark:text-gray-100 font-bold mb-4">
-                  <span class="text-2xl">$</span>
+                <div class="text-sm mb-4 max-w-2xl"><%= t("dashboard.plans.tiers.#{tier_key}.description") %></div>
+
+                <div class="text-gray-800 dark:text-gray-100 font-bold mb-5" aria-live="polite">
                   <% intervals.each do |interval| %>
-                    <% interval_key = interval[:key] %>
-                    <% details = prices.dig(interval_key, tier_key) %>
-                    <% display = if details.present?
-                                   interval[:uses_effective_monthly] ? details[:effective_monthly_display] : details[:display]
-                                 end %>
-                    <span class="text-3xl" x-show="period === '<%= interval_key %>'" x-cloak><%= display || t("dashboard.plans.placeholder") %></span>
-                  <% end %>
-                  <% intervals.each do |interval| %>
-                    <span class="text-gray-500 font-medium text-sm" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:per_label] %></span>
+                    <% details = prices.dig(interval[:key], tier_key) %>
+                    <div class="flex items-baseline gap-1" x-show="period === '<%= interval[:key] %>'" x-cloak>
+                      <span class="text-2xl">$</span>
+                      <span class="text-4xl"><%= details&.dig(:display) || t("dashboard.plans.placeholder") %></span>
+                      <span class="text-gray-500 font-medium text-sm"><%= interval[:per_label] %></span>
+                    </div>
                   <% end %>
                 </div>
 
@@ -134,29 +120,25 @@
                 <% intervals.each do |interval| %>
                   <% interval_key = interval[:key] %>
                   <% details = prices.dig(interval_key, tier_key) %>
-                  <% plan_key = details&.dig(:plan_key) || "#{tier_key}_#{interval_key}" %>
-                  <% available = details.present? && Billing::ConfiguredPrices.price_id_for(plan_key).present? %>
+                  <% plan_key = details&.dig(:plan_key) %>
+                  <% available = details&.dig(:stripe_price_id).present? %>
                   <% interval_state = plan_states.dig(tier_key, interval_key) %>
                   <% scheduled_for_interval = scheduled_price_key == plan_key %>
                   <div x-show="period === '<%= interval_key %>'" x-cloak>
                     <% if available %>
                       <% if subscribed && interval_state == :current %>
-                        <button class="btn w-full bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white disabled:border-gray-200 dark:disabled:border-gray-700 disabled:bg-white dark:disabled:bg-gray-800 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed" disabled>
-                          <svg class="w-3 h-3 shrink-0 fill-current mr-2" viewBox="0 0 12 12">
+                        <button type="button" class="btn w-full bg-gray-900 text-gray-100 dark:bg-gray-100 dark:text-gray-800 disabled:cursor-not-allowed" disabled>
+                          <svg class="w-3 h-3 shrink-0 fill-current mr-2" viewBox="0 0 12 12" aria-hidden="true">
                             <path d="M10.28 1.28L3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
                           </svg>
                           <span><%= t("dashboard.plans.cta.current") %></span>
                         </button>
                       <% elsif subscribed && scheduled_for_interval %>
-                        <button class="btn w-full border-gray-200 dark:border-gray-700/60 text-gray-800 dark:text-gray-300 disabled:cursor-not-allowed" disabled>
-                          <%= t("dashboard.plans.cta.scheduled") %>
-                        </button>
+                        <button type="button" class="btn w-full border-gray-200 dark:border-gray-700/60 text-gray-800 dark:text-gray-300 disabled:cursor-not-allowed" disabled><%= t("dashboard.plans.cta.scheduled") %></button>
+                      <% elsif manual_subscription %>
+                        <button type="button" class="btn w-full border-gray-200 dark:border-gray-700/60 text-gray-500 dark:text-gray-400 disabled:cursor-not-allowed" disabled><%= t("dashboard.plans.cta.unavailable") %></button>
                       <% else %>
-                        <% interval_label = if subscribed && interval_state == :downgrade
-                                             t("dashboard.plans.cta.downgrade")
-                                           else
-                                             cta_label
-                                           end %>
+                        <% interval_label = subscribed && interval_state == :downgrade ? t("dashboard.plans.cta.downgrade") : cta_label %>
                         <% interval_data = { loading_target: true } %>
                         <% interval_data[:confirm_message] = upgrade_confirm if subscribed && interval_state == :upgrade %>
                         <% checkout_params = { price_key: plan_key } %>
@@ -166,24 +148,28 @@
                         <% end %>
                       <% end %>
                     <% else %>
-                      <button class="btn w-full border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300" disabled><%= t("dashboard.plans.cta.unavailable") %></button>
+                      <button type="button" class="btn w-full border-gray-200 dark:border-gray-700/60 text-gray-500 dark:text-gray-400 disabled:cursor-not-allowed" disabled><%= t("dashboard.plans.cta.unavailable") %></button>
                     <% end %>
-                  </div>
-                <% end %>
-                <% intervals.each do |interval| %>
-                  <% next if interval[:billed_label].blank? %>
-                  <div class="text-xs text-gray-500 mt-3" x-show="period === '<%= interval[:key] %>'" x-cloak><%= interval[:billed_label] %></div>
-                  <div class="text-xs text-gray-500 mt-3" x-show="period === '<%= interval[:key] %>'" x-cloak>
-                    <%= t("checkout.subscription_notice_html", refunds_link: link_to(t("legal.links.refunds_and_cancellations"), refunds_and_cancellations_path, class: "underline")).html_safe %>
+
+                    <% if details&.dig(:effective_monthly_display).present? && interval[:uses_effective_monthly] %>
+                      <div class="text-xs text-gray-500 mt-3"><%= t("dashboard.plans.effective_monthly", amount: details[:effective_monthly_display]) %></div>
+                    <% end %>
+                    <% if interval[:billed_label].present? %>
+                      <div class="text-xs text-gray-500 mt-1"><%= interval[:billed_label] %></div>
+                    <% end %>
+                    <div class="text-xs text-gray-500 mt-3">
+                      <%= t("checkout.subscription_notice_html", refunds_link: link_to(t("legal.links.refunds_and_cancellations"), refunds_and_cancellations_path, class: "underline")).html_safe %>
+                    </div>
                   </div>
                 <% end %>
               </div>
-              <div class="px-5 pt-4 pb-5">
+
+              <div class="px-5 pt-5 pb-6 sm:px-7">
                 <div class="text-xs text-gray-800 dark:text-gray-100 font-semibold uppercase mb-4"><%= t("dashboard.plans.whats_included") %></div>
-                <ul>
-                  <% Array(features).each do |feature| %>
-                    <li class="flex items-center py-1">
-                      <svg class="w-3 h-3 shrink-0 fill-current text-green-500 mr-2" viewBox="0 0 12 12">
+                <ul class="grid gap-2 sm:grid-cols-2">
+                  <% features.each do |feature| %>
+                    <li class="flex items-start py-1">
+                      <svg class="w-3 h-3 mt-1 shrink-0 fill-current text-green-500 mr-2" viewBox="0 0 12 12" aria-hidden="true">
                         <path d="M10.28 1.28L3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
                       </svg>
                       <div class="text-sm"><%= feature %></div>
@@ -192,11 +178,12 @@
                 </ul>
               </div>
             </div>
-          <% end %>
+          </div>
         </div>
-      </div>
+      <% end %>
     </section>
 
+    <!-- Support -->
     <section>
       <div class="px-5 py-3 bg-linear-to-r from-brand-500/[0.12] dark:from-brand-500/[0.24] to-brand-500/[0.04] rounded-lg text-center xl:text-left xl:flex xl:flex-wrap xl:justify-between xl:items-center">
         <div class="mb-3 xl:mb-0">
@@ -207,6 +194,7 @@
       </div>
     </section>
 
+    <!-- FAQs -->
     <section>
       <div class="my-8">
         <h2 class="text-2xl text-gray-800 dark:text-gray-100 font-bold"><%= t("dashboard.plans.faq.title") %></h2>
