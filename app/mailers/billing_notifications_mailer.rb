@@ -10,6 +10,7 @@ class BillingNotificationsMailer < ApplicationMailer
     @invoice_id = params[:invoice_id]
     @invoice_url = params[:invoice_url]
     @billing_url = dashboard_billing_url(**localized_route_options)
+    @discord_activation_url = dashboard_discord_connection_url(**localized_route_options) if Discord.enabled?
 
     mail(to: @user.email, subject: t("billing_mailer.subscription_started.subject", app_short_name: email_subject_brand))
   end

@@ -20,6 +20,7 @@ Rails.application.routes.draw do
     }, skip: [:omniauth_callbacks]
 
     get "dashboard", to: "dashboards#show", as: :dashboard
+    get "join/pandora", to: "pandora_joins#show", as: :pandora_join
     get "dashboard/analytics", to: "dashboards#analytics", as: :dashboard_analytics
     get "dashboard/expert_advisors", to: "expert_advisors#index", as: :dashboard_expert_advisors
     get "dashboard/courses", to: "courses#index", as: :dashboard_courses

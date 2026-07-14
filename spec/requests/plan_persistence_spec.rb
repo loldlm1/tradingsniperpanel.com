@@ -56,6 +56,12 @@ RSpec.describe "Plan persistence across auth", type: :request do
     expect(response.body).to include(I18n.t("dashboard.plans.requested_plan", locale: :en))
     expect(response.body).to include("79.00")
     expect(response.body).to include("616.20")
+    expect(response.body).to include(
+      "Recorded training courses",
+      "Live community sessions",
+      "New Pandora presets",
+      "Dedicated VIP support"
+    )
     expect(response.body).not_to include("basic_monthly")
 
     get dashboard_plans_path(locale: :en, price_key: "pandora_pro_invalid")

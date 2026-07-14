@@ -50,6 +50,52 @@ RSpec.describe "Dashboard", type: :request do
     expect(response.body).to include(I18n.t("dashboard.plan_card.status_inactive"))
   end
 
+  it "shows Discord activation to eligible unlinked subscribers when enabled" do
+    plan = create(
+      :billing_plan,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
+      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
+    )
+    create(:manual_subscription, user: user, billing_plan: plan)
+    allow(Discord).to receive(:enabled?).and_return(true)
+    allow(Discord).to receive(:configuration).and_return(
+      Struct.new(:support_url, keyword_init: true).new(support_url: "https://discord.gg/community")
+    )
+    sign_in user, scope: :user
+
+    get dashboard_path(locale: :en)
+
+    expect(response).to be_successful
+    expect(response.body).to include("discord-vip-card")
+    expect(response.body).to include(I18n.t("dashboard.discord.actions.connect", locale: :en))
+  end
+
+  it "shows renewal and public community actions without claiming VIP for an ineligible user" do
+    allow(Discord).to receive(:enabled?).and_return(true)
+    allow(Discord).to receive(:configuration).and_return(
+      Struct.new(:support_url, keyword_init: true).new(support_url: "https://discord.gg/community")
+    )
+    sign_in user, scope: :user
+
+    get dashboard_path(locale: :es)
+
+    expect(response.body).to include(
+      I18n.t("dashboard.discord.actions.view_plans", locale: :es),
+      I18n.t("dashboard.discord.actions.join_public", locale: :es)
+    )
+    expect(response.body).not_to include(I18n.t("dashboard.discord.states.granted.title", locale: :es))
+  end
+
+  it "does not render the Discord activation card while the integration is disabled" do
+    allow(Discord).to receive(:enabled?).and_return(false)
+    sign_in user, scope: :user
+
+    get dashboard_path(locale: :en)
+
+    expect(response.body).not_to include("discord-vip-card")
+  end
+
   it "shows a pending plan when a desired plan hint exists" do
     sign_in user, scope: :user
 

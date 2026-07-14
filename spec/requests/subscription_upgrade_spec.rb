@@ -55,6 +55,45 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(flash[:alert]).to eq(I18n.t("dashboard.plans.manual_unavailable"))
   end
 
+  it "changes only new checkout success to localized Discord activation when enabled" do
+    allow(Discord).to receive(:enabled?).and_return(true)
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+    sign_in user, scope: :user
+
+    expect(checkout_stub).to receive(:checkout) do |**params|
+      expect(params).to include(
+        mode: "subscription",
+        line_items: [ { price: monthly_plan.stripe_price_id, quantity: 1 } ],
+        success_url: dashboard_discord_connection_url(locale: :es, checkout: "success"),
+        cancel_url: dashboard_plans_url(locale: :es),
+        client_reference_id: user.id
+      )
+      expect(params.dig(:subscription_data, :metadata, :billing_plan_key)).to eq(monthly_plan.key)
+      double(url: "https://checkout.test/discord-success")
+    end
+
+    post dashboard_checkout_path(locale: :es), params: { price_key: monthly_plan.key }
+
+    expect(response).to redirect_to("https://checkout.test/discord-success")
+  end
+
+  it "keeps the existing dashboard success destination when Discord is disabled" do
+    allow(Discord).to receive(:enabled?).and_return(false)
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+    sign_in user, scope: :user
+
+    expect(checkout_stub).to receive(:checkout) do |**params|
+      expect(params[:success_url]).to eq(dashboard_url(price_key: monthly_plan.key))
+      double(url: "https://checkout.test/dashboard-success")
+    end
+
+    post dashboard_checkout_path, params: { price_key: monthly_plan.key }
+
+    expect(response).to redirect_to("https://checkout.test/dashboard-success")
+  end
+
   it "allows every product role to start subscription checkout" do
     checkout_stub = instance_double(Pay::Stripe::Customer)
     allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)

@@ -8,8 +8,8 @@
   intro: t("billing_mailer.subscription_started.intro", app_name: app_name),
   detail_rows: subscription_detail_rows,
   primary_action: {
-    label: t("billing_mailer.subscription_started.billing_cta"),
-    url: @billing_url
+    label: t(@discord_activation_url.present? ? "billing_mailer.subscription_started.discord_cta" : "billing_mailer.subscription_started.billing_cta"),
+    url: @discord_activation_url.presence || @billing_url
   },
   secondary_action: @invoice_url.present? ? {
     label: t("billing_mailer.invoice_cta"),

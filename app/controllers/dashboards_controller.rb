@@ -16,6 +16,7 @@ class DashboardsController < ApplicationController
       plan_hint: plan_hint,
       marketplace_available: @marketplace_available
     ).call
+    @discord = Dashboard::DiscordPresenter.new(user: current_user).call if Discord.enabled?
 
     clear_desired_plan if @subscription&.active?
   end
@@ -99,7 +100,13 @@ class DashboardsController < ApplicationController
       end
     end
 
-    success_url = price_key.present? ? dashboard_url(price_key: price_key) : dashboard_url
+    success_url = if Discord.enabled?
+      dashboard_discord_connection_url(checkout: "success")
+    elsif price_key.present?
+      dashboard_url(price_key: price_key)
+    else
+      dashboard_url
+    end
     checkout_params = {
       mode: "subscription",
       line_items: [ { price: price_id, quantity: 1 } ],

@@ -131,6 +131,10 @@ class ApplicationController < ActionController::Base
     return if plan_key.blank?
     return unless BillingPlan.purchasable.exists?(key: plan_key)
 
+    store_desired_plan(plan_key)
+  end
+
+  def store_desired_plan(plan_key)
     cookies.signed[:desired_plan] = {
       value: { price_key: plan_key },
       expires: 1.hour.from_now,

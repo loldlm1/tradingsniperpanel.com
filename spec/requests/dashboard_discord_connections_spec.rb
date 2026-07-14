@@ -32,6 +32,22 @@ RSpec.describe "Dashboard Discord connection", type: :request do
     )
   end
 
+  it "clears the desired plan only after authoritative eligibility is present" do
+    stub_eligibility(true)
+    create(
+      :billing_plan,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
+      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
+    )
+    get dashboard_plans_path(price_key: Billing::PandoraPricing::MONTHLY_KEY)
+    expect(cookies["desired_plan"]).to be_present
+
+    get dashboard_discord_connection_path
+
+    expect(cookies["desired_plan"]).to be_blank
+  end
+
   it "renders an ineligible recovery path to Pandora plans" do
     stub_eligibility(false)
 
@@ -42,6 +58,20 @@ RSpec.describe "Dashboard Discord connection", type: :request do
       I18n.t("dashboard.discord.states.ineligible.title", locale: :es),
       I18n.t("dashboard.discord.actions.view_plans", locale: :es)
     )
+  end
+
+  it "treats a checkout success query as non-authoritative payment-pending presentation" do
+    stub_eligibility(false)
+
+    expect do
+      get dashboard_discord_connection_path(locale: :es, checkout: "success")
+    end.not_to have_enqueued_job(Discord::SyncVipRoleJob)
+
+    expect(response.body).to include(
+      I18n.t("dashboard.discord.states.activation_pending.title", locale: :es)
+    )
+    expect(response.body).not_to include(I18n.t("dashboard.discord.actions.connect", locale: :es))
+    expect(user.reload.discord_connection).to be_nil
   end
 
   it "shows safe identity data and never renders provider IDs or error internals" do

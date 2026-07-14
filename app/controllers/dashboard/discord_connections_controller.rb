@@ -7,7 +7,11 @@ module Dashboard
     before_action :authenticate_user!
 
     def show
-      @discord = DiscordPresenter.new(user: current_user).call
+      @discord = DiscordPresenter.new(
+        user: current_user,
+        checkout_pending: params[:checkout] == "success"
+      ).call
+      clear_desired_plan if @discord.eligible
     end
 
     def authorize

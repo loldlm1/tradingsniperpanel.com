@@ -71,11 +71,15 @@ en:
         last_sync: "Last VIP sync"
       actions:
         connect: "Connect Discord"
+        manage: "Manage Discord VIP"
         retry: "Retry VIP sync"
         open_discord: "Open Discord"
+        join_public: "Join public Discord"
         view_plans: "View Pandora plans"
         contact_support: "Contact support"
         disconnect: "Disconnect"
+      card:
+        title: "Pandora community access"
       benefits:
         title: "Your Pandora VIP benefits"
         recorded_courses:
@@ -95,6 +99,10 @@ en:
           label: "Unavailable"
           title: "Discord VIP is temporarily unavailable"
           body: "Your Pandora subscription remains active. Please try again later or contact support."
+        activation_pending:
+          label: "Confirming payment"
+          title: "Your Pandora payment is being confirmed"
+          body: "Stripe has returned you safely. We will enable Discord connection as soon as the verified payment webhook updates your subscription."
         ineligible:
           label: "Pandora required"
           title: "Subscribe to Pandora before connecting Discord"
@@ -533,6 +541,10 @@ en:
             - "Flexible parameter configuration"
             - "Complete operation control"
             - "Entry and exit optimization"
+            - "Recorded training courses"
+            - "Live community sessions"
+            - "New Pandora presets"
+            - "Dedicated VIP support"
         fibonacci_elite:
           name: "Fibonacci"
           description: "Everything in Sniper Panel plus automated Fibonacci structure trading with precise controls."

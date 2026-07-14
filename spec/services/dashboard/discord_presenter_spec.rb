@@ -40,6 +40,18 @@ RSpec.describe Dashboard::DiscordPresenter do
     expect(result.connectable).to be(false)
   end
 
+  it "presents checkout confirmation without granting eligibility" do
+    result = described_class.new(
+      user: user,
+      eligibility: eligibility(false),
+      checkout_pending: true
+    ).call
+
+    expect(result.state).to eq(:activation_pending)
+    expect(result.eligible).to be(false)
+    expect(result.connectable).to be(false)
+  end
+
   it "exposes only a safe display label and action flags" do
     connection = create(
       :discord_connection,

@@ -15,9 +15,10 @@ module Dashboard
       :support_url
     )
 
-    def initialize(user:, eligibility: nil)
+    def initialize(user:, eligibility: nil, checkout_pending: false)
       @user = user
       @eligibility = eligibility
+      @checkout_pending = checkout_pending
     end
 
     def call
@@ -47,6 +48,7 @@ module Dashboard
 
     def state_for(connection, eligibility)
       return :disabled unless Discord.enabled?
+      return :activation_pending if checkout_pending && !eligibility.eligible? && !connection&.connected?
       return eligibility.eligible? ? :eligible_unlinked : :ineligible unless connection&.connected?
       return :disconnecting if connection.disconnect_pending?
       return :failed if connection.sync_status == "failed"
@@ -71,6 +73,10 @@ module Dashboard
       return unless connection&.connected?
 
       connection.discord_global_name.presence || connection.discord_username.presence
+    end
+
+    def checkout_pending
+      @checkout_pending
     end
   end
 end

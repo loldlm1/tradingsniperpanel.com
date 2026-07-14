@@ -335,6 +335,7 @@ en:
       preheader: "Your %{app_name} subscription is now active and ready to use."
       intro: "Your subscription is now active."
       billing_cta: "Manage billing"
+      discord_cta: "Activate Discord VIP"
     subscription_upgraded:
       subject: "%{app_short_name} subscription upgraded"
       title: "Your subscription was upgraded"
