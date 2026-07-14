@@ -53,7 +53,7 @@ module Discord
     end
 
     def initialize(
-      configuration: Rails.application.config.x.discord,
+      configuration: Discord.configuration,
       transport: NetHttpTransport.new,
       clock: Time,
       logger: Rails.logger

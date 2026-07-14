@@ -1,6 +1,14 @@
 require "uri"
 
 module Discord
+  def self.configuration
+    Rails.application.config.x.discord
+  end
+
+  def self.enabled?
+    configuration.enabled?
+  end
+
   class Configuration
     PRODUCTION_REDIRECT_URI = "https://tradingsniperpanel.com/discord/callback".freeze
     REQUIRED_ENV_KEYS = {

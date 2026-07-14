@@ -114,4 +114,60 @@ RSpec.describe Licenses::PaySubscriptionCallbacks do
       )
     end.to have_enqueued_job(Licenses::SyncSubscriptionJob).with(subscription.id)
   end
+
+  it "enqueues the same Discord convergence job after subscription changes" do
+    connection = create(:discord_connection, :connected, user: user)
+    allow(Discord).to receive(:enabled?).and_return(true)
+    customer = user.pay_customers.create!(
+      processor: "stripe",
+      processor_id: "cus_#{SecureRandom.hex(4)}",
+      default: true
+    )
+
+    expect do
+      customer.subscriptions.create!(
+        name: "default",
+        processor_id: "sub_#{SecureRandom.hex(4)}",
+        processor_plan: "price_pandora_monthly",
+        status: "active",
+        quantity: 1,
+        current_period_start: Time.current,
+        current_period_end: 1.month.from_now
+      )
+    end.to have_enqueued_job(Discord::SyncVipRoleJob).with(connection.id)
+  end
+
+  it "recomputes Discord access after failed, recovered, and deleted subscription callbacks" do
+    connection = create(:discord_connection, :connected, user: user)
+    allow(Discord).to receive(:enabled?).and_return(true)
+    customer = user.pay_customers.create!(
+      processor: "stripe",
+      processor_id: "cus_#{SecureRandom.hex(4)}",
+      default: true
+    )
+    subscription = customer.subscriptions.create!(
+      name: "default",
+      processor_id: "sub_#{SecureRandom.hex(4)}",
+      processor_plan: "price_pandora_monthly",
+      status: "active",
+      quantity: 1,
+      current_period_start: Time.current,
+      current_period_end: 1.month.from_now
+    )
+    clear_enqueued_jobs
+
+    expect do
+      subscription.update!(status: "past_due")
+    end.to have_enqueued_job(Discord::SyncVipRoleJob).with(connection.id)
+
+    clear_enqueued_jobs
+    expect do
+      subscription.update!(status: "active")
+    end.to have_enqueued_job(Discord::SyncVipRoleJob).with(connection.id)
+
+    clear_enqueued_jobs
+    expect do
+      subscription.destroy!
+    end.to have_enqueued_job(Discord::SyncVipRoleJob).with(connection.id)
+  end
 end

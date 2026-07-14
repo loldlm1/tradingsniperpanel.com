@@ -13,6 +13,14 @@ module Licenses
 
       cancel_other_active_subscriptions
       Licenses::SyncSubscriptionJob.perform_later(id)
+      enqueue_discord_sync(customer.owner)
+    end
+
+    def enqueue_discord_sync(user)
+      return unless Discord.enabled?
+
+      connection = user.discord_connection
+      Discord::SyncVipRoleJob.enqueue(connection.id) if connection
     end
 
     def cancel_other_active_subscriptions

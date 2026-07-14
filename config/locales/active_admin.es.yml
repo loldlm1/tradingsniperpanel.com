@@ -45,6 +45,20 @@ es:
       sections:
         access: "Acceso manual a Pandora"
         payment: "Detalles de pago opcionales"
+    discord_connections:
+      menu: "VIP de Discord"
+      resync_enqueued: "La sincronización VIP de Discord fue agregada a la cola."
+      resync_unavailable: "La sincronización VIP de Discord no está disponible mientras la integración esté desactivada o la cuenta esté desconectada."
+      actions:
+        resync: "Sincronizar VIP"
+      labels:
+        eligibility: "Elegibilidad de Pandora"
+        eligibility_source: "Fuente de elegibilidad"
+        eligibility_reason: "Motivo de elegibilidad"
+      states:
+        eligible: "Elegible"
+        ineligible: "No elegible"
+        none: "Ninguna"
     subscription_audits:
       menu: "Auditoría de suscripciones"
       title: "Auditoría de suscripciones"

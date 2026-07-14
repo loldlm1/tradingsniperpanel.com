@@ -45,6 +45,20 @@ en:
       sections:
         access: "Manual Pandora access"
         payment: "Optional payment details"
+    discord_connections:
+      menu: "Discord VIP"
+      resync_enqueued: "Discord VIP synchronization was queued."
+      resync_unavailable: "Discord VIP synchronization is unavailable while the integration is disabled or the account is disconnected."
+      actions:
+        resync: "Resync VIP"
+      labels:
+        eligibility: "Pandora eligibility"
+        eligibility_source: "Eligibility source"
+        eligibility_reason: "Eligibility reason"
+      states:
+        eligible: "Eligible"
+        ineligible: "Ineligible"
+        none: "None"
     subscription_audits:
       menu: "Subscription Audits"
       title: "Subscription Audits"

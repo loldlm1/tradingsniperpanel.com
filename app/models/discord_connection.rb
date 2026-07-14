@@ -17,7 +17,7 @@ class DiscordConnection < ApplicationRecord
   scope :connected, -> { where.not(discord_user_id: nil, linked_at: nil).where(disconnected_at: nil) }
   scope :disconnect_pending, -> { connected.where.not(disconnect_requested_at: nil) }
   scope :failed, -> { where(sync_status: "failed") }
-  scope :reconcilable, -> { connected.order(:id) }
+  scope :reconcilable, -> { connected }
 
   def connected?
     discord_user_id.present? && linked_at.present? && disconnected_at.nil?
@@ -25,5 +25,27 @@ class DiscordConnection < ApplicationRecord
 
   def disconnect_pending?
     connected? && disconnect_requested_at.present?
+  end
+
+  def self.ransackable_associations(_auth_object = nil)
+    %w[user]
+  end
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[
+      created_at
+      disconnect_requested_at
+      disconnected_at
+      id
+      last_error_at
+      last_error_code
+      last_synced_at
+      linked_at
+      membership_pending
+      sync_status
+      updated_at
+      user_id
+      vip_role_state
+    ]
   end
 end
