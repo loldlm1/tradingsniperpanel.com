@@ -81,6 +81,31 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
     expect(lifetime_license.plan_interval).to be_nil
   end
 
+  it "replaces revoked legacy one-time role access with Stripe subscription access" do
+    subscription = create_subscription(
+      processor_plan: basic_plan.stripe_price_id,
+      current_period_end: 1.month.from_now
+    )
+    legacy_license = create(
+      :license,
+      user: user,
+      expert_advisor: basic_ea,
+      status: "revoked",
+      access_source: "one_time",
+      source: Licenses::RevokeRoleAccess::ROLE_LICENSE_SOURCE,
+      trial_ends_at: nil,
+      expires_at: 1.day.ago
+    )
+
+    described_class.new(subscription_id: subscription.id, encoder: encoder).call
+
+    legacy_license.reload
+    expect(legacy_license).to be_active
+    expect(legacy_license.access_source).to eq("subscription")
+    expect(legacy_license.source).to eq("stripe_subscription")
+    expect(legacy_license.expires_at.to_i).to eq(subscription.current_period_end.to_i)
+  end
+
   it "does not overwrite overlapping one-time licenses when the EA is allowed by the subscription tier" do
     subscription = create_subscription(
       processor_plan: basic_plan.stripe_price_id,

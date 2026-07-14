@@ -39,7 +39,7 @@ module ManualTransactions
     def grant_license(user:, expert_advisor:)
       license = License.find_or_initialize_by(user: user, expert_advisor: expert_advisor)
       license.with_lock do
-        return if license.access_source_one_time?
+        return if license.active_one_time_access?
 
         license.access_source = "one_time"
         license.plan_interval = nil

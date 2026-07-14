@@ -70,6 +70,38 @@ RSpec.describe Licenses::ManualSubscriptionSync, type: :service do
     end
   end
 
+  it "replaces revoked legacy one-time role access with manual subscription access" do
+    user = create(:user)
+    plan = create(:billing_plan, tier: "pro", interval: "month", interval_count: 1)
+    allowed_ea = create(:expert_advisor)
+    create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: allowed_ea)
+    legacy_license = create(
+      :license,
+      user: user,
+      expert_advisor: allowed_ea,
+      status: "revoked",
+      access_source: "one_time",
+      source: Licenses::RevokeRoleAccess::ROLE_LICENSE_SOURCE,
+      trial_ends_at: nil,
+      expires_at: 1.day.ago
+    )
+    subscription = create(
+      :manual_subscription,
+      user: user,
+      billing_plan: plan,
+      starts_at: 1.day.ago,
+      ends_at: 29.days.from_now
+    )
+
+    described_class.new(manual_subscription_id: subscription.id).call
+
+    legacy_license.reload
+    expect(legacy_license).to be_active
+    expect(legacy_license.access_source).to eq("subscription")
+    expect(legacy_license.source).to eq("manual_subscription")
+    expect(legacy_license.expires_at.to_i).to eq(subscription.ends_at.to_i)
+  end
+
   it "uses the furthest end of contiguous manual grants" do
     user = create(:user)
     plan = create(:billing_plan, tier: "pro", interval: "month", interval_count: 1)

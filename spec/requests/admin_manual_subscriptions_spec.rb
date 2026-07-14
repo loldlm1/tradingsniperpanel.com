@@ -27,6 +27,7 @@ RSpec.describe "Admin manual subscriptions", type: :request do
       user: customer,
       expert_advisor: pandora_ea,
       status: "revoked",
+      access_source: "one_time",
       trial_ends_at: nil,
       expires_at: 1.day.ago,
       source: Licenses::RevokeRoleAccess::ROLE_LICENSE_SOURCE

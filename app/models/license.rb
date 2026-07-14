@@ -39,6 +39,10 @@ class License < ApplicationRecord
     active? || trial?
   end
 
+  def active_one_time_access?
+    access_source_one_time? && active_for_request?
+  end
+
   def effective_expires_at
     trial? ? trial_ends_at : expires_at
   end
