@@ -63,6 +63,14 @@
   cursor: not-allowed;
 }
 
+.license-key-value {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  word-break: break-all;
+}
+
 /* Dashboard brand utilities (palette set via data-dashboard-palette). */
 :root {
   --brand-100: var(--color-violet-100);

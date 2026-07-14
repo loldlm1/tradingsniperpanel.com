@@ -27,31 +27,31 @@
   <!-- Section: License key -->
   <div class="mt-4">
     <div class="text-xs uppercase text-gray-400 dark:text-gray-500 tracking-wide"><%= t("dashboard.expert_advisors.show.license_key_label") %></div>
-    <div class="flex items-center gap-4 mt-2">
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 font-mono text-sm text-gray-800 dark:text-gray-100">
-          <code class="block min-w-0 w-full break-all select-all" data-license-value><%= presenter.license_key_display %></code>
-        </div>
+    <div class="grid gap-2 mt-2" data-license-key-layout>
+      <div class="min-w-0 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 font-mono text-sm text-gray-800 dark:text-gray-100">
+        <code class="license-key-value select-all leading-5" data-license-value><%= presenter.license_key_display %></code>
       </div>
-      <% if presenter.license_copy_enabled? %>
-        <button
-          class="<%= copy_button_class %>"
-          type="button"
-          data-copy-text="<%= j presenter.license_key %>"
-          data-default-text="<%= copy_label %>"
-          data-copied-text="<%= copied_label %>"
-          data-copy-failed-text="<%= copy_failed_label %>"
-          data-reset-after-ms="3000"
-          data-copy-button="true"
-          aria-live="polite"
-        ><%= copy_label %></button>
-      <% else %>
-        <button
-          class="<%= copy_button_disabled_class %>"
-          type="button"
-          disabled
-        ><%= copy_label %></button>
-      <% end %>
+      <div class="flex justify-end">
+        <% if presenter.license_copy_enabled? %>
+          <button
+            class="<%= copy_button_class %>"
+            type="button"
+            data-copy-text="<%= j presenter.license_key %>"
+            data-default-text="<%= copy_label %>"
+            data-copied-text="<%= copied_label %>"
+            data-copy-failed-text="<%= copy_failed_label %>"
+            data-reset-after-ms="3000"
+            data-copy-button="true"
+            aria-live="polite"
+          ><%= copy_label %></button>
+        <% else %>
+          <button
+            class="<%= copy_button_disabled_class %>"
+            type="button"
+            disabled
+          ><%= copy_label %></button>
+        <% end %>
+      </div>
     </div>
     <% if presenter.license_token_metadata_label.present? %>
       <div class="text-xs font-medium text-gray-600 dark:text-gray-300 mt-2"><%= presenter.license_token_metadata_label %></div>

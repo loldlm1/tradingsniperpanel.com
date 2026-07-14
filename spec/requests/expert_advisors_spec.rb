@@ -140,13 +140,13 @@ RSpec.describe "Expert advisor guides", type: :request do
     license.reload
     doc = parsed_body
     key_value = doc.at_css("[data-license-value]")
+    key_layout = doc.at_css("[data-license-key-layout]")
     copy_button = doc.at_css("button[data-copy-button='true']")
     expect(response).to be_successful
     expect(response.headers["Cache-Control"]).to include("no-store")
     expect(key_value.text.strip).to eq(license.encrypted_key)
-    expect(key_value["class"]).to include("break-all")
-    expect(key_value["class"]).to include("min-w-0")
-    expect(key_value["class"]).to include("w-full")
+    expect(key_value["class"]).to include("license-key-value")
+    expect(key_layout["class"]).to include("grid")
     expect(copy_button["data-copy-text"]).to eq(license.encrypted_key)
     expect(response.body).not_to include(previous_key)
     expect(response.body).to include(
