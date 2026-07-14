@@ -3,18 +3,18 @@ require "rails_helper"
 RSpec.describe "Admin manual subscriptions", type: :request do
   let(:master_admin) { create(:user, :master_admin) }
   let(:customer) { create(:user) }
-  let(:pandora_ea) { create(:expert_advisor, ea_id: "pandora_box") }
+  let(:pandora_ea) { ExpertAdvisor.find_by(ea_id: "pandora_box") || create(:expert_advisor, ea_id: "pandora_box") }
   let(:plan) do
-    create(
+    billing_plan = BillingPlan.find_by(key: Billing::PandoraPricing::MONTHLY_KEY) || create(
       :billing_plan,
       tier: Billing::PandoraPricing::TIER,
       key: Billing::PandoraPricing::MONTHLY_KEY,
       interval: "month",
       interval_count: 1,
       amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
-    ).tap do |billing_plan|
-      create(:billing_plan_entitlement, billing_plan: billing_plan, expert_advisor: pandora_ea)
-    end
+    )
+    BillingPlanEntitlement.find_or_create_by!(billing_plan: billing_plan, expert_advisor: pandora_ea)
+    billing_plan
   end
 
   before do
@@ -22,6 +22,16 @@ RSpec.describe "Admin manual subscriptions", type: :request do
   end
 
   it "creates access from an exact email, plan, and days" do
+    revoked_license = create(
+      :license,
+      user: customer,
+      expert_advisor: pandora_ea,
+      status: "revoked",
+      trial_ends_at: nil,
+      expires_at: 1.day.ago,
+      source: Licenses::RevokeRoleAccess::ROLE_LICENSE_SOURCE
+    )
+
     expect do
       post admin_manual_subscriptions_path, params: {
         manual_subscription: {
@@ -42,6 +52,17 @@ RSpec.describe "Admin manual subscriptions", type: :request do
     expect(grant.granted_days).to eq(45)
     expect(grant.recorded_by_admin).to eq(master_admin)
     expect(grant).to be_payment_complimentary
+
+    revoked_license.reload
+    expect(revoked_license).to be_active
+    expect(revoked_license.source).to eq("manual_subscription")
+    expect(revoked_license.expires_at).to eq(grant.ends_at)
+
+    entry = Licenses::AccessibleExpertAdvisors.new(user: customer).call.find do |candidate|
+      candidate.expert_advisor == pandora_ea
+    end
+    expect(entry.accessible).to be(true)
+    expect(entry.license_key).to eq(revoked_license.encrypted_key)
   end
 
   it "searches users by case-insensitive email prefix with bounded email and name results" do

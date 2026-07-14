@@ -26,31 +26,10 @@ module ManualSubscriptions
 
     def call
       validate_contract!
-      return grant_from(existing_event) if existing_event
+      event = existing_event
+      grant = event ? grant_from(event) : create_grant_with_audit!
 
-      user.with_lock do
-        reject_active_stripe_subscription!
-        grant = create_grant!
-        AdminAuditEvent.create!(
-          actor: recorded_by_admin,
-          action: AdminAuditEvent::ACTIONS.fetch(:manual_subscription_granted),
-          target: user,
-          request_id: request_id,
-          metadata: {
-            "manual_subscription_id" => grant.id,
-            "billing_plan_id" => billing_plan.id,
-            "granted_days" => grant.granted_days,
-            "payment_status" => grant.payment_status,
-            "amount_cents" => grant.amount_cents,
-            "currency" => grant.currency,
-            "starts_at" => grant.starts_at.iso8601(6),
-            "ends_at" => grant.ends_at.iso8601(6)
-          }
-        )
-        grant
-      end
-    rescue ActiveRecord::RecordNotUnique
-      grant_from(existing_event!)
+      sync_licenses(grant)
     end
 
     private
@@ -107,6 +86,37 @@ module ManualSubscriptions
         reference: reference.presence,
         notes: notes.presence
       )
+    end
+
+    def create_grant_with_audit!
+      user.with_lock do
+        reject_active_stripe_subscription!
+        grant = create_grant!
+        AdminAuditEvent.create!(
+          actor: recorded_by_admin,
+          action: AdminAuditEvent::ACTIONS.fetch(:manual_subscription_granted),
+          target: user,
+          request_id: request_id,
+          metadata: {
+            "manual_subscription_id" => grant.id,
+            "billing_plan_id" => billing_plan.id,
+            "granted_days" => grant.granted_days,
+            "payment_status" => grant.payment_status,
+            "amount_cents" => grant.amount_cents,
+            "currency" => grant.currency,
+            "starts_at" => grant.starts_at.iso8601(6),
+            "ends_at" => grant.ends_at.iso8601(6)
+          }
+        )
+        grant
+      end
+    rescue ActiveRecord::RecordNotUnique
+      grant_from(existing_event!)
+    end
+
+    def sync_licenses(grant)
+      Licenses::ManualSubscriptionSync.new(manual_subscription_id: grant.id).call
+      grant
     end
 
     def latest_manual_end

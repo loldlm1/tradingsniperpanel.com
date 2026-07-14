@@ -7,18 +7,18 @@ RSpec.describe ManualSubscriptions::Grant do
 
   let(:user) { create(:user) }
   let(:admin) { create(:user, :admin) }
-  let(:pandora_ea) { create(:expert_advisor, ea_id: "pandora_box") }
+  let(:pandora_ea) { ExpertAdvisor.find_by(ea_id: "pandora_box") || create(:expert_advisor, ea_id: "pandora_box") }
   let(:plan) do
-    create(
+    billing_plan = BillingPlan.find_by(key: Billing::PandoraPricing::MONTHLY_KEY) || create(
       :billing_plan,
       tier: Billing::PandoraPricing::TIER,
       key: Billing::PandoraPricing::MONTHLY_KEY,
       interval: "month",
       interval_count: 1,
       amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
-    ).tap do |billing_plan|
-      create(:billing_plan_entitlement, billing_plan: billing_plan, expert_advisor: pandora_ea)
-    end
+    )
+    BillingPlanEntitlement.find_or_create_by!(billing_plan: billing_plan, expert_advisor: pandora_ea)
+    billing_plan
   end
 
   before { clear_enqueued_jobs }
@@ -41,6 +41,11 @@ RSpec.describe ManualSubscriptions::Grant do
       expect(grant.amount_cents).to eq(0)
       expect(grant.paid_at).to be_nil
       expect(grant.settled_amount_cents).to eq(0)
+
+      license = License.find_by!(user: user, expert_advisor: pandora_ea)
+      expect(license).to be_active
+      expect(license.source).to eq("manual_subscription")
+      expect(license.expires_at).to eq(grant.ends_at)
     end
   end
 
