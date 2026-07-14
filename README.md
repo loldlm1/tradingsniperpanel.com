@@ -178,8 +178,10 @@ bin/rails runner 'pp({ env: Rails.env, provider: Rails.configuration.x.branding.
 - Admins and master admins can rotate one user's active/trial subscription license tokens. Only master admins can rotate all active/trial tokens. Rotation is atomic, idempotently audited, and immediately invalidates prior keys on every licensing endpoint.
 - User roles never grant product access. Admin roles authorize administration only; product access still requires a current Stripe subscription or active manual grant.
 - Never rotate tokens from a seed, migration, deploy hook, or role callback. Compile, distribute, and confirm the Pandora client with v2 token parsing before any rotation.
+- Pandora subscribers can link one Discord identity and receive the downstream `Pandora VIP` role. Stripe/Pay or active manual grants remain authoritative; Discord never grants Rails product access. Event jobs plus hourly reconciliation remove VIP when paid access ends and restore it after payment recovery.
+- The localized community funnel starts at `/join/pandora`. The permanent public invite continues through `SUPPORT_DISCORD_URL` even when VIP automation is disabled.
 
-The production sequence, staging rehearsal, post-deploy checks, schedule rollback limits, manual grant procedure, and token-rotation gate are documented in `docs/pandora_subscription_rollout_runbook.md`.
+The subscription catalog sequence is documented in `docs/pandora_subscription_rollout_runbook.md`. Discord setup, QA accounts, enablement, monitoring, credential rotation, and rollback are documented in `docs/discord_vip_rollout_runbook.md`.
 
 ## Server setup (Ubuntu 22.04, staging + production on the same VPS)
 
@@ -610,6 +612,7 @@ See `.envrc.example` for the full list. Key server variables:
 - Branding: `APP_NAME`, `APP_SHORT_NAME`, `LANDING_TEMPLATE`.
 - Dashboard promotions: manage active Stripe promotion codes from ActiveAdmin; the dashboard modal is database-backed rather than env-driven.
 - OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_HD`.
+- Discord VIP: `DISCORD_INTEGRATION_ENABLED`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`, `DISCORD_VIP_ROLE_ID`, `DISCORD_REDIRECT_URI`, `SUPPORT_DISCORD_URL`. Keep disabled through deployment and follow `docs/discord_vip_rollout_runbook.md` before production enablement.
 - Stripe (Pay): `STRIPE_PRIVATE_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_SIGNING_SECRET`.
 - Billing plans: the active catalog is seed-managed Pandora monthly/annual data in `billing_plans`; current and retired Stripe mappings are stored in `billing_plan_prices`.
 - Licensing: `EA_LICENSE_PRIMARY_KEY`, `EA_LICENSE_SECRET_KEY`, `EA_LICENSE_SOURCE_ID`.

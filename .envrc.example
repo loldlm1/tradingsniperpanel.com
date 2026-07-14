@@ -9,7 +9,7 @@ export TAWKTO_PROPERTY_ID=""
 export TAWKTO_WIDGET_ID=""
 # Optional: secure signed-in visitor identification for the tawk.to widget
 export TAWKTO_API_KEY=""
-export SUPPORT_DISCORD_URL=""
+export SUPPORT_DISCORD_URL="https://discord.gg/tWJNnu4ArJ"
 export SUPPORT_TELEGRAM_URL="https://t.me/loldlm"
 export BRAND_LEGAL_NAME="BULLISH LIFE"
 export BRAND_TRADE_NAME="SNIPER PANEL"

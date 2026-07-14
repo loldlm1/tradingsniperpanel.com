@@ -4,6 +4,11 @@ This runbook covers the Pandora-only subscription catalog, renewal migration,
 manual access, and versioned license-token rotation. It does not authorize a
 production deploy, customer communication, EA publication, or token rotation.
 
+Discord VIP is a downstream Pandora benefit with a separate feature flag and
+provider rollout. After this catalog gate is green, follow
+`docs/discord_vip_rollout_runbook.md`; Discord role state never replaces the
+Stripe/Pay or manual-grant authority described here.
+
 ## Fixed Contracts
 
 - Active plans: `pandora_pro_monthly` at `7900` USD cents per month and
