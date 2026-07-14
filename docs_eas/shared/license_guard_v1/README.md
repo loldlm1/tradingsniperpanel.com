@@ -148,5 +148,17 @@ Do not switch a chart to instance-scoped magic while it still has open positions
 ## Migration Requirement
 When adopting this module in an EA, remove or bypass legacy local license logic to prevent dual-auth flows.
 
+## Versioned Token Compatibility
+
+- Existing version 1 tokens decrypt as `email,ea_id,expires_at`.
+- Version 2 and later tokens decrypt as `email,ea_id,expires_at,token_version`.
+- The client validates and removes PKCS#7 cipher padding before parsing either
+  payload format.
+- The client accepts exactly those three- or four-field formats and requires a
+  positive integer version in the fourth field.
+- API JSON contracts remain unchanged; `license_key` is still the only token
+  sent to the backend.
+- Token contents and decrypted payloads must never be written to diagnostics.
+
 Reference migration plan:
 - `services/shared/license_guard_v1/license-shared-service-migration-plan.md`

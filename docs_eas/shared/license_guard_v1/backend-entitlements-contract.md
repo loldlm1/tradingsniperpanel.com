@@ -48,6 +48,28 @@ Example shared payload fragment:
 }
 ```
 
+## Encrypted license token contract
+
+The `license_key` request field contains an encrypted comma-separated payload.
+The decrypted payload has one of these exact formats:
+
+- Version 1: `email,ea_id,expires_at`
+- Version 2 and later: `email,ea_id,expires_at,token_version`
+
+The client validates and removes PKCS#7 cipher padding before parsing the
+payload. Invalid padding is rejected fail-closed. It then accepts exactly three
+or four fields: a three-field payload is token version `1`, while a four-field
+payload requires a positive integer `token_version`.
+
+Invalid field counts, invalid versions, mismatched EA IDs, invalid expiration,
+expired tokens, and decryption failures are rejected before online verification.
+The token version is not added to any API JSON request or response. The backend
+remains authoritative by comparing the submitted encrypted `license_key` with
+the current stored key using a secure exact-token comparison.
+
+Neither client nor backend diagnostics may print the encrypted key, decrypted
+payload, cipher material, or prior token value.
+
 ## Identity model
 License guard lane key:
 - `source + email + ea_id + company + account_number + account_type`
