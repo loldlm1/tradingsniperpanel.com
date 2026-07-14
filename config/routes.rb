@@ -10,6 +10,8 @@ Rails.application.routes.draw do
     omniauth_callbacks: "users/omniauth_callbacks"
   }
 
+  get "/discord/callback", to: "discord/oauth_callbacks#show", as: :discord_oauth_callback
+
   scope "(:locale)", locale: /en|es/ do
     devise_for :users, controllers: {
       registrations: "users/registrations",
@@ -32,6 +34,14 @@ Rails.application.routes.draw do
     post "dashboard/support", to: "dashboards#create_support_request"
     get "dashboard/settings", to: "dashboard/settings#show", as: :dashboard_settings
     patch "dashboard/settings", to: "dashboard/settings#update"
+    resource :dashboard_discord_connection,
+             only: :show,
+             path: "dashboard/discord",
+             controller: "dashboard/discord_connections" do
+      get :authorize
+      post :retry
+      delete :unlink
+    end
     get "dashboard/expert_advisors/:id", to: "expert_advisors#show", as: :dashboard_expert_advisor
     get "dashboard/expert_advisors/:id/guides", to: "expert_advisors#guides", as: :dashboard_expert_advisor_guides
     get "dashboard/expert_advisors/:id/addons/:addon_key/guide", to: "expert_advisors#addon_guide", as: :dashboard_expert_advisor_addon_guide

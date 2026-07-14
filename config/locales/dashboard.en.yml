@@ -59,6 +59,92 @@ en:
       docs: "Docs"
       settings: "Settings"
       my_account: "My Account"
+      discord: "Discord VIP"
+    discord:
+      page_title: "Discord VIP"
+      panel_title: "Connect Pandora VIP to Discord"
+      panel_description: "Link one Discord account to unlock your private Pandora community access automatically."
+      membership_screening: "Discord may ask you to accept the server rules before ELITE channels become visible. Open Discord and complete that step if prompted."
+      disconnect_confirm: "Disconnect this Discord account? Pandora VIP will be removed before the account link is cleared."
+      details:
+        account: "Connected account"
+        last_sync: "Last VIP sync"
+      actions:
+        connect: "Connect Discord"
+        retry: "Retry VIP sync"
+        open_discord: "Open Discord"
+        view_plans: "View Pandora plans"
+        contact_support: "Contact support"
+        disconnect: "Disconnect"
+      benefits:
+        title: "Your Pandora VIP benefits"
+        recorded_courses:
+          title: "Recorded courses"
+          body: "Watch the growing training library on your schedule."
+        live_sessions:
+          title: "Live sessions"
+          body: "Join community sessions and market walkthroughs."
+        new_presets:
+          title: "New presets"
+          body: "Get new Pandora presets as they are released."
+        priority_support:
+          title: "Better support"
+          body: "Reach the team through the dedicated VIP community."
+      states:
+        disabled:
+          label: "Unavailable"
+          title: "Discord VIP is temporarily unavailable"
+          body: "Your Pandora subscription remains active. Please try again later or contact support."
+        ineligible:
+          label: "Pandora required"
+          title: "Subscribe to Pandora before connecting Discord"
+          body: "An active paid or manually granted Pandora subscription is required for ELITE access."
+        eligible_unlinked:
+          label: "Ready to connect"
+          title: "Your Pandora access is ready"
+          body: "Connect Discord once and we will keep your VIP role synchronized with your subscription."
+        pending_join:
+          label: "Joining server"
+          title: "Your Discord account is connected"
+          body: "We are finishing the server join and VIP role synchronization."
+        queued:
+          label: "Sync queued"
+          title: "Pandora VIP is being synchronized"
+          body: "This normally completes shortly. You can safely leave this page and return later."
+        granted:
+          label: "VIP active"
+          title: "Pandora VIP is active"
+          body: "Your Discord account has the Pandora VIP role and can access the ELITE community."
+        removed:
+          label: "VIP inactive"
+          title: "Pandora VIP is not currently active"
+          body: "Renew Pandora access or retry synchronization if your subscription is already active."
+        failed:
+          label: "Needs attention"
+          title: "Discord synchronization needs another attempt"
+          body: "No sensitive details were exposed. Retry now, and contact support if the issue continues."
+        disconnecting:
+          label: "Disconnecting"
+          title: "Removing Pandora VIP before disconnecting"
+          body: "The account link stays protected until Discord confirms the VIP role is removed."
+        membership_screening:
+          label: "Accept server rules"
+          title: "Complete Discord membership screening"
+          body: "Your VIP role is ready. Accept the server rules in Discord to reveal the ELITE channels."
+      notices:
+        connected: "Discord connected. Pandora VIP synchronization is queued."
+        retry_queued: "Discord VIP synchronization was queued."
+        unlink_requested: "Discord disconnect requested. VIP removal is queued first."
+      errors:
+        disabled: "Discord VIP is temporarily unavailable."
+        denied: "Discord authorization was canceled. You can try again when ready."
+        expired: "The Discord authorization request expired. Please start again."
+        invalid_state: "The Discord authorization request could not be verified. Please start again."
+        identity_in_use: "That Discord account is already linked to another Trading Sniper Panel account."
+        already_connected: "Disconnect the current Discord account before linking another one."
+        ineligible: "An active Pandora subscription is required to connect Discord."
+        provider_failed: "Discord could not be connected right now. Please retry."
+        action_unavailable: "That Discord action is not available right now."
     discount_modal:
       badge: "Limited offer"
       title: "%{percent}% OFF available now."

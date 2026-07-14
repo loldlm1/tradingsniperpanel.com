@@ -41,10 +41,10 @@ module Discord
       desired_granted = desired_granted?(connection)
       desired_granted ? client.add_vip_role(user_id: claim[:discord_user_id]) : client.remove_vip_role(user_id: claim[:discord_user_id])
 
-      mark_success(claim, desired_granted)
+      unlinked = mark_success(claim, desired_granted)
       result(
         desired_granted ? :granted : :removed,
-        follow_up: follow_up_required?(claim, desired_granted)
+        follow_up: !unlinked && follow_up_required?(claim, desired_granted)
       )
     rescue RateLimitedError => e
       mark_failure(claim, e.code) if claim.is_a?(Hash)
@@ -106,10 +106,12 @@ module Discord
 
     def mark_success(claim, granted)
       now = clock.now
-      DiscordConnection.where(
+      scope = DiscordConnection.where(
         id: claim[:connection_id],
         discord_user_id: claim[:discord_user_id]
-      ).update_all(
+      )
+      disconnecting = !granted && scope.where.not(disconnect_requested_at: nil).exists?
+      attributes = {
         vip_role_state: granted ? "granted" : "removed",
         sync_status: "idle",
         sync_started_at: nil,
@@ -117,7 +119,21 @@ module Discord
         last_error_code: nil,
         last_error_at: nil,
         updated_at: now
-      )
+      }
+      if disconnecting
+        attributes.merge!(
+          discord_user_id: nil,
+          discord_username: nil,
+          discord_global_name: nil,
+          linked_at: nil,
+          disconnect_requested_at: nil,
+          disconnected_at: now,
+          membership_pending: nil
+        )
+      end
+
+      updated = scope.update_all(attributes)
+      disconnecting && updated == 1
     end
 
     def mark_failure(claim, code)

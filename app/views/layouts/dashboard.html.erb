@@ -78,8 +78,9 @@
           <% settings_account_active = current_page?(dashboard_settings_path) %>
           <% settings_plans_active = current_page?(dashboard_plans_path) %>
           <% settings_billing_active = current_page?(dashboard_billing_path) %>
+          <% settings_discord_active = current_page?(dashboard_discord_connection_path) %>
           <% settings_support_active = current_page?(dashboard_support_path) %>
-          <% settings_group_active = settings_account_active || settings_plans_active || settings_billing_active || settings_support_active %>
+          <% settings_group_active = settings_account_active || settings_plans_active || settings_billing_active || settings_discord_active || settings_support_active %>
 
           <div class="space-y-8">
             <div>
@@ -238,6 +239,11 @@
                       <li class="mb-1 last:mb-0">
                         <%= link_to dashboard_billing_path, class: mosaic_sidebar_child_link_classes(active: settings_billing_active) do %>
                           <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.billing_invoices") %></span>
+                        <% end %>
+                      </li>
+                      <li class="mb-1 last:mb-0">
+                        <%= link_to dashboard_discord_connection_path, class: mosaic_sidebar_child_link_classes(active: settings_discord_active) do %>
+                          <span class="<%= mosaic_sidebar_child_span_classes %>"><%= t("dashboard.nav.discord") %></span>
                         <% end %>
                       </li>
                       <li class="mb-1 last:mb-0">
