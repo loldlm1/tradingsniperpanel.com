@@ -1,0 +1,117 @@
+# Brand Setup
+export APP_NAME="trading sniper panel"
+export APP_SHORT_NAME=Sniper
+export SUPPORT_EMAIL=admin@tradingsniperpanel.com
+export SUPPORT_PHONE="1234567890"
+export SUPPORT_CHAT_URL=""
+export SUPPORT_CHAT_EMBED_PROVIDER=""
+export TAWKTO_PROPERTY_ID=""
+export TAWKTO_WIDGET_ID=""
+# Optional: secure signed-in visitor identification for the tawk.to widget
+export TAWKTO_API_KEY=""
+export SUPPORT_DISCORD_URL=""
+export SUPPORT_TELEGRAM_URL="https://t.me/loldlm"
+export BRAND_LEGAL_NAME="BULLISH LIFE"
+export BRAND_TRADE_NAME="SNIPER PANEL"
+export BRAND_ADDRESS_LINE1="Address Line 1"
+export BRAND_ADDRESS_LINE2="Address Line 2"
+export BRAND_CITY="Poland"
+export BRAND_STATE="Mazowieckie"
+export BRAND_POSTAL="2104"
+export BRAND_COUNTRY="US"
+export LANDING_TEMPLATE=neon
+export DASHBOARD_PALETTE=violet
+
+# SMTP (GoDaddy / Microsoft 365 mailbox credentials; production runtime + opt-in smtp tasks)
+export SMTP_ADDRESS=smtp.office365.com
+export SMTP_PORT=587
+export SMTP_DOMAIN=tradingsniperpanel.com
+export SMTP_USERNAME=admin@tradingsniperpanel.com
+export SMTP_PASSWORD=your_mailbox_password
+export SMTP_AUTHENTICATION=login
+export SMTP_ENABLE_STARTTLS_AUTO=true
+export SMTP_OPEN_TIMEOUT=5
+export SMTP_READ_TIMEOUT=10
+
+# Database
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_USERNAME=postgres
+export DB_PASSWORD=postgres
+export DB_NAME=tradingsniperpanel_com_development
+export DB_NAME_TEST=tradingsniperpanel_com_test
+export DATABASE_URL=postgresql://$DB_USERNAME:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME
+
+# Rails
+export RAILS_MASTER_KEY=changeme
+export APP_HOST=localhost:3000
+export APP_HOST_PROTOCOL=http
+export PORT=3000
+export BIND_HOST=127.0.0.1
+
+# Admin bootstrap
+export MASTER_ADMIN_EMAIL=master@example.com
+export MASTER_ADMIN_PASSWORD=changeme
+export REVENUE_SPLIT_US_PERCENT=40
+export REVENUE_SPLIT_CLIENT_PERCENT=60
+# Optional: export REVENUE_SPLIT_EFFECTIVE_AT=2025-01-01T00:00:00Z
+
+# Redis (Sidekiq)
+export REDIS_URL=redis://localhost:6379/0
+
+# Server databases (production/staging)
+export DB_NAME_PRODUCTION=tradingsniperpanel_com_production
+export DB_NAME_PRODUCTION_CACHE=tradingsniperpanel_com_production_cache
+export DB_NAME_PRODUCTION_QUEUE=tradingsniperpanel_com_production_queue
+export DB_NAME_PRODUCTION_CABLE=tradingsniperpanel_com_production_cable
+export DB_NAME_STAGING=tradingsniperpanel_com_staging
+export DB_NAME_STAGING_CACHE=tradingsniperpanel_com_staging_cache
+export DB_NAME_STAGING_QUEUE=tradingsniperpanel_com_staging_queue
+export DB_NAME_STAGING_CABLE=tradingsniperpanel_com_staging_cable
+
+# Staging (space-separated IPs, wrap in quotes if multiple)
+export STAGING_ALLOWLIST=82.86.112.106
+
+# Google OAuth
+export GOOGLE_CLIENT_ID=your_google_client_id
+export GOOGLE_CLIENT_SECRET=your_google_client_secret
+# Callback should match the Devise route: http://localhost:3000/users/auth/google_oauth2/callback
+export GOOGLE_OAUTH_REDIRECT_URI=http://localhost:3000/users/auth/google_oauth2/callback
+# Optional: restrict Google Workspace domain (leave blank to allow all)
+export GOOGLE_HD=
+
+# Discord VIP integration
+export DISCORD_INTEGRATION_ENABLED=false
+export DISCORD_CLIENT_ID=your_discord_client_id
+export DISCORD_CLIENT_SECRET=your_discord_client_secret
+export DISCORD_BOT_TOKEN=your_discord_bot_token
+export DISCORD_GUILD_ID=your_discord_guild_id
+export DISCORD_VIP_ROLE_ID=your_discord_vip_role_id
+export DISCORD_REDIRECT_URI=http://localhost:3000/discord/callback
+
+# Stripe / Pay
+export STRIPE_PRIVATE_KEY=sk_test_your_key
+export STRIPE_PUBLIC_KEY=pk_test_your_key
+export STRIPE_SIGNING_SECRET=whsec_your_secret
+# Billing plans are created in `billing_plans` via seeds and Billing::PlanCreator.
+
+# Licensing
+export EA_LICENSE_PRIMARY_KEY=D3B634B92BDBC9D80BC84ED4F2640644929A5E0DA153FD7D471AF9B5A416B5FE
+export EA_LICENSE_SECRET_KEY=example_secret
+export EA_LICENSE_SOURCE_ID=trading_sniper_floor
+
+# Referrals
+export REFER_DEFAULT_DISCOUNT_PERCENT=10
+export PARTNER_PAYOUT_REQUEST_RECIPIENTS="ops@example.com, finance@example.com"
+
+# MaxMind GeoIP
+export MAXMIND_LICENSE_KEY=your_maxmind_license_key
+export MAXMIND_DB_PATH=./maxmind/GeoLite2-City.mmdb
+
+# Cloudflare
+export CLOUDFLARE_STREAM_SIGNING_KEY=c_key
+
+# Codex MCPs
+export CONTEXT7_API_KEY=ctx7_your_key
+export TAVILY_API_KEY=tvly_your_key
+export CLIENT_IP_ENCRYPTION_KEY=dev-local-client-ip-key-32chars

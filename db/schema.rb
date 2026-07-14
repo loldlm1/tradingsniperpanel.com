@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_13_131000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_14_223812) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -298,6 +298,30 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_131000) do
     t.index ["category"], name: "index_courses_on_category"
     t.index ["slug"], name: "index_courses_on_slug", unique: true
     t.index ["status"], name: "index_courses_on_status"
+  end
+
+  create_table "discord_connections", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "discord_user_id"
+    t.string "discord_username"
+    t.string "discord_global_name"
+    t.datetime "linked_at"
+    t.datetime "disconnect_requested_at"
+    t.datetime "disconnected_at"
+    t.boolean "membership_pending"
+    t.string "vip_role_state", default: "unknown", null: false
+    t.string "sync_status", default: "idle", null: false
+    t.datetime "sync_started_at"
+    t.datetime "last_synced_at"
+    t.string "last_error_code"
+    t.datetime "last_error_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discord_user_id"], name: "index_discord_connections_on_discord_user_id", unique: true, where: "(discord_user_id IS NOT NULL)"
+    t.index ["user_id"], name: "index_discord_connections_on_user_id", unique: true
+    t.check_constraint "discord_user_id IS NULL AND linked_at IS NULL OR discord_user_id IS NOT NULL AND linked_at IS NOT NULL", name: "discord_connections_identity_coherence_check"
+    t.check_constraint "sync_status::text = ANY (ARRAY['idle'::character varying, 'queued'::character varying, 'syncing'::character varying, 'failed'::character varying]::text[])", name: "discord_connections_sync_status_check"
+    t.check_constraint "vip_role_state::text = ANY (ARRAY['unknown'::character varying, 'pending'::character varying, 'granted'::character varying, 'removed'::character varying]::text[])", name: "discord_connections_vip_role_state_check"
   end
 
   create_table "expert_advisor_bundles", force: :cascade do |t|
@@ -933,6 +957,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_13_131000) do
   add_foreign_key "course_modules", "courses"
   add_foreign_key "course_plan_entitlements", "billing_plans"
   add_foreign_key "course_plan_entitlements", "courses"
+  add_foreign_key "discord_connections", "users"
   add_foreign_key "expert_advisor_bundles", "expert_advisors"
   add_foreign_key "license_instance_magic_numbers", "broker_accounts"
   add_foreign_key "license_instance_magic_numbers", "expert_advisors"

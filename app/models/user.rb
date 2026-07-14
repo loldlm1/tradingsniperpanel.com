@@ -24,6 +24,7 @@ class User < ApplicationRecord
   has_many :product_release_dismissals, dependent: :destroy
   has_many :dismissed_product_releases, through: :product_release_dismissals, source: :product_release
   has_one :partner_profile, dependent: :destroy
+  has_one :discord_connection, dependent: :destroy
 
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
