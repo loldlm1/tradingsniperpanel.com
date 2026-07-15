@@ -1,7 +1,7 @@
 # Plan: Pandora Discord VIP Subscription Integration
 
 **Generated**: 2026-07-14
-**Status**: Sprints 1-6 complete; production staff canary ready
+**Status**: Sprints 1-6 complete; Sprint 7 release candidate ready for production
 **Estimated Complexity**: High
 
 ## Overview
@@ -1520,6 +1520,108 @@ authorization.
 If the canary fails, disable the feature first. If granted VIP access must also
 be withdrawn, run the guarded linked-role cleanup according to the runbook;
 never kick members or delete staff roles.
+
+## Sprint 7: Canary UX Contrast And Public Discord Readability
+
+**Goal**: Close the successful production canary with accessible dark-theme
+Discord states and correct public onboarding readability without granting a
+paid/staff Discord role to free community members.
+
+**Dependencies**: Sprint 6 commit `136a744`; the completed staff canary on the
+authorized internal account; production Discord integration enabled; and the
+existing human-owned Discord category/role contract.
+
+**Tracked scope**: The two app-owned Discord dashboard views, focused request
+coverage, this plan/runbook, and a one-time Discord permission-overwrite repair
+for the `FREE PASS` role on two public onboarding channels. No entitlement,
+OAuth, billing, database, job, role-assignment, dependency, or schema change.
+
+**Commit**: `fix: close Discord VIP canary follow-ups`
+
+**Rollback point**: Sprint 6 commit `136a744`; restore the two prior ERB class
+stacks and the exact captured Discord overwrite bitsets for the two public
+channels. Do not disable Pandora VIP or mutate subscriber connections for a
+presentation/public-channel rollback.
+
+### Task 7.1: Record Canary And Permission Evidence
+
+- **Description**:
+  - Verify the staff canary completed grant, removal, recovery, and unlink
+    without a provider error or residual identity.
+  - Calculate effective Discord permissions for `@everyone`, `FREE PASS`,
+    `ELITE SNIPER`, and `Pandora VIP` before choosing a remediation.
+- **Acceptance criteria**:
+  - The Rails connection is safely disconnected, the identity is cleared, the
+    VIP role state is removed, and the test manual grant is cancelled.
+  - Evidence proves `FREE PASS` can view but cannot read message history in
+    `Bienvenidos` and `Hazte-VIP`, while `ELITE SNIPER` would expose ELITE and
+    therefore must not be assigned to public users.
+
+### Task 7.2: Strengthen Dark-Theme Discord Contrast
+
+- **Location**: `app/views/dashboards/shared/_discord_vip_card.html.erb`,
+  `app/views/dashboard/discord_connections/show.html.erb`, and focused request
+  specs.
+- **Description**: Increase dark-theme contrast for state badges, explanatory
+  copy, and the public Discord secondary action while preserving the Mosaic
+  layout, DOM IDs, actions, I18n copy, and light-theme behavior.
+- **Validation**: Focused request specs, `npm run build:css`, and authenticated
+  light/dark Chromium QA at desktop and mobile widths.
+
+### Task 7.3: Repair Public Onboarding Read History
+
+- **Location**: Production Discord `WELCOME` channels `Bienvenidos` and
+  `Hazte-VIP`.
+- **Description**: Preserve each existing `FREE PASS` overwrite and clear only
+  the `Read Message History` deny bit. Do not add `ELITE SNIPER`, change any
+  role membership, alter other permissions, or touch ELITE overwrites.
+- **Validation**:
+  - A fresh read-only graph reports `View Channel` and `Read Message History`
+    for `FREE PASS` on both channels.
+  - ELITE remains hidden from `@everyone` and `FREE PASS`, and visible through
+    `Pandora VIP`.
+
+### Task 7.4: Deploy And Close The Canary
+
+- **Description**: Create exactly one Sprint 7 commit, push `main`, deploy with
+  the normal production setup entry point, and verify commit parity, clean
+  worktrees, services, `/up`, feature flag, cron, queues, safe audit, and recent
+  errors.
+- **Manual check**: Join once with a new/free Discord identity and confirm the
+  two onboarding channels show their existing history without ELITE access.
+
+### Sprint 7 Execution Record (2026-07-15)
+
+- PASS: The authorized canary account is ineligible after the test, its manual
+  Pandora grant is cancelled, its Discord identity is cleared, its connection
+  is disconnected, `vip_role_state=removed`, and no safe error code remains.
+- PASS: Read-only Discord evidence identified the narrow fault: `FREE PASS`
+  explicitly denied `Read Message History` only in `Bienvenidos` and
+  `Hazte-VIP`. The owner cleared only that deny in both channels; no role was
+  assigned. `ELITE SNIPER` remains restricted to the protected ELITE category.
+- PASS: The dark dashboard card and Discord status page now use Mosaic utilities
+  present in the deployed vendor bundle. Chromium confirms the dark status and
+  secondary action at `9.36:1`, readable title/body copy, unchanged light-theme
+  presentation, no desktop/mobile overflow, and no console or network failures.
+- PASS: Focused request coverage reports `31 examples, 0 failures`, and the
+  Tailwind/ActiveAdmin CSS build completes with only the existing Sass
+  deprecation warnings.
+- PASS: A fresh live graph now reports `FREE PASS` view/history on both public
+  channels, `@everyone`/`FREE PASS` hidden from ELITE, and `Pandora VIP` and
+  `ELITE SNIPER` retaining ELITE visibility. The bot performed no mutation.
+- READY: The code, tests, CSS build, browser QA, and live permission contract
+  are complete for the single Sprint 7 commit and normal production deploy.
+
+### Sprint 7 Gate
+
+- [x] Dark-theme labels and actions meet practical contrast expectations.
+- [x] `FREE PASS` can view and read both public onboarding channels.
+- [x] ELITE remains hidden from `@everyone` and `FREE PASS`.
+- [x] No role membership or non-target permission changes were made by the app;
+      the owner changed only the two documented channel overwrites.
+- [x] Focused specs, CSS build, and Browser QA pass; the production health,
+      audit, and log checks are the immediate post-push release gate.
+- [ ] Exactly one Sprint 7 commit is pushed and deployed.
 
 ## Testing Strategy
 

@@ -58,6 +58,7 @@ RSpec.describe "Dashboard Discord connection", type: :request do
       I18n.t("dashboard.discord.states.ineligible.title", locale: :es),
       I18n.t("dashboard.discord.actions.view_plans", locale: :es)
     )
+    expect(response.body).to include("dark:border-gray-500", "dark:bg-gray-700", "dark:text-gray-100")
   end
 
   it "treats a checkout success query as non-authoritative payment-pending presentation" do

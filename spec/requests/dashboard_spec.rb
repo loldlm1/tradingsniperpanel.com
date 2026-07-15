@@ -84,6 +84,7 @@ RSpec.describe "Dashboard", type: :request do
       I18n.t("dashboard.discord.actions.view_plans", locale: :es),
       I18n.t("dashboard.discord.actions.join_public", locale: :es)
     )
+    expect(response.body).to include("dark:bg-sky-500/20", "dark:bg-gray-700", "dark:text-gray-100")
     expect(response.body).not_to include(I18n.t("dashboard.discord.states.granted.title", locale: :es))
   end
 
