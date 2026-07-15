@@ -16,28 +16,8 @@ ENV_FILE="${ENV_DIR}/staging.env"
 
 ensure_repo "${REPO_URL}" "${APP_DIR}" "${BRANCH}"
 reexec_from_repo_if_needed "${APP_DIR}" "setup_staging.sh" "${BASH_SOURCE[0]}" "$@"
-ensure_packages
-ensure_asdf
-ensure_asdf_plugins "${APP_DIR}/.tool-versions"
 ensure_envrc "${APP_DIR}"
-
-if [[ ! -f "${APP_DIR}/config/environments/staging.rb" ]]; then
-  log "Creating config/environments/staging.rb from production"
-  run_as_app_user "cp '${APP_DIR}/config/environments/production.rb' '${APP_DIR}/config/environments/staging.rb'"
-  run_as_app_user "sed -i 's/config.assume_ssl = true/config.assume_ssl = false/' '${APP_DIR}/config/environments/staging.rb'"
-  run_as_app_user "sed -i 's/config.force_ssl = true/config.force_ssl = false/' '${APP_DIR}/config/environments/staging.rb'"
-else
-  if grep -q "config.assume_ssl = true" "${APP_DIR}/config/environments/staging.rb"; then
-    die "config/environments/staging.rb still assumes SSL. Set it to false and rerun."
-  fi
-  if grep -q "config.force_ssl = true" "${APP_DIR}/config/environments/staging.rb"; then
-    die "config/environments/staging.rb still forces SSL. Set it to false and rerun."
-  fi
-fi
-
-if ! grep -q "^staging:" "${APP_DIR}/config/database.yml"; then
-  die "Missing staging config in config/database.yml. Add it before running staging setup."
-fi
+require_envrc_permissions "${ENVRC}" "${APP_USER}"
 
 require_env_keys "${ENVRC}" \
   APP_HOST \
@@ -58,6 +38,64 @@ require_env_keys "${ENVRC}" \
   REVENUE_SPLIT_US_PERCENT \
   REVENUE_SPLIT_CLIENT_PERCENT \
   STAGING_ALLOWLIST
+require_env_values "${ENVRC}" \
+  APP_HOST \
+  APP_HOST_PROTOCOL \
+  DB_HOST \
+  DB_PORT \
+  DB_USERNAME \
+  DB_PASSWORD \
+  DB_NAME_STAGING \
+  DB_NAME_STAGING_CACHE \
+  DB_NAME_STAGING_QUEUE \
+  DB_NAME_STAGING_CABLE \
+  MASTER_ADMIN_EMAIL \
+  MASTER_ADMIN_PASSWORD \
+  PORT \
+  RAILS_MASTER_KEY \
+  REDIS_URL \
+  REVENUE_SPLIT_US_PERCENT \
+  REVENUE_SPLIT_CLIENT_PERCENT \
+  STAGING_ALLOWLIST
+
+validate_staging_provider_env "${ENVRC}"
+reject_matching_envrc_values \
+  "${ENVRC}" \
+  "/home/${APP_USER}/tradingsniperpanel.com/.envrc" \
+  DISCORD_CLIENT_ID \
+  DISCORD_CLIENT_SECRET \
+  DISCORD_BOT_TOKEN \
+  DISCORD_GUILD_ID \
+  DISCORD_VIP_ROLE_ID \
+  DISCORD_REDIRECT_URI \
+  STRIPE_PRIVATE_KEY \
+  STRIPE_PUBLIC_KEY \
+  STRIPE_SIGNING_SECRET \
+  APP_HOST \
+  PORT \
+  REDIS_URL
+
+ensure_packages
+ensure_asdf
+ensure_asdf_plugins "${APP_DIR}/.tool-versions"
+
+if [[ ! -f "${APP_DIR}/config/environments/staging.rb" ]]; then
+  log "Creating config/environments/staging.rb from production"
+  run_as_app_user "cp '${APP_DIR}/config/environments/production.rb' '${APP_DIR}/config/environments/staging.rb'"
+  run_as_app_user "sed -i 's/config.assume_ssl = true/config.assume_ssl = false/' '${APP_DIR}/config/environments/staging.rb'"
+  run_as_app_user "sed -i 's/config.force_ssl = true/config.force_ssl = false/' '${APP_DIR}/config/environments/staging.rb'"
+else
+  if grep -q "config.assume_ssl = true" "${APP_DIR}/config/environments/staging.rb"; then
+    die "config/environments/staging.rb still assumes SSL. Set it to false and rerun."
+  fi
+  if grep -q "config.force_ssl = true" "${APP_DIR}/config/environments/staging.rb"; then
+    die "config/environments/staging.rb still forces SSL. Set it to false and rerun."
+  fi
+fi
+
+if ! grep -q "^staging:" "${APP_DIR}/config/database.yml"; then
+  die "Missing staging config in config/database.yml. Add it before running staging setup."
+fi
 
 render_env_file "${ENVRC}" "${ENV_FILE}" "staging"
 

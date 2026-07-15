@@ -483,6 +483,141 @@ require_env_keys() {
   fi
 }
 
+require_envrc_permissions() {
+  local envrc="$1"
+  local expected_owner="$2"
+  local mode owner
+
+  mode="$(stat -c "%a" "${envrc}")"
+  owner="$(stat -c "%U" "${envrc}")"
+
+  if [[ "${mode}" != "600" ]]; then
+    die "${envrc} must use mode 0600. Run: chmod 600 ${envrc}"
+  fi
+
+  if [[ "${owner}" != "${expected_owner}" ]]; then
+    die "${envrc} must be owned by ${expected_owner}."
+  fi
+}
+
+require_env_values() {
+  local envrc="$1"
+  shift
+  local missing=()
+  local key value
+
+  for key in "$@"; do
+    value="$(get_envrc_value "${key}" "${envrc}")"
+    if [[ -z "${value//[[:space:]]/}" ]]; then
+      missing+=("${key}")
+    fi
+  done
+
+  if (( ${#missing[@]} > 0 )); then
+    die "Missing required values in ${envrc}: ${missing[*]}"
+  fi
+}
+
+reject_matching_envrc_values() {
+  local envrc="$1"
+  local comparison_envrc="$2"
+  shift 2
+  local matches=()
+  local key value comparison_value
+
+  [[ -f "${comparison_envrc}" ]] || return 0
+
+  for key in "$@"; do
+    value="$(get_envrc_value "${key}" "${envrc}")"
+    comparison_value="$(get_envrc_value "${key}" "${comparison_envrc}")"
+    if [[ -n "${value}" && "${value}" == "${comparison_value}" ]]; then
+      matches+=("${key}")
+    fi
+  done
+
+  if (( ${#matches[@]} > 0 )); then
+    die "Staging values must differ from production for: ${matches[*]}"
+  fi
+}
+
+validate_staging_provider_env() {
+  local envrc="$1"
+  local enabled app_host app_protocol redirect_uri expected_redirect
+  local stripe_private stripe_public stripe_signing support_url
+  local client_id guild_id role_id
+
+  require_env_keys "${envrc}" \
+    DISCORD_INTEGRATION_ENABLED \
+    SUPPORT_DISCORD_URL \
+    STRIPE_PRIVATE_KEY \
+    STRIPE_PUBLIC_KEY \
+    STRIPE_SIGNING_SECRET
+  require_env_values "${envrc}" \
+    DISCORD_INTEGRATION_ENABLED \
+    SUPPORT_DISCORD_URL \
+    STRIPE_PRIVATE_KEY \
+    STRIPE_PUBLIC_KEY \
+    STRIPE_SIGNING_SECRET
+
+  enabled="$(get_envrc_value DISCORD_INTEGRATION_ENABLED "${envrc}")"
+  app_host="$(get_envrc_value APP_HOST "${envrc}")"
+  app_protocol="$(get_envrc_value APP_HOST_PROTOCOL "${envrc}")"
+  redirect_uri="$(get_envrc_value DISCORD_REDIRECT_URI "${envrc}")"
+  stripe_private="$(get_envrc_value STRIPE_PRIVATE_KEY "${envrc}")"
+  stripe_public="$(get_envrc_value STRIPE_PUBLIC_KEY "${envrc}")"
+  stripe_signing="$(get_envrc_value STRIPE_SIGNING_SECRET "${envrc}")"
+  support_url="$(get_envrc_value SUPPORT_DISCORD_URL "${envrc}")"
+  client_id="$(get_envrc_value DISCORD_CLIENT_ID "${envrc}")"
+  guild_id="$(get_envrc_value DISCORD_GUILD_ID "${envrc}")"
+  role_id="$(get_envrc_value DISCORD_VIP_ROLE_ID "${envrc}")"
+
+  case "${enabled}" in
+    true|false) ;;
+    *) die "DISCORD_INTEGRATION_ENABLED must be true or false in ${envrc}." ;;
+  esac
+
+  [[ "${stripe_private}" == sk_test_* ]] || die "Staging STRIPE_PRIVATE_KEY must use Stripe test mode."
+  [[ "${stripe_public}" == pk_test_* ]] || die "Staging STRIPE_PUBLIC_KEY must use Stripe test mode."
+  [[ "${stripe_signing}" == whsec_* ]] || die "Staging STRIPE_SIGNING_SECRET is invalid."
+  [[ "${support_url}" == "https://discord.gg/tWJNnu4ArJ" ]] || die "Staging SUPPORT_DISCORD_URL does not match the permanent public invite."
+
+  if [[ "${app_host%%:*}" == "tradingsniperpanel.com" ]]; then
+    die "Staging APP_HOST must not use the production host."
+  fi
+
+  if [[ "${client_id}" == "1526565454355632138" ||
+        "${guild_id}" == "1505303505915744276" ||
+        "${role_id}" == "1526657965828997371" ||
+        "${redirect_uri}" == "https://tradingsniperpanel.com/discord/callback" ]]; then
+    die "Staging Discord configuration must not use production identifiers or callback."
+  fi
+
+  [[ "${enabled}" == "true" ]] || return 0
+
+  require_env_keys "${envrc}" \
+    DISCORD_CLIENT_ID \
+    DISCORD_CLIENT_SECRET \
+    DISCORD_BOT_TOKEN \
+    DISCORD_GUILD_ID \
+    DISCORD_VIP_ROLE_ID \
+    DISCORD_REDIRECT_URI
+  require_env_values "${envrc}" \
+    DISCORD_CLIENT_ID \
+    DISCORD_CLIENT_SECRET \
+    DISCORD_BOT_TOKEN \
+    DISCORD_GUILD_ID \
+    DISCORD_VIP_ROLE_ID \
+    DISCORD_REDIRECT_URI
+
+  [[ "${client_id}" =~ ^[0-9]{17,20}$ ]] || die "Staging DISCORD_CLIENT_ID must be a Discord snowflake."
+  [[ "${guild_id}" =~ ^[0-9]{17,20}$ ]] || die "Staging DISCORD_GUILD_ID must be a Discord snowflake."
+  [[ "${role_id}" =~ ^[0-9]{17,20}$ ]] || die "Staging DISCORD_VIP_ROLE_ID must be a Discord snowflake."
+  [[ "${guild_id}" != "${role_id}" ]] || die "Staging Discord guild and VIP role IDs must differ."
+
+  expected_redirect="${app_protocol}://${app_host}/discord/callback"
+  [[ "${redirect_uri}" == "${expected_redirect}" ]] || die "Staging DISCORD_REDIRECT_URI must match APP_HOST_PROTOCOL and APP_HOST exactly."
+}
+
 get_envrc_value() {
   local key="$1"
   local envrc="$2"

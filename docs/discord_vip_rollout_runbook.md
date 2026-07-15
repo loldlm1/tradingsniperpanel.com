@@ -62,6 +62,17 @@ environment-specific `.envrc`. Do not edit generated `/etc` files directly.
 After changing credentials or the feature flag, rerun the established setup
 entry point so both Puma and Sidekiq receive the same values.
 
+Before a staging setup can change packages, databases, assets, or services, the
+staging script performs a redacted release preflight. The source file must be
+owned by the staging application user with mode `0600`; Stripe private/public
+keys must be test-mode; the public invite must match the fixed community URL;
+and enabled Discord settings must use a non-production application, guild, VIP
+role, and exact callback derived from `APP_HOST_PROTOCOL` and `APP_HOST`. When
+the production `.envrc` is readable on the same host, the preflight also rejects
+matching Discord and Stripe provider values. A failure prints only variable
+names or safe reason codes and happens before environment rendering, migrations,
+asset builds, or service restarts.
+
 Production must reject an enabled configuration unless the callback exactly
 matches the fixed production URI. Staging should use a separate Discord
 application, guild, callback, bot token, and test VIP role. Never point a
@@ -141,24 +152,34 @@ health, Sidekiq, safe Discord sync errors, and audit counts.
 
 Complete all deterministic Rails and browser checks before this canary.
 
-1. Verify Stripe test keys and the separate Discord test application/guild.
-2. Register the exact staging callback and confirm the bot role is above the
+1. Confirm the staging source is protected before invoking deployment:
+
+   ```bash
+   stat -c '%a %U:%G' /home/admin/tradingsniperpanel.com-staging/.envrc
+   sudo bash ~/deploy_scripts/setup_staging.sh
+   ```
+
+   Expected mode is `600`, and the setup script must pass its redacted provider
+   isolation checks before it can render `/etc/tradingsniperpanel/staging.env`.
+2. Verify Stripe test keys and the separate Discord test application/guild.
+3. Register the exact staging callback and confirm the bot role is above the
    staging VIP role.
-3. Confirm only the staging VIP role grants the staging ELITE category.
-4. Deploy with the feature disabled, verify health, then enable it only in the
+4. Confirm only the staging VIP role grants the staging ELITE category.
+5. Deploy with the feature disabled, verify health, then enable it only in the
    staging environment source and restart Puma/Sidekiq through the setup script.
-5. Use a staff-owned test account and visit `/join/pandora` in EN and ES.
-6. Complete sign-up, monthly-default plan confirmation, Stripe test Checkout,
+6. Use a staff-owned test account and visit `/join/pandora` in EN and ES.
+7. Complete sign-up, monthly-default plan confirmation, Stripe test Checkout,
    and return to the Discord activation page.
-7. Authorize only `identify` and `guilds.join`; confirm guild membership and the
+8. Authorize only `identify` and `guilds.join`; confirm guild membership and the
    staging VIP role.
-8. If membership screening is enabled, accept the server rules and confirm the
+9. If membership screening is enabled, accept the server rules and confirm the
    staging ELITE category appears.
-9. Simulate failed/ended paid access and confirm VIP is removed without kicking
+10. Simulate failed/ended paid access and confirm VIP is removed without kicking
    the member. Recover payment and confirm VIP is restored.
-10. Unlink, confirm VIP removal precedes identity clearing, then link a different
-    test Discord identity.
-11. Confirm the production guild and production VIP role were never touched.
+11. Unlink, confirm VIP removal precedes identity clearing, then link a different
+   test Discord identity.
+12. Confirm the production guild, production VIP role, and production Discord
+    application were never touched.
 
 Do not automate or store a personal Discord password. The OAuth consent step is
 completed interactively by the test account owner.
@@ -196,6 +217,10 @@ Operational surfaces:
 ## Production Enablement
 
 Production enablement requires separate authorization after the staging canary.
+When staging cannot be isolated from the live Discord provider, the documented
+production-first override may be used instead: deploy feature-off, verify the
+runtime and zero-mutation audit, recheck the live ELITE permissions, then enable
+the flag only for the coordinated staff canary below.
 
 1. Record a fresh database backup, deployed commit, and rollback owner.
 2. Confirm the feature-off deployment is healthy and the audit output is
@@ -205,11 +230,17 @@ Production enablement requires separate authorization after the staging canary.
    overwrites with a Discord administrator.
 4. Enable the flag in the production `.envrc`, regenerate runtime environment
    through the normal production setup script, and restart Puma/Sidekiq.
-5. Run one staff canary through link, role grant, screening, removal, recovery,
-   unlink, and relink before sharing the funnel broadly.
-6. Observe logs, Sidekiq retries, Admin connection state, and audit counts for at
+5. Use a staff-owned account with no active Stripe subscription. If a safe
+   production test entitlement is needed, have an administrator create a short
+   complimentary Pandora manual grant for that account; never use a customer
+   account or a real test card in live Checkout.
+6. Run one staff canary through the dashboard Discord link, OAuth consent for
+   only `identify` and `guilds.join`, guild join, membership screening, role
+   grant, all six ELITE channels, manual revoke/expiry removal, re-grant
+   recovery, unlink, and relink. Confirm no unrelated role changes.
+7. Observe logs, Sidekiq retries, Admin connection state, and audit counts for at
    least one hourly reconciliation window.
-7. Share `/join/pandora` only after the canary and observation window pass.
+8. Share `/join/pandora` only after the canary and observation window pass.
 
 No bulk activation email is part of the initial rollout. Existing eligible
 subscribers discover Discord through the persistent dashboard card.

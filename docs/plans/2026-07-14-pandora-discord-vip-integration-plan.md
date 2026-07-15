@@ -1,7 +1,7 @@
 # Plan: Pandora Discord VIP Subscription Integration
 
 **Generated**: 2026-07-14
-**Status**: Planning only; implementation not started
+**Status**: Sprints 1-6 complete; production staff canary ready
 **Estimated Complexity**: High
 
 ## Overview
@@ -1272,12 +1272,232 @@ disabled until a separate release authorization.
 - [ ] Exactly one Sprint 5 commit is created with the proposed message.
 - [ ] The final rollback point is recorded.
 
+## Sprint 6: Staging Parity, Automated QA, And Manual Canary Handoff
+
+**Goal**: Harden the staging release contract, deploy the completed Discord VIP
+feature to the isolated staging environment, run all safe automated checks, and
+hand off only the interactive Stripe-test and Discord-test consent steps for
+manual QA before any production authorization.
+
+**Dependencies**: Sprint 5 commit `488142d`; SSH access to the staging VPS; a
+separate Discord staging application, guild, bot, and VIP role; Stripe test-mode
+credentials; and an authoritative staging `.envrc` owned by `admin` with mode
+`0600`.
+
+**Tracked scope**: `script/setup_common.sh`, `script/setup_staging.sh`,
+`docs/discord_vip_rollout_runbook.md`, and this plan. No production environment
+change, provider credential rotation, dependency upgrade, or live production
+role mutation.
+
+**Commit**: `ops: harden Discord staging rollout and QA`
+
+**Demo/Validation**:
+
+- The staging deploy script rejects unsafe secret-file permissions, live Stripe
+  keys, production Discord identifiers, an incorrect callback, or an invalid
+  public invite without printing values.
+- `sudo bash ~/deploy_scripts/setup_staging.sh` deploys the pinned staging
+  branch and verifies Puma, Sidekiq, Nginx, direct app access, and allowlisted
+  proxy access.
+- Staging boots with the intended feature flag, migrations and assets are
+  current, Sidekiq cron is loaded, `/up` and the Discord routes respond, and the
+  safe Discord audit contains counts only.
+- Deterministic staging QA data is idempotent and focused Chromium QA covers the
+  non-provider funnel and dashboard states without using real personal
+  credentials.
+- The final handoff clearly separates automated PASS evidence from the manual
+  Stripe Checkout and Discord OAuth/provider-mutation canary.
+
+**Rollback point**: Sprint 5 commit `488142d`, staging
+`DISCORD_INTEGRATION_ENABLED=false`, and the normal staging setup entry point.
+Preserve `discord_connections`; never run production cleanup.
+
+### Task 6.1: Enforce The Staging Release Environment Contract
+
+- **Location**: `script/setup_common.sh` and `script/setup_staging.sh`.
+- **Description**:
+  - Require the staging `.envrc` to be owned by the application user and have
+    mode `0600` before it is rendered to `/etc/tradingsniperpanel/staging.env`.
+  - Require the Stripe test and Discord integration variable names needed by
+    the live staging canary.
+  - Validate test-mode Stripe key prefixes, the exact public invite, the exact
+    staging callback derived from `APP_HOST_PROTOCOL` and `APP_HOST`, and
+    non-production Discord application/guild/VIP role identifiers.
+  - Report only variable names and pass/fail reasons; never print secret values.
+- **Dependencies**: None beyond the completed Sprint 5 implementation.
+- **Acceptance criteria**:
+  - Safe dummy staging values pass a shell-level preflight.
+  - Unsafe file mode, live Stripe keys, production Discord IDs, or callback
+    mismatch fail before environment rendering, migrations, assets, or service
+    restart.
+- **Validation**:
+  - `bash -n script/setup_common.sh script/setup_staging.sh`
+  - Focused temporary-file probes for both accepted and rejected contracts.
+  - Redacted VPS preflight against `.envrc`; output contains no values.
+- **Rollback**: Revert only the preflight change if it rejects a valid staging
+  contract; keep the feature disabled until the validation is corrected.
+
+### Task 6.2: Deploy And Verify Staging Runtime Parity
+
+- **Location**: `admin@82.39.186.26`, external
+  `~/deploy_scripts/setup_staging.sh`, staging repository, systemd, Nginx,
+  PostgreSQL, Redis, and `/etc/tradingsniperpanel/staging.env`.
+- **Description**:
+  - Confirm the external deploy script matches the repository script and the
+    staging branch is clean at the expected sprint commit.
+  - Run the normal setup entry point and capture only non-sensitive status
+    evidence.
+  - Verify service health, migrations, assets, runtime environment file mode,
+    Sidekiq cron, Discord routes, `/up`, and recent sanitized errors.
+- **Dependencies**: Task 6.1 preflight passes and the Sprint 6 commit is
+  available to the staging branch.
+- **Acceptance criteria**:
+  - Puma, Sidekiq, Redis, PostgreSQL, and Nginx are active after deployment.
+  - Direct and proxied health checks pass with the expected staging host.
+  - Staging is isolated from production database names and Discord identifiers.
+  - No secret value is printed or committed.
+- **Validation**:
+  - `sudo bash ~/deploy_scripts/setup_staging.sh`
+  - `systemctl is-active` for the staging web/Sidekiq services and dependencies.
+  - Staging Rails runner checks for migration status, cron schedule, route
+    recognition, Discord configuration shape, and safe audit output.
+- **Rollback**: Set only staging `DISCORD_INTEGRATION_ENABLED=false`, rerun the
+  staging setup script, and restore commit `488142d` if application rollback is
+  required. Preserve additive data and leave production untouched.
+
+### Task 6.3: Run Automated Staging QA And Prepare Manual Canary
+
+- **Location**: Staging Rails runtime, temporary local `.qa/web` harness, and
+  `docs/discord_vip_rollout_runbook.md`.
+- **Description**:
+  - Run the deterministic QA builder twice in staging and confirm stable state
+    counts and record IDs without provider calls.
+  - Run focused Chromium checks against the allowlisted staging URL for public
+    EN/ES entry, authentication boundaries, dashboard states, accessibility,
+    console errors, and unexpected `4xx`/`5xx` responses.
+  - Record the precise interactive sequence the user will complete with a
+    staff-owned Stripe-test account and Discord-test identity.
+  - Do not automate Discord credentials, OAuth consent, Stripe Checkout card
+    entry, or production provider mutations.
+- **Dependencies**: Task 6.2 runtime checks pass.
+- **Acceptance criteria**:
+  - Deterministic data setup is idempotent and automated browser QA is PASS, or
+    a precise staging-only blocker is recorded and production remains blocked.
+  - Manual instructions include expected evidence for VIP grant, screening,
+    failed renewal removal, recovery, unlink, and production-isolation checks.
+- **Validation**:
+  - `bin/rails runner script/discord_vip_manual_qa_setup.rb` twice in staging.
+  - Focused Chromium runner against the staging base URL using only generated
+    QA accounts.
+  - `bin/rails discord:vip:audit` before and after automated QA.
+- **Rollback**: Remove only generated staging QA rows or reset the disposable
+  staging database when explicitly intended; disable the staging feature flag
+  if provider mutation cannot be proven isolated.
+
+### Sprint 6 Gate
+
+- [x] All Sprint 6 tasks complete under the authorized production-first override.
+- [x] Staging `.envrc` and generated runtime env permissions pass.
+- [x] Stripe test mode and non-production Discord isolation fail closed without value
+      disclosure.
+- [x] Production-first setup, services, health, migrations, assets, cron, routes,
+      logs, and safe audit pass.
+- [x] Deterministic local shell QA and focused Chromium public-funnel QA pass;
+      provider credentials and production customer state were not automated.
+- [x] Manual staff canary instructions are ready.
+- [x] Production enablement completed only after explicit authorization and a
+      fresh Discord permission graph PASS.
+- [x] Exactly one Sprint 6 commit is created with the proposed message and the
+      rollback point is recorded.
+
+### Sprint 6 Execution Record (2026-07-15)
+
+- PASS: SSH access, clean `staging` branch at Sprint 5 commit `488142d`, and
+  matching external/repository staging setup scripts.
+- PASS: The staging source `.envrc` is now owned by `admin` with mode `0600`;
+  the permanent public Discord invite is exported correctly; Stripe keys are
+  test-mode; and the staging host, port, Redis URL, and four PostgreSQL database
+  names differ from production.
+- PASS: The current generated staging runtime environment remains feature-off,
+  does not contain the new Discord provider credentials, and the existing web,
+  Sidekiq, Nginx, PostgreSQL, and Redis services remain active.
+- BLOCKED: The staging Discord client ID, client secret, bot token, guild ID,
+  VIP role ID, and callback currently match production. The redacted Sprint 6
+  preflight rejects this configuration before deployment.
+- NOT RUN: `sudo bash ~/deploy_scripts/setup_staging.sh`, automated staging
+  browser QA, and the live provider canary. Production was not changed.
+- Required resume condition: replace the six staging Discord values with a
+  separate test application/guild contract, register the exact staging
+  callback, place the test bot role above the test VIP role, and grant only the
+  test VIP role access to the staging ELITE category.
+
+### Sprint 6 Production-First Canary Override (2026-07-15)
+
+The user explicitly authorized a production-side staff canary instead of
+creating separate staging Discord resources. This is a live-provider rollout,
+not staging QA, and it replaces the blocked staging provider step only under
+the following gates:
+
+1. Force the authoritative production source flag to
+   `DISCORD_INTEGRATION_ENABLED=false` before deployment.
+2. Record a fresh PostgreSQL backup and pre-deploy commit.
+3. Push and deploy the already validated Sprint 1-5 commits with the feature
+   disabled; verify migrations, assets, Puma, Sidekiq, cron, routes, `/up`,
+   logs, and a zero-mutation Discord audit.
+4. Keep the feature disabled until the user is ready to perform the coordinated
+   manual staff canary. No existing subscriber should be invited to test.
+5. Enable production through the normal setup script only for the canary, link
+   one authorized staff account, and immediately verify live guild join, VIP
+   grant, screening, removal, recovery, unlink, and safe audit/log evidence.
+6. Observe at least one hourly reconciliation window before broader rollout.
+   Disable the source flag and rerun production setup immediately if any gate
+   fails; do not run role cleanup unless explicitly authorized.
+
+The production Discord guild and role are live. Automated QA must not create
+fake provider identities, call Discord, exercise cancellation against customer
+accounts, or run the deterministic QA builder in production.
+
+Production feature-off deployment evidence:
+
+- PASS: Fresh custom-format backups for the primary, cache, queue, and cable
+  PostgreSQL databases were verified at
+  `/home/admin/backups/tradingsniperpanel/20260715T120427Z-pre-discord-vip-488142d`.
+- PASS: Commits `75977d8` through `488142d` were fast-forwarded to `main` and
+  deployed through `sudo bash ~/deploy_scripts/setup_production.sh` with the
+  authoritative and generated feature flags false.
+- PASS: Production runs commit `488142d`; migrations, assets, Puma, Sidekiq,
+  Redis, PostgreSQL, Nginx, `/up`, the public invite, Discord routes, hourly
+  cron, and safe audit checks pass. There are zero Discord connections and zero
+  queued Discord jobs.
+- PASS: Read-only Discord API checks confirm bot authentication, `Manage Roles`,
+  `Create Instant Invite`, bot hierarchy above Pandora VIP, the configured VIP
+  role, and one VIP-visible protected category.
+- PASS (2026-07-15): A fresh read-only Discord API permission graph confirms the
+  bot authentication, `Manage Roles`, `Create Instant Invite`, role hierarchy,
+  the single `𝐄𝐋𝐈𝐓𝐄` category, and all six child channels including
+  `『🧠』𝙿𝚜𝚒𝚌𝚘𝚕𝚘𝚐𝚒𝚊`. Every child is synchronized with the category and visible to
+  `Pandora VIP`; no channel or role mutation was performed by the check.
+- PASS: Production source and generated runtime flags are now `true` after the
+  authorized `sudo bash ~/deploy_scripts/setup_production.sh` run. The deployed
+  commit remains `488142d`; Puma, Sidekiq, Nginx, PostgreSQL, Redis, `/up`,
+  migrations, assets, routes, hourly cron, and the safe audit all pass. There
+  are zero linked Discord connections and zero queued Discord jobs.
+- PASS: Public Chromium smoke covers the home footer invite, EN/ES Pandora entry
+  links, unauthenticated Discord dashboard boundary, and mobile overflow. All
+  application checks pass; the only observed browser warnings are third-party
+  Tawk embed CORS/load warnings and are unrelated to Discord.
+- READY: The interactive staff canary remains intentionally manual. No OAuth
+  consent, Stripe Checkout entry, live customer role mutation, or cancellation
+  was automated.
+
 ## Production Enablement Gate
 
 This gate is outside implementation commits and requires explicit production
 authorization.
 
-1. Confirm all five sprint gates and commits.
+1. Confirm all six sprint gates and commits, including either the manual
+   staging canary evidence or the explicit production-first staff-canary
+   override recorded in Sprint 6.
 2. Confirm a fresh database backup and pre-enable application commit.
 3. Deploy schema/code with `DISCORD_INTEGRATION_ENABLED=false` through the
    existing production setup script.
@@ -1444,7 +1664,13 @@ never kick members or delete staff roles.
 - Remove shared join route, dashboard card, nav item, and benefit copy if needed.
 - Footer public Discord invite remains independent.
 
-### Sprint 5 And Production
+### Sprint 5
+
+- Revert documentation/QA-only defects without weakening the feature flag or
+  provider-isolation gates.
+- Preserve the Sprint 4 implementation and keep production disabled.
+
+### Sprint 6 And Production
 
 - Disable `DISCORD_INTEGRATION_ENABLED` first and restart through the normal
   deployment script.
@@ -1473,7 +1699,7 @@ completion.
    rollback point.
 4. Start Sprint 2 only after the Sprint 1 gate passes.
 5. Repeat the same complete/validate/one-commit/rollback-point gate for Sprints
-   2 through 5.
+   2 through 6.
 6. Do not combine sprint commits, start later work early, skip failed checks, or
    enable production during implementation.
 7. Production enablement requires separate explicit authorization after every
@@ -1481,23 +1707,28 @@ completion.
 
 ## Completion Checklist
 
-- [ ] Every sprint has passed its validation gate.
-- [ ] Every sprint has exactly one sprint-specific commit.
-- [ ] Current paid/manual eligibility is the only VIP authority.
-- [ ] OAuth tokens are never persisted and secrets never leave environment
+- [x] Every sprint has passed its validation gate, including the recorded Sprint
+      6 production-first override.
+- [x] Every sprint has exactly one sprint-specific commit.
+- [x] Current paid/manual eligibility is the only VIP authority.
+- [x] OAuth tokens are never persisted and secrets never leave environment
       storage.
-- [ ] One-to-one Discord ownership is enforced at service and database levels.
-- [ ] Scheduled cancellation, expiry, failed renewal, recovery, manual grants,
+- [x] One-to-one Discord ownership is enforced at service and database levels.
+- [x] Scheduled cancellation, expiry, failed renewal, recovery, manual grants,
       unlink, and drift repair are covered.
-- [ ] `/join/pandora` preserves EN/ES, sign-up, plan selection, referral, and
+- [x] `/join/pandora` preserves EN/ES, sign-up, plan selection, referral, and
       Stripe behavior.
-- [ ] Dashboard and email activation are localized and accessible.
-- [ ] No Discord role other than `Pandora VIP` is mutated.
-- [ ] No user is kicked when access ends.
-- [ ] Focused and broad Rails, CSS, lint, security, migration, and Browser QA
+- [x] Dashboard and email activation are localized and accessible.
+- [x] No Discord role other than `Pandora VIP` is mutated.
+- [x] No user is kicked when access ends.
+- [x] Focused and broad Rails, CSS, lint, security, migration, and Browser QA
       gates pass.
-- [ ] Staging uses test Stripe and a non-production Discord app/server for live
-      provider validation.
-- [ ] Production feature flag remains false until separately authorized.
-- [ ] Runbook, monitoring, credential rotation, cleanup, and rollback
+- [x] Staging test Stripe and Discord isolation are enforced by a fail-closed
+      preflight; live provider validation uses the authorized production-first
+      staff-canary override because separate staging Discord resources were not
+      supplied.
+- [x] Feature-off production parity and public automated QA pass before the
+      manual live provider canary begins.
+- [x] Production feature flag remained false until separately authorized.
+- [x] Runbook, monitoring, credential rotation, cleanup, and rollback
       instructions are current.
