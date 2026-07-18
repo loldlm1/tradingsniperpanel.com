@@ -1,24 +1,3 @@
-<!-- token-saver-orchestrator:rtk:start -->
-## Token Saver: RTK
-
-For Codex coding work, prefer `rtk` for noisy shell output before raw commands:
-- Use `rtk git status`, `rtk git diff`, `rtk git log`, `rtk grep`, `rtk find`, `rtk ls`, `rtk test <cmd>`, and RTK wrappers for test/lint/build output when available.
-- Keep exact raw output only when it matters: subtle compiler errors, security diagnostics, one-off failures, or when a compressed result omits needed evidence.
-- If compressed output is insufficient, rerun the smallest raw command needed and mention why.
-- Do not store full logs in chat. Save raw artifacts to files and summarize paths plus first useful failure lines.
-<!-- token-saver-orchestrator:rtk:end -->
-
-<!-- token-saver-orchestrator:ponytail-lite:start -->
-## Token Saver: Ponytail Lite
-
-For normal Codex coding tasks, default to minimal code without reducing correctness:
-- Build only what was requested and needed for acceptance criteria.
-- Prefer deletion, stdlib/platform-native features, existing dependencies, and existing local helpers before adding abstractions or packages.
-- Keep changes scoped to the touched behavior; avoid speculative architecture and unrelated refactors.
-- Bypass this rule for research, code review, architecture, security, DevOps, premium UI, documents, and any task that asks for robust output.
-- Never save tokens by skipping validation, accessibility, data-loss protections, rollback notes, or production readiness when they matter.
-<!-- token-saver-orchestrator:ponytail-lite:end -->
-
 # Trading Sniper Panel Agent Rules
 
 Use this file for project-specific invariants. Keep reusable framework guidance
