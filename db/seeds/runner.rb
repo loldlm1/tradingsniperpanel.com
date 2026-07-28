@@ -16,19 +16,19 @@ module Seeds
     end
 
     def seed_prod_mirror!(allow_local: true)
-      result = Billing::PandoraCatalogReconciler.new(
+      result = Billing::SubscriptionCatalogReconciler.new(
         allow_local: allow_local,
         profile: Seeds::Profiles::PROD_MIRROR
       ).call
-      [ result.expert_advisor ]
+      result.expert_advisors
     end
 
     def seed_full_qa!(allow_local: true)
-      result = Billing::PandoraCatalogReconciler.new(
+      result = Billing::SubscriptionCatalogReconciler.new(
         allow_local: allow_local,
         profile: Seeds::Profiles::FULL_QA
       ).call
-      core_records = [ result.expert_advisor ]
+      core_records = result.expert_advisors
       qa_records = []
 
       Seeds::Courses.seed_courses!

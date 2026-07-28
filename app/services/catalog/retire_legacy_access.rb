@@ -15,12 +15,23 @@ module Catalog
       keyword_init: true
     )
 
-    def initialize(desired_plans:, pandora_ea:, remote:, logger: Rails.logger, now: Time.current)
+    def initialize(
+      desired_plans:,
+      desired_eas: nil,
+      desired_entitlements: nil,
+      pandora_ea: nil,
+      remote:,
+      logger: Rails.logger,
+      now: Time.current
+    )
       @desired_plans = Array(desired_plans)
-      @pandora_ea = pandora_ea
+      @desired_eas = Array(desired_eas.presence || pandora_ea).compact
+      @desired_entitlements = desired_entitlements
       @remote = remote
       @logger = logger
       @now = now
+      raise ArgumentError, "desired plans are required" if @desired_plans.empty?
+      raise ArgumentError, "desired Expert Advisors are required" if @desired_eas.empty?
     end
 
     def call
@@ -36,7 +47,7 @@ module Catalog
 
     private
 
-    attr_reader :desired_plans, :pandora_ea, :remote, :logger, :now
+    attr_reader :desired_plans, :desired_eas, :desired_entitlements, :remote, :logger, :now
 
     def desired_plan_ids
       @desired_plan_ids ||= desired_plans.map(&:id)
@@ -44,6 +55,19 @@ module Catalog
 
     def desired_plan_keys
       @desired_plan_keys ||= desired_plans.map(&:key)
+    end
+
+    def desired_ea_ids
+      @desired_ea_ids ||= desired_eas.map(&:id)
+    end
+
+    def desired_entitlement_pairs
+      @desired_entitlement_pairs ||= begin
+        pairs = desired_entitlements || desired_plans.product(desired_eas)
+        Array(pairs).map do |plan, expert_advisor|
+          [ plan.respond_to?(:id) ? plan.id : plan, expert_advisor.respond_to?(:id) ? expert_advisor.id : expert_advisor ]
+        end.uniq.sort
+      end
     end
 
     def desired_price_ids
@@ -109,7 +133,7 @@ module Catalog
         addon_count = Addon.where(billing_plan_id: active_stale_plan_ids).count
         manual_count = cancel_legacy_manual_grants(stale_plan_ids)
         entitlement_count = remove_legacy_entitlements
-        expert_advisor_count = ExpertAdvisor.unscoped.where.not(id: pandora_ea.id).where(deleted_at: nil).update_all(
+        expert_advisor_count = ExpertAdvisor.unscoped.where.not(id: desired_ea_ids).where(deleted_at: nil).update_all(
           deleted_at: now,
           updated_at: now
         )
@@ -141,8 +165,10 @@ module Catalog
     end
 
     def remove_legacy_entitlements
-      removed = BillingPlanEntitlement.where.not(billing_plan_id: desired_plan_ids).delete_all
-      removed + BillingPlanEntitlement.where(billing_plan_id: desired_plan_ids).where.not(expert_advisor_id: pandora_ea.id).delete_all
+      stale_ids = BillingPlanEntitlement.pluck(:id, :billing_plan_id, :expert_advisor_id).filter_map do |id, plan_id, expert_advisor_id|
+        id unless desired_entitlement_pairs.include?([ plan_id, expert_advisor_id ])
+      end
+      BillingPlanEntitlement.where(id: stale_ids).delete_all
     end
 
     def retire_local_price_history
@@ -167,7 +193,7 @@ module Catalog
         revoked += 1
       end
 
-      License.active_or_trial.where.not(expert_advisor_id: pandora_ea.id).reorder(:id).lock.each do |license|
+      License.active_or_trial.where.not(expert_advisor_id: desired_ea_ids).reorder(:id).lock.each do |license|
         license.update!(status: "expired", trial_ends_at: nil, expires_at: now, last_synced_at: now)
         expired += 1
       end

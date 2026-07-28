@@ -413,7 +413,15 @@ RSpec.describe "Expert advisor guides", type: :request do
     subscription_plan = create(
       :billing_plan,
       tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
       amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
+    )
+    create(
+      :billing_plan,
+      :annual,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::ANNUAL_KEY,
+      amount_cents: Billing::PandoraPricing::ANNUAL_CENTS
     )
     create(:billing_plan_entitlement, billing_plan: subscription_plan, expert_advisor: locked_plan_ea)
 
