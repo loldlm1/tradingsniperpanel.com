@@ -1,8 +1,8 @@
 # Plan: Chu Sniper Trailing Subscription Product
 
 **Generated**: 2026-07-27
-**Status**: Implementation complete through Sprint 5; staging/live operator
-gates remain pending before production enablement
+**Status**: Archived after implementation completion through Sprint 5;
+staging/live operator gates remain documented in the rollout runbook
 **Estimated Complexity**: High
 
 ## Overview
