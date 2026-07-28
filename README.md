@@ -168,20 +168,20 @@ bin/rails runner 'pp({ env: Rails.env, provider: Rails.configuration.x.branding.
 - If qualifying changes are found, one grouped release batch is created for dashboard users.
 - If nothing qualifies, ActiveAdmin returns a clean no-op notice and no user-facing release is created.
 
-## Pandora subscription operations
+## Subscription operations
 
-- Pandora Box EA is the only active purchasable product. The canonical plans are `$79.00/month` (`pandora_pro_monthly`) and `$616.20/year` (`pandora_pro_annual`). The annual amount is the integer-cent calculation `7900 * 12 * 65 / 100`, a 35% discount from twelve monthly periods.
+- The active purchasable products are Chu Sniper Trailing and Pandora Box. Chu is `$19.99/month` (`chu_sniper_trailing_monthly`) or `$155.92/year` (`chu_sniper_trailing_annual`); Pandora remains `$79.00/month` (`pandora_pro_monthly`) or `$616.20/year` (`pandora_pro_annual`). Annual amounts use integer cents and the existing 35% discount: `1999 * 12 * 65 / 100` and `7900 * 12 * 65 / 100`.
 - Historical plans, Stripe price mappings, marketplace purchases, charges, and invoices remain stored for audit, but retired products cannot start a new checkout or grant access.
 - Existing renewable Stripe subscriptions keep their current price and quantity through `current_period_end`. Seed reconciliation schedules the interval-matched Pandora price for the next period without immediate swaps or proration; subscriptions already ending are not renewed.
 - `Admin -> Subscription Audits` shows the effective access source, status, period, products, promotions/discounts, gross/refunds/net totals by currency, invoice history, manual grants, license status, token version, and safe processor references.
-- `Admin -> Manual Subscriptions -> New` finds users by email and grants Pandora access by plan and days without loading the full user table. A grant starts after the later of now or the user's current manual end. Complimentary and pending grants contribute `$0` settled revenue; a later paid Stripe subscription supersedes remaining manual access. Active or future manual grants can be revoked immediately while preserving their original period and an admin audit event.
+- `Admin -> Manual Subscriptions -> New` finds users by email and grants Chu or Pandora access by plan and days without loading the full user table. A grant starts after the later of now or the user's current manual end. Complimentary and pending grants contribute `$0` settled revenue; a later paid Stripe subscription supersedes remaining manual access. Active or future manual grants can be revoked immediately while preserving their original period and an admin audit event.
 - Admins and master admins can rotate one user's active/trial subscription license tokens. Only master admins can rotate all active/trial tokens. Rotation is atomic, idempotently audited, and immediately invalidates prior keys on every licensing endpoint.
 - User roles never grant product access. Admin roles authorize administration only; product access still requires a current Stripe subscription or active manual grant.
-- Never rotate tokens from a seed, migration, deploy hook, or role callback. Compile, distribute, and confirm the Pandora client with v2 token parsing before any rotation.
-- Pandora subscribers can link one Discord identity and receive the downstream `Pandora VIP` role. Stripe/Pay or active manual grants remain authoritative; Discord never grants Rails product access. Event jobs plus hourly reconciliation remove VIP when paid access ends and restore it after payment recovery.
+- Never rotate tokens from a seed, migration, deploy hook, or role callback. Compile, distribute, and confirm the supported Chu and Pandora clients with v2 token parsing before any rotation.
+- Eligible Chu and Pandora subscribers can link one Discord identity and receive the configured VIP role (currently named `Pandora VIP`). Stripe/Pay or active manual grants remain authoritative; Discord never grants Rails product access. Event jobs plus hourly reconciliation remove VIP when paid access ends and restore it after payment recovery.
 - The localized community funnel starts at `/join/pandora`. The permanent public invite continues through `SUPPORT_DISCORD_URL` even when VIP automation is disabled.
 
-The subscription catalog sequence is documented in `docs/pandora_subscription_rollout_runbook.md`. Discord setup, QA accounts, enablement, monitoring, credential rotation, and rollback are documented in `docs/discord_vip_rollout_runbook.md`.
+The current multi-product catalog, backfill, staging rehearsal, deployment order, and rollback sequence are documented in `docs/chu_sniper_trailing_subscription_rollout_runbook.md`. The historical Pandora procedure remains in `docs/pandora_subscription_rollout_runbook.md`; Discord setup, QA accounts, enablement, monitoring, credential rotation, and rollback are documented in `docs/discord_vip_rollout_runbook.md`.
 
 ## Server setup (Ubuntu 22.04, staging + production on the same VPS)
 
@@ -258,7 +258,7 @@ sudo bash /opt/tradingsniperpanel-deploy/setup_staging.sh
   - `invoice.payment_action_required`
   - `payment_intent.succeeded`
   - `payment_intent.payment_failed`
-Scripts run `db:seed` and `catalog:pandora:verify` on each deploy. Seed profiles default to `prod_mirror` in production and `full_qa` in staging/development; both converge the active commerce catalog on Pandora Box EA and are safe to re-run.
+Scripts run `db:prepare`, `db:seed`, an idempotent `licenses:backfill_chu_subscription_licenses` apply pass, and `catalog:subscriptions:verify` as separate fail-closed steps on each deploy before assets and service restart. Keeping preparation and seeding in separate Rails processes avoids duplicate seed-load warnings on a newly initialized database. `catalog:pandora:verify` remains a compatibility alias. Seed profiles default to `prod_mirror` in production and `full_qa` in staging/development; both converge the active commerce catalog on Chu Sniper Trailing and Pandora Box and are safe to re-run.
 7) SSL files (production only):
 ```
 CERT_SRC_DIR="$(pwd)"
@@ -422,11 +422,19 @@ EOF
 ```
 set -a; source /etc/tradingsniperpanel/production.env; set +a
 cd /home/your_admin_user/tradingsniperpanel.com
-bin/rails db:prepare db:seed assets:precompile
+bin/rails db:prepare
+bin/rails db:seed
+DRY_RUN=false bin/rails licenses:backfill_chu_subscription_licenses
+bin/rails catalog:subscriptions:verify
+bin/rails assets:precompile
 
 set -a; source /etc/tradingsniperpanel/staging.env; set +a
 cd /home/your_admin_user/tradingsniperpanel.com-staging
-bin/rails db:prepare db:seed assets:precompile
+bin/rails db:prepare
+bin/rails db:seed
+DRY_RUN=false bin/rails licenses:backfill_chu_subscription_licenses
+bin/rails catalog:subscriptions:verify
+bin/rails assets:precompile
 ```
 11) Systemd services (Puma + Sidekiq).
 
@@ -614,7 +622,7 @@ See `.envrc.example` for the full list. Key server variables:
 - OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_HD`.
 - Discord VIP: `DISCORD_INTEGRATION_ENABLED`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`, `DISCORD_VIP_ROLE_ID`, `DISCORD_REDIRECT_URI`, `SUPPORT_DISCORD_URL`. Keep disabled through deployment and follow `docs/discord_vip_rollout_runbook.md` before production enablement.
 - Stripe (Pay): `STRIPE_PRIVATE_KEY`, `STRIPE_PUBLIC_KEY`, `STRIPE_SIGNING_SECRET`.
-- Billing plans: the active catalog is seed-managed Pandora monthly/annual data in `billing_plans`; current and retired Stripe mappings are stored in `billing_plan_prices`.
+- Billing plans: the active catalog is seed-managed Chu and Pandora monthly/annual data in `billing_plans`; current and retired Stripe mappings are stored in `billing_plan_prices`.
 - Licensing: `EA_LICENSE_PRIMARY_KEY`, `EA_LICENSE_SECRET_KEY`, `EA_LICENSE_SOURCE_ID`.
 - Referrals: `REFER_DEFAULT_DISCOUNT_PERCENT`.
 - MaxMind: `MAXMIND_LICENSE_KEY`, `MAXMIND_DB_PATH`.

@@ -1,7 +1,8 @@
 # Plan: Chu Sniper Trailing Subscription Product
 
 **Generated**: 2026-07-27
-**Status**: Planning only; implementation not started
+**Status**: Implementation complete through Sprint 5; staging/live operator
+gates remain pending before production enablement
 **Estimated Complexity**: High
 
 ## Overview
@@ -309,13 +310,13 @@ than deleting them.
 
 ### Sprint 1 Gate
 
-- [ ] All Sprint 1 tasks complete.
-- [ ] Focused catalog, seed, and autoloading validation passes and evidence is
+- [x] All Sprint 1 tasks complete.
+- [x] Focused catalog, seed, and autoloading validation passes and evidence is
   recorded.
-- [ ] Residual Stripe/product and annual-rounding risks are documented.
-- [ ] Exactly one Sprint 1 commit is created with the proposed message.
-- [ ] The catalog/Stripe rollback point is recorded.
-- [ ] Sprint 2 has not started before this gate completes.
+- [x] Residual Stripe/product and annual-rounding risks are documented.
+- [x] Exactly one Sprint 1 commit is created with the proposed message.
+- [x] The catalog/Stripe rollback point is recorded.
+- [x] Sprint 2 has not started before this gate completes.
 
 ## Sprint 2: Entitlements, Licensing, Seats, And VIP Eligibility
 
@@ -472,12 +473,12 @@ eligibility, admin audit query, API regression tests, and related jobs/tasks.
 
 ### Sprint 2 Gate
 
-- [ ] Exact Chu/Pandora entitlement and seat behavior is covered by tests.
-- [ ] Backfill dry-run, apply, rerun, and failure evidence is recorded.
-- [ ] API shapes and secret-redaction checks pass.
-- [ ] Exactly one Sprint 2 commit is created with the proposed message.
-- [ ] The license/Discord rollback point is recorded.
-- [ ] Sprint 3 has not started before this gate completes.
+- [x] Exact Chu/Pandora entitlement and seat behavior is covered by tests.
+- [x] Backfill dry-run, apply, rerun, and failure evidence is recorded.
+- [x] API shapes and secret-redaction checks pass.
+- [x] Exactly one Sprint 2 commit is created with the proposed message.
+- [x] The license/Discord rollback point is recorded.
+- [x] Sprint 3 has not started before this gate completes.
 
 ## Sprint 3: Stripe, Manual Billing, And Transition Semantics
 
@@ -628,13 +629,13 @@ grant activation, invoice/audit labels, and request/service specs.
 
 ### Sprint 3 Gate
 
-- [ ] The full transition matrix and manual future-start cases pass.
-- [ ] Stripe schedule/idempotency evidence is recorded without real customer
+- [x] The full transition matrix and manual future-start cases pass.
+- [x] Stripe schedule/idempotency evidence is recorded without real customer
   secrets.
-- [ ] Checkout rejects incomplete/unknown plans and preserves referrals.
-- [ ] Exactly one Sprint 3 commit is created with the proposed message.
-- [ ] The billing rollback point and any scheduled transitions are recorded.
-- [ ] Sprint 4 has not started before this gate completes.
+- [x] Checkout rejects incomplete/unknown plans and preserves referrals.
+- [x] Exactly one Sprint 3 commit is created with the proposed message.
+- [x] The billing rollback point and any scheduled transitions are recorded.
+- [x] Sprint 4 has not started before this gate completes.
 
 ## Sprint 4: Dashboard, Marketing, Localization, And Browser UX
 
@@ -770,13 +771,13 @@ copy and view changes without purging guides or licenses.
 
 ### Sprint 4 Gate
 
-- [ ] Dashboard and Neon request specs pass in EN and ES.
-- [ ] `npm run build:css` passes with no generated vendor-source edits.
-- [ ] Chromium smoke covers desktop/mobile, keyboard/focus, console, and
+- [x] Dashboard and Neon request specs pass in EN and ES.
+- [x] `npm run build:css` passes with no generated vendor-source edits.
+- [x] Chromium smoke covers desktop/mobile, keyboard/focus, console, and
   network failures; artifacts are recorded only if a failure occurs.
-- [ ] Exactly one Sprint 4 commit is created with the proposed message.
-- [ ] UI rollback and feature-gate state are recorded.
-- [ ] Sprint 5 has not started before this gate completes.
+- [x] Exactly one Sprint 4 commit is created with the proposed message.
+- [x] UI rollback and feature-gate state are recorded.
+- [x] Sprint 5 has not started before this gate completes.
 
 ## Sprint 5: Deployment Verification, Staging Rehearsal, And Release
 
@@ -912,12 +913,13 @@ exist.
 ### Sprint 5 Gate
 
 - [ ] Staging seed, backfill, Stripe, licensing, Discord, and rollback rehearsal
-  passes.
-- [ ] All Rails, security, CSS, browser, and MQL validation evidence is
+  passes. The disposable local rehearsal is complete; real provider,
+  backup/restore, and staging infrastructure checks remain operator-owned.
+- [x] All Rails, security, CSS, browser, and MQL validation evidence is
   recorded, with skipped checks and residual risks explicit.
-- [ ] Exactly one Sprint 5 commit is created with the proposed message.
+- [x] Exactly one Sprint 5 commit is created with the proposed message.
 - [ ] The production rollback point, backup, and Stripe snapshot are recorded.
-- [ ] The release observation owner and window are documented.
+- [x] The release observation owner and window are documented.
 
 ## Testing Strategy
 
@@ -1002,20 +1004,46 @@ exist.
 6. Do not initialize planner execution state, edit implementation files, create
    commits, or begin a sprint during this planning-only turn.
 
+## Implementation Execution Record (2026-07-27)
+
+- Sprint 1: `2a96e14` (`feat(catalog): add Chu Sniper Trailing subscription contract`).
+- Sprint 2: `da81bba` (`feat(licensing): grant Chu entitlements to Pandora subscribers`).
+- Sprint 3: `3340e75` (`feat(billing): support cross-product plan transitions`).
+- Sprint 4: `b1554e8` (`feat(ui): publish Chu and Pandora plan choices`).
+- Sprint 5: this release-verification commit
+  (`chore(release): verify multi-product catalog rollout`).
+- PASS: the disposable seed/backfill rehearsal converged on four plans, two
+  EAs, and six entitlements; both verifier task names passed and the
+  authoritative verifier failed closed for wrong amount, product association,
+  and entitlement data.
+- PASS: 107 focused and 876 broad non-system RSpec examples, Zeitwerk, CSS,
+  shell syntax, diff checks, and the read-only MQL compile log (`0 errors, 0
+  warnings`). RuboCop and Brakeman findings are documented baselines outside
+  this feature diff.
+- Browser QA: PASS in Chromium for five isolated EN/ES pricing and dashboard
+  scenarios covering desktop/mobile, signed-out plan handoff, no-subscription,
+  Chu, and Pandora states, with no horizontal overflow, console errors, or
+  failed network requests.
+- NOT RUN: real staging Stripe/Pay webhooks, Discord provider mutation,
+  backup/restore, production deployment, live rollback, or the 24-hour
+  observation window. The release operator owns these gates and must record
+  redacted evidence before production enablement.
+
 ## Completion Checklist
 
-- [ ] Confirmed annual Chu pricing and all four Stripe prices match the
+- [x] Confirmed annual Chu pricing and all four Stripe prices match the
   documented cents/interval/product contract.
-- [ ] Two active EAs, two products, four plans, and six exact entitlements are
+- [x] Two active EAs, two products, four plans, and six exact entitlements are
   verified; Pandora ids and existing licenses remain stable.
-- [ ] Existing Pandora users have idempotently received Chu licenses without
+- [x] Existing Pandora users have idempotently received Chu licenses without
   Pandora key rotation.
-- [ ] Stripe/manual transition matrix, future manual starts, Discord VIP, seats,
+- [x] Stripe/manual transition matrix, future manual starts, Discord VIP, seats,
   API contracts, and admin/audit boundaries pass.
-- [ ] Mosaic/Neon EN/ES UI, accessibility, responsive behavior, and browser QA
+- [x] Mosaic/Neon EN/ES UI, accessibility, responsive behavior, and browser QA
   pass.
 - [ ] Deployment verifier, runbook, staging rehearsal, backup, rollback, and
-  observation evidence are current.
-- [ ] Every sprint has exactly one sprint-specific commit and a recorded
+  observation evidence are current. Local verifier/runbook work is complete;
+  staging backup/restore and live observation evidence remain pending.
+- [x] Every sprint has exactly one sprint-specific commit and a recorded
   rollback point.
-- [ ] Final residual risks, skipped checks, and owners are documented.
+- [x] Final residual risks, skipped checks, and owners are documented.
