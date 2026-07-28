@@ -16,7 +16,7 @@ RSpec.describe ExpertAdvisor, type: :model do
       middle = create(:expert_advisor, name: "Beta", tier_rank: 2)
       same_rank = create(:expert_advisor, name: "Aardvark", tier_rank: 1)
 
-      expect(described_class.ordered_by_rank).to eq([same_rank, lower, middle])
+      expect(described_class.ordered_by_rank).to eq([ same_rank, lower, middle ])
     end
   end
 
@@ -32,6 +32,53 @@ RSpec.describe ExpertAdvisor, type: :model do
 
       expect(advisor.allowed_for_tier?("basic")).to be(true)
       expect(advisor.allowed_for_tier?("enterprise")).to be(false)
+    end
+  end
+
+  describe ".subscription_entitlements_for" do
+    it "returns the complete canonical Pandora matrix in catalog order" do
+      chu = create(:expert_advisor, ea_id: "chu_sniper_trailing")
+      pandora = create(:expert_advisor, ea_id: "pandora_box")
+      plan = create(
+        :billing_plan,
+        tier: Billing::PandoraPricing::TIER,
+        key: Billing::PandoraPricing::MONTHLY_KEY,
+        name: "Pandora Monthly",
+        amount_cents: Billing::PandoraPricing::MONTHLY_CENTS,
+        stripe_price_id: "price_pandora_model",
+        stripe_product_id: "prod_pandora_model"
+      )
+      create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: pandora)
+      create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: chu)
+
+      expect(described_class.subscription_entitlements_for(plan)).to eq([ pandora, chu ])
+    end
+
+    it "fails closed when a canonical entitlement is missing" do
+      chu = create(:expert_advisor, ea_id: "chu_sniper_trailing")
+      create(:expert_advisor, ea_id: "pandora_box")
+      plan = create(
+        :billing_plan,
+        tier: Billing::PandoraPricing::TIER,
+        key: Billing::PandoraPricing::MONTHLY_KEY,
+        name: "Pandora Monthly",
+        amount_cents: Billing::PandoraPricing::MONTHLY_CENTS,
+        stripe_price_id: "price_pandora_incomplete",
+        stripe_product_id: "prod_pandora_incomplete"
+      )
+      create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: chu)
+
+      expect(described_class.subscription_entitlements_for(plan)).to be_empty
+    end
+  end
+
+  describe "#daily_results_supported?" do
+    it "disables daily results only for Chu Sniper Trailing" do
+      chu = build(:expert_advisor, ea_id: "chu_sniper_trailing")
+      pandora = build(:expert_advisor, ea_id: "pandora_box")
+
+      expect(chu.daily_results_supported?).to be(false)
+      expect(pandora.daily_results_supported?).to be(true)
     end
   end
 

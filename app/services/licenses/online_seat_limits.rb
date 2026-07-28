@@ -14,7 +14,10 @@ module Licenses
       tier = active_subscription_tier
       return 0 if tier.blank?
 
-      [BASE_SUBSCRIPTION_CAP + tier_rank_for(tier), MAX_SUBSCRIPTION_CAP].min
+      catalog_cap = Billing::SubscriptionCatalog.seat_cap_for(tier)
+      return catalog_cap if catalog_cap
+
+      [ BASE_SUBSCRIPTION_CAP + tier_rank_for(tier), MAX_SUBSCRIPTION_CAP ].min
     end
 
     def one_time_cap
@@ -79,7 +82,7 @@ module Licenses
     end
 
     def tier_rank_for(tier)
-      ordered_tiers.index(tier.to_s) || 0
+      Billing::SubscriptionCatalog.access_rank_for(tier) || ordered_tiers.index(tier.to_s) || 0
     end
 
     def ordered_tiers

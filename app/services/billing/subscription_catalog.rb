@@ -80,6 +80,28 @@ module Billing
       PRODUCTS.find { |product| product.plan_keys.include?(plan_key.to_s) }
     end
 
+    # Returns a product only when the persisted plan still matches a canonical
+    # catalog definition. Runtime entitlement decisions must fail closed for
+    # stale or partially configured billing rows.
+    def product_for_plan(plan)
+      return unless plan&.subscription?
+
+      product = product_for_plan_key(plan.key)
+      definition = product&.plan_definitions&.[](plan.key)
+      return unless product && definition
+      return unless plan.active? && plan.tier == product.tier
+      return unless plan.currency == product.currency
+      return unless plan.interval == definition.fetch(:interval)
+      return unless plan.interval_count.to_i == definition.fetch(:interval_count)
+      return unless plan.amount_cents.to_i == definition.fetch(:amount_cents)
+
+      product
+    end
+
+    def canonical_plan?(plan)
+      product_for_plan(plan).present?
+    end
+
     def definition_for_key(plan_key)
       product = product_for_plan_key(plan_key)
       return unless product

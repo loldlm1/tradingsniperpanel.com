@@ -52,6 +52,28 @@ class ExpertAdvisor < ApplicationRecord
     allowed.map(&:to_s).include?(tier.to_s)
   end
 
+  def self.subscription_entitlements_for(plan)
+    product = Billing::SubscriptionCatalog.product_for_plan(plan)
+    return [] unless product
+
+    records = active
+      .joins(:billing_plan_entitlements)
+      .where(
+        billing_plan_entitlements: { billing_plan_id: plan.id },
+        ea_id: product.ea_ids
+      )
+      .distinct
+      .to_a
+
+    return [] unless records.map(&:ea_id).sort == product.ea_ids.sort
+
+    records.sort_by { |expert_advisor| product.ea_ids.index(expert_advisor.ea_id) }
+  end
+
+  def daily_results_supported?
+    ea_id != Billing::ChuSniperPricing::TIER
+  end
+
   def subscription_tiers
     if billing_plan_entitlements.loaded? || billing_plans.loaded?
       tiers = billing_plans.select(&:subscription?).map(&:tier)

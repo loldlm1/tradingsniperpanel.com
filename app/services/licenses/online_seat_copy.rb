@@ -17,6 +17,9 @@ module Licenses
       end
 
       def subscription_cap_for_tier(tier)
+        catalog_cap = Billing::SubscriptionCatalog.seat_cap_for(tier)
+        return catalog_cap if catalog_cap
+
         tier_rank = ordered_tiers.index(tier.to_s)
         return nil if tier_rank.nil?
 

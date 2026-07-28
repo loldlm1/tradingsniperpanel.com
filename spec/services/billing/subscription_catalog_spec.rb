@@ -33,6 +33,24 @@ RSpec.describe Billing::SubscriptionCatalog do
     )
   end
 
+  it "accepts a persisted canonical plan only when its definition is exact" do
+    plan = create(
+      :billing_plan,
+      tier: Billing::ChuSniperPricing::TIER,
+      key: Billing::ChuSniperPricing::MONTHLY_KEY,
+      name: "Chu Monthly",
+      amount_cents: Billing::ChuSniperPricing::MONTHLY_CENTS,
+      stripe_price_id: "price_catalog_chu",
+      stripe_product_id: "prod_catalog_chu"
+    )
+
+    expect(described_class.product_for_plan(plan).tier).to eq(Billing::ChuSniperPricing::TIER)
+
+    plan.update!(amount_cents: plan.amount_cents + 1)
+
+    expect(described_class.product_for_plan(plan)).to be_nil
+  end
+
   it "marks only complete product pairs as purchasable" do
     create_canonical_plan(Billing::ChuSniperPricing, "chu_sniper_trailing")
     create_canonical_plan(Billing::PandoraPricing, "pandora_box")

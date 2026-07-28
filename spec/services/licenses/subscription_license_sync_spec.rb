@@ -300,6 +300,97 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
     expect(pro_license.plan_interval).to eq("monthly")
   end
 
+  it "issues only the Chu entitlement for the canonical Chu plan" do
+    chu_ea = create(:expert_advisor, ea_id: "chu_sniper_trailing", allowed_subscription_tiers: [])
+    pandora_ea = create(:expert_advisor, ea_id: "pandora_box", allowed_subscription_tiers: [])
+    chu_plan = create(
+      :billing_plan,
+      tier: Billing::ChuSniperPricing::TIER,
+      key: Billing::ChuSniperPricing::MONTHLY_KEY,
+      name: "Chu Sniper Monthly",
+      amount_cents: Billing::ChuSniperPricing::MONTHLY_CENTS,
+      stripe_price_id: "price_chu_monthly",
+      stripe_product_id: "prod_chu"
+    )
+    create(:billing_plan_entitlement, billing_plan: chu_plan, expert_advisor: chu_ea)
+
+    period_end = 1.month.from_now
+    subscription = create_subscription(
+      processor_plan: chu_plan.stripe_price_id,
+      current_period_end: period_end
+    )
+
+    described_class.new(subscription_id: subscription.id, encoder: encoder).call
+
+    chu_license = License.find_by!(user: user, expert_advisor: chu_ea)
+    expect(chu_license).to be_active
+    expect(chu_license).to have_attributes(
+      access_source: "subscription",
+      plan_interval: "monthly",
+      source: "stripe_subscription"
+    )
+    expect(chu_license.expires_at.to_i).to eq(period_end.to_i)
+    expect(License.find_by(user: user, expert_advisor: pandora_ea)).to be_nil
+  end
+
+  it "issues both EA entitlements for the canonical Pandora plan" do
+    chu_ea = create(:expert_advisor, ea_id: "chu_sniper_trailing", allowed_subscription_tiers: [])
+    pandora_ea = create(:expert_advisor, ea_id: "pandora_box", allowed_subscription_tiers: [])
+    pandora_plan = create(
+      :billing_plan,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
+      name: "Pandora Monthly",
+      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS,
+      stripe_price_id: "price_pandora_monthly",
+      stripe_product_id: "prod_pandora"
+    )
+    create(:billing_plan_entitlement, billing_plan: pandora_plan, expert_advisor: chu_ea)
+    create(:billing_plan_entitlement, billing_plan: pandora_plan, expert_advisor: pandora_ea)
+
+    period_end = 1.month.from_now
+    subscription = create_subscription(
+      processor_plan: pandora_plan.stripe_price_id,
+      current_period_end: period_end
+    )
+
+    described_class.new(subscription_id: subscription.id, encoder: encoder).call
+
+    licenses = License.where(user: user, expert_advisor: [ chu_ea, pandora_ea ])
+    expect(licenses.pluck(:expert_advisor_id)).to contain_exactly(chu_ea.id, pandora_ea.id)
+    expect(licenses).to all(
+      have_attributes(
+        status: "active",
+        access_source: "subscription",
+        plan_interval: "monthly",
+        source: "stripe_subscription"
+      )
+    )
+    expect(licenses.map { |license| license.expires_at.to_i }).to all(eq(period_end.to_i))
+  end
+
+  it "fails closed when a canonical plan has stale price metadata" do
+    chu_ea = create(:expert_advisor, ea_id: "chu_sniper_trailing", allowed_subscription_tiers: [])
+    stale_plan = create(
+      :billing_plan,
+      tier: Billing::ChuSniperPricing::TIER,
+      key: Billing::ChuSniperPricing::MONTHLY_KEY,
+      name: "Stale Chu Monthly",
+      amount_cents: Billing::ChuSniperPricing::MONTHLY_CENTS + 1,
+      stripe_price_id: "price_chu_stale",
+      stripe_product_id: "prod_chu"
+    )
+    create(:billing_plan_entitlement, billing_plan: stale_plan, expert_advisor: chu_ea)
+    subscription = create_subscription(
+      processor_plan: stale_plan.stripe_price_id,
+      current_period_end: 1.month.from_now
+    )
+
+    described_class.new(subscription_id: subscription.id, encoder: encoder).call
+
+    expect(License.find_by(user: user, expert_advisor: chu_ea)).to be_nil
+  end
+
   def create_subscription(processor_plan:, current_period_end:, ends_at: nil)
     customer = user.pay_customers.create!(
       processor: "stripe",

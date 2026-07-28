@@ -22,14 +22,21 @@ module Licenses
         return
       end
 
-      tier = plan.tier
       interval = plan.interval_key
-      return unless tier && interval
+      product = Billing::SubscriptionCatalog.product_for_plan(plan)
+      return unless plan.subscription? && plan.tier.present? && interval.present?
+      return if Billing::SubscriptionCatalog.plan_keys.include?(plan.key.to_s) && product.nil?
 
-      logger.info("[Licenses::ManualSubscriptionSync] syncing manual_subscription_id=#{subscription.id} user_id=#{user.id} tier=#{tier} interval=#{interval}")
+      allowed_eas = if product
+        exact_entitlements_for(plan, subscription)
+      else
+        ExpertAdvisor.active.includes(:billing_plan_entitlements, :billing_plans)
+                   .select { |ea| ea.allowed_for_tier?(plan.tier) }
+      end
+      return if product && allowed_eas.empty?
 
-      allowed_eas = ExpertAdvisor.active.includes(:billing_plan_entitlements, :billing_plans)
-                                 .select { |ea| ea.allowed_for_tier?(tier) }
+      logger.info("[Licenses::ManualSubscriptionSync] syncing manual_subscription_id=#{subscription.id} user_id=#{user.id} tier=#{plan.tier} interval=#{interval}")
+
       allowed_ids = allowed_eas.map(&:id)
 
       mark_referral_completed(user: user) if subscription.active_for_time?
@@ -47,6 +54,16 @@ module Licenses
     private
 
     attr_reader :manual_subscription_id, :encoder, :logger
+
+    def exact_entitlements_for(plan, subscription)
+      records = ExpertAdvisor.subscription_entitlements_for(plan)
+      return records if records.present?
+
+      logger.warn(
+        "[Licenses::ManualSubscriptionSync] canonical entitlements missing manual_subscription_id=#{subscription.id} plan_id=#{plan.id}"
+      )
+      []
+    end
 
     def sync_license_for(user:, expert_advisor:, interval:, subscription:)
       license = License.find_or_initialize_by(user: user, expert_advisor: expert_advisor)

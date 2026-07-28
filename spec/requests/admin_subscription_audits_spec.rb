@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe "Admin subscription audits", type: :request do
   let(:pandora_ea) { create(:expert_advisor, ea_id: "pandora_box") }
   let(:plan) do
-    create(
+    monthly = create(
       :billing_plan,
       tier: "pandora_pro",
       key: "pandora_pro_monthly",
@@ -11,6 +11,15 @@ RSpec.describe "Admin subscription audits", type: :request do
       interval_count: 1,
       amount_cents: 7900
     ).tap { |billing_plan| create(:billing_plan_entitlement, billing_plan: billing_plan, expert_advisor: pandora_ea) }
+    create(
+      :billing_plan,
+      tier: "pandora_pro",
+      key: "pandora_pro_annual",
+      interval: "year",
+      interval_count: 1,
+      amount_cents: Billing::PandoraPricing::ANNUAL_CENTS
+    ).tap { |billing_plan| create(:billing_plan_entitlement, billing_plan: billing_plan, expert_advisor: pandora_ea) }
+    monthly
   end
 
   it "renders a local-only audit index and detail without license secrets" do
@@ -20,6 +29,15 @@ RSpec.describe "Admin subscription audits", type: :request do
       :license,
       user: user,
       expert_advisor: pandora_ea,
+      status: "active",
+      trial_ends_at: nil,
+      expires_at: 1.month.from_now
+    )
+    chu_ea = create(:expert_advisor, ea_id: "chu_sniper_trailing", name: "Chu Sniper Trailing")
+    chu_license = create(
+      :license,
+      user: user,
+      expert_advisor: chu_ea,
       status: "active",
       trial_ends_at: nil,
       expires_at: 1.month.from_now
@@ -35,7 +53,9 @@ RSpec.describe "Admin subscription audits", type: :request do
     expect(response).to have_http_status(:ok)
     expect(response.body).to include("Settled payment totals")
     expect(response.body).to include("Pandora licenses")
+    expect(response.body).to include("Chu Sniper Trailing")
     expect(response.body).not_to include(license.encrypted_key)
+    expect(response.body).not_to include(chu_license.encrypted_key)
     expect(response.body).not_to include("encrypted_key")
 
     get admin_subscription_audits_path(format: :csv)

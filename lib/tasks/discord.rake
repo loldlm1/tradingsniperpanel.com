@@ -2,7 +2,7 @@ namespace :discord do
   namespace :vip do
     CLEANUP_CONFIRMATION = "REMOVE LINKED PANDORA VIP".freeze
 
-    desc "Audit local Pandora Discord VIP eligibility and synchronization state"
+    desc "Audit local subscription Discord VIP eligibility and synchronization state"
     task audit: :environment do
       rows = DiscordConnection.connected.includes(:user).to_a
       eligibility = rows.map { |connection| Discord::VipEligibility.new(user: connection.user).call }
@@ -24,7 +24,7 @@ namespace :discord do
       end
     end
 
-    desc "Remove Pandora VIP from linked Discord accounts after exact confirmation"
+    desc "Remove subscription VIP from linked Discord accounts after exact confirmation"
     task cleanup_linked_roles: :environment do
       unless ENV["CONFIRM"] == CLEANUP_CONFIRMATION
         abort "Refusing cleanup. Set CONFIRM='#{CLEANUP_CONFIRMATION}' exactly."

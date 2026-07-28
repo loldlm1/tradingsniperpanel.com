@@ -2,6 +2,7 @@ require "rails_helper"
 
 RSpec.describe Admin::SubscriptionAudits::Query do
   let(:pandora_ea) { create(:expert_advisor, ea_id: "pandora_box") }
+  let(:chu_ea) { create(:expert_advisor, ea_id: "chu_sniper_trailing") }
   let(:monthly_plan) do
     create(
       :billing_plan,
@@ -150,6 +151,14 @@ RSpec.describe Admin::SubscriptionAudits::Query do
       trial_ends_at: nil,
       expires_at: 1.month.from_now
     )
+    chu_license = create(
+      :license,
+      user: user,
+      expert_advisor: chu_ea,
+      status: "active",
+      trial_ends_at: nil,
+      expires_at: 1.month.from_now
+    )
     event = create(
       :admin_audit_event,
       actor: admin,
@@ -179,7 +188,7 @@ RSpec.describe Admin::SubscriptionAudits::Query do
       discount_percent: 10,
       completed_at: referral.completed_at
     )
-    expect(presenter.licenses).to contain_exactly(license)
+    expect(presenter.licenses).to contain_exactly(license, chu_license)
     expect(presenter.audit_events).to contain_exactly(event)
     expect(presenter.manual_grants.map(&:payment_status)).to include("paid", "pending", "complimentary")
   end
