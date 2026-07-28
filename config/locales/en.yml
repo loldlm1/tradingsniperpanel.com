@@ -575,9 +575,9 @@ en:
       brand:
         logo_alt: "Sniper Panel logo"
       hero:
-        title: "Pandora Box"
-        title_emphasis: "EA"
-        subtitle: "Breakout-focused automation for MetaTrader 5 with configurable execution, licensing, updates, and support."
+        title: "MT5 Trading"
+        title_emphasis: "Tools"
+        subtitle: "Choose focused position management with Chu Sniper Trailing or breakout automation with Pandora Box, backed by licensing, updates, and VIP community access."
         cta: "Get started"
       press_logos:
         binance: "Binance"
@@ -586,35 +586,47 @@ en:
         mql5: "MQL5"
         tradingview: "TradingView"
       features:
-        title: "PANDORA BOX FOR MT5"
+        title: "TRADING TOOLS FOR MT5"
         items:
           execution:
-            title: "Configurable execution"
-            body: "Tune entries, exits, direction modes, and operation controls for your workflow."
+            title: "Position protection"
+            body: "Manage chart-scoped positions with broker-aware stops and a fixed-R trailing staircase."
           systems:
             title: "Breakout automation"
-            body: "Run Pandora Box rules with consistent setups and disciplined position handling."
+            body: "Run Pandora Box rules with consistent setups, configurable execution, and disciplined position handling."
           indicators:
             title: "Licensed access"
-            body: "Manage your Pandora Box license, downloads, guides, billing, and updates from one account."
+            body: "Manage licenses, downloads, guides, billing, updates, and Discord VIP access from one account."
       features2:
-        title: "ONE EA, ONE CLEAR SUBSCRIPTION"
-        subtitle: "Choose monthly or annual Pandora Box access with the same product features in both intervals."
-        content_title: "Pandora Box account hub"
-        content_body: "Use your account to manage the EA license, installation guide, downloads, subscription period, invoices, and support."
+        title: "TWO PRODUCTS, ONE CLEAR ACCOUNT"
+        subtitle: "Choose monthly or annual access to the product that fits your workflow."
+        content_title: "Your trading-tool account hub"
+        content_body: "Use your account to manage licenses, installation guides, downloads, subscription periods, invoices, and support."
         bullets:
+          - "Chu Sniper Trailing EA/tool for chart-scoped management"
           - "Pandora Box EA for MetaTrader 5"
-          - "Versioned licenses and product updates"
-          - "Guides, billing history, and support in one place"
+          - "Discord VIP community access"
+          - "Versioned licenses, guides, billing history, and updates"
       pricing:
-        title: "CHOOSE YOUR PANDORA BOX INTERVAL"
-        subtitle: "$79 monthly or $616.20 annually. Annual billing saves 35%."
+        title: "CHOOSE YOUR MT5 PLAN"
+        subtitle: "Start at $19.99 monthly or choose Pandora Box at $79.00. Annual billing saves 35%."
         per_month: "/mo"
-        cta: "Choose Pandora Box"
+        cta: "Choose plan"
         most_popular: "Most popular"
-        unavailable_title: "Pandora Box checkout is temporarily unavailable"
-        unavailable_body: "Both subscription intervals must be verified before checkout opens."
+        unavailable_title: "Subscription checkout is temporarily unavailable"
+        unavailable_body: "Both subscription intervals for a product must be verified before checkout opens."
         tiers:
+          chu_sniper_trailing:
+            name: "Chu Sniper Trailing"
+            description: "Chart-scoped position management with monotonic trailing protection for manual and scalping workflows."
+            features_title: "Includes:"
+            cta: "Choose Chu Sniper"
+            features:
+              - "Chu Sniper Trailing EA/tool"
+              - "Chart-scoped position management"
+              - "Fixed-R trailing staircase"
+              - "Broker-aware stop and risk controls"
+              - "Discord VIP community"
           basic:
             name: "Sniper Panel"
             description: "For traders who need precision, execution speed, and full control in every setup."
@@ -627,9 +639,12 @@ en:
               - "Preconfigured order workflows"
           pandora_pro:
             name: "Pandora Box"
-            description: "Breakout-focused automation with configurable execution and disciplined operation control."
+            description: "Pandora Box EA plus Chu Sniper Trailing for breakout-focused automation and disciplined operation control."
             features_title: "Included:"
+            cta: "Choose Pandora Box"
             features:
+              - "Pandora Box EA"
+              - "Chu Sniper Trailing EA/tool"
               - "Breakout strategy automation"
               - "Direction modes"
               - "Flexible parameter configuration"
@@ -715,7 +730,7 @@ en:
             name: "Lucía C."
             role: "MT5 Trader"
       resources:
-        title: "PANDORA BOX RESOURCES"
+        title: "MT5 PRODUCT RESOURCES"
         categories:
           manual: "Manual"
           indicators: "Indicators"
@@ -729,9 +744,9 @@ en:
           quick_guide: "Quick guide"
           video_tutorial: "Video tutorial"
       cta:
-        title: "Start with Pandora Box"
-        body: "Choose monthly or annual access to Pandora Box EA for MetaTrader 5."
-        button: "Choose your interval"
+        title: "Choose your MT5 plan"
+        body: "Compare Chu Sniper Trailing and Pandora Box, then choose monthly or annual access."
+        button: "Choose a plan"
       media:
         hero_illustration_alt: "Hero Illustration"
         features_image_alt: "Features"

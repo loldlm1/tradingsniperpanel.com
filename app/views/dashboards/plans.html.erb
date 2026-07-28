@@ -2,7 +2,7 @@
 
 <% pricing = @pricing_catalog || {} %>
 <% plan = @plan_context || {} %>
-<% tier_key = Billing::PandoraPricing::TIER %>
+<% tier_keys = Array(plan[:visible_tiers].presence || pricing[:tiers]).map(&:to_s) %>
 <% intervals = plan[:intervals] || pricing[:intervals] || [] %>
 <% interval_keys = intervals.map { |interval| interval[:key] } %>
 <% prices = pricing[:prices] || {} %>
@@ -12,11 +12,14 @@
 <% scheduled_change = plan[:scheduled_change] || {} %>
 <% scheduled_price_key = scheduled_change[:price_key] %>
 <% requested_price_key = @requested_price_key.to_s.presence %>
-<% requested_interval = if requested_price_key.in?(Billing::PandoraPricing::PLAN_KEYS)
-                          intervals.find { |interval| prices.dig(interval[:key], tier_key, :plan_key) == requested_price_key }&.dig(:key)
+<% requested_interval = if Billing::SubscriptionCatalog.plan_keys.include?(requested_price_key)
+                          intervals.find do |interval|
+                            tier_keys.any? { |tier_key| prices.dig(interval[:key], tier_key, :plan_key) == requested_price_key }
+                          end&.dig(:key)
                         end %>
 <% plan_states = plan[:states] || {} %>
 <% upgrade_confirm = t("dashboard.plans.upgrade_confirm") %>
+<% featured_tier_key = tier_keys.max_by { |tier_key| Billing::SubscriptionCatalog.access_rank_for(tier_key).to_i } %>
 
 <% current_tier = plan[:current_tier] %>
 <% plan_name = current_tier ? t("dashboard.plans.tiers.#{current_tier}.name", default: current_tier.to_s.humanize) : nil %>
@@ -35,9 +38,6 @@
                          t("dashboard.plan_card.plan_label_tier_only", tier: scheduled_plan_name)
                        end
                      end %>
-<% features = Array(t("dashboard.plans.tiers.#{tier_key}.features", default: [])) +
-              Array(Licenses::OnlineSeatCopy.subscription_feature_for_tier(tier_key, locale: I18n.locale)) %>
-
 <div class="bg-white dark:bg-gray-800 shadow-xs rounded-xl mb-8">
   <div class="p-6 space-y-6">
     <!-- Page header -->
@@ -58,7 +58,7 @@
         <% end %>
       </div>
 
-      <% if intervals.empty? %>
+      <% if tier_keys.empty? || intervals.empty? %>
         <div class="rounded-xl border border-gray-200 bg-gray-50 px-5 py-8 text-center dark:border-gray-700 dark:bg-gray-900/40">
           <h3 class="font-semibold text-gray-800 dark:text-gray-100"><%= t("dashboard.plans.unavailable.title") %></h3>
           <p class="mt-2 text-sm text-gray-500 dark:text-gray-400"><%= t("dashboard.plans.unavailable.body") %></p>
@@ -85,99 +85,23 @@
             </div>
           </div>
 
-          <!-- Pandora subscription card -->
-          <div class="mx-auto max-w-3xl">
-            <div class="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs dark:border-gray-700/60 dark:bg-gray-800">
-              <div class="absolute inset-x-0 top-0 h-1 bg-brand-500" aria-hidden="true"></div>
-              <div class="px-5 pt-7 pb-6 border-b border-gray-200 dark:border-gray-700/60 sm:px-7">
-                <header class="flex flex-wrap items-center gap-3 mb-2">
-                  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-500">
-                    <svg class="h-5 w-5 fill-current text-white" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M12 17a.833.833 0 01-.833-.833 3.333 3.333 0 00-3.334-3.334.833.833 0 110-1.666 3.333 3.333 0 003.334-3.334.833.833 0 111.666 0 3.333 3.333 0 003.334 3.334.833.833 0 110 1.666 3.333 3.333 0 00-3.334 3.334c0 .46-.373.833-.833.833z" />
-                    </svg>
-                  </div>
-                  <h3 class="text-xl text-gray-800 dark:text-gray-100 font-semibold"><%= t("dashboard.plans.tiers.#{tier_key}.name") %></h3>
-                  <% if requested_price_key.in?(Billing::PandoraPricing::PLAN_KEYS) %>
-                    <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold text-brand-600 dark:text-brand-300 bg-brand-500/10"><%= t("dashboard.plans.requested_plan") %></span>
-                  <% elsif scheduled_change[:tier].to_s == tier_key %>
-                    <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10"><%= t("dashboard.plans.scheduled_badge") %></span>
-                  <% end %>
-                </header>
-                <div class="text-sm mb-4 max-w-2xl"><%= t("dashboard.plans.tiers.#{tier_key}.description") %></div>
-
-                <div class="text-gray-800 dark:text-gray-100 font-bold mb-5" aria-live="polite">
-                  <% intervals.each do |interval| %>
-                    <% details = prices.dig(interval[:key], tier_key) %>
-                    <div class="flex items-baseline gap-1" x-show="period === '<%= interval[:key] %>'" x-cloak>
-                      <span class="text-2xl">$</span>
-                      <span class="text-4xl"><%= details&.dig(:display) || t("dashboard.plans.placeholder") %></span>
-                      <span class="text-gray-500 font-medium text-sm"><%= interval[:per_label] %></span>
-                    </div>
-                  <% end %>
-                </div>
-
-                <% cta_label = subscribed ? t("dashboard.plans.cta.upgrade") : t("dashboard.plans.cta.subscribe") %>
-                <% intervals.each do |interval| %>
-                  <% interval_key = interval[:key] %>
-                  <% details = prices.dig(interval_key, tier_key) %>
-                  <% plan_key = details&.dig(:plan_key) %>
-                  <% available = details&.dig(:stripe_price_id).present? %>
-                  <% interval_state = plan_states.dig(tier_key, interval_key) %>
-                  <% scheduled_for_interval = scheduled_price_key == plan_key %>
-                  <div x-show="period === '<%= interval_key %>'" x-cloak>
-                    <% if available %>
-                      <% if subscribed && interval_state == :current %>
-                        <button type="button" class="btn w-full bg-gray-900 text-gray-100 dark:bg-gray-100 dark:text-gray-800 disabled:cursor-not-allowed" disabled>
-                          <svg class="w-3 h-3 shrink-0 fill-current mr-2" viewBox="0 0 12 12" aria-hidden="true">
-                            <path d="M10.28 1.28L3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
-                          </svg>
-                          <span><%= t("dashboard.plans.cta.current") %></span>
-                        </button>
-                      <% elsif subscribed && scheduled_for_interval %>
-                        <button type="button" class="btn w-full border-gray-200 dark:border-gray-700/60 text-gray-800 dark:text-gray-300 disabled:cursor-not-allowed" disabled><%= t("dashboard.plans.cta.scheduled") %></button>
-                      <% elsif manual_subscription %>
-                        <button type="button" class="btn w-full border-gray-200 dark:border-gray-700/60 text-gray-500 dark:text-gray-400 disabled:cursor-not-allowed" disabled><%= t("dashboard.plans.cta.unavailable") %></button>
-                      <% else %>
-                        <% interval_label = subscribed && interval_state == :downgrade ? t("dashboard.plans.cta.downgrade") : cta_label %>
-                        <% interval_data = { loading_target: true } %>
-                        <% interval_data[:confirm_message] = upgrade_confirm if subscribed && interval_state == :upgrade %>
-                        <% checkout_params = { price_key: plan_key } %>
-                        <% checkout_params[:promotion_code_id] = @promotion_prefill.id if @promotion_prefill.present? %>
-                        <%= button_to dashboard_checkout_path(checkout_params), method: :post, class: "btn bg-gray-900 text-gray-100 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-800 dark:hover:bg-white w-full", data: interval_data do %>
-                          <%= loading_label(interval_label, loading_text: t("loading.default")) %>
-                        <% end %>
-                      <% end %>
-                    <% else %>
-                      <button type="button" class="btn w-full border-gray-200 dark:border-gray-700/60 text-gray-500 dark:text-gray-400 disabled:cursor-not-allowed" disabled><%= t("dashboard.plans.cta.unavailable") %></button>
-                    <% end %>
-
-                    <% if details&.dig(:effective_monthly_display).present? && interval[:uses_effective_monthly] %>
-                      <div class="text-xs text-gray-500 mt-3"><%= t("dashboard.plans.effective_monthly", amount: details[:effective_monthly_display]) %></div>
-                    <% end %>
-                    <% if interval[:billed_label].present? %>
-                      <div class="text-xs text-gray-500 mt-1"><%= interval[:billed_label] %></div>
-                    <% end %>
-                    <div class="text-xs text-gray-500 mt-3">
-                      <%= t("checkout.subscription_notice_html", refunds_link: link_to(t("legal.links.refunds_and_cancellations"), refunds_and_cancellations_path, class: "underline")).html_safe %>
-                    </div>
-                  </div>
-                <% end %>
-              </div>
-
-              <div class="px-5 pt-5 pb-6 sm:px-7">
-                <div class="text-xs text-gray-800 dark:text-gray-100 font-semibold uppercase mb-4"><%= t("dashboard.plans.whats_included") %></div>
-                <ul class="grid gap-2 sm:grid-cols-2">
-                  <% features.each do |feature| %>
-                    <li class="flex items-start py-1">
-                      <svg class="w-3 h-3 mt-1 shrink-0 fill-current text-green-500 mr-2" viewBox="0 0 12 12" aria-hidden="true">
-                        <path d="M10.28 1.28L3.989 7.575 1.695 5.28A1 1 0 00.28 6.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 1.28z" />
-                      </svg>
-                      <div class="text-sm"><%= feature %></div>
-                    </li>
-                  <% end %>
-                </ul>
-              </div>
-            </div>
+          <!-- Subscription cards -->
+          <div class="mx-auto grid max-w-6xl items-stretch gap-6 lg:grid-cols-2">
+            <% tier_keys.each do |tier_key| %>
+              <%= render "subscription_plan_card",
+                         tier_key: tier_key,
+                         featured_tier_key: featured_tier_key,
+                         intervals: intervals,
+                         prices: prices,
+                         requested_price_key: requested_price_key,
+                         scheduled_change: scheduled_change,
+                         scheduled_price_key: scheduled_price_key,
+                         plan_states: plan_states,
+                         subscribed: subscribed,
+                         manual_subscription: manual_subscription,
+                         upgrade_confirm: upgrade_confirm,
+                         promotion_prefill: @promotion_prefill %>
+            <% end %>
           </div>
         </div>
       <% end %>

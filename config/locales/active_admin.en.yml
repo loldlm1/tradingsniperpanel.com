@@ -45,7 +45,7 @@ en:
         label: "User email"
         hint: "Type at least 2 email characters. Results show email and name, or paste the full email and submit."
       sections:
-        access: "Manual Pandora access"
+        access: "Manual subscription access"
         payment: "Optional payment details"
     discord_connections:
       menu: "Discord VIP"
@@ -54,7 +54,7 @@ en:
       actions:
         resync: "Resync VIP"
       labels:
-        eligibility: "Pandora eligibility"
+        eligibility: "VIP eligibility"
         eligibility_source: "Eligibility source"
         eligibility_reason: "Eligibility reason"
       states:
@@ -159,7 +159,7 @@ en:
         promotions: "No applied promotion metadata is available."
         applied_referrals: "No applied referral discount metadata is available."
         manual_grants: "No manual grant history is available."
-        licenses: "No Pandora license is available."
+        licenses: "No subscription EA licenses are available."
         admin_events: "No admin operation has been recorded for this user."
       warnings:
         customer_reference: "The local subscription exists, but its Stripe customer reference is unavailable."

@@ -31,6 +31,8 @@ RSpec.describe "Discord connection admin", type: :request do
     get admin_discord_connections_path
 
     expect(response).to have_http_status(:ok)
+    expect(response.body).to include(I18n.t("active_admin.discord_connections.labels.eligibility", locale: :en))
+    expect(response.body).not_to include("Pandora eligibility")
     expect(response.body).to include(connection.id.to_s, trader.id.to_s, "forbidden")
     expect(response.body).not_to include(
       connection.discord_user_id,

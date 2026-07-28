@@ -45,7 +45,7 @@ es:
         label: "Correo del usuario"
         hint: "Escribe al menos 2 caracteres del correo. Los resultados muestran correo y nombre; también puedes pegar el correo completo y enviar."
       sections:
-        access: "Acceso manual a Pandora"
+        access: "Acceso manual de suscripción"
         payment: "Detalles de pago opcionales"
     discord_connections:
       menu: "VIP de Discord"
@@ -54,7 +54,7 @@ es:
       actions:
         resync: "Sincronizar VIP"
       labels:
-        eligibility: "Elegibilidad de Pandora"
+        eligibility: "Elegibilidad VIP"
         eligibility_source: "Fuente de elegibilidad"
         eligibility_reason: "Motivo de elegibilidad"
       states:
@@ -159,7 +159,7 @@ es:
         promotions: "No hay metadata de promoción aplicada."
         applied_referrals: "No hay metadata de descuento por referido aplicada."
         manual_grants: "No hay historial de otorgamientos manuales."
-        licenses: "No hay una licencia de Pandora disponible."
+        licenses: "No hay licencias de EAs de suscripción disponibles."
         admin_events: "No se han registrado operaciones administrativas para este usuario."
       warnings:
         customer_reference: "La suscripción local existe, pero su referencia de cliente Stripe no está disponible."

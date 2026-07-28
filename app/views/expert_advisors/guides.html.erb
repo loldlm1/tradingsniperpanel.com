@@ -32,7 +32,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <%= render "dashboard/shared/badge",
-                           label: status.to_s.humanize,
+                           label: t("dashboard.expert_advisors.status.#{status}", default: status.to_s.humanize),
                            padding_class: "px-2 py-1",
                            class_name: badge_class %>
                 <% unless entry&.accessible %>

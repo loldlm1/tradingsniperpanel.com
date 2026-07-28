@@ -62,10 +62,10 @@ en:
       discord: "Discord VIP"
     discord:
       page_title: "Discord VIP"
-      panel_title: "Connect Pandora VIP to Discord"
-      panel_description: "Link one Discord account to unlock your private Pandora community access automatically."
+      panel_title: "Connect Discord VIP"
+      panel_description: "Link one Discord account to unlock the private VIP community included with an eligible subscription."
       membership_screening: "Discord may ask you to accept the server rules before ELITE channels become visible. Open Discord and complete that step if prompted."
-      disconnect_confirm: "Disconnect this Discord account? Pandora VIP will be removed before the account link is cleared."
+      disconnect_confirm: "Disconnect this Discord account? Discord VIP will be removed before the account link is cleared."
       details:
         account: "Connected account"
         last_sync: "Last VIP sync"
@@ -75,13 +75,13 @@ en:
         retry: "Retry VIP sync"
         open_discord: "Open Discord"
         join_public: "Join public Discord"
-        view_plans: "View Pandora plans"
+        view_plans: "View subscription plans"
         contact_support: "Contact support"
         disconnect: "Disconnect"
       card:
-        title: "Pandora community access"
+        title: "VIP community access"
       benefits:
-        title: "Your Pandora VIP benefits"
+        title: "Your Discord VIP benefits"
         recorded_courses:
           title: "Recorded courses"
           body: "Watch the growing training library on your schedule."
@@ -89,8 +89,8 @@ en:
           title: "Live sessions"
           body: "Join community sessions and market walkthroughs."
         new_presets:
-          title: "New presets"
-          body: "Get new Pandora presets as they are released."
+          title: "Community updates"
+          body: "Stay current with announcements and shared resources from the team."
         priority_support:
           title: "Better support"
           body: "Reach the team through the dedicated VIP community."
@@ -98,18 +98,18 @@ en:
         disabled:
           label: "Unavailable"
           title: "Discord VIP is temporarily unavailable"
-          body: "Your Pandora subscription remains active. Please try again later or contact support."
+          body: "Your eligible subscription remains active. Please try again later or contact support."
         activation_pending:
           label: "Confirming payment"
-          title: "Your Pandora payment is being confirmed"
+          title: "Your subscription payment is being confirmed"
           body: "Stripe has returned you safely. We will enable Discord connection as soon as the verified payment webhook updates your subscription."
         ineligible:
-          label: "Pandora required"
-          title: "Subscribe to Pandora before connecting Discord"
-          body: "An active paid or manually granted Pandora subscription is required for ELITE access."
+          label: "Subscription required"
+          title: "Choose Chu or Pandora before connecting Discord"
+          body: "An active paid or manually granted Chu Sniper Trailing or Pandora Box subscription is required for ELITE access."
         eligible_unlinked:
           label: "Ready to connect"
-          title: "Your Pandora access is ready"
+          title: "Your VIP access is ready"
           body: "Connect Discord once and we will keep your VIP role synchronized with your subscription."
         pending_join:
           label: "Joining server"
@@ -117,30 +117,30 @@ en:
           body: "We are finishing the server join and VIP role synchronization."
         queued:
           label: "Sync queued"
-          title: "Pandora VIP is being synchronized"
+          title: "Discord VIP is being synchronized"
           body: "This normally completes shortly. You can safely leave this page and return later."
         granted:
           label: "VIP active"
-          title: "Pandora VIP is active"
-          body: "Your Discord account has the Pandora VIP role and can access the ELITE community."
+          title: "Discord VIP is active"
+          body: "Your Discord account has the VIP role and can access the ELITE community."
         removed:
           label: "VIP inactive"
-          title: "Pandora VIP is not currently active"
-          body: "Renew Pandora access or retry synchronization if your subscription is already active."
+          title: "Discord VIP is not currently active"
+          body: "Renew an eligible subscription or retry synchronization if your subscription is already active."
         failed:
           label: "Needs attention"
           title: "Discord synchronization needs another attempt"
           body: "No sensitive details were exposed. Retry now, and contact support if the issue continues."
         disconnecting:
           label: "Disconnecting"
-          title: "Removing Pandora VIP before disconnecting"
+          title: "Removing Discord VIP before disconnecting"
           body: "The account link stays protected until Discord confirms the VIP role is removed."
         membership_screening:
           label: "Accept server rules"
           title: "Complete Discord membership screening"
           body: "Your VIP role is ready. Accept the server rules in Discord to reveal the ELITE channels."
       notices:
-        connected: "Discord connected. Pandora VIP synchronization is queued."
+        connected: "Discord connected. VIP synchronization is queued."
         retry_queued: "Discord VIP synchronization was queued."
         unlink_requested: "Discord disconnect requested. VIP removal is queued first."
       errors:
@@ -150,7 +150,7 @@ en:
         invalid_state: "The Discord authorization request could not be verified. Please start again."
         identity_in_use: "That Discord account is already linked to another Trading Sniper Panel account."
         already_connected: "Disconnect the current Discord account before linking another one."
-        ineligible: "An active Pandora subscription is required to connect Discord."
+        ineligible: "An active Chu Sniper Trailing or Pandora Box subscription is required to connect Discord."
         provider_failed: "Discord could not be connected right now. Please retry."
         action_unavailable: "That Discord action is not available right now."
     discount_modal:
@@ -245,7 +245,7 @@ en:
           revoked: "Revoked"
           unknown: "Unknown"
     marketplace:
-      unavailable: "New marketplace purchases are unavailable. Pandora Box is offered by subscription."
+      unavailable: "New marketplace purchases are unavailable. Chu Sniper Trailing and Pandora Box are offered by subscription."
       index:
         title: "Marketplace"
         heading: "Find the right product for you"
@@ -451,12 +451,12 @@ en:
         copy: "Not sure which plan fits? We can help you choose."
         secondary: "We answer within one business day."
     plans:
-      page_title: "Pandora Box subscription"
-      landing_title: "Choose your Pandora Box interval"
-      landing_subtitle: "Pay $79 monthly or $616.20 annually and save 35%."
-      subtitle: "Review your Pandora Box subscription and billing interval."
+      page_title: "Subscription plans"
+      landing_title: "Choose your subscription"
+      landing_subtitle: "Start with Chu Sniper Trailing at $19.99 monthly or choose Pandora Box at $79.00. Annual billing saves 35%."
+      subtitle: "Compare Chu Sniper Trailing and Pandora Box access and billing intervals."
       summary: "Current plan: %{plan_name} (%{interval})."
-      no_plan_summary: "No active Pandora Box subscription. Choose an interval to get started."
+      no_plan_summary: "No active subscription. Choose a product and interval to get started."
       scheduled_notice: "Downgrade scheduled to %{plan} on %{date}."
       cancel_scheduled: "Cancel scheduled downgrade"
       cancel_success: "Scheduled downgrade canceled."
@@ -468,8 +468,9 @@ en:
       scheduled_badge: "Scheduled"
       placeholder: "—"
       effective_monthly: "Equivalent to $%{amount}/month"
+      popular: "Most popular"
       unavailable:
-        title: "Pandora Box checkout is temporarily unavailable"
+        title: "Subscription checkout is temporarily unavailable"
         body: "The monthly and annual prices must both be verified before checkout opens. Please contact support if this persists."
       toggle:
         monthly: "Monthly"
@@ -532,10 +533,21 @@ en:
             - "Multi-target take profit"
             - "Automatic break-even protection"
             - "Preconfigured order workflows"
+        chu_sniper_trailing:
+          name: "Chu Sniper Trailing"
+          description: "Chart-scoped position management with monotonic trailing protection for manual and scalping workflows."
+          features:
+            - "Chu Sniper Trailing EA/tool"
+            - "Chart-scoped position management"
+            - "Fixed-R trailing staircase"
+            - "Broker-aware stop and risk controls"
+            - "Discord VIP community"
         pandora_pro:
           name: "Pandora Box"
-          description: "Pandora Box EA for breakout-focused automation, configurable execution, and disciplined operation control."
+          description: "Pandora Box EA plus Chu Sniper Trailing for breakout-focused automation, configurable execution, and disciplined operation control."
           features:
+            - "Pandora Box EA"
+            - "Chu Sniper Trailing EA/tool"
             - "Breakout strategy automation"
             - "Direction modes"
             - "Flexible parameter configuration"
@@ -544,7 +556,7 @@ en:
             - "Recorded training courses"
             - "Live community sessions"
             - "New Pandora presets"
-            - "Dedicated VIP support"
+            - "Discord VIP community"
         fibonacci_elite:
           name: "Fibonacci"
           description: "Everything in Sniper Panel plus automated Fibonacci structure trading with precise controls."
@@ -597,20 +609,21 @@ en:
         subscribe: "Subscribe"
         scheduled: "Scheduled"
         unavailable: "Unavailable"
+        accessible: "%{action} %{plan} for %{interval} billing"
       upgrade_confirm: "Upgrade now? You will be charged immediately and payments are non-refundable."
       contact:
-        title: "Need help with Pandora Box?"
+        title: "Need help choosing a subscription?"
         body: "Contact support for installation, billing, interval changes, or account questions."
         cta: "Contact support"
       faq:
         title: "FAQs"
         items:
           - q: "What does the subscription include?"
-            a: "Both intervals include Pandora Box EA access, licensing, updates, guides, and support while the subscription remains active."
+            a: "Chu includes the Chu Sniper Trailing EA/tool and Discord VIP. Pandora includes Pandora Box, Chu Sniper Trailing, Discord VIP, licensing, updates, and guides while the subscription remains active."
           - q: "Can I change my billing interval later?"
             a: "Yes. Moving to annual billing applies immediately; moving to monthly billing is scheduled for the end of the current paid period."
           - q: "Monthly vs annual - what changes?"
-            a: "The product access is the same. Monthly is $79 per month; annual is $616.20 per year and saves 35%."
+            a: "The product access is the same within each tier. Chu is $19.99 per month or $155.92 per year; Pandora is $79.00 per month or $616.20 per year. Annual billing saves 35%."
           - q: "Where do I manage invoices and payment methods?"
             a: "Use the Billing page to open the portal and download invoices."
           - q: "Do referrals apply automatically?"

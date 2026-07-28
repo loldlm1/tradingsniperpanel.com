@@ -11,6 +11,16 @@ RSpec.describe "Admin manual subscriptions", type: :request do
     sign_in master_admin, scope: :user
   end
 
+  it "uses product-neutral subscription copy in English and Spanish" do
+    get new_admin_manual_subscription_path(locale: :en)
+    expect(response.body).to include(I18n.t("active_admin.manual_subscriptions.sections.access", locale: :en))
+    expect(response.body).not_to include("Manual Pandora access")
+
+    get new_admin_manual_subscription_path(locale: :es)
+    expect(response.body).to include(I18n.t("active_admin.manual_subscriptions.sections.access", locale: :es))
+    expect(response.body).not_to include("Acceso manual a Pandora")
+  end
+
   it "creates access from an exact email, plan, and days" do
     revoked_license = create(
       :license,
