@@ -74,10 +74,8 @@ module Billing
     end
 
     def parse_price_key(price_key)
-      parts = price_key.to_s.split("_")
-      return [ nil, nil ] if parts.size < 2
-
-      [ parts.shift.to_s, parts.join("_") ]
+      parsed = Billing::SubscriptionCatalog.parse_plan_key(price_key)
+      [ parsed[:tier].to_s.presence, parsed[:interval_key].to_s.presence ]
     end
 
     def visible_tiers

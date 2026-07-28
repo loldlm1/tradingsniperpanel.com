@@ -57,11 +57,8 @@ module Licenses
     end
 
     def manual_subscription_tiers
-      ManualSubscription
-        .active_at(now)
-        .where(user_id: user.id)
-        .includes(:billing_plan)
-        .filter_map { |subscription| subscription.billing_plan&.tier }
+      subscription = ManualSubscription.where(user_id: user.id).includes(:billing_plan).effective_at(now)
+      [ subscription&.billing_plan&.tier ].compact
     end
 
     def tier_for_subscription(subscription)
@@ -75,10 +72,7 @@ module Licenses
     end
 
     def parse_tier_from_key(key)
-      parts = key.to_s.split("_")
-      return nil if parts.size < 2
-
-      parts.first
+      Billing::SubscriptionCatalog.parse_plan_key(key)[:tier]
     end
 
     def tier_rank_for(tier)

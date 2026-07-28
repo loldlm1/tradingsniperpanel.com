@@ -3,12 +3,8 @@ require "rails_helper"
 RSpec.describe Billing::ConfiguredPrices do
   describe ".price_id_for" do
     it "returns only exact current Pandora prices" do
-      monthly = create(
-        :billing_plan,
-        tier: Billing::PandoraPricing::TIER,
-        key: Billing::PandoraPricing::MONTHLY_KEY,
-        amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
-      )
+      catalog = create_subscription_catalog
+      monthly = catalog[:pandora_monthly]
       create(:billing_plan, tier: "basic", key: "basic_monthly", stripe_price_id: "price_old")
 
       expect(described_class.price_id_for(Billing::PandoraPricing::MONTHLY_KEY)).to eq(monthly.stripe_price_id)

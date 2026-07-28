@@ -35,4 +35,18 @@ RSpec.describe ManualSubscriptions::SyncJob, type: :job do
       described_class.perform_now(manual_subscription.id)
     end.to have_enqueued_job(Discord::SyncVipRoleJob).with(connection.id)
   end
+
+  it "schedules future grants at their start boundary" do
+    now = Time.current
+    subscription = build(
+      :manual_subscription,
+      starts_at: now + 2.days,
+      ends_at: now + 32.days,
+      status: "active"
+    )
+
+    expect do
+      subscription.save!
+    end.to have_enqueued_job(described_class).with(subscription.id)
+  end
 end

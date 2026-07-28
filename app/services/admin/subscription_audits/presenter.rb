@@ -56,11 +56,11 @@ module Admin
       end
 
       def plan_name
-        current_plan_info&.dig(:plan)&.name
+        current_plan_info&.dig(:plan)&.name || current_manual_grant&.billing_plan&.name
       end
 
       def processor_plan_reference
-        current_subscription&.processor_plan
+        current_plan_info&.dig(:plan)&.key || current_manual_grant&.billing_plan&.key
       end
 
       def interval
@@ -107,7 +107,7 @@ module Admin
       end
 
       def customer_references
-        customers.filter_map(&:processor_id).uniq
+        customers.filter_map { |customer| local_customer_reference(customer) }.uniq
       end
 
       def payment_totals
@@ -158,7 +158,7 @@ module Admin
 
           promotion = context.promotion_lookup[promotion_id] || context.promotion_lookup[code]
           {
-            subscription_reference: subscription.processor_id,
+            subscription_reference: local_subscription_reference(subscription),
             code: code || promotion&.code,
             percent: percent || promotion&.percent_off,
             record_status: promotion_record_status(promotion),
@@ -175,7 +175,7 @@ module Admin
           next if code.blank? && percent.nil?
 
           {
-            subscription_reference: subscription.processor_id,
+            subscription_reference: local_subscription_reference(subscription),
             code: code,
             percent: percent,
             source: "subscription_metadata"
@@ -245,6 +245,25 @@ module Admin
         Array(event.metadata["affected_license_ids"]).filter_map { |id| Integer(id, exception: false) }
       end
 
+      def safe_processor_reference(entry)
+        record = if entry.source == "pay_charge"
+          charges.find { |charge| charge.processor_id == entry.processor_reference }
+        else
+          context.webhooks_by_user.fetch(user.id, []).find do |webhook|
+            object = webhook.event.is_a?(Hash) ? webhook.event.dig("data", "object") : nil
+            object.is_a?(Hash) && object["id"].to_s == entry.processor_reference.to_s
+          end
+        end
+        return unless record
+
+        "#{record.class.name}##{record.id}"
+      end
+
+      def safe_subscription_reference(entry)
+        subscription = subscriptions.find { |record| record.processor_id == entry.subscription_reference }
+        local_subscription_reference(subscription)
+      end
+
       private
 
       attr_reader :context
@@ -255,7 +274,8 @@ module Admin
       end
 
       def active_manual_grant
-        @active_manual_grant ||= manual_grants.select { |grant| grant.active_for_time? }.max_by(&:ends_at)
+        @active_manual_grant ||= manual_grants.select { |grant| grant.active_for_time? }
+                                                    .max_by { |grant| [ grant.starts_at, grant.id ] }
       end
 
       def current_trial_license
@@ -282,6 +302,18 @@ module Admin
 
       def normalize_currency(value)
         value.to_s.downcase.presence
+      end
+
+      def local_customer_reference(customer)
+        return unless customer&.id
+
+        "Pay::Customer##{customer.id}"
+      end
+
+      def local_subscription_reference(subscription)
+        return unless subscription&.id
+
+        "Pay::Subscription##{subscription.id}"
       end
 
       def active_stripe_record?(subscription)

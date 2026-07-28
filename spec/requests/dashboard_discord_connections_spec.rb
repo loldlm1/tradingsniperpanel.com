@@ -34,12 +34,7 @@ RSpec.describe "Dashboard Discord connection", type: :request do
 
   it "clears the desired plan only after authoritative eligibility is present" do
     stub_eligibility(true)
-    create(
-      :billing_plan,
-      tier: Billing::PandoraPricing::TIER,
-      key: Billing::PandoraPricing::MONTHLY_KEY,
-      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
-    )
+    create_subscription_catalog
     get dashboard_plans_path(price_key: Billing::PandoraPricing::MONTHLY_KEY)
     expect(cookies["desired_plan"]).to be_present
 

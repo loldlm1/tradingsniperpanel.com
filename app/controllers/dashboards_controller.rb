@@ -269,9 +269,9 @@ class DashboardsController < ApplicationController
       return t("dashboard.plan_card.plan_label", tier: tier_label, interval: interval_label)
     end
 
-    parts = price_key.to_s.split("_")
-    tier = parts.shift
-    interval_key = parts.join("_")
+    parsed = Billing::SubscriptionCatalog.parse_plan_key(price_key)
+    tier = parsed[:tier]
+    interval_key = parsed[:interval_key]
     return price_key.to_s if tier.blank?
 
     tier_label = t("dashboard.plans.tiers.#{tier}.name", default: tier.to_s.humanize)

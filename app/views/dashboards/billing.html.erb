@@ -60,7 +60,7 @@
             <% plan_key = if manual_subscription
                             @subscription&.billing_plan&.key
                           else
-                            @subscription&.processor_plan
+                            plan[:current_price_key]
                           end %>
             <span class="mr-3"><%= plan_key.presence || t("dashboard.billing.placeholder") %></span>
             <% unless manual_subscription %>

@@ -289,7 +289,9 @@ ActiveAdmin.register User, as: "SubscriptionAudit" do
 
       if presenter.subscriptions.any?
         table_for presenter.subscriptions do
-          column t("active_admin.subscription_audits.labels.processor_reference"), &:processor_id
+          column t("active_admin.subscription_audits.labels.processor_reference") do |subscription|
+            "Pay::Subscription##{subscription.id}"
+          end
           column t("active_admin.subscription_audits.labels.status"), &:status
           column t("active_admin.subscription_audits.labels.plan") do |subscription|
             info = presenter.price_info_for(subscription)
@@ -340,10 +342,10 @@ ActiveAdmin.register User, as: "SubscriptionAudit" do
             status_tag t("active_admin.subscription_audits.payment_states.#{entry.state}")
           end
           column t("active_admin.subscription_audits.labels.processor_reference") do |entry|
-            entry.processor_reference || t("active_admin.subscription_audits.unavailable")
+            presenter.safe_processor_reference(entry) || t("active_admin.subscription_audits.unavailable")
           end
           column t("active_admin.subscription_audits.labels.subscription_reference") do |entry|
-            entry.subscription_reference || t("active_admin.subscription_audits.unavailable")
+            presenter.safe_subscription_reference(entry) || t("active_admin.subscription_audits.unavailable")
           end
           column t("active_admin.subscription_audits.labels.amount") do |entry|
             entry.amount_cents && entry.currency ?
@@ -417,7 +419,10 @@ ActiveAdmin.register User, as: "SubscriptionAudit" do
           column :notes
           column :recorded_by_admin
           column :superseded_at
-          column :superseded_by_pay_subscription
+          column :superseded_by_pay_subscription do |grant|
+            subscription = grant.superseded_by_pay_subscription
+            subscription ? "Pay::Subscription##{subscription.id}" : t("active_admin.subscription_audits.none")
+          end
         end
       else
         para t("active_admin.subscription_audits.empty.manual_grants")

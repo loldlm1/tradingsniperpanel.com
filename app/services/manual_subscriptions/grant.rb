@@ -3,9 +3,6 @@ module ManualSubscriptions
     class IdempotencyConflict < StandardError; end
 
     MAX_GRANTED_DAYS = 730
-    PANDORA_EA_ID = "pandora_box".freeze
-    PANDORA_TIER = Billing::PandoraPricing::TIER
-
     def initialize(user:, billing_plan:, granted_days:, recorded_by_admin:, request_id:, payment_status: nil,
                    amount_cents: nil, paid_at: nil, currency: "usd", payment_method: nil,
                    reference: nil, notes: nil, now: Time.current)
@@ -39,16 +36,17 @@ module ManualSubscriptions
 
     def validate_contract!
       raise ArgumentError, "user is required" unless user.is_a?(User) && user.persisted?
-      raise ArgumentError, "Pandora subscription plan is required" unless pandora_subscription_plan?
+      raise ArgumentError, "canonical subscription plan is required" unless subscription_plan?
       raise ArgumentError, "recording admin is required" unless authorized_admin?
       raise ArgumentError, "request_id is required" if request_id.blank? || request_id.length > 128
     end
 
-    def pandora_subscription_plan?
+    def subscription_plan?
       billing_plan.is_a?(BillingPlan) &&
         billing_plan.persisted? &&
         BillingPlan.purchasable.exists?(id: billing_plan.id) &&
-        billing_plan.expert_advisors.where(ea_id: PANDORA_EA_ID).exists?
+        Billing::SubscriptionCatalog.canonical_plan?(billing_plan) &&
+        ExpertAdvisor.subscription_entitlements_for(billing_plan).present?
     end
 
     def authorized_admin?
@@ -115,6 +113,8 @@ module ManualSubscriptions
     end
 
     def sync_licenses(grant)
+      return grant if grant.starts_at.present? && grant.starts_at > now
+
       Licenses::ManualSubscriptionSync.new(manual_subscription_id: grant.id).call
       grant
     end

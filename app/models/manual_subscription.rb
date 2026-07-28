@@ -44,6 +44,10 @@ class ManualSubscription < ApplicationRecord
   }
   scope :not_superseded, -> { where.not(status: STATUSES[:superseded]) }
 
+  def self.effective_at(time = Time.current)
+    active_at(time).order(starts_at: :desc, id: :desc).first
+  end
+
   def self.ransackable_associations(_auth_object = nil)
     %w[billing_plan recorded_by_admin superseded_by_pay_subscription user]
   end
@@ -186,6 +190,10 @@ class ManualSubscription < ApplicationRecord
   end
 
   def enqueue_sync
-    ManualSubscriptions::SyncJob.perform_later(id)
+    if starts_at.present? && starts_at > Time.current && active?
+      ManualSubscriptions::SyncJob.set(wait_until: starts_at).perform_later(id)
+    else
+      ManualSubscriptions::SyncJob.perform_later(id)
+    end
   end
 end

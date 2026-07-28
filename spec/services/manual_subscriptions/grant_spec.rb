@@ -1,4 +1,5 @@
 require "rails_helper"
+require "digest"
 require "securerandom"
 
 RSpec.describe ManualSubscriptions::Grant do
@@ -7,19 +8,9 @@ RSpec.describe ManualSubscriptions::Grant do
 
   let(:user) { create(:user) }
   let(:admin) { create(:user, :admin) }
-  let(:pandora_ea) { ExpertAdvisor.find_by(ea_id: "pandora_box") || create(:expert_advisor, ea_id: "pandora_box") }
-  let(:plan) do
-    billing_plan = BillingPlan.find_by(key: Billing::PandoraPricing::MONTHLY_KEY) || create(
-      :billing_plan,
-      tier: Billing::PandoraPricing::TIER,
-      key: Billing::PandoraPricing::MONTHLY_KEY,
-      interval: "month",
-      interval_count: 1,
-      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
-    )
-    BillingPlanEntitlement.find_or_create_by!(billing_plan: billing_plan, expert_advisor: pandora_ea)
-    billing_plan
-  end
+  let(:catalog) { create_subscription_catalog }
+  let(:pandora_ea) { catalog[:expert_advisors].fetch("pandora_box") }
+  let(:plan) { catalog[:pandora_monthly] }
 
   before { clear_enqueued_jobs }
   after { clear_enqueued_jobs }
@@ -70,6 +61,52 @@ RSpec.describe ManualSubscriptions::Grant do
     expect(second.ends_at).to eq(first.ends_at + 15.days)
   end
 
+  it "keeps the current tier effective until a future grant starts" do
+    base_time = Time.current.change(usec: 0)
+    future = pandora_license = chu_license = nil
+    travel_to base_time do
+      current = create(
+        :manual_subscription,
+        user: user,
+        billing_plan: catalog[:pandora_monthly],
+        starts_at: 1.day.ago,
+        ends_at: 1.day.from_now
+      )
+      Licenses::ManualSubscriptionSync.new(manual_subscription_id: current.id).call
+      pandora_license = License.find_by!(user: user, expert_advisor: pandora_ea)
+      chu_license = License.find_by!(
+        user: user,
+        expert_advisor: catalog[:expert_advisors].fetch("chu_sniper_trailing")
+      )
+      original_digest = Digest::SHA256.hexdigest(pandora_license.encrypted_key)
+      original_chu_digest = Digest::SHA256.hexdigest(chu_license.encrypted_key)
+
+      future = described_class.new(
+        user: user,
+        billing_plan: catalog[:chu_monthly],
+        granted_days: 30,
+        recorded_by_admin: admin,
+        request_id: SecureRandom.uuid,
+        now: Time.current
+      ).call
+
+      expect(future.starts_at).to eq(current.ends_at)
+      expect(chu_license.reload).to be_active
+      expect(Digest::SHA256.hexdigest(pandora_license.reload.encrypted_key)).to eq(original_digest)
+      expect(Digest::SHA256.hexdigest(chu_license.encrypted_key)).to eq(original_chu_digest)
+      expect(enqueued_jobs).to include(
+        hash_including(job: ManualSubscriptions::SyncJob, args: [ future.id ])
+      )
+    end
+
+    travel_to future.starts_at do
+      Licenses::ManualSubscriptionSync.new(manual_subscription_id: future.id).call
+    end
+
+    expect(pandora_license.reload).to be_expired
+    expect(chu_license.reload).to be_active
+  end
+
   it "supports pending and paid details without changing the primary grant fields" do
     pending = described_class.new(
       user: user,
@@ -99,7 +136,7 @@ RSpec.describe ManualSubscriptions::Grant do
     expect(paid.paid_at).to be_present
   end
 
-  it "rejects non-Pandora plans and out-of-range days" do
+  it "rejects non-canonical plans and out-of-range days" do
     other_plan = create(:billing_plan)
 
     expect do
@@ -110,7 +147,7 @@ RSpec.describe ManualSubscriptions::Grant do
         recorded_by_admin: admin,
         request_id: SecureRandom.uuid
       ).call
-    end.to raise_error(ArgumentError, "Pandora subscription plan is required")
+    end.to raise_error(ArgumentError, "canonical subscription plan is required")
 
     expect do
       described_class.new(

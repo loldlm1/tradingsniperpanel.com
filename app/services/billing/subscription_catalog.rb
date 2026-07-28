@@ -80,6 +80,14 @@ module Billing
       PRODUCTS.find { |product| product.plan_keys.include?(plan_key.to_s) }
     end
 
+    # Resolve persisted processor references before accepting a caller-provided
+    # key. Historical price rows can point at the same canonical billing plan.
+    def resolve_plan(plan_key: nil, price_id: nil, product_id: nil)
+      BillingPlan.for_price_id(price_id) ||
+        BillingPlan.for_product_id(product_id) ||
+        BillingPlan.for_key(plan_key)
+    end
+
     # Returns a product only when the persisted plan still matches a canonical
     # catalog definition. Runtime entitlement decisions must fail closed for
     # stale or partially configured billing rows.

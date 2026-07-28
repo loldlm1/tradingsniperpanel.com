@@ -57,11 +57,12 @@ module Billing
       invoice_object = stripe_invoice_object(invoice)
       return [] if invoice_object.blank?
 
-      lines = if invoice_object.respond_to?(:lines)
-                invoice_object.lines
-              elsif invoice_object.is_a?(Hash)
-                invoice_object["lines"] || invoice_object[:lines]
-              end
+      lines =
+        if invoice_object.respond_to?(:lines)
+          invoice_object.lines
+        elsif invoice_object.is_a?(Hash)
+          invoice_object["lines"] || invoice_object[:lines]
+        end
 
       return [] if lines.blank?
 
@@ -99,17 +100,17 @@ module Billing
 
     def pricing_details_for_line(line)
       pricing = line_pricing(line)
-      return [nil, nil] if pricing.blank?
+      return [ nil, nil ] if pricing.blank?
 
       pricing_type = value_for(pricing, :type)
       if pricing_type.present? && pricing_type.to_s != "price_details"
-        return [nil, nil]
+        return [ nil, nil ]
       end
 
       details = value_for(pricing, :price_details)
       price_id = extract_id(value_for(details, :price))
       product_id = extract_id(value_for(details, :product))
-      [price_id, product_id]
+      [ price_id, product_id ]
     end
 
     def line_pricing(line)
@@ -140,9 +141,8 @@ module Billing
     end
 
     def price_key_from_ids(price_id, product_id)
-      price_key = Billing::PriceKeyResolver.key_for_product_id(product_id)
-      price_key ||= Billing::PriceKeyResolver.key_for_price_id(price_id)
-      price_key
+      Billing::PriceKeyResolver.key_for_price_id(price_id) ||
+        Billing::PriceKeyResolver.key_for_product_id(product_id)
     end
 
     def line_amount(line)
@@ -152,8 +152,24 @@ module Billing
     end
 
     def select_change_keys(price_totals)
+      keys = price_totals.keys
+      return [] if keys.size < 2
+
+      negative_key = keys.find { |key| price_totals[key].to_i.negative? }
+      positive_key = keys.find { |key| price_totals[key].to_i.positive? }
+      return [ negative_key, positive_key ] if negative_key && positive_key
+
+      ranked = keys.sort_by do |key|
+        plan_comparator.rank_for(key) || [ Float::INFINITY, Float::INFINITY ]
+      end
+      from_key, to_key = ranked.first, ranked.last
+      if from_key && to_key && from_key != to_key &&
+          plan_comparator.compare(current_key: from_key, target_key: to_key) != :current
+        return [ from_key, to_key ]
+      end
+
       sorted = price_totals.sort_by { |_, amount| amount.to_i }
-      [sorted.first[0], sorted.last[0]]
+      [ sorted.first[0], sorted.last[0] ]
     end
 
     def change_label_for(from_key, to_key)
@@ -188,10 +204,8 @@ module Billing
     end
 
     def parse_price_key(price_key)
-      parts = price_key.to_s.split("_")
-      return [nil, nil] if parts.size < 2
-
-      [parts.shift.to_s, parts.join("_")]
+      parsed = Billing::SubscriptionCatalog.parse_plan_key(price_key)
+      [ parsed[:tier], parsed[:interval_key] ]
     end
 
     def tier_label_for(tier)
@@ -230,7 +244,7 @@ module Billing
       Stripe::Invoice.retrieve(
         {
           id: stripe_invoice_id,
-          expand: ["lines.data.pricing.price_details", "lines.data.plan.product", "lines.data.price.product"]
+          expand: [ "lines.data.pricing.price_details", "lines.data.plan.product", "lines.data.price.product" ]
         }
       )
     rescue StandardError => e

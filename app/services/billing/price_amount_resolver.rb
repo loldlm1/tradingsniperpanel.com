@@ -17,12 +17,13 @@ module Billing
       return @amount_cache[price_key] if @amount_cache.key?(price_key)
 
       from_catalog = amount_from_catalog(price_key)
-      amount = if from_catalog.present?
-                 from_catalog
-               elsif stripe_fallback?
-                 price_id = Billing::ConfiguredPrices.price_id_for(price_key)
-                 amount_from_stripe(price_id)
-               end
+      amount =
+        if from_catalog.present?
+          from_catalog
+        elsif stripe_fallback?
+          price_id = Billing::ConfiguredPrices.price_id_for(price_key)
+          amount_from_stripe(price_id)
+        end
 
       @amount_cache[price_key] = amount
     end
@@ -63,13 +64,6 @@ module Billing
     rescue StandardError => e
       logger.warn("[Billing::PriceAmountResolver] failed price_id=#{price_id}: #{e.class} - #{e.message}")
       nil
-    end
-
-    def parse_price_key(price_key)
-      parts = price_key.to_s.split("_")
-      return [nil, nil] if parts.size < 2
-
-      [parts.shift.to_sym, parts.join("_")]
     end
   end
 end
