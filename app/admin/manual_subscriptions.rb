@@ -34,6 +34,11 @@ ActiveAdmin.register ManualSubscription do
                 alert: t("active_admin.manual_subscriptions.revoke_failed", message: e.message)
   end
 
+  member_action :sync, method: :post do
+    ManualSubscriptions::SyncJob.perform_later(resource.id)
+    redirect_to resource_path(resource), notice: t("active_admin.manual_subscriptions.sync_enqueued")
+  end
+
   action_item :revoke, only: :show, if: proc { resource.revocable? } do
     link_to t("active_admin.manual_subscriptions.actions.revoke"),
             revoke_admin_manual_subscription_path(resource, request_id: SecureRandom.uuid),
@@ -45,6 +50,12 @@ ActiveAdmin.register ManualSubscription do
                 ends_at: I18n.l(resource.ends_at, format: :long)
               )
             }
+  end
+
+  action_item :sync, only: :show do
+    link_to t("active_admin.manual_subscriptions.actions.sync"),
+            sync_admin_manual_subscription_path(resource),
+            method: :post
   end
 
   index do
@@ -111,10 +122,7 @@ ActiveAdmin.register ManualSubscription do
               }
       f.input :billing_plan,
               collection: BillingPlan.purchasable
-                                     .joins(:expert_advisors)
-                                     .where(tier: ManualSubscriptions::Grant::PANDORA_TIER)
-                                     .where(expert_advisors: { ea_id: ManualSubscriptions::Grant::PANDORA_EA_ID })
-                                     .distinct
+                                     .includes(:expert_advisors)
                                      .ordered
       f.input :granted_days, input_html: { min: 1, max: ManualSubscriptions::Grant::MAX_GRANTED_DAYS }
     end

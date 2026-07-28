@@ -50,6 +50,43 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["granted_addons"]).to eq([])
   end
 
+  it "uses the unchanged v1 response contract for Chu without required add-ons" do
+    chu = create(:expert_advisor, ea_id: "chu_sniper_trailing", ea_type: :ea_tool, trial_enabled: false)
+    chu_expires_at = 5.days.from_now
+    chu_key = encoder.generate(
+      email: user.email,
+      ea_id: chu.ea_id,
+      expires_at: chu_expires_at,
+      token_version: token_version
+    )
+    create(
+      :license,
+      user: user,
+      expert_advisor: chu,
+      status: "active",
+      token_version: token_version,
+      trial_ends_at: nil,
+      expires_at: chu_expires_at,
+      encrypted_key: chu_key
+    )
+
+    post "/api/v1/licenses/verify", params: verify_params(
+      ea_id: chu.ea_id,
+      license_key: chu_key,
+      broker_account: broker_account_payload.merge(company: "ChuBroker", account_number: 7654)
+    )
+
+    expect(response).to have_http_status(:ok)
+    body = JSON.parse(response.body)
+    expect(body).to include(
+      "ok" => true,
+      "trial" => false,
+      "expires_at" => chu_expires_at.to_i,
+      "granted_addons" => []
+    )
+    expect(body["magic_number"]).to be_between(1, Licenses::MagicNumberPolicy::MAX_VALUE)
+  end
+
   it "rejects the previous token after rotation and accepts the current token" do
     previous_key = license.encrypted_key
     Licenses::RotateTokens.new(
@@ -167,8 +204,8 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["error"]).to eq("addons_required")
     expect(body["required_addons"]).to eq(addon.key)
     expect(body["missing_addons"]).to eq(addon.key)
-    expect(body["required_addon_keys"]).to eq([addon.key])
-    expect(body["missing_addon_keys"]).to eq([addon.key])
+    expect(body["required_addon_keys"]).to eq([ addon.key ])
+    expect(body["missing_addon_keys"]).to eq([ addon.key ])
   end
 
   it "returns only the missing addon keys when some requested addons are already owned" do
@@ -184,8 +221,8 @@ RSpec.describe "Licenses API", type: :request do
     expect(body["error"]).to eq("addons_required")
     expect(body["required_addons"]).to eq("#{owned_addon.key},#{missing_addon.key}")
     expect(body["missing_addons"]).to eq(missing_addon.key)
-    expect(body["required_addon_keys"]).to eq([owned_addon.key, missing_addon.key])
-    expect(body["missing_addon_keys"]).to eq([missing_addon.key])
+    expect(body["required_addon_keys"]).to eq([ owned_addon.key, missing_addon.key ])
+    expect(body["missing_addon_keys"]).to eq([ missing_addon.key ])
   end
 
   it "allows access when required addons are purchased" do
@@ -197,7 +234,7 @@ RSpec.describe "Licenses API", type: :request do
     expect(response).to have_http_status(:ok)
     body = JSON.parse(response.body)
     expect(body["ok"]).to eq(true)
-    expect(body["granted_addons"]).to eq([addon.key])
+    expect(body["granted_addons"]).to eq([ addon.key ])
   end
 
   it "returns license_not_found for every product role without entitlement" do

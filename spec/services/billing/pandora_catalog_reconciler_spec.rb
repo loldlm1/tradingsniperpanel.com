@@ -18,13 +18,17 @@ RSpec.describe Billing::PandoraCatalogReconciler do
 
     result = service.call
 
-    expect(result.plans.map(&:key).sort).to eq(Billing::PandoraPricing::PLAN_KEYS.sort)
-    expect(BillingPlan.active.order(:key).pluck(:key)).to eq(Billing::PandoraPricing::PLAN_KEYS.sort)
+    expect(result.plans.map(&:key).sort).to eq(Billing::SubscriptionCatalog.plan_keys.sort)
+    expect(BillingPlan.active.order(:key).pluck(:key)).to eq(Billing::SubscriptionCatalog.plan_keys.sort)
     expect(BillingPlan.purchasable.sum(:amount_cents)).to eq(
-      Billing::PandoraPricing::MONTHLY_CENTS + Billing::PandoraPricing::ANNUAL_CENTS
+      Billing::ChuSniperPricing::MONTHLY_CENTS + Billing::ChuSniperPricing::ANNUAL_CENTS +
+        Billing::PandoraPricing::MONTHLY_CENTS + Billing::PandoraPricing::ANNUAL_CENTS
     )
-    expect(BillingPlan.purchasable.distinct.pluck(:stripe_product_id)).to eq([ Seeds::BillingPlans::LOCAL_PRODUCT_ID ])
-    expect(ExpertAdvisor.active.pluck(:ea_id)).to eq([ "pandora_box" ])
+    expect(BillingPlan.purchasable.distinct.pluck(:stripe_product_id)).to contain_exactly(
+      Seeds::BillingPlans::LOCAL_PRODUCT_IDS.fetch("chu_sniper_trailing"),
+      Seeds::BillingPlans::LOCAL_PRODUCT_ID
+    )
+    expect(ExpertAdvisor.active.pluck(:ea_id)).to contain_exactly("chu_sniper_trailing", "pandora_box")
     expect(stale.fetch(:plan).reload).not_to be_active
     expect(stale.fetch(:expert_advisor).reload.deleted_at).to be_present
     expect(stale.fetch(:marketplace_product).reload).to be_draft
@@ -82,7 +86,11 @@ RSpec.describe Billing::PandoraCatalogReconciler do
 
     expect(result.retirement.removed_entitlements).to eq(1)
     expect(BillingPlanEntitlement.order(:billing_plan_id, :expert_advisor_id).pluck(:billing_plan_id, :expert_advisor_id)).to eq(
-      result.plans.sort_by(&:id).map { |plan| [ plan.id, result.expert_advisor.id ] }
+      result.plans.flat_map do |plan|
+        Billing::SubscriptionCatalog.product_for_plan_key(plan.key).ea_ids.map do |ea_id|
+          [ plan.id, result.expert_advisors.find { |ea| ea.ea_id == ea_id }.id ]
+        end
+      end.sort
     )
   end
 
@@ -110,7 +118,10 @@ RSpec.describe Billing::PandoraCatalogReconciler do
       allow_local: true
     ).call
 
-    expect(result.plans.map(&:stripe_product_id).uniq).to eq([ Seeds::BillingPlans::LOCAL_PRODUCT_ID ])
+    expect(result.plans.map(&:stripe_product_id).uniq).to contain_exactly(
+      Seeds::BillingPlans::LOCAL_PRODUCT_ID,
+      Seeds::BillingPlans::LOCAL_PRODUCT_IDS.fetch("chu_sniper_trailing")
+    )
   end
 
   def successful_migrator

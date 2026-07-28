@@ -3,22 +3,22 @@ require "rails_helper"
 RSpec.describe "Admin manual subscriptions", type: :request do
   let(:master_admin) { create(:user, :master_admin) }
   let(:customer) { create(:user) }
-  let(:pandora_ea) { ExpertAdvisor.find_by(ea_id: "pandora_box") || create(:expert_advisor, ea_id: "pandora_box") }
-  let(:plan) do
-    billing_plan = BillingPlan.find_by(key: Billing::PandoraPricing::MONTHLY_KEY) || create(
-      :billing_plan,
-      tier: Billing::PandoraPricing::TIER,
-      key: Billing::PandoraPricing::MONTHLY_KEY,
-      interval: "month",
-      interval_count: 1,
-      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
-    )
-    BillingPlanEntitlement.find_or_create_by!(billing_plan: billing_plan, expert_advisor: pandora_ea)
-    billing_plan
-  end
+  let(:catalog) { create_subscription_catalog }
+  let(:pandora_ea) { catalog[:expert_advisors].fetch("pandora_box") }
+  let(:plan) { catalog[:pandora_monthly] }
 
   before do
     sign_in master_admin, scope: :user
+  end
+
+  it "uses product-neutral subscription copy in English and Spanish" do
+    get new_admin_manual_subscription_path(locale: :en)
+    expect(response.body).to include(I18n.t("active_admin.manual_subscriptions.sections.access", locale: :en))
+    expect(response.body).not_to include("Manual Pandora access")
+
+    get new_admin_manual_subscription_path(locale: :es)
+    expect(response.body).to include(I18n.t("active_admin.manual_subscriptions.sections.access", locale: :es))
+    expect(response.body).not_to include("Acceso manual a Pandora")
   end
 
   it "creates access from an exact email, plan, and days" do
@@ -100,7 +100,7 @@ RSpec.describe "Admin manual subscriptions", type: :request do
     expect(response).to redirect_to(root_path)
   end
 
-  it "rejects non-Pandora plans" do
+  it "rejects non-canonical plans" do
     other_plan = create(:billing_plan)
 
     expect do
@@ -139,6 +139,32 @@ RSpec.describe "Admin manual subscriptions", type: :request do
     expect(grant.amount_cents).to eq(7900)
     expect(grant.paid_at).to eq(paid_at)
     expect(grant.reference).to eq("manual-invoice-1")
+  end
+
+  it "allows a Chu plan and exposes an operator resync action" do
+    chu_plan = catalog[:chu_monthly]
+    chu_ea = catalog[:expert_advisors].fetch("chu_sniper_trailing")
+
+    expect do
+      post admin_manual_subscriptions_path, params: {
+        manual_subscription: {
+          request_id: SecureRandom.uuid,
+          user_id: customer.id,
+          billing_plan_id: chu_plan.id,
+          granted_days: 30
+        }
+      }
+    end.to change(ManualSubscription, :count).by(1)
+
+    grant = ManualSubscription.order(:id).last
+    expect(grant.billing_plan).to eq(chu_plan)
+    expect(License.find_by(user: customer, expert_advisor: chu_ea)).to be_present
+
+    expect do
+      post sync_admin_manual_subscription_path(grant)
+    end.to have_enqueued_job(ManualSubscriptions::SyncJob).with(grant.id)
+    expect(response).to redirect_to(admin_manual_subscription_path(grant))
+    expect(response).to have_http_status(:redirect)
   end
 
   it "revokes active manual access and records the operator" do

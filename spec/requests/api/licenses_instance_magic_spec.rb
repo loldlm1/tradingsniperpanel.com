@@ -3,7 +3,9 @@ require "rails_helper"
 RSpec.describe "Licenses Instance Magic API", type: :request do
   let(:encoder) { Licenses::LicenseKeyEncoder.new(primary_key: ENV["EA_LICENSE_PRIMARY_KEY"], secondary_key: ENV["EA_LICENSE_SECRET_KEY"]) }
   let(:user) { create(:user, email: "instance-user@example.com") }
-  let(:expert_advisor) { create(:expert_advisor, ea_id: "ea-instance") }
+  let(:expert_advisor) do
+    create(:expert_advisor, ea_id: "chu_sniper_trailing", ea_type: :ea_tool, trial_enabled: false)
+  end
   let(:expires_at) { 5.days.from_now }
   let(:token_version) { 2 }
   let(:license_key) do
@@ -67,7 +69,7 @@ RSpec.describe "Licenses Instance Magic API", type: :request do
     expect(response).to have_http_status(:ok)
     body = JSON.parse(response.body)
     expect(body["ok"]).to eq(true)
-    expect(body["instance_id"]).to eq("pandora_box_ABC123")
+    expect(body["instance_id"]).to eq("chu_sniper_trailing_ABC123")
     expect(body["magic_number"]).to be > 0
     expect(body["magic_number"]).to be <= Licenses::MagicNumberPolicy::MAX_VALUE
     expect(body["trade_identity_scope"]).to eq("instance")
@@ -78,7 +80,7 @@ RSpec.describe "Licenses Instance Magic API", type: :request do
     post "/api/v1/licenses/instance_magic", params: instance_magic_params
     first_magic = JSON.parse(response.body).fetch("magic_number")
 
-    post "/api/v1/licenses/instance_magic", params: instance_magic_params(instance_id: " pandora_box_ABC123 ")
+    post "/api/v1/licenses/instance_magic", params: instance_magic_params(instance_id: " chu_sniper_trailing_ABC123 ")
     second_magic = JSON.parse(response.body).fetch("magic_number")
 
     expect(first_magic).to eq(second_magic)
@@ -86,10 +88,10 @@ RSpec.describe "Licenses Instance Magic API", type: :request do
   end
 
   it "returns different magic for a different instance id on the same broker account" do
-    post "/api/v1/licenses/instance_magic", params: instance_magic_params(instance_id: "pandora_box_A")
+    post "/api/v1/licenses/instance_magic", params: instance_magic_params(instance_id: "chu_sniper_trailing_A")
     first_magic = JSON.parse(response.body).fetch("magic_number")
 
-    post "/api/v1/licenses/instance_magic", params: instance_magic_params(instance_id: "pandora_box_B")
+    post "/api/v1/licenses/instance_magic", params: instance_magic_params(instance_id: "chu_sniper_trailing_B")
     second_magic = JSON.parse(response.body).fetch("magic_number")
 
     expect(first_magic).not_to eq(second_magic)
@@ -164,7 +166,7 @@ RSpec.describe "Licenses Instance Magic API", type: :request do
       ea_id: expert_advisor.ea_id,
       license_key: license_key,
       broker_account: broker_account_payload,
-      instance_id: "pandora_box_ABC123"
+      instance_id: "chu_sniper_trailing_ABC123"
     }.deep_merge(overrides)
   end
 end

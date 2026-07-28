@@ -14,6 +14,7 @@ module BrokerAccounts
     def call(source:, email:, ea_id:, license_key:, broker_account:, magic_number:, result_timestamp:, result_value:)
       verification = verifier.call(source:, email:, ea_id:, license_key:)
       return failure(verification.error, verification.code) unless verification.ok?
+      return failure(:invalid_payload, :unprocessable_content) unless verification.license.expert_advisor.daily_results_supported?
 
       normalized_broker = normalize_broker_account(broker_account)
       return failure(:invalid_payload, :unprocessable_content) if normalized_broker.nil?

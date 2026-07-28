@@ -1,7 +1,12 @@
-# Pandora Subscription Rollout Runbook
+# Pandora Subscription Rollout Runbook (Historical)
 
-This runbook covers the Pandora-only subscription catalog, renewal migration,
-manual access, and versioned license-token rotation. It does not authorize a
+> The current multi-product rollout is documented in
+> `docs/chu_sniper_trailing_subscription_rollout_runbook.md`. Keep this file
+> for Pandora-specific history and processor migration details; do not use its
+> old Pandora-only seed order for a database that contains Chu customers.
+
+This runbook covers the historical Pandora subscription catalog, renewal
+migration, manual access, and versioned license-token rotation. It does not authorize a
 production deploy, customer communication, EA publication, or token rotation.
 
 Discord VIP is a downstream Pandora benefit with a separate feature flag and

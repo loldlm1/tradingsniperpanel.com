@@ -94,6 +94,50 @@ RSpec.describe "Subscription upgrades", type: :request do
     expect(response).to redirect_to("https://checkout.test/dashboard-success")
   end
 
+  it "accepts exactly the four complete canonical subscription keys" do
+    catalog = create_subscription_catalog
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+    sign_in user, scope: :user
+
+    expect(checkout_stub).to receive(:checkout).exactly(4).times do |**params|
+      price_key = params.dig(:subscription_data, :metadata, :billing_plan_key)
+      plan = catalog[:plans].fetch(price_key)
+      expect(params[:line_items]).to eq([ { price: plan.stripe_price_id, quantity: 1 } ])
+      double(url: "https://checkout.test/#{price_key}")
+    end
+
+    Billing::SubscriptionCatalog.plan_keys.each do |price_key|
+      post dashboard_checkout_path, params: { price_key: price_key }
+
+      expect(response).to redirect_to("https://checkout.test/#{price_key}")
+    end
+  end
+
+  it "rejects an incomplete product without hiding a complete product" do
+    catalog = create_subscription_catalog
+    catalog[:chu_annual].update!(active: false)
+    checkout_stub = instance_double(Pay::Stripe::Customer)
+    allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)
+    sign_in user, scope: :user
+
+    post dashboard_checkout_path, params: { price_key: Billing::ChuSniperPricing::MONTHLY_KEY }
+
+    expect(response).to redirect_to(dashboard_plans_path)
+    expect(flash[:alert]).to eq(I18n.t("dashboard.billing.invalid_price"))
+
+    expect(checkout_stub).to receive(:checkout) do |**params|
+      expect(params[:line_items]).to eq(
+        [ { price: catalog[:pandora_monthly].stripe_price_id, quantity: 1 } ]
+      )
+      double(url: "https://checkout.test/pandora")
+    end
+
+    post dashboard_checkout_path, params: { price_key: Billing::PandoraPricing::MONTHLY_KEY }
+
+    expect(response).to redirect_to("https://checkout.test/pandora")
+  end
+
   it "allows every product role to start subscription checkout" do
     checkout_stub = instance_double(Pay::Stripe::Customer)
     allow_any_instance_of(User).to receive(:payment_processor).and_return(checkout_stub)

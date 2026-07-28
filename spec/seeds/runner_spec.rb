@@ -39,7 +39,7 @@ RSpec.describe "Seeds::Runner" do
   end
 
   describe ".seed_prod_mirror!" do
-    it "converges twice on only Pandora monthly and annual while preserving old price history" do
+    it "converges twice on both products while preserving old price history" do
       ENV["SEED_PROFILE"] = Seeds::Profiles::PROD_MIRROR
       ENV.delete("STRIPE_PRIVATE_KEY")
       old_monthly = create(
@@ -70,24 +70,34 @@ RSpec.describe "Seeds::Runner" do
       first_counts = catalog_counts
       Seeds::Runner.seed_prod_mirror!(allow_local: true)
 
-      expect(records.map(&:ea_id)).to eq([ "pandora_box" ])
-      expect(BillingPlan.active.order(:key).pluck(:key)).to eq(Billing::PandoraPricing::PLAN_KEYS.sort)
+      expect(records.map(&:ea_id)).to contain_exactly("chu_sniper_trailing", "pandora_box")
+      expect(BillingPlan.active.order(:key).pluck(:key)).to eq(Billing::SubscriptionCatalog.plan_keys.sort)
       expect(BillingPlan.find_by!(key: Billing::PandoraPricing::MONTHLY_KEY).amount_cents).to eq(7_900)
       expect(BillingPlan.find_by!(key: Billing::PandoraPricing::ANNUAL_KEY).amount_cents).to eq(61_620)
-      expect(BillingPlan.active.distinct.pluck(:stripe_product_id)).to eq([ Seeds::BillingPlans::LOCAL_PRODUCT_ID ])
-      expect(BillingPlanPrice.current.order(:amount_cents).pluck(:amount_cents)).to eq([ 7_900, 61_620 ])
+      expect(BillingPlan.find_by!(key: Billing::ChuSniperPricing::MONTHLY_KEY).amount_cents).to eq(1_999)
+      expect(BillingPlan.find_by!(key: Billing::ChuSniperPricing::ANNUAL_KEY).amount_cents).to eq(15_592)
+      expect(BillingPlan.active.distinct.pluck(:stripe_product_id)).to contain_exactly(
+        Seeds::BillingPlans::LOCAL_PRODUCT_ID,
+        Seeds::BillingPlans::LOCAL_PRODUCT_IDS.fetch("chu_sniper_trailing")
+      )
+      expect(BillingPlanPrice.current.order(:amount_cents).pluck(:amount_cents)).to eq([ 1_999, 7_900, 15_592, 61_620 ])
       expect(old_history.reload).not_to be_current
       expect(old_history).not_to be_active
       expect(old_history.retired_at).to be_present
       expect(BillingPlan.for_price_id(old_history.stripe_price_id)).to eq(old_monthly)
-      expect(ExpertAdvisor.active.pluck(:ea_id)).to eq([ "pandora_box" ])
+      expect(ExpertAdvisor.active.pluck(:ea_id)).to contain_exactly("chu_sniper_trailing", "pandora_box")
       expect(stale_ea.reload.deleted_at).to be_present
       expect(stale_plan.reload).not_to be_active
       expect(marketplace_plan.reload).not_to be_active
       expect(marketplace_product.reload).to be_draft
-      expect(BillingPlanEntitlement.pluck(:billing_plan_id, :expert_advisor_id).sort).to eq(
-        BillingPlan.active.order(:id).pluck(:id).map { |plan_id| [ plan_id, records.first.id ] }.sort
-      )
+      expected_entitlements = Billing::SubscriptionCatalog.products.flat_map do |product|
+        product.plan_keys.flat_map do |plan_key|
+          product.ea_ids.map do |ea_id|
+            [ BillingPlan.find_by!(key: plan_key).id, records.find { |record| record.ea_id == ea_id }.id ]
+          end
+        end
+      end.sort
+      expect(BillingPlanEntitlement.pluck(:billing_plan_id, :expert_advisor_id).sort).to eq(expected_entitlements)
       expect(catalog_counts).to eq(first_counts)
     end
   end

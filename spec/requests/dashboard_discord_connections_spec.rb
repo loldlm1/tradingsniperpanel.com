@@ -20,7 +20,7 @@ RSpec.describe "Dashboard Discord connection", type: :request do
   end
 
   it "renders the eligible unlinked page with a connect action and safe benefit copy" do
-    stub_eligibility(true)
+    stub_eligibility(true, plan_key: Billing::ChuSniperPricing::MONTHLY_KEY)
 
     get dashboard_discord_connection_path
 
@@ -30,16 +30,13 @@ RSpec.describe "Dashboard Discord connection", type: :request do
       I18n.t("dashboard.discord.actions.connect"),
       I18n.t("dashboard.discord.benefits.recorded_courses.title")
     )
+    expect(response.body).to include(I18n.t("dashboard.discord.panel_title"))
+    expect(response.body).not_to include("Pandora VIP")
   end
 
   it "clears the desired plan only after authoritative eligibility is present" do
     stub_eligibility(true)
-    create(
-      :billing_plan,
-      tier: Billing::PandoraPricing::TIER,
-      key: Billing::PandoraPricing::MONTHLY_KEY,
-      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
-    )
+    create_subscription_catalog
     get dashboard_plans_path(price_key: Billing::PandoraPricing::MONTHLY_KEY)
     expect(cookies["desired_plan"]).to be_present
 
@@ -48,7 +45,7 @@ RSpec.describe "Dashboard Discord connection", type: :request do
     expect(cookies["desired_plan"]).to be_blank
   end
 
-  it "renders an ineligible recovery path to Pandora plans" do
+  it "renders an ineligible recovery path to the shared subscription plans" do
     stub_eligibility(false)
 
     get dashboard_discord_connection_path(locale: :es)
@@ -131,11 +128,11 @@ RSpec.describe "Dashboard Discord connection", type: :request do
     expect(response).to redirect_to(new_user_session_path)
   end
 
-  def stub_eligibility(eligible)
+  def stub_eligibility(eligible, plan_key: Billing::PandoraPricing::MONTHLY_KEY)
     result = Discord::VipEligibility::Result.new(
       eligible: eligible,
       source: eligible ? :stripe : nil,
-      plan_key: eligible ? Billing::PandoraPricing::MONTHLY_KEY : nil,
+      plan_key: eligible ? plan_key : nil,
       reason: eligible ? "eligible_stripe" : "no_subscription"
     )
     eligibility = instance_double(Discord::VipEligibility, call: result)

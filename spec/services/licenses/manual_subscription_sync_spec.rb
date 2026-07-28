@@ -174,6 +174,67 @@ RSpec.describe Licenses::ManualSubscriptionSync, type: :service do
     expect(Digest::SHA256.hexdigest(stripe_license.encrypted_key)).to eq(original_key_digest)
   end
 
+  it "grants only Chu for a canonical Chu manual plan" do
+    user = create(:user)
+    chu_ea = create(:expert_advisor, ea_id: "chu_sniper_trailing", allowed_subscription_tiers: [])
+    pandora_ea = create(:expert_advisor, ea_id: "pandora_box", allowed_subscription_tiers: [])
+    plan = create(
+      :billing_plan,
+      tier: Billing::ChuSniperPricing::TIER,
+      key: Billing::ChuSniperPricing::MONTHLY_KEY,
+      name: "Chu Sniper Monthly",
+      amount_cents: Billing::ChuSniperPricing::MONTHLY_CENTS,
+      stripe_price_id: "price_chu_manual",
+      stripe_product_id: "prod_chu_manual"
+    )
+    create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: chu_ea)
+    subscription = create(:manual_subscription, user: user, billing_plan: plan)
+
+    described_class.new(manual_subscription_id: subscription.id).call
+
+    chu_license = License.find_by!(user: user, expert_advisor: chu_ea)
+    expect(chu_license).to be_active
+    expect(chu_license).to have_attributes(
+      access_source: "subscription",
+      plan_interval: "monthly",
+      source: "manual_subscription"
+    )
+    expect(chu_license.expires_at.to_i).to eq(subscription.ends_at.to_i)
+    expect(License.find_by(user: user, expert_advisor: pandora_ea)).to be_nil
+  end
+
+  it "grants both EAs for a canonical Pandora manual plan" do
+    user = create(:user)
+    chu_ea = create(:expert_advisor, ea_id: "chu_sniper_trailing", allowed_subscription_tiers: [])
+    pandora_ea = create(:expert_advisor, ea_id: "pandora_box", allowed_subscription_tiers: [])
+    plan = create(
+      :billing_plan,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
+      name: "Pandora Monthly",
+      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS,
+      stripe_price_id: "price_pandora_manual",
+      stripe_product_id: "prod_pandora_manual"
+    )
+    create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: pandora_ea)
+    create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: chu_ea)
+    subscription = create(:manual_subscription, user: user, billing_plan: plan)
+
+    described_class.new(manual_subscription_id: subscription.id).call
+
+    licenses = License.where(user: user, expert_advisor: [ chu_ea, pandora_ea ])
+    expect(licenses.pluck(:expert_advisor_id)).to contain_exactly(chu_ea.id, pandora_ea.id)
+    expect(licenses).to all(
+      have_attributes(
+        status: "active",
+        access_source: "subscription",
+        plan_interval: "monthly",
+        source: "manual_subscription"
+      )
+    )
+    expect(licenses.map { |license| license.expires_at.to_i }).to all(eq(subscription.ends_at.to_i))
+  end
+
   def create_pay_subscription(user:, plan:)
     customer = user.pay_customers.create!(
       processor: "stripe",

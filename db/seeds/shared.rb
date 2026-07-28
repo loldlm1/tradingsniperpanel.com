@@ -29,6 +29,14 @@ module Seeds
           Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_guide_es.md")
         ]
       },
+      "chu_sniper_trailing" => {
+        en: [
+          Rails.root.join("docs_eas", "chu_sniper_trailing", "chu_sniper_trailing_guide_en.md")
+        ],
+        es: [
+          Rails.root.join("docs_eas", "chu_sniper_trailing", "chu_sniper_trailing_guide_es.md")
+        ]
+      },
       "fibonacci_elite" => {
         en: [
           Rails.root.join("docs_eas", "fibonacci_ea", "addons", "product_copy", "en", "base-ea.md")
@@ -58,7 +66,7 @@ module Seeds
     end
 
     def core_definitions(profile: Seeds::Profiles.current)
-      [ pandora_definition(profile: profile) ]
+      [ chu_sniper_definition(profile: profile), pandora_definition(profile: profile) ]
     end
 
     def prune_for_profile!(profile: Seeds::Profiles.current)
@@ -73,11 +81,11 @@ module Seeds
     end
 
     def prod_mirror_definitions(profile: Seeds::Profiles.current)
-      [ pandora_definition(profile: profile) ]
+      core_definitions(profile: profile)
     end
 
     def full_qa_definitions(profile: Seeds::Profiles.current)
-      [ pandora_definition(profile: profile) ]
+      core_definitions(profile: profile)
     end
 
     def qa_definitions(profile: Seeds::Profiles.current)
@@ -96,6 +104,21 @@ module Seeds
         doc_guide_en: guide_for(ea_id: "pandora_box", locale: :en, profile: profile),
         doc_guide_es: guide_for(ea_id: "pandora_box", locale: :es, profile: profile),
         tags: %w[automation breakout]
+      }
+    end
+
+    def chu_sniper_definition(profile: Seeds::Profiles.current)
+      {
+        name: "Chu Sniper Trailing",
+        tier_rank: 0,
+        ea_id: "chu_sniper_trailing",
+        description: "Chart-scoped MT5 position manager with risk sizing, broker protection, and fixed-R trailing.",
+        ea_type: :ea_tool,
+        trial_enabled: false,
+        allowed_subscription_tiers: [ Billing::ChuSniperPricing::TIER, Billing::PandoraPricing::TIER ],
+        doc_guide_en: guide_for(ea_id: "chu_sniper_trailing", locale: :en, profile: profile),
+        doc_guide_es: guide_for(ea_id: "chu_sniper_trailing", locale: :es, profile: profile),
+        tags: %w[trailing risk_management scalping]
       }
     end
 
@@ -167,13 +190,18 @@ module Seeds
     end
 
     def bundle_path_for(ea_id)
-      return unless ea_id.to_s == "pandora_box"
-
-      first_existing_path(
-        Rails.root.join("docs_eas", "pandora_box_ea", "PANDORA_BOX_EA.zip"),
-        Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_ea.zip"),
-        Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_ea.rar")
-      )
+      case ea_id.to_s
+      when "pandora_box"
+        first_existing_path(
+          Rails.root.join("docs_eas", "pandora_box_ea", "PANDORA_BOX_EA.zip"),
+          Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_ea.zip"),
+          Rails.root.join("docs_eas", "pandora_box_ea", "pandora_box_ea.rar")
+        )
+      when "chu_sniper_trailing"
+        first_existing_path(
+          Rails.root.join("docs_eas", "chu_sniper_trailing", "Chu_Sniper_Trailing.zip")
+        )
+      end
     end
 
     def first_existing_path(*paths)
@@ -884,28 +912,34 @@ module Seeds
 
     DEFAULT_CURRENCY = Billing::PandoraPricing::CURRENCY
     LOCAL_PRODUCT_ID = "seed_product_pandora_box".freeze
+    LOCAL_PRODUCT_IDS = {
+      "pandora_box" => LOCAL_PRODUCT_ID,
+      "chu_sniper_trailing" => "seed_product_chu_sniper_trailing"
+    }.freeze
 
     def definitions(profile: Seeds::Profiles.current)
-      Billing::PandoraPricing::PLAN_DEFINITIONS.map.with_index do |(key, pricing), index|
-        interval_label = Billing::IntervalLabeler.label(
-          interval: pricing.fetch(:interval),
-          interval_count: pricing.fetch(:interval_count)
-        )
-        {
-          key: key,
-          name: "#{Billing::PandoraPricing::PRODUCT_NAME} #{interval_label}",
-          description: "Pandora Box EA recurring subscription.",
-          kind: "subscription",
-          tier: Billing::PandoraPricing::TIER,
-          interval: pricing.fetch(:interval),
-          interval_count: pricing.fetch(:interval_count),
-          amount_cents: pricing.fetch(:amount_cents),
-          currency: DEFAULT_CURRENCY,
-          active: true,
-          sort_order: index + 1,
-          metadata: { "catalog_product" => "pandora_box" },
-          stripe_product_name: Billing::PandoraPricing::PRODUCT_NAME
-        }
+      Billing::SubscriptionCatalog.products.flat_map do |product|
+        product.plan_definitions.map.with_index do |(key, pricing), interval_index|
+          interval_label = Billing::IntervalLabeler.label(
+            interval: pricing.fetch(:interval),
+            interval_count: pricing.fetch(:interval_count)
+          )
+          {
+            key: key,
+            name: "#{product.product_name} #{interval_label}",
+            description: product.description,
+            kind: "subscription",
+            tier: product.tier,
+            interval: pricing.fetch(:interval),
+            interval_count: pricing.fetch(:interval_count),
+            amount_cents: pricing.fetch(:amount_cents),
+            currency: product.currency,
+            active: true,
+            sort_order: (product.sort_order * 10) + interval_index,
+            metadata: { "catalog_product" => product.catalog_key },
+            stripe_product_name: product.product_name
+          }
+        end
       end
     end
 
@@ -915,16 +949,18 @@ module Seeds
       if stripe_seeding_enabled?
         return unless defined?(Billing::PlanCreator)
 
-        shared_product_id = nil
-        return definitions(profile: profile).map do |definition|
-          attrs = definition.dup
-          attrs[:stripe_product_id] = shared_product_id if shared_product_id.present?
-          result = Billing::PlanCreator.new(
-            attrs,
-            retire_superseded_prices: retire_superseded_prices
-          ).call
-          shared_product_id ||= result.product.id
-          result.plan
+        return definitions(profile: profile).group_by { |definition| definition.dig(:metadata, "catalog_product") }.flat_map do |_catalog_product, product_definitions|
+          shared_product_id = nil
+          product_definitions.map do |definition|
+            attrs = definition.dup
+            attrs[:stripe_product_id] = shared_product_id if shared_product_id.present?
+            result = Billing::PlanCreator.new(
+              attrs,
+              retire_superseded_prices: retire_superseded_prices
+            ).call
+            shared_product_id ||= result.product.id
+            result.plan
+          end
         end
       end
 
@@ -969,7 +1005,8 @@ module Seeds
         plan.lock! if plan.persisted?
         previous = local_price_snapshot(plan)
         plan.assign_attributes(plan_attrs)
-        plan.stripe_product_id = LOCAL_PRODUCT_ID
+        catalog_product = attrs.dig(:metadata, "catalog_product")
+        plan.stripe_product_id = LOCAL_PRODUCT_IDS.fetch(catalog_product)
         plan.stripe_price_id = price_id
         plan.save!
 
@@ -998,11 +1035,21 @@ module Seeds
     def seed_entitlements!(profile: Seeds::Profiles.current)
       return unless defined?(BillingPlanEntitlement)
 
-      pandora = ExpertAdvisor.unscoped.find_by(ea_id: "pandora_box")
-      return unless pandora
+      plans_by_key = BillingPlan.where(key: Billing::SubscriptionCatalog.plan_keys).index_by(&:key)
+      eas_by_id = ExpertAdvisor.unscoped.where(ea_id: Billing::SubscriptionCatalog.products.flat_map(&:ea_ids).uniq).index_by(&:ea_id)
 
-      BillingPlan.where(key: Billing::PandoraPricing::PLAN_KEYS).find_each do |plan|
-        BillingPlanEntitlement.find_or_create_by!(billing_plan: plan, expert_advisor: pandora)
+      Billing::SubscriptionCatalog.products.each do |product|
+        product.plan_keys.each do |plan_key|
+          plan = plans_by_key[plan_key]
+          next unless plan
+
+          product.ea_ids.each do |ea_id|
+            expert_advisor = eas_by_id[ea_id]
+            next unless expert_advisor
+
+            BillingPlanEntitlement.find_or_create_by!(billing_plan: plan, expert_advisor: expert_advisor)
+          end
+        end
       end
     end
 

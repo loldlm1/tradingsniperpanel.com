@@ -74,6 +74,29 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(response.body).to include("Sniper Advanced Panel")
   end
 
+  it "renders the localized Chu guide and keeps its download server-gated" do
+    catalog = create_subscription_catalog
+    chu = catalog.fetch(:expert_advisors).fetch("chu_sniper_trailing")
+    chu.update!(
+      doc_guide_en: "# Chu Sniper Trailing\n\nEnglish guide.",
+      doc_guide_es: "# Chu Sniper Trailing\n\nGuía en español."
+    )
+    create(:license, user:, expert_advisor: chu, status: "active", trial_ends_at: nil, expires_at: 1.month.from_now)
+    bundle = create(:expert_advisor_bundle, expert_advisor: chu, bundle_key: "base", required_addon_keys: "")
+    attach_ea_bundle(bundle, filename: "Chu_Sniper_Trailing.zip")
+
+    get dashboard_expert_advisor_guides_path(chu, locale: :es)
+
+    expect(response).to be_successful
+    expect(response.body).to include("Guía en español.")
+    expect(response.body).to include(I18n.t("dashboard.expert_advisors.status.active", locale: :es))
+
+    get dashboard_expert_advisor_download_path(chu, locale: :es)
+
+    expect(response).to have_http_status(:found)
+    expect(response.headers["Location"]).to include("Chu_Sniper_Trailing.zip")
+  end
+
   it "renders the EA show page for a locked user" do
     get dashboard_expert_advisor_path(expert_advisor, locale: :en)
 
@@ -413,7 +436,15 @@ RSpec.describe "Expert advisor guides", type: :request do
     subscription_plan = create(
       :billing_plan,
       tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
       amount_cents: Billing::PandoraPricing::MONTHLY_CENTS
+    )
+    create(
+      :billing_plan,
+      :annual,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::ANNUAL_KEY,
+      amount_cents: Billing::PandoraPricing::ANNUAL_CENTS
     )
     create(:billing_plan_entitlement, billing_plan: subscription_plan, expert_advisor: locked_plan_ea)
 

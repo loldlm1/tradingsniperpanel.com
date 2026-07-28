@@ -1,7 +1,7 @@
 # Discord VIP Rollout Runbook
 
-This runbook covers the Pandora Box Discord VIP integration from feature-off
-deployment through staging validation, production enablement, monitoring,
+This runbook covers the shared Chu Sniper Trailing and Pandora Box Discord VIP
+integration from feature-off deployment through staging validation, production enablement, monitoring,
 credential rotation, and rollback. It prepares operations only; it does not
 authorize a production deploy, a live role cleanup, or customer communication.
 
@@ -10,25 +10,27 @@ authorize a production deploy, a live role cleanup, or customer communication.
 - Public community invite: `https://discord.gg/tWJNnu4ArJ`.
 - Discord application/client ID: `1526565454355632138`.
 - Production guild ID: `1505303505915744276`.
-- Production Pandora VIP role ID: `1526657965828997371`.
+- Production configured VIP role ID: `1526657965828997371` (the existing role
+  is named `Pandora VIP` for compatibility).
 - Production callback: `https://tradingsniperpanel.com/discord/callback` with
   no trailing slash and no locale segment.
 - OAuth scopes: exactly `identify guilds.join`.
-- The Discord bot role must have `Manage Roles`, remain above `Pandora VIP`,
+- The Discord bot role must have `Manage Roles`, remain above the configured
+  VIP role,
   and may retain `Create Instant Invite`. The bot never needs message, presence,
   or privileged gateway intents.
 - Discord administrators own the ELITE category permission overwrites. Rails
-  manages only the `Pandora VIP` role and never changes staff or other member
+  manages only the configured VIP role and never changes staff or other member
   roles.
 
 ## Authority And Data Flow
 
-Paid Stripe/Pay Pandora access or an active manual Pandora grant is the only
-source of VIP eligibility. Trials, failed/inactive subscriptions, expired
-manual grants, and Discord role presence are not application entitlement.
+Paid Stripe/Pay Chu or Pandora access or an active manual grant for either tier
+is the only source of VIP eligibility. Trials, failed/inactive subscriptions,
+expired manual grants, and Discord role presence are not application entitlement.
 
 ```text
-/join/pandora -> localized sign-up/sign-in -> Pandora plan confirmation
+/join/pandora -> localized sign-up/sign-in -> Chu or Pandora plan confirmation
   -> Stripe Checkout -> verified Pay webhook/manual grant
   -> dashboard Discord OAuth -> guild join -> queued role sync
 
@@ -167,7 +169,8 @@ Complete all deterministic Rails and browser checks before this canary.
 4. Confirm only the staging VIP role grants the staging ELITE category.
 5. Deploy with the feature disabled, verify health, then enable it only in the
    staging environment source and restart Puma/Sidekiq through the setup script.
-6. Use a staff-owned test account and visit `/join/pandora` in EN and ES.
+6. Use a staff-owned test account and visit `/join/pandora` in EN and ES;
+   exercise one Chu and one Pandora test subscription.
 7. Complete sign-up, monthly-default plan confirmation, Stripe test Checkout,
    and return to the Discord activation page.
 8. Authorize only `identify` and `guilds.join`; confirm guild membership and the
@@ -232,7 +235,7 @@ the flag only for the coordinated staff canary below.
    through the normal production setup script, and restart Puma/Sidekiq.
 5. Use a staff-owned account with no active Stripe subscription. If a safe
    production test entitlement is needed, have an administrator create a short
-   complimentary Pandora manual grant for that account; never use a customer
+   complimentary Chu or Pandora manual grant for that account; never use a customer
    account or a real test card in live Checkout.
 6. Run one staff canary through the dashboard Discord link, OAuth consent for
    only `identify` and `guilds.join`, guild join, membership screening, role
@@ -272,7 +275,7 @@ Fast rollback:
    no longer mutate Discord.
 3. Keep `discord_connections` rows for audit and later repair. Do not drop the
    additive table during an application rollback.
-4. Confirm Pandora billing, licenses, courses, and the public Discord invite
+4. Confirm Chu/Pandora billing, licenses, courses, and the public Discord invite
    continue independently.
 
 Disabling automation does not remove already granted roles. If product policy
@@ -283,7 +286,7 @@ guild/role IDs, take a fresh audit, and use the guarded command:
 CONFIRM='REMOVE LINKED PANDORA VIP' bin/rails discord:vip:cleanup_linked_roles
 ```
 
-The command removes only the configured Pandora VIP role from linked users. It
-does not kick users, clear other roles, or delete connection rows. Any failure
+The command removes only the configured VIP role (currently named Pandora VIP)
+from linked users. It does not kick users, clear other roles, or delete connection rows. Any failure
 leaves a safe failed state for targeted repair. Never run it merely to disable
 the feature.

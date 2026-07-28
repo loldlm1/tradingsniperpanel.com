@@ -3,11 +3,11 @@ require "bigdecimal"
 
 module Billing
   class PricingCatalog
-    CACHE_VERSION = 4
+    CACHE_VERSION = 5
 
     def call
       plans = BillingPlan.purchasable
-      return {} unless complete_catalog?(plans)
+      return {} if plans.empty?
 
       cache_key = "billing/pricing_catalog/v#{CACHE_VERSION}/#{I18n.locale}/#{Digest::SHA256.hexdigest(cache_signature(plans))}"
       Rails.cache.fetch(cache_key, expires_in: 12.hours) do
@@ -95,10 +95,6 @@ module Billing
         plan_key: plan.key,
         stripe_price_id: plan.stripe_price_id
       }
-    end
-
-    def complete_catalog?(plans)
-      plans.pluck(:key).sort == Billing::PandoraPricing::PLAN_KEYS.sort
     end
 
     def effective_monthly_cents(plan)

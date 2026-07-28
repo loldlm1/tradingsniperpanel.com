@@ -28,6 +28,23 @@ RSpec.describe Licenses::OnlineSeatCopy do
     expect(described_class.subscription_feature_for_tier("enterprise", locale: :en)).to be_nil
   end
 
+  it "uses the catalog cap for Chu even before both intervals are purchasable" do
+    create(
+      :billing_plan,
+      tier: Billing::ChuSniperPricing::TIER,
+      key: Billing::ChuSniperPricing::MONTHLY_KEY,
+      name: "Chu Monthly",
+      amount_cents: Billing::ChuSniperPricing::MONTHLY_CENTS,
+      stripe_price_id: "price_chu_copy",
+      stripe_product_id: "prod_chu_copy"
+    )
+
+    expect(described_class.subscription_cap_for_tier(Billing::ChuSniperPricing::TIER)).to eq(5)
+    expect(described_class.subscription_feature_for_tier(Billing::ChuSniperPricing::TIER, locale: :es)).to eq(
+      I18n.t("licenses.online_seats.subscription_feature", count: 5, locale: :es)
+    )
+  end
+
   it "builds one-time seat copy from the fixed cap constant" do
     expect(described_class.one_time_feature(locale: :en)).to eq(
       I18n.t("licenses.online_seats.one_time_feature", count: 8, locale: :en)

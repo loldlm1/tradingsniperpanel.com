@@ -135,10 +135,8 @@ module Dashboard
     end
 
     def parse_price_key(price_key)
-      parts = price_key.to_s.split("_")
-      return [nil, nil] if parts.size < 2
-
-      [parts.shift, parts.join("_")]
+      parsed = Billing::SubscriptionCatalog.parse_plan_key(price_key)
+      [ parsed[:tier], parsed[:interval_key] ]
     end
 
     def plan_status(price_key)

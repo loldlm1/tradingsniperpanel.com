@@ -4,7 +4,9 @@ require "securerandom"
 RSpec.describe "Licenses Heartbeat API", type: :request do
   let(:encoder) { Licenses::LicenseKeyEncoder.new(primary_key: ENV["EA_LICENSE_PRIMARY_KEY"], secondary_key: ENV["EA_LICENSE_SECRET_KEY"]) }
   let(:user) { create(:user, email: "hb-user@example.com") }
-  let(:expert_advisor) { create(:expert_advisor, ea_id: "ea-heartbeat") }
+  let(:expert_advisor) do
+    create(:expert_advisor, ea_id: "chu_sniper_trailing", ea_type: :ea_tool, trial_enabled: false)
+  end
   let(:expires_at) { 7.days.from_now }
   let(:token_version) { 2 }
   let(:license_key) do
@@ -81,15 +83,18 @@ RSpec.describe "Licenses Heartbeat API", type: :request do
     expect(body["error"]).to eq("invalid_payload")
   end
 
-  it "returns online_limit_reached when subscription seats are exhausted" do
+  it "returns online_limit_reached when Chu subscription seats are exhausted" do
     plan = create(
       :billing_plan,
-      tier: "basic",
-      key: "basic_monthly",
+      tier: Billing::ChuSniperPricing::TIER,
+      key: Billing::ChuSniperPricing::MONTHLY_KEY,
+      name: "Chu Heartbeat Monthly",
       interval: "month",
       interval_count: 1,
+      amount_cents: Billing::ChuSniperPricing::MONTHLY_CENTS,
       sort_order: 1,
-      stripe_price_id: "price_heartbeat_basic"
+      stripe_price_id: "price_heartbeat_chu",
+      stripe_product_id: "prod_heartbeat_chu"
     )
     create_pay_subscription(user: user, plan: plan)
 

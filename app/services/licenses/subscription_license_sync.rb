@@ -15,10 +15,18 @@ module Licenses
 
       price_key = Billing::PriceKeyResolver.key_for_price_id(subscription.processor_plan)
       plan = BillingPlan.for_price_id(subscription.processor_plan) || BillingPlan.for_key(price_key)
-      tier = plan&.tier
-      interval = plan&.interval_key
-      tier, interval = parse_price_key(price_key) if tier.blank? || interval.blank?
-      return unless tier && interval
+      product = Billing::SubscriptionCatalog.product_for_plan(plan)
+      return unless plan&.subscription? && plan.tier.present? && plan.interval_key.present?
+      return if canonical_key?(plan) && product.nil?
+
+      interval = plan.interval_key
+      allowed_eas = if product
+        exact_entitlements_for(plan, subscription)
+      else
+        ExpertAdvisor.active.includes(:billing_plan_entitlements, :billing_plans)
+                   .select { |ea| ea.allowed_for_tier?(plan.tier) }
+      end
+      return if product && allowed_eas.empty?
 
       authoritative_subscription = Billing::ActiveSubscriptionFinder.new(user: user).call
       if !subscription_active?(subscription) &&
@@ -33,10 +41,8 @@ module Licenses
         return
       end
 
-      Rails.logger.info("[Licenses::SubscriptionLicenseSync] syncing subscription_id=#{subscription.id} user_id=#{user.id} price_key=#{price_key} tier=#{tier} interval=#{interval}")
+      Rails.logger.info("[Licenses::SubscriptionLicenseSync] syncing subscription_id=#{subscription.id} user_id=#{user.id} price_key=#{price_key} tier=#{plan.tier} interval=#{interval}")
 
-      allowed_eas = ExpertAdvisor.active.includes(:billing_plan_entitlements, :billing_plans)
-                                 .select { |ea| ea.allowed_for_tier?(tier) }
       allowed_ids = allowed_eas.map(&:id)
 
       mark_referral_completed(user:, subscription:) if subscription_active?(subscription)
@@ -52,13 +58,18 @@ module Licenses
 
     attr_reader :subscription_id, :encoder
 
-    def parse_price_key(price_key)
-      parts = price_key.to_s.split("_")
-      return if parts.size < 2
+    def canonical_key?(plan)
+      Billing::SubscriptionCatalog.plan_keys.include?(plan.key.to_s)
+    end
 
-      tier = parts.shift
-      interval_key = parts.join("_")
-      [ tier, interval_key ]
+    def exact_entitlements_for(plan, subscription)
+      records = ExpertAdvisor.subscription_entitlements_for(plan)
+      return records if records.present?
+
+      Rails.logger.warn(
+        "[Licenses::SubscriptionLicenseSync] canonical entitlements missing subscription_id=#{subscription.id} plan_id=#{plan.id}"
+      )
+      []
     end
 
     def sync_license_for(user:, expert_advisor:, interval:, subscription:)

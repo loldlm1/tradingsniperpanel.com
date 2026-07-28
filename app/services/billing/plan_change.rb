@@ -94,8 +94,8 @@ module Billing
     end
 
     def upgrade_subscription(target_price_id)
-      release_managed_schedule
       subscription.swap(target_price_id, proration_behavior: "always_invoice")
+      release_managed_schedule
       Result.new(status: :upgraded, price_key: price_key)
     rescue Pay::Stripe::Error => e
       raise unless managed_schedule_error?(e)

@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Catalog::RetireLegacyAccess do
   it "retires stale commerce and access while preserving historical rows" do
-    monthly, annual, pandora = create_pandora_catalog
+    monthly, annual, chu_monthly, chu_annual, pandora, chu = create_catalog
     stale_ea = create(:expert_advisor, ea_id: "legacy_ea", allowed_subscription_tiers: [ "legacy" ])
     stale_plan = create(:billing_plan, tier: "legacy", key: "legacy_monthly", name: "Legacy Monthly")
     stale_history = create(
@@ -31,7 +31,16 @@ RSpec.describe Catalog::RetireLegacyAccess do
     pandora_license = create(:license, user: create(:user), expert_advisor: pandora, access_source: "subscription", status: "active")
     now = Time.zone.parse("2026-07-13 12:00:00")
 
-    result = described_class.new(desired_plans: [ monthly, annual ], pandora_ea: pandora, remote: false, now: now).call
+    desired_plans = [ monthly, annual, chu_monthly, chu_annual ]
+    desired_eas = [ pandora, chu ]
+    desired_entitlements = [ [ monthly, pandora ], [ annual, pandora ], [ chu_monthly, chu ], [ chu_annual, chu ] ]
+    result = described_class.new(
+      desired_plans: desired_plans,
+      desired_eas: desired_eas,
+      desired_entitlements: desired_entitlements,
+      remote: false,
+      now: now
+    ).call
 
     expect(result.retired_plans).to eq(2)
     expect(result.retired_prices).to eq(1)
@@ -57,10 +66,16 @@ RSpec.describe Catalog::RetireLegacyAccess do
     expect(legacy_license.reload).to be_expired
     expect(pandora_license.reload).to be_active
     expect(BillingPlanEntitlement.pluck(:billing_plan_id, :expert_advisor_id).sort).to eq(
-      [ [ monthly.id, pandora.id ], [ annual.id, pandora.id ] ].sort
+      [ [ monthly.id, pandora.id ], [ annual.id, pandora.id ], [ chu_monthly.id, chu.id ], [ chu_annual.id, chu.id ] ].sort
     )
 
-    second = described_class.new(desired_plans: [ monthly, annual ], pandora_ea: pandora, remote: false, now: now + 1.hour).call
+    second = described_class.new(
+      desired_plans: desired_plans,
+      desired_eas: desired_eas,
+      desired_entitlements: desired_entitlements,
+      remote: false,
+      now: now + 1.hour
+    ).call
     expect(second.retired_plans).to eq(0)
     expect(second.retired_prices).to eq(0)
     expect(second.revoked_licenses).to eq(0)
@@ -68,7 +83,7 @@ RSpec.describe Catalog::RetireLegacyAccess do
   end
 
   it "deactivates retired Stripe prices and products only after the desired product is excluded" do
-    monthly, annual, pandora = create_pandora_catalog
+    monthly, annual, chu_monthly, chu_annual, pandora, chu = create_catalog
     old_desired_price = create(
       :billing_plan_price,
       billing_plan: monthly,
@@ -101,7 +116,12 @@ RSpec.describe Catalog::RetireLegacyAccess do
     expect(Stripe::Product).to receive(:update).with(stale_plan.stripe_product_id, active: false)
     expect(Stripe::Product).not_to receive(:update).with("prod_pandora", anything)
 
-    result = described_class.new(desired_plans: [ monthly, annual ], pandora_ea: pandora, remote: true).call
+    result = described_class.new(
+      desired_plans: [ monthly, annual, chu_monthly, chu_annual ],
+      desired_eas: [ pandora, chu ],
+      desired_entitlements: [ [ monthly, pandora ], [ annual, pandora ], [ chu_monthly, chu ], [ chu_annual, chu ] ],
+      remote: true
+    ).call
 
     expect(result.retired_remote_prices).to eq(2)
     expect(result.retired_remote_products).to eq(1)
@@ -109,12 +129,20 @@ RSpec.describe Catalog::RetireLegacyAccess do
     ENV["STRIPE_PRIVATE_KEY"] = original_key
   end
 
-  def create_pandora_catalog
+  def create_catalog
     pandora = create(
       :expert_advisor,
       ea_id: "pandora_box",
       name: "PANDORA BOX EA",
       allowed_subscription_tiers: [ Billing::PandoraPricing::TIER ]
+    )
+    chu = create(
+      :expert_advisor,
+      ea_id: "chu_sniper_trailing",
+      name: "Chu Sniper Trailing",
+      ea_type: :ea_tool,
+      trial_enabled: false,
+      allowed_subscription_tiers: [ Billing::ChuSniperPricing::TIER, Billing::PandoraPricing::TIER ]
     )
     monthly = create_pandora_plan(
       key: Billing::PandoraPricing::MONTHLY_KEY,
@@ -130,24 +158,50 @@ RSpec.describe Catalog::RetireLegacyAccess do
       amount_cents: Billing::PandoraPricing::ANNUAL_CENTS,
       price_id: "price_pandora_annual"
     )
-    [ monthly, annual ].each do |plan|
+    chu_monthly = create_pandora_plan(
+      key: Billing::ChuSniperPricing::MONTHLY_KEY,
+      name: "Chu Sniper Monthly",
+      tier: Billing::ChuSniperPricing::TIER,
+      interval: "month",
+      amount_cents: Billing::ChuSniperPricing::MONTHLY_CENTS,
+      price_id: "price_chu_monthly",
+      product_id: "prod_chu"
+    )
+    chu_annual = create_pandora_plan(
+      key: Billing::ChuSniperPricing::ANNUAL_KEY,
+      name: "Chu Sniper Annual",
+      tier: Billing::ChuSniperPricing::TIER,
+      interval: "year",
+      amount_cents: Billing::ChuSniperPricing::ANNUAL_CENTS,
+      price_id: "price_chu_annual",
+      product_id: "prod_chu"
+    )
+    [ [ monthly, pandora ], [ annual, pandora ], [ chu_monthly, chu ], [ chu_annual, chu ] ].each do |plan, expert_advisor|
       create(:billing_plan_price, billing_plan: plan, stripe_price_id: plan.stripe_price_id, current: true)
-      create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: pandora)
+      create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: expert_advisor)
     end
-    [ monthly, annual, pandora ]
+    [ monthly, annual, chu_monthly, chu_annual, pandora, chu ]
   end
 
-  def create_pandora_plan(key:, name:, interval:, amount_cents:, price_id:)
+  def create_pandora_plan(
+    key:,
+    name:,
+    interval:,
+    amount_cents:,
+    price_id:,
+    tier: Billing::PandoraPricing::TIER,
+    product_id: "prod_pandora"
+  )
     create(
       :billing_plan,
       key: key,
       name: name,
-      tier: Billing::PandoraPricing::TIER,
+      tier: tier,
       interval: interval,
       interval_count: 1,
       amount_cents: amount_cents,
       currency: Billing::PandoraPricing::CURRENCY,
-      stripe_product_id: "prod_pandora",
+      stripe_product_id: product_id,
       stripe_price_id: price_id
     )
   end

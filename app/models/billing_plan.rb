@@ -24,14 +24,7 @@ class BillingPlan < ApplicationRecord
   scope :ordered, -> { order(:sort_order, :name) }
 
   def self.purchasable
-    base = subscription.active
-                       .where(tier: Billing::PandoraPricing::TIER, currency: Billing::PandoraPricing::CURRENCY)
-                       .where.not(stripe_price_id: nil)
-                       .where.not(stripe_price_id: "")
-
-    Billing::PandoraPricing::PLAN_DEFINITIONS.reduce(none) do |relation, (key, definition)|
-      relation.or(base.where(key: key, **definition))
-    end
+    Billing::SubscriptionCatalog.purchasable_scope
   end
 
   def self.for_key(key)
@@ -65,7 +58,10 @@ class BillingPlan < ApplicationRecord
       tier_plans.min_by { |plan| [ plan.sort_order.to_i, plan.amount_cents.to_i ] }
     end.compact
 
-    ordered.sort_by { |plan| [ plan.sort_order.to_i, plan.amount_cents.to_i, plan.tier.to_s ] }
+    ordered.sort_by do |plan|
+      access_rank = Billing::SubscriptionCatalog.access_rank_for(plan.tier)
+      [ access_rank || Float::INFINITY, plan.sort_order.to_i, plan.amount_cents.to_i, plan.tier.to_s ]
+    end
   end
 
   def self.ransackable_associations(_auth_object = nil)

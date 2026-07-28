@@ -53,7 +53,7 @@ module Billing
     def resolve_manual_subscription
       return nil unless ManualSubscription.table_exists?
 
-      ManualSubscription.active_at(Time.current).where(user: user).order(ends_at: :desc).first
+      ManualSubscription.where(user: user).effective_at(Time.current)
     end
   end
 end

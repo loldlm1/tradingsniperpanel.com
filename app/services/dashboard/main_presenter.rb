@@ -312,7 +312,7 @@ module Dashboard
       remainder = sorted.drop(5)
       if remainder.any?
         other_total = remainder.sum { |(_, value)| value.to_f }
-        top << [I18n.t("dashboard.main.balance_card.other", default: "Other"), other_total]
+        top << [ I18n.t("dashboard.main.balance_card.other", default: "Other"), other_total ]
       end
 
       top.each_with_index.map do |(company, total), idx|
@@ -524,10 +524,8 @@ module Dashboard
     end
 
     def parse_price_key(price_key)
-      parts = price_key.to_s.split("_")
-      return [nil, nil] if parts.size < 2
-
-      [parts.shift, parts.join("_")]
+      parsed = Billing::SubscriptionCatalog.parse_plan_key(price_key)
+      [ parsed[:tier], parsed[:interval_key] ]
     end
 
     def scheduled_plan_change

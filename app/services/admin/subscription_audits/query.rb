@@ -203,8 +203,9 @@ module Admin
       end
 
       def load_licenses(user_ids)
+        subscription_ea_ids = Billing::SubscriptionCatalog.products.flat_map(&:ea_ids).uniq
         relation = License.joins(:expert_advisor)
-                          .where(user_id: user_ids, expert_advisors: { ea_id: ManualSubscriptions::Grant::PANDORA_EA_ID })
+                          .where(user_id: user_ids, expert_advisors: { ea_id: subscription_ea_ids })
         limited_relation(
           relation,
           partition: "licenses.user_id",

@@ -103,6 +103,30 @@ RSpec.describe ManualSubscription, type: :model do
     expect(described_class.active_at(Time.current)).not_to include(inactive)
   end
 
+  it "selects the newest starting grant at a shared transition boundary" do
+    user = create(:user)
+    current_plan = create(:billing_plan, tier: "current", key: "current_monthly")
+    future_plan = create(:billing_plan, tier: "future", key: "future_monthly")
+    boundary = 1.day.from_now.change(usec: 0)
+    current = create(
+      :manual_subscription,
+      user: user,
+      billing_plan: current_plan,
+      starts_at: 10.days.ago,
+      ends_at: boundary
+    )
+    future = create(
+      :manual_subscription,
+      user: user,
+      billing_plan: future_plan,
+      starts_at: boundary,
+      ends_at: boundary + 30.days
+    )
+
+    expect(described_class.where(user: user).effective_at(boundary - 1.second)).to eq(current)
+    expect(described_class.where(user: user).effective_at(boundary)).to eq(future)
+  end
+
   it "allowlists ransack associations and attributes" do
     expect(described_class.ransackable_associations).to match_array(
       %w[billing_plan recorded_by_admin superseded_by_pay_subscription user]

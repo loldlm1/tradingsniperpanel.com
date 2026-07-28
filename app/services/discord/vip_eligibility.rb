@@ -26,7 +26,7 @@ module Discord
 
       plan = plan_resolver.new(subscription: subscription).plan
       source = access.source&.to_sym
-      return result(false, source: source, plan: plan, reason: :wrong_tier) unless pandora_plan?(plan)
+      return result(false, source: source, plan: plan, reason: :wrong_tier) unless vip_plan?(plan)
 
       source == :manual ? manual_result(subscription, plan) : stripe_result(subscription, plan)
     end
@@ -35,10 +35,9 @@ module Discord
 
     attr_reader :finder, :plan_resolver, :status_resolver, :now
 
-    def pandora_plan?(plan)
-      plan&.subscription? &&
-        plan.tier == Billing::PandoraPricing::TIER &&
-        plan.key.in?(Billing::PandoraPricing::PLAN_KEYS)
+    def vip_plan?(plan)
+      product = Billing::SubscriptionCatalog.product_for_plan(plan)
+      product&.vip_eligible == true
     end
 
     def manual_result(subscription, plan)

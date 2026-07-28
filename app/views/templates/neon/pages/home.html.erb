@@ -184,11 +184,11 @@
 <% tiers = pricing[:tiers] || [] %>
 <% intervals = pricing[:intervals] || [] %>
 <% interval_keys = intervals.map { |interval| interval[:key] } %>
-<% requested_interval = [params[:price_key], params[:plan], params[:desired_plan]].compact.map(&:to_s).select { |key| key.in?(Billing::PandoraPricing::PLAN_KEYS) }.filter_map do |key|
-                          interval_keys.sort_by { |interval| -interval.to_s.length }.find do |interval|
-                            key == interval || key.end_with?("_#{interval}")
-                          end
-                        end.first %>
+<% requested_plan_key = [params[:price_key], params[:plan], params[:desired_plan]].compact.map(&:to_s).find do |key|
+                          Billing::SubscriptionCatalog.plan_keys.include?(key)
+                        end %>
+<% requested_interval = Billing::SubscriptionCatalog.parse_plan_key(requested_plan_key)[:interval_key] if requested_plan_key.present? %>
+<% requested_interval = nil unless interval_keys.include?(requested_interval) %>
 <% initial_period = requested_interval || interval_keys.first || "monthly" %>
 
 <!-- Pricing -->
@@ -225,15 +225,18 @@
         <% end %>
       </div>
 
-      <div class="max-w-xl mx-auto grid gap-8 items-start pt-4">
+      <div class="max-w-5xl mx-auto grid gap-8 lg:grid-cols-2 items-stretch pt-4">
         <% prices = pricing[:prices] || {} %>
 
         <% tiers.each do |tier| %>
           <% tier_key = tier[:key].to_s %>
           <% features = Array(tier[:features]) %>
-          <div class="relative flex flex-col h-full p-6 bg-gray-800 border border-gray-700 rounded-sm" data-aos="zoom-out">
+          <article class="relative flex flex-col h-full p-6 bg-gray-800 border <%= tier[:featured] ? 'border-blue-500/70 shadow-lg shadow-blue-900/20' : 'border-gray-700' %> rounded-sm" data-aos="zoom-out" aria-labelledby="landing-plan-<%= tier_key %>-title">
+            <% if tier[:featured] %>
+              <div class="absolute right-5 top-5 inline-flex items-center rounded-full bg-blue-500/15 px-2.5 py-1 text-xs font-semibold text-blue-200"><%= t("landing.neon.pricing.most_popular") %></div>
+            <% end %>
             <div class="mb-6">
-              <div class="text-lg font-semibold mb-1"><%= tier[:name] %></div>
+              <h3 id="landing-plan-<%= tier_key %>-title" class="text-lg font-semibold mb-1 pr-24"><%= tier[:name] %></h3>
               <div class="font-uncut-sans inline-flex items-baseline mb-2">
                 <span class="text-3xl font-medium text-gray-400">$</span>
                 <% intervals.each do |interval| %>
@@ -255,13 +258,13 @@
               <% default_path = interval_paths.values.compact.first || "#" %>
               <% interval_paths_json = interval_paths.to_json %>
               <% if interval_paths.present? %>
-                <%= link_to default_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, :"x-bind:href" => "(#{interval_paths_json})[period] || '#{default_path}'" do %>
+                <%= link_to default_path, class: "btn-sm text-white bg-linear-to-t from-blue-600 to-blue-400 hover:to-blue-500 w-full shadow-lg group flex items-center justify-center gap-2", data: { loading_target: true }, aria: { label: tier[:cta] }, :"x-bind:href" => "(#{interval_paths_json})[period] || '#{default_path}'" do %>
                   <span data-loading-label>
-                    <%= t("landing.neon.pricing.cta") %>
+                    <%= tier[:cta] %>
                     <span class="tracking-normal text-blue-200 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
                   </span>
-                  <span class="items-center gap-2" data-loading-spinner hidden>
-                    <span class="loading-spinner inline-block" style="width: 1rem; height: 1rem; border: 2px solid currentColor; border-top-color: transparent; border-radius: 9999px;"></span>
+                  <span class="inline-flex items-center gap-2" data-loading-spinner role="status" aria-live="polite" hidden>
+                    <span class="loading-spinner inline-block h-4 w-4 rounded-full border-2 border-current border-t-transparent"></span>
                     <span><%= t("loading.default") %></span>
                   </span>
                 <% end %>
@@ -295,7 +298,7 @@
                 <% end %>
               </ul>
             <% end %>
-          </div>
+          </article>
         <% end %>
 
         <% if tiers.empty? || intervals.empty? %>

@@ -71,6 +71,58 @@ RSpec.describe "Broker account daily results API", type: :request do
     expect(body["result_value"]).to eq("10.50")
   end
 
+  it "rejects daily results for the Chu tool while preserving the v1 error shape" do
+    chu = create(:expert_advisor, ea_id: "chu_sniper_trailing", ea_type: :ea_tool, trial_enabled: false)
+    chu_expires_at = 5.days.from_now
+    chu_key = encoder.generate(
+      email: user.email,
+      ea_id: chu.ea_id,
+      expires_at: chu_expires_at,
+      token_version: token_version
+    )
+    chu_license = create(
+      :license,
+      user: user,
+      expert_advisor: chu,
+      status: "active",
+      token_version: token_version,
+      trial_ends_at: nil,
+      expires_at: chu_expires_at,
+      encrypted_key: chu_key
+    )
+    chu_broker = create(:broker_account, license: chu_license, company: "ChuBroker", account_number: 7654, account_type: :real)
+    chu_lane = create(
+      :license_lane_magic_number,
+      license: chu_license,
+      source: source_id,
+      email: user.email,
+      company: chu_broker.company,
+      account_number: chu_broker.account_number,
+      account_type: chu_broker.account_type,
+      magic_number: 490_654_321
+    )
+
+    expect do
+      post "/api/v1/broker_accounts/daily_results", params: {
+        source: source_id,
+        email: user.email,
+        ea_id: chu.ea_id,
+        license_key: chu_key,
+        broker_account: {
+          company: chu_broker.company,
+          account_number: chu_broker.account_number,
+          account_type: chu_broker.account_type
+        },
+        magic_number: chu_lane.magic_number,
+        result_timestamp: timestamp,
+        result_value: "10.50"
+      }
+    end.not_to change(BrokerAccountDailyResult, :count)
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(JSON.parse(response.body)).to eq("ok" => false, "error" => "invalid_payload")
+  end
+
   it "creates a daily result with instance-scoped magic" do
     instance_magic = create(
       :license_instance_magic_number,

@@ -70,6 +70,40 @@ RSpec.describe Licenses::OnlineSeatLimits do
     expect(limits.subscription_cap).to eq(6)
   end
 
+  it "keeps both canonical products at the explicit five-seat cap" do
+    chu_plan = create(
+      :billing_plan,
+      tier: Billing::ChuSniperPricing::TIER,
+      key: Billing::ChuSniperPricing::MONTHLY_KEY,
+      name: "Chu Monthly",
+      amount_cents: Billing::ChuSniperPricing::MONTHLY_CENTS,
+      stripe_price_id: "price_chu_seats",
+      stripe_product_id: "prod_chu_seats",
+      sort_order: 1
+    )
+    pandora_plan = create(
+      :billing_plan,
+      tier: Billing::PandoraPricing::TIER,
+      key: Billing::PandoraPricing::MONTHLY_KEY,
+      name: "Pandora Monthly",
+      amount_cents: Billing::PandoraPricing::MONTHLY_CENTS,
+      stripe_price_id: "price_pandora_seats",
+      stripe_product_id: "prod_pandora_seats",
+      sort_order: 2
+    )
+    chu_user = create(:user)
+    create_pay_subscription(user: chu_user, plan: chu_plan)
+    create_pay_subscription(user: user, plan: pandora_plan)
+
+    chu_limits = described_class.new(user: chu_user, expert_advisor: expert_advisor)
+    pandora_limits = described_class.new(user: user, expert_advisor: expert_advisor)
+
+    expect(chu_limits.active_subscription_tier).to eq(Billing::ChuSniperPricing::TIER)
+    expect(chu_limits.subscription_cap).to eq(5)
+    expect(pandora_limits.active_subscription_tier).to eq(Billing::PandoraPricing::TIER)
+    expect(pandora_limits.subscription_cap).to eq(5)
+  end
+
   def create_pay_subscription(user:, plan:)
     customer = user.pay_customers.create!(
       processor: "stripe",

@@ -31,18 +31,25 @@ module Marketing
     private
 
     def build_tiers(catalog)
-      tier = Billing::PandoraPricing::TIER
-      return [] unless Array(catalog[:tiers]).map(&:to_s).include?(tier)
+      catalog_tiers = Array(catalog[:tiers]).map(&:to_s)
+      products = catalog_tiers.filter_map { |tier| Billing::SubscriptionCatalog.product_for_tier(tier) }
+      featured_rank = products.map(&:access_rank).compact.max
 
-      plan = BillingPlan.purchasable.where(tier: tier).order(:sort_order, :amount_cents).first
-      [ {
-        key: tier,
-        name: tier_name(tier),
-        description: tier_description(tier, plan),
-        features_title: tier_features_title(tier),
-        features: tier_features(tier) + Array(online_seat_feature(tier)),
-        featured: false
-      } ]
+      products.filter_map do |product|
+        tier = product.tier
+        plan = BillingPlan.purchasable.where(tier: tier).order(:sort_order, :amount_cents).first
+        next unless plan
+
+        {
+          key: tier,
+          name: tier_name(tier),
+          description: tier_description(tier, plan),
+          features_title: tier_features_title(tier),
+          features: tier_features(tier) + Array(online_seat_feature(tier)),
+          cta: tier_cta(tier),
+          featured: product.access_rank == featured_rank
+        }
+      end
     end
 
     def tier_name(tier)
@@ -58,6 +65,10 @@ module Marketing
 
     def tier_features_title(tier)
       I18n.t("landing.neon.pricing.tiers.#{tier}.features_title", default: nil)
+    end
+
+    def tier_cta(tier)
+      I18n.t("landing.neon.pricing.tiers.#{tier}.cta", default: I18n.t("landing.neon.pricing.cta"))
     end
 
     def tier_features(tier)

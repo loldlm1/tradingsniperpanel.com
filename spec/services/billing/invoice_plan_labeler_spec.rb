@@ -172,6 +172,72 @@ RSpec.describe Billing::InvoicePlanLabeler do
     expect(label).to eq(expected)
   end
 
+  it "labels the canonical 4x4 transition matrix with product-aware directions" do
+    catalog = create_subscription_catalog
+    plans = catalog[:plans].values
+
+    plans.product(plans).each do |from_plan, to_plan|
+      next if from_plan == to_plan
+
+      invoice = build_charge(
+        lines: [
+          pricing_line(amount: -100, price_id: from_plan.stripe_price_id),
+          pricing_line(amount: 50, price_id: to_plan.stripe_price_id)
+        ],
+        invoice_id: "in_#{from_plan.id}_#{to_plan.id}"
+      )
+      direction = Billing::PlanComparator.new.compare(current_key: from_plan.key, target_key: to_plan.key)
+      direction_label = I18n.t(
+        direction == :downgrade ? "dashboard.billing.invoice_change_downgrade" : "dashboard.billing.invoice_change_upgrade"
+      )
+
+      expect(described_class.new.label_for(invoice)).to eq(
+        I18n.t(
+          "dashboard.billing.invoice_plan_change",
+          from: expected_plan_label(from_plan),
+          to: expected_plan_label(to_plan),
+          change: direction_label
+        )
+      )
+    end
+  end
+
+  it "uses catalog rank instead of raw totals when canonical proration lines have the same sign" do
+    catalog = create_subscription_catalog
+    invoice = build_charge(
+      lines: [
+        pricing_line(amount: 15_592, price_id: catalog[:chu_annual].stripe_price_id),
+        pricing_line(amount: 7_900, price_id: catalog[:pandora_monthly].stripe_price_id)
+      ]
+    )
+
+    label = described_class.new.label_for(invoice)
+
+    expect(label).to eq(
+      I18n.t(
+        "dashboard.billing.invoice_plan_change",
+        from: expected_plan_label(catalog[:chu_annual]),
+        to: expected_plan_label(catalog[:pandora_monthly]),
+        change: I18n.t("dashboard.billing.invoice_change_upgrade")
+      )
+    )
+  end
+
+  it "prefers an exact price id over an ambiguous product id" do
+    catalog = create_subscription_catalog
+    invoice = build_charge(
+      lines: [
+        pricing_line(
+          amount: catalog[:pandora_annual].amount_cents,
+          price_id: catalog[:pandora_annual].stripe_price_id,
+          product_id: catalog[:pandora_monthly].stripe_product_id
+        )
+      ]
+    )
+
+    expect(described_class.new.label_for(invoice)).to eq(expected_plan_label(catalog[:pandora_annual]))
+  end
+
   it "fetches Stripe invoice when stored lines are missing" do
     invoice = build_charge
     stripe_invoice = OpenStruct.new(
@@ -191,5 +257,13 @@ RSpec.describe Billing::InvoicePlanLabeler do
     )
 
     expect(label).to eq(expected)
+  end
+
+  def expected_plan_label(plan)
+    I18n.t(
+      "dashboard.plan_card.plan_label",
+      tier: I18n.t("dashboard.plans.tiers.#{plan.tier}.name", default: plan.tier.humanize),
+      interval: Billing::IntervalLabeler.label(interval: plan.interval, interval_count: plan.interval_count)
+    )
   end
 end

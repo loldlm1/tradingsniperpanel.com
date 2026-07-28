@@ -28,6 +28,17 @@ RSpec.describe Discord::VipEligibility do
       stripe_price_id: "price_pandora_monthly"
     )
   end
+  let!(:chu_monthly) do
+    create(
+      :billing_plan,
+      tier: Billing::ChuSniperPricing::TIER,
+      key: Billing::ChuSniperPricing::MONTHLY_KEY,
+      name: "Chu Monthly",
+      amount_cents: Billing::ChuSniperPricing::MONTHLY_CENTS,
+      stripe_price_id: "price_chu_monthly",
+      stripe_product_id: "prod_chu_monthly"
+    )
+  end
   let(:user) { create(:user) }
 
   it "grants VIP for an active paid Stripe Pandora subscription" do
@@ -37,6 +48,24 @@ RSpec.describe Discord::VipEligibility do
     expect(result).to have_attributes(
       source: :stripe,
       plan_key: Billing::PandoraPricing::MONTHLY_KEY,
+      reason: "eligible_stripe"
+    )
+  end
+
+  it "grants VIP for an active paid Stripe Chu subscription" do
+    result = eligibility_for(
+      stripe_subscription(
+        processor_plan: chu_monthly.stripe_price_id,
+        status: "active",
+        current_period_end: 1.month.from_now
+      ),
+      :stripe
+    )
+
+    expect(result).to be_eligible
+    expect(result).to have_attributes(
+      source: :stripe,
+      plan_key: Billing::ChuSniperPricing::MONTHLY_KEY,
       reason: "eligible_stripe"
     )
   end
@@ -96,6 +125,12 @@ RSpec.describe Discord::VipEligibility do
 
     expect(eligibility_for(paid, :manual)).to be_eligible
     expect(eligibility_for(complimentary, :manual)).to be_eligible
+  end
+
+  it "grants VIP for an active manual Chu grant" do
+    manual = create(:manual_subscription, user: user, billing_plan: chu_monthly)
+
+    expect(eligibility_for(manual, :manual)).to be_eligible
   end
 
   it "excludes superseded and inactive manual grants" do
