@@ -32,17 +32,33 @@ stable.
 The catalog owns this matrix. A browser, EA, Discord role, or admin-supplied
 tier cannot add an entitlement.
 
-| Subscription tier | Chu EA | Pandora EA |
-| --- | --- | --- |
-| `chu_sniper_trailing` | Yes | No |
-| `pandora_pro` | Yes | Yes |
+| Subscription tier | Chu EA | Sniper Advanced Panel | Pandora EA |
+| --- | --- | --- | --- |
+| `chu_sniper_trailing` | Yes | Yes, separate key | No |
+| `pandora_pro` | Yes | Yes, separate key | Yes |
 
-The intended persisted rows are six `billing_plan_entitlements` records: one
-for each of the two Chu plans and two for each of the two Pandora plans.
-The two active `expert_advisors` are:
+The intended persisted rows are ten `billing_plan_entitlements` records: two
+for each of the two Chu plans and three for each of the two Pandora plans.
+The three active `expert_advisors` are:
 
 - `chu_sniper_trailing`, `ea_type=ea_tool`, trial disabled;
 - `pandora_box`, `ea_type=ea_robot`, trial disabled.
+- `sniper_advanced_panel`, `ea_type=ea_tool`, trial disabled; a legacy companion
+  included with Chu access, with no separate purchasable plan.
+
+Panel keeps its original EA identifier, its own license row/key, broker lane,
+magic numbers, and daily-results behavior. Each tool uses its own key. Existing
+CHU/Pandora keys are not rewritten by the Panel backfill. Paid and manual
+subscription sync issue and expire all included licenses through the same
+billing lifecycle. Roles alone do not grant access. The shared five-seat cap
+counts each EA/broker session, including when two tools use the same account.
+
+New Panel licenses start with the existing three-field v1 token format. The
+stored token version is preserved on existing rows; no automatic downgrade or
+rotation is allowed. An older Panel build that parses exactly three fields
+cannot use rotated v2+ tokens. Confirm the deployed client's token/API
+compatibility before rotation; the compiled archive is not runtime evidence.
+See `docs/sniper_panel_companion_rollout_runbook.md`.
 
 Chu has no required add-ons, no trial, and no daily-results reporting. Its
 download is the existing `docs_eas/chu_sniper_trailing/Chu_Sniper_Trailing.zip`
@@ -89,6 +105,9 @@ not appear in responses, HTML, logs, telemetry, or diagnostics.
   backfill. The backfill never rotates, revokes, or rewrites a Pandora key.
 - A failed or partial backfill is retryable per user and must not be replaced
   with the ordinary all-EA reconciler.
+- `Licenses::BackfillPanelSubscriptionLicenses` separately creates or repairs
+  only Panel licenses for current Chu/Pandora subscribers, with dry-run and
+  retry support. It preserves other EA keys and existing token-version metadata.
 
 ## Catalog and processor rules
 

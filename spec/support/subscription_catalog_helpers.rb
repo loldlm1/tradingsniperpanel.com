@@ -6,9 +6,9 @@ module SubscriptionCatalogHelpers
         ea_product = Billing::SubscriptionCatalog.product_for_catalog_key(ea_id)
         expert_advisor = ExpertAdvisor.find_or_initialize_by(ea_id: ea_id)
         expert_advisor.assign_attributes(
-          name: ea_product.product_name,
+          name: ea_product&.product_name || "Sniper Advanced Panel",
           ea_type: :ea_tool,
-          tier_rank: ea_product.access_rank,
+          tier_rank: ea_product&.access_rank || 3,
           trial_enabled: false,
           allowed_subscription_tiers: []
         )

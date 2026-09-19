@@ -30,6 +30,11 @@ El servicio de licencia verifica `chu_sniper_trailing` con el protocolo comun
 del backend y mantiene el heartbeat. El backend entrega el magic number de
 ejecucion. Los resultados diarios no forman parte de este producto.
 
+Tu suscripción también incluye Sniper Advanced Panel. Abre esa herramienta en
+el dashboard para copiar su propia clave de licencia y descargar el Panel.
+Usa la clave de cada herramienta; comparten el vencimiento de la suscripción
+y el límite de sesiones online.
+
 ## Controles del panel
 
 - `SL / Trail (pts)`: distancia del stop inicial y una unidad de riesgo (`1R`).

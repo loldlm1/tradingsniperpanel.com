@@ -538,6 +538,7 @@ en:
           description: "Chart-scoped position management with monotonic trailing protection for manual and scalping workflows."
           features:
             - "Chu Sniper Trailing EA/tool"
+            - "Sniper Advanced Panel with a separate license key"
             - "Chart-scoped position management"
             - "Fixed-R trailing staircase"
             - "Broker-aware stop and risk controls"
@@ -548,6 +549,7 @@ en:
           features:
             - "Pandora Box EA"
             - "Chu Sniper Trailing EA/tool"
+            - "Sniper Advanced Panel with a separate license key"
             - "Breakout strategy automation"
             - "Direction modes"
             - "Flexible parameter configuration"

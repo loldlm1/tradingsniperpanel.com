@@ -39,6 +39,7 @@ RSpec.describe ExpertAdvisor, type: :model do
     it "returns the complete canonical Pandora matrix in catalog order" do
       chu = create(:expert_advisor, ea_id: "chu_sniper_trailing")
       pandora = create(:expert_advisor, ea_id: "pandora_box")
+      panel = create(:expert_advisor, ea_id: "sniper_advanced_panel")
       plan = create(
         :billing_plan,
         tier: Billing::PandoraPricing::TIER,
@@ -50,8 +51,9 @@ RSpec.describe ExpertAdvisor, type: :model do
       )
       create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: pandora)
       create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: chu)
+      create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: panel)
 
-      expect(described_class.subscription_entitlements_for(plan)).to eq([ pandora, chu ])
+      expect(described_class.subscription_entitlements_for(plan)).to eq([ pandora, chu, panel ])
     end
 
     it "fails closed when a canonical entitlement is missing" do

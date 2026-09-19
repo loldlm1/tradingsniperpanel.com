@@ -97,6 +97,38 @@ RSpec.describe "Expert advisor guides", type: :request do
     expect(response.headers["Location"]).to include("Chu_Sniper_Trailing.zip")
   end
 
+  it "shows a separate Panel key and download for Chu access and locks them after cancellation" do
+    catalog = create_subscription_catalog
+    panel = catalog.fetch(:expert_advisors).fetch("sniper_advanced_panel")
+    attach_bundle(panel)
+    grant = create(:manual_subscription, user: user, billing_plan: catalog.fetch(:chu_monthly))
+    Licenses::ManualSubscriptionSync.new(manual_subscription_id: grant.id).call
+    panel_key = License.find_by!(user: user, expert_advisor: panel).encrypted_key
+    chu_key = License.find_by!(user: user, expert_advisor: catalog.fetch(:expert_advisors).fetch("chu_sniper_trailing")).encrypted_key
+
+    %i[en es].each do |locale|
+      get dashboard_expert_advisor_path(panel, locale: locale)
+
+      expect(response).to be_successful
+      expect(response.headers["Cache-Control"]).to include("no-store")
+      expect(response.body).to include(panel_key)
+      expect(response.body).not_to include(chu_key)
+      expect(response.body).to include(dashboard_expert_advisor_download_path(panel, locale: locale))
+    end
+
+    get dashboard_expert_advisor_download_path(panel, locale: :en)
+    expect(response).to have_http_status(:found)
+    expect(response.headers["Location"]).to include("rails/active_storage")
+
+    grant.update!(status: "cancelled")
+    Licenses::ManualSubscriptionSync.new(manual_subscription_id: grant.id).call
+    get dashboard_expert_advisor_path(panel, locale: :en)
+    expect(response.body).not_to include(panel_key)
+
+    get dashboard_expert_advisor_download_path(panel, locale: :en)
+    expect(response).to redirect_to(dashboard_expert_advisors_path(locale: :en))
+  end
+
   it "renders the EA show page for a locked user" do
     get dashboard_expert_advisor_path(expert_advisor, locale: :en)
 

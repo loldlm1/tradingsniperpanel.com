@@ -28,7 +28,7 @@ RSpec.describe Billing::PandoraCatalogReconciler do
       Seeds::BillingPlans::LOCAL_PRODUCT_IDS.fetch("chu_sniper_trailing"),
       Seeds::BillingPlans::LOCAL_PRODUCT_ID
     )
-    expect(ExpertAdvisor.active.pluck(:ea_id)).to contain_exactly("chu_sniper_trailing", "pandora_box")
+    expect(ExpertAdvisor.active.pluck(:ea_id)).to contain_exactly("chu_sniper_trailing", "pandora_box", "sniper_advanced_panel")
     expect(stale.fetch(:plan).reload).not_to be_active
     expect(stale.fetch(:expert_advisor).reload.deleted_at).to be_present
     expect(stale.fetch(:marketplace_product).reload).to be_draft

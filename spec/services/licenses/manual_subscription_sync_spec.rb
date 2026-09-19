@@ -174,10 +174,11 @@ RSpec.describe Licenses::ManualSubscriptionSync, type: :service do
     expect(Digest::SHA256.hexdigest(stripe_license.encrypted_key)).to eq(original_key_digest)
   end
 
-  it "grants only Chu for a canonical Chu manual plan" do
+  it "grants Chu and Panel for a canonical Chu manual plan" do
     user = create(:user)
     chu_ea = create(:expert_advisor, ea_id: "chu_sniper_trailing", allowed_subscription_tiers: [])
     pandora_ea = create(:expert_advisor, ea_id: "pandora_box", allowed_subscription_tiers: [])
+    panel_ea = create(:expert_advisor, ea_id: "sniper_advanced_panel", allowed_subscription_tiers: [])
     plan = create(
       :billing_plan,
       tier: Billing::ChuSniperPricing::TIER,
@@ -188,6 +189,7 @@ RSpec.describe Licenses::ManualSubscriptionSync, type: :service do
       stripe_product_id: "prod_chu_manual"
     )
     create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: chu_ea)
+    create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: panel_ea)
     subscription = create(:manual_subscription, user: user, billing_plan: plan)
 
     described_class.new(manual_subscription_id: subscription.id).call
@@ -201,12 +203,17 @@ RSpec.describe Licenses::ManualSubscriptionSync, type: :service do
     )
     expect(chu_license.expires_at.to_i).to eq(subscription.ends_at.to_i)
     expect(License.find_by(user: user, expert_advisor: pandora_ea)).to be_nil
+    panel_license = License.find_by!(user: user, expert_advisor: panel_ea)
+    expect(panel_license).to be_active
+    expect(panel_license.expires_at).to eq(chu_license.expires_at)
+    expect(panel_license.encrypted_key).not_to eq(chu_license.encrypted_key)
   end
 
-  it "grants both EAs for a canonical Pandora manual plan" do
+  it "grants all three EAs for a canonical Pandora manual plan" do
     user = create(:user)
     chu_ea = create(:expert_advisor, ea_id: "chu_sniper_trailing", allowed_subscription_tiers: [])
     pandora_ea = create(:expert_advisor, ea_id: "pandora_box", allowed_subscription_tiers: [])
+    panel_ea = create(:expert_advisor, ea_id: "sniper_advanced_panel", allowed_subscription_tiers: [])
     plan = create(
       :billing_plan,
       tier: Billing::PandoraPricing::TIER,
@@ -218,12 +225,13 @@ RSpec.describe Licenses::ManualSubscriptionSync, type: :service do
     )
     create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: pandora_ea)
     create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: chu_ea)
+    create(:billing_plan_entitlement, billing_plan: plan, expert_advisor: panel_ea)
     subscription = create(:manual_subscription, user: user, billing_plan: plan)
 
     described_class.new(manual_subscription_id: subscription.id).call
 
-    licenses = License.where(user: user, expert_advisor: [ chu_ea, pandora_ea ])
-    expect(licenses.pluck(:expert_advisor_id)).to contain_exactly(chu_ea.id, pandora_ea.id)
+    licenses = License.where(user: user, expert_advisor: [ chu_ea, pandora_ea, panel_ea ])
+    expect(licenses.pluck(:expert_advisor_id)).to contain_exactly(chu_ea.id, pandora_ea.id, panel_ea.id)
     expect(licenses).to all(
       have_attributes(
         status: "active",

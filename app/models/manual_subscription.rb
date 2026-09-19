@@ -77,6 +77,22 @@ class ManualSubscription < ApplicationRecord
     ends_at
   end
 
+  def effective_ends_at
+    end_at = ends_at
+    candidates = self.class.where(user_id: user_id)
+                           .where.not(status: [ STATUSES[:cancelled], STATUSES[:superseded] ])
+                           .where("starts_at >= ?", starts_at)
+                           .order(:starts_at, :id)
+
+    candidates.each do |candidate|
+      break if candidate.starts_at > end_at
+      break unless candidate.billing_plan_id == billing_plan_id
+
+      end_at = candidate.ends_at if candidate.ends_at > end_at
+    end
+    end_at
+  end
+
   def trial_ends_at
     nil
   end

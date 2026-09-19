@@ -66,7 +66,7 @@ module Seeds
     end
 
     def core_definitions(profile: Seeds::Profiles.current)
-      [ chu_sniper_definition(profile: profile), pandora_definition(profile: profile) ]
+      [ chu_sniper_definition(profile: profile), pandora_definition(profile: profile), sniper_panel_definition(profile: profile) ]
     end
 
     def prune_for_profile!(profile: Seeds::Profiles.current)
@@ -119,6 +119,21 @@ module Seeds
         doc_guide_en: guide_for(ea_id: "chu_sniper_trailing", locale: :en, profile: profile),
         doc_guide_es: guide_for(ea_id: "chu_sniper_trailing", locale: :es, profile: profile),
         tags: %w[trailing risk_management scalping]
+      }
+    end
+
+    def sniper_panel_definition(profile: Seeds::Profiles.current)
+      {
+        name: "Sniper Advanced Panel",
+        tier_rank: 2,
+        ea_id: "sniper_advanced_panel",
+        description: "Legacy MT5 trading panel included with Chu Sniper Trailing access. Uses its own license key.",
+        ea_type: :ea_tool,
+        trial_enabled: false,
+        allowed_subscription_tiers: [ Billing::ChuSniperPricing::TIER, Billing::PandoraPricing::TIER ],
+        doc_guide_en: guide_for(ea_id: "sniper_advanced_panel", locale: :en, profile: profile),
+        doc_guide_es: guide_for(ea_id: "sniper_advanced_panel", locale: :es, profile: profile),
+        tags: %w[trading_panel legacy]
       }
     end
 
@@ -200,6 +215,10 @@ module Seeds
       when "chu_sniper_trailing"
         first_existing_path(
           Rails.root.join("docs_eas", "chu_sniper_trailing", "Chu_Sniper_Trailing.zip")
+        )
+      when "sniper_advanced_panel"
+        first_existing_path(
+          Rails.root.join("docs_eas", "sniper_advanced_panel", "sniper_advanced_panel_ea.zip")
         )
       end
     end

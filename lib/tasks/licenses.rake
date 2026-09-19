@@ -18,4 +18,24 @@ namespace :licenses do
   rescue ArgumentError => e
     abort "Invalid backfill options: #{e.message}"
   end
+
+  desc "Backfill separate Sniper Advanced Panel licenses for active Chu and Pandora subscribers"
+  task backfill_panel_subscription_licenses: :environment do
+    dry_run = ActiveModel::Type::Boolean.new.cast(ENV.fetch("DRY_RUN", "true"))
+    batch_size = Integer(ENV.fetch("BATCH_SIZE", Licenses::BackfillPanelSubscriptionLicenses::DEFAULT_BATCH_SIZE.to_s))
+    user_ids = ENV["USER_IDS"]&.split(",")&.map(&:strip)&.reject(&:blank?)
+
+    result = Licenses::BackfillPanelSubscriptionLicenses.new(
+      dry_run: dry_run,
+      batch_size: batch_size,
+      user_ids: user_ids
+    ).call
+
+    result.summary.each do |key, value|
+      puts "#{key}=#{value.is_a?(Array) ? value.join(',') : value}"
+    end
+    abort "Panel license backfill completed with failures" if result.failed?
+  rescue ArgumentError => e
+    abort "Invalid backfill options: #{e.message}"
+  end
 end

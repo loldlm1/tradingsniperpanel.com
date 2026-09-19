@@ -39,7 +39,7 @@ module Billing
         sort_order: 1,
         seat_cap: 5,
         vip_eligible: true,
-        ea_ids: [ "chu_sniper_trailing" ].freeze
+        ea_ids: [ "chu_sniper_trailing", "sniper_advanced_panel" ].freeze
       ).freeze,
       Product.new(
         catalog_key: "pandora_box",
@@ -50,7 +50,7 @@ module Billing
         sort_order: 2,
         seat_cap: 5,
         vip_eligible: true,
-        ea_ids: [ "pandora_box", "chu_sniper_trailing" ].freeze
+        ea_ids: [ "pandora_box", "chu_sniper_trailing", "sniper_advanced_panel" ].freeze
       ).freeze
     ].freeze
 

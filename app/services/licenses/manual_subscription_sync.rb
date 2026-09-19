@@ -48,7 +48,7 @@ module Licenses
       allowed_ids = allowed_eas.map(&:id)
 
       mark_referral_completed(user: user) if subscription.active_for_time?
-      effective_ends_at = effective_end_for(user: user, subscription: subscription)
+      effective_ends_at = subscription.effective_ends_at
 
       allowed_eas.each do |expert_advisor|
         sync_license_for(
@@ -116,22 +116,6 @@ module Licenses
 
     def expire_subscription_licenses(user:)
       expire_disallowed_licenses(user: user, allowed_ids: [])
-    end
-
-    def effective_end_for(user:, subscription:)
-      end_at = subscription.ends_at
-      candidates = ManualSubscription.where(user: user)
-                                     .where.not(status: [ ManualSubscription::STATUSES[:cancelled], ManualSubscription::STATUSES[:superseded] ])
-                                     .where("starts_at >= ?", subscription.starts_at)
-                                     .order(:starts_at, :id)
-
-      candidates.each do |candidate|
-        break if candidate.starts_at > end_at
-        break unless candidate.billing_plan_id == subscription.billing_plan_id
-        end_at = candidate.ends_at if candidate.ends_at > end_at
-      end
-
-      end_at
     end
 
     def mark_referral_completed(user:)

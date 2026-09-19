@@ -57,7 +57,8 @@ Sigue estos pasos detallados para instalar el **Sniper Advanced Panel** en tu pl
    - Arrastra el archivo **SniperAdvancedPanel.ex5** desde la lista de **Asesores Expertos** a la gráfica de tu preferencia.
 
 ### 15. **Introducir la licencia**
-   - Ingresa la **licencia** proporcionada para activar el panel.
+   - Abre **Sniper Advanced Panel** en tu dashboard e ingresa su **clave de licencia** para activar el panel.
+   - El acceso al Panel se incluye con una suscripción activa de Chu Sniper Trailing o Pandora, incluidas las concesiones manuales. Usa su propia clave; no pegues la clave de Chu aquí.
 
 ### 16. **Listo para operar**
    - ¡Tu **Sniper Advanced Panel** está instalado y listo para usar!

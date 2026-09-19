@@ -9,8 +9,8 @@ RSpec.describe Billing::SubscriptionCatalog do
     expect(described_class.seat_cap_for("pandora_pro")).to eq(5)
     expect(described_class.vip_eligible?("chu_sniper_trailing")).to be(true)
     expect(described_class.vip_eligible?("pandora_pro")).to be(true)
-    expect(described_class.ea_ids_for_tier("chu_sniper_trailing")).to eq([ "chu_sniper_trailing" ])
-    expect(described_class.ea_ids_for_tier("pandora_pro")).to eq([ "pandora_box", "chu_sniper_trailing" ])
+    expect(described_class.ea_ids_for_tier("chu_sniper_trailing")).to eq(%w[chu_sniper_trailing sniper_advanced_panel])
+    expect(described_class.ea_ids_for_tier("pandora_pro")).to eq(%w[pandora_box chu_sniper_trailing sniper_advanced_panel])
   end
 
   it "parses known multi-underscore keys without losing the tier" do

@@ -149,6 +149,7 @@ RSpec.describe Licenses::BackfillChuSubscriptionLicenses do
   def create_catalog
     chu_ea = create(:expert_advisor, ea_id: "chu_sniper_trailing", allowed_subscription_tiers: [], trial_enabled: false)
     pandora_ea = create(:expert_advisor, ea_id: "pandora_box", allowed_subscription_tiers: [], trial_enabled: false)
+    panel_ea = create(:expert_advisor, ea_id: "sniper_advanced_panel", allowed_subscription_tiers: [], trial_enabled: false)
     chu_plan = create(
       :billing_plan,
       tier: Billing::ChuSniperPricing::TIER,
@@ -168,8 +169,10 @@ RSpec.describe Licenses::BackfillChuSubscriptionLicenses do
       stripe_product_id: "prod_pandora_backfill"
     )
     create(:billing_plan_entitlement, billing_plan: chu_plan, expert_advisor: chu_ea)
+    create(:billing_plan_entitlement, billing_plan: chu_plan, expert_advisor: panel_ea)
     create(:billing_plan_entitlement, billing_plan: pandora_plan, expert_advisor: pandora_ea)
     create(:billing_plan_entitlement, billing_plan: pandora_plan, expert_advisor: chu_ea)
+    create(:billing_plan_entitlement, billing_plan: pandora_plan, expert_advisor: panel_ea)
 
     { chu_ea: chu_ea, pandora_ea: pandora_ea, chu_plan: chu_plan, pandora_plan: pandora_plan }
   end

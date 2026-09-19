@@ -56,7 +56,8 @@ Follow these steps to install **Sniper Advanced Panel** in MetaTrader 5 (MT5):
 - Drag **SniperAdvancedPanel.ex5** from **Expert Advisors** onto your target chart.
 
 ### 15. Enter license
-- Enter the provided **license key** to activate the panel.
+- Open **Sniper Advanced Panel** in your dashboard and enter its **license key** to activate the panel.
+- Panel access is included with an active Chu Sniper Trailing or Pandora subscription, including manual grants. It has its own key; do not paste the Chu key here.
 
 ### 16. Ready to trade
 - The **Sniper Advanced Panel** is installed and ready.

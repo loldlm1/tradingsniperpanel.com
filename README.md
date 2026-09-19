@@ -171,7 +171,8 @@ bin/rails runner 'pp({ env: Rails.env, provider: Rails.configuration.x.branding.
 ## Subscription operations
 
 - The active purchasable products are Chu Sniper Trailing and Pandora Box. Chu is `$19.99/month` (`chu_sniper_trailing_monthly`) or `$155.92/year` (`chu_sniper_trailing_annual`); Pandora remains `$79.00/month` (`pandora_pro_monthly`) or `$616.20/year` (`pandora_pro_annual`). Annual amounts use integer cents and the existing 35% discount: `1999 * 12 * 65 / 100` and `7900 * 12 * 65 / 100`.
-- Historical plans, Stripe price mappings, marketplace purchases, charges, and invoices remain stored for audit, but retired products cannot start a new checkout or grant access.
+- Both subscriptions include Sniper Advanced Panel as a legacy companion with its own key and download; it has no separate checkout. The shared five-seat limit applies across included EAs. Admins/operators receive access through the same paid or manual grants. See `docs/sniper_panel_companion_rollout_runbook.md` for backfill and client compatibility.
+- Historical plans, Stripe price mappings, marketplace purchases, charges, and invoices remain stored for audit, but other retired products cannot start a new checkout or grant access.
 - Existing renewable Stripe subscriptions keep their current price and quantity through `current_period_end`. Seed reconciliation schedules the interval-matched Pandora price for the next period without immediate swaps or proration; subscriptions already ending are not renewed.
 - `Admin -> Subscription Audits` shows the effective access source, status, period, products, promotions/discounts, gross/refunds/net totals by currency, invoice history, manual grants, license status, token version, and safe processor references.
 - `Admin -> Manual Subscriptions -> New` finds users by email and grants Chu or Pandora access by plan and days without loading the full user table. A grant starts after the later of now or the user's current manual end. Complimentary and pending grants contribute `$0` settled revenue; a later paid Stripe subscription supersedes remaining manual access. Active or future manual grants can be revoked immediately while preserving their original period and an admin audit event.
@@ -258,7 +259,7 @@ sudo bash /opt/tradingsniperpanel-deploy/setup_staging.sh
   - `invoice.payment_action_required`
   - `payment_intent.succeeded`
   - `payment_intent.payment_failed`
-Scripts run `db:prepare`, `db:seed`, an idempotent `licenses:backfill_chu_subscription_licenses` apply pass, and `catalog:subscriptions:verify` as separate fail-closed steps on each deploy before assets and service restart. Keeping preparation and seeding in separate Rails processes avoids duplicate seed-load warnings on a newly initialized database. `catalog:pandora:verify` remains a compatibility alias. Seed profiles default to `prod_mirror` in production and `full_qa` in staging/development; both converge the active commerce catalog on Chu Sniper Trailing and Pandora Box and are safe to re-run.
+Scripts run `db:prepare`, `db:seed`, idempotent `licenses:backfill_chu_subscription_licenses` and `licenses:backfill_panel_subscription_licenses` apply passes, and `catalog:subscriptions:verify` as separate fail-closed steps on each deploy before assets and service restart. Keeping preparation and seeding in separate Rails processes avoids duplicate seed-load warnings on a newly initialized database. `catalog:pandora:verify` remains a compatibility alias. Seed profiles default to `prod_mirror` in production and `full_qa` in staging/development; both converge the active commerce catalog on Chu Sniper Trailing and Pandora Box and are safe to re-run.
 7) SSL files (production only):
 ```
 CERT_SRC_DIR="$(pwd)"

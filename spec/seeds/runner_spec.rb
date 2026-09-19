@@ -70,7 +70,7 @@ RSpec.describe "Seeds::Runner" do
       first_counts = catalog_counts
       Seeds::Runner.seed_prod_mirror!(allow_local: true)
 
-      expect(records.map(&:ea_id)).to contain_exactly("chu_sniper_trailing", "pandora_box")
+      expect(records.map(&:ea_id)).to contain_exactly("chu_sniper_trailing", "pandora_box", "sniper_advanced_panel")
       expect(BillingPlan.active.order(:key).pluck(:key)).to eq(Billing::SubscriptionCatalog.plan_keys.sort)
       expect(BillingPlan.find_by!(key: Billing::PandoraPricing::MONTHLY_KEY).amount_cents).to eq(7_900)
       expect(BillingPlan.find_by!(key: Billing::PandoraPricing::ANNUAL_KEY).amount_cents).to eq(61_620)
@@ -85,7 +85,7 @@ RSpec.describe "Seeds::Runner" do
       expect(old_history).not_to be_active
       expect(old_history.retired_at).to be_present
       expect(BillingPlan.for_price_id(old_history.stripe_price_id)).to eq(old_monthly)
-      expect(ExpertAdvisor.active.pluck(:ea_id)).to contain_exactly("chu_sniper_trailing", "pandora_box")
+      expect(ExpertAdvisor.active.pluck(:ea_id)).to contain_exactly("chu_sniper_trailing", "pandora_box", "sniper_advanced_panel")
       expect(stale_ea.reload.deleted_at).to be_present
       expect(stale_plan.reload).not_to be_active
       expect(marketplace_plan.reload).not_to be_active

@@ -15,8 +15,8 @@ role operations remain in `docs/discord_vip_rollout_runbook.md`.
 
 | Product | Tier | Stripe product | Monthly | Annual | Includes |
 | --- | --- | --- | ---: | ---: | --- |
-| Chu Sniper Trailing | `chu_sniper_trailing` | `Chu Sniper Trailing` | `$19.99` (`1999` cents) | `$155.92` (`15592` cents) | Chu EA/tool, Discord VIP |
-| Pandora Box | `pandora_pro` | `Pandora Box EA` | `$79.00` (`7900` cents) | `$616.20` (`61620` cents) | Pandora Box EA, Chu EA/tool, Discord VIP |
+| Chu Sniper Trailing | `chu_sniper_trailing` | `Chu Sniper Trailing` | `$19.99` (`1999` cents) | `$155.92` (`15592` cents) | Chu EA/tool, Sniper Advanced Panel, Discord VIP |
+| Pandora Box | `pandora_pro` | `Pandora Box EA` | `$79.00` (`7900` cents) | `$616.20` (`61620` cents) | Pandora Box EA, Chu EA/tool, Sniper Advanced Panel, Discord VIP |
 
 Canonical plan keys are `chu_sniper_trailing_monthly`,
 `chu_sniper_trailing_annual`, `pandora_pro_monthly`, and
@@ -25,12 +25,12 @@ Stripe product; Chu and Pandora use distinct Stripe products. Annual amounts
 use integer cents and the existing 35% discount (`monthly_cents * 12 * 65 /
 100`). Do not use floating point arithmetic.
 
-The persisted entitlement matrix is six rows:
+The persisted entitlement matrix is ten rows:
 
 | Subscription plan pair | EA entitlements |
 | --- | --- |
-| Chu monthly and annual | `chu_sniper_trailing` only |
-| Pandora monthly and annual | `pandora_box` and `chu_sniper_trailing` |
+| Chu monthly and annual | `chu_sniper_trailing` and `sniper_advanced_panel` |
+| Pandora monthly and annual | `pandora_box`, `chu_sniper_trailing`, and `sniper_advanced_panel` |
 
 Both canonical tiers have a shared five-seat subscription cap and are eligible
 for the configured Discord VIP role. Discord never grants Rails access. Chu is
@@ -69,6 +69,8 @@ RAILS_ENV=<staging-or-production> bin/rails db:prepare
 RAILS_ENV=<staging-or-production> bin/rails db:seed
 RAILS_ENV=<staging-or-production> DRY_RUN=false \
   bin/rails licenses:backfill_chu_subscription_licenses
+RAILS_ENV=<staging-or-production> DRY_RUN=false \
+  bin/rails licenses:backfill_panel_subscription_licenses
 RAILS_ENV=<staging-or-production> bin/rails catalog:subscriptions:verify
 RAILS_ENV=<staging-or-production> npm run build:css
 RAILS_ENV=<staging-or-production> bin/rails assets:precompile
@@ -79,9 +81,12 @@ separate Rails processes so a new database does not emit duplicate constant
 load warnings. The backfill is per-user,
 transactional, retryable, and safe to run again; it creates or repairs only a
 Chu subscription license for an active Pandora subscriber and never rotates a
-Pandora key. The catalog verifier fails closed on missing/wrong amounts,
+Pandora key. The separate Panel backfill adds its key for current Chu/Pandora
+access and preserves both other EA keys. See
+`docs/sniper_panel_companion_rollout_runbook.md` for Panel client compatibility
+and rollout checks. The catalog verifier fails closed on missing/wrong amounts,
 intervals, product associations, current price history, EA rows, or the exact
-six-row entitlement matrix. `catalog:pandora:verify` remains a compatibility
+ten-row entitlement matrix. `catalog:pandora:verify` remains a compatibility
 alias for operators, but it is not the deploy authority.
 
 Do not run a separate Pandora-only seed or retirement routine after Chu sales
@@ -146,7 +151,7 @@ references only:
   responses with both complete products.
 - Puma, Sidekiq, and Nginx/systemd units remain active; inspect recent logs for
   seed, backfill, webhook, license, Discord, and queue errors without payloads.
-- The catalog verifier reports four active canonical plans, two active EAs, six
+- The catalog verifier reports four active canonical plans, three active EAs, ten
   exact subscription entitlements, and no unexpected stale access.
 - Backfill progress has no failed user IDs; rerun failures by bounded user list
   and investigate before enabling new sales.

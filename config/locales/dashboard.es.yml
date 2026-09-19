@@ -538,6 +538,7 @@ es:
           description: "Gestión de posiciones por gráfico con protección trailing monotónica para flujos manuales y de scalping."
           features:
             - "EA/herramienta Chu Sniper Trailing"
+            - "Sniper Advanced Panel con su propia clave de licencia"
             - "Gestión de posiciones por símbolo"
             - "Escalera trailing basada en R"
             - "Controles de stop y riesgo según el broker"
@@ -548,6 +549,7 @@ es:
           features:
             - "Pandora Box EA"
             - "EA/herramienta Chu Sniper Trailing"
+            - "Sniper Advanced Panel con su propia clave de licencia"
             - "Breakout"
             - "Modos de Dirección"
             - "Configuración Flexible"

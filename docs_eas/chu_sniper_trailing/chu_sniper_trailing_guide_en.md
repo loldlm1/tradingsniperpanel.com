@@ -30,6 +30,10 @@ The license service verifies `chu_sniper_trailing` with the backend. It uses
 the shared verify and heartbeat protocol, and the backend supplies the runtime
 magic number. Daily-results reporting is not part of this product.
 
+Your subscription also includes Sniper Advanced Panel. Open that tool in the
+dashboard to copy its separate license key and download the existing Panel.
+Use each tool's own key; subscription expiration and the online-seat limit are shared.
+
 ## Panel controls
 
 - `SL / Trail (pts)`: initial stop distance and one risk unit (`1R`).

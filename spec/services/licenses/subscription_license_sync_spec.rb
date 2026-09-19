@@ -300,9 +300,11 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
     expect(pro_license.plan_interval).to eq("monthly")
   end
 
-  it "issues only the Chu entitlement for the canonical Chu plan" do
+  it "issues separate Chu and Panel entitlements for the canonical Chu plan" do
+    real_encoder = Licenses::LicenseKeyEncoder.new
     chu_ea = create(:expert_advisor, ea_id: "chu_sniper_trailing", allowed_subscription_tiers: [])
     pandora_ea = create(:expert_advisor, ea_id: "pandora_box", allowed_subscription_tiers: [])
+    panel_ea = create(:expert_advisor, ea_id: "sniper_advanced_panel", allowed_subscription_tiers: [])
     chu_plan = create(
       :billing_plan,
       tier: Billing::ChuSniperPricing::TIER,
@@ -313,6 +315,7 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
       stripe_product_id: "prod_chu"
     )
     create(:billing_plan_entitlement, billing_plan: chu_plan, expert_advisor: chu_ea)
+    create(:billing_plan_entitlement, billing_plan: chu_plan, expert_advisor: panel_ea)
 
     period_end = 1.month.from_now
     subscription = create_subscription(
@@ -320,7 +323,7 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
       current_period_end: period_end
     )
 
-    described_class.new(subscription_id: subscription.id, encoder: encoder).call
+    described_class.new(subscription_id: subscription.id, encoder: real_encoder).call
 
     chu_license = License.find_by!(user: user, expert_advisor: chu_ea)
     expect(chu_license).to be_active
@@ -331,11 +334,16 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
     )
     expect(chu_license.expires_at.to_i).to eq(period_end.to_i)
     expect(License.find_by(user: user, expert_advisor: pandora_ea)).to be_nil
+    panel_license = License.find_by!(user: user, expert_advisor: panel_ea)
+    expect(panel_license).to be_active
+    expect(panel_license.expires_at).to eq(chu_license.expires_at)
+    expect(panel_license.encrypted_key).not_to eq(chu_license.encrypted_key)
   end
 
-  it "issues both EA entitlements for the canonical Pandora plan" do
+  it "issues all three EA entitlements for the canonical Pandora plan" do
     chu_ea = create(:expert_advisor, ea_id: "chu_sniper_trailing", allowed_subscription_tiers: [])
     pandora_ea = create(:expert_advisor, ea_id: "pandora_box", allowed_subscription_tiers: [])
+    panel_ea = create(:expert_advisor, ea_id: "sniper_advanced_panel", allowed_subscription_tiers: [])
     pandora_plan = create(
       :billing_plan,
       tier: Billing::PandoraPricing::TIER,
@@ -346,6 +354,7 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
       stripe_product_id: "prod_pandora"
     )
     create(:billing_plan_entitlement, billing_plan: pandora_plan, expert_advisor: chu_ea)
+    create(:billing_plan_entitlement, billing_plan: pandora_plan, expert_advisor: panel_ea)
     create(:billing_plan_entitlement, billing_plan: pandora_plan, expert_advisor: pandora_ea)
 
     period_end = 1.month.from_now
@@ -356,8 +365,8 @@ RSpec.describe Licenses::SubscriptionLicenseSync do
 
     described_class.new(subscription_id: subscription.id, encoder: encoder).call
 
-    licenses = License.where(user: user, expert_advisor: [ chu_ea, pandora_ea ])
-    expect(licenses.pluck(:expert_advisor_id)).to contain_exactly(chu_ea.id, pandora_ea.id)
+    licenses = License.where(user: user, expert_advisor: [ chu_ea, pandora_ea, panel_ea ])
+    expect(licenses.pluck(:expert_advisor_id)).to contain_exactly(chu_ea.id, pandora_ea.id, panel_ea.id)
     expect(licenses).to all(
       have_attributes(
         status: "active",
